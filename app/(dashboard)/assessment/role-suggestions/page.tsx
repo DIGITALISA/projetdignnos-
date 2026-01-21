@@ -1,0 +1,397 @@
+﻿"use client";
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Target, Clock, CheckCircle, AlertCircle, Award, ArrowRight, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+interface RoleSuggestion {
+    title: string;
+    matchPercentage: number;
+    category: 'ready' | 'future';
+    description: string;
+    strengths: string[];
+    weaknesses: string[];
+    requiredCompetencies: string[];
+    timeToReady?: string;
+}
+
+export default function RoleSuggestionsPage() {
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [cvAnalysis, setCvAnalysis] = useState<any>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+    const [roleSuggestions, setRoleSuggestions] = useState<RoleSuggestion[]>([]);
+    const [expandedRole, setExpandedRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        const stored = localStorage.getItem('cvAnalysis');
+        const storedLanguage = localStorage.getItem('selectedLanguage');
+        const storedRoles = localStorage.getItem('roleSuggestions');
+
+        if (stored && storedRoles) {
+            const analysis = JSON.parse(stored);
+            const roles = JSON.parse(storedRoles);
+
+            setCvAnalysis(analysis);
+            setSelectedLanguage(storedLanguage || 'en');
+            setRoleSuggestions(roles);
+            setLoading(false);
+        } else {
+            router.push('/assessment/cv-upload');
+        }
+    }, [router]);
+
+    const selectRole = (role: RoleSuggestion) => {
+        // Store selected role for CV generation
+        localStorage.setItem('selectedRole', JSON.stringify(role));
+        router.push('/assessment/cv-generation');
+    };
+
+    if (loading) {
+        return (
+            <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-slate-600 text-lg">Analyzing career paths...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const readyRoles = roleSuggestions
+        .filter(r => r.category === 'ready')
+        .sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+    const futureRoles = roleSuggestions
+        .filter(r => r.category === 'future')
+        .sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+    // Separate high-match and low-match roles for better visual organization
+    const highMatchReady = readyRoles.filter(r => r.matchPercentage >= 70);
+    const mediumMatchReady = readyRoles.filter(r => r.matchPercentage >= 50 && r.matchPercentage < 70);
+    const lowMatchReady = readyRoles.filter(r => r.matchPercentage < 50);
+
+    const highMatchFuture = futureRoles.filter(r => r.matchPercentage >= 70);
+    const mediumMatchFuture = futureRoles.filter(r => r.matchPercentage >= 50 && r.matchPercentage < 70);
+    const lowMatchFuture = futureRoles.filter(r => r.matchPercentage < 50);
+
+    return (
+        <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+            {/* Header */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center"
+            >
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <Target className="w-10 h-10 text-white" />
+                </div>
+                <h1 className="text-4xl font-bold text-slate-900 mb-3">Career Path Recommendations</h1>
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                    Based on your CV analysis and career discovery, here are the most suitable roles for you
+                </p>
+            </motion.div>
+
+            {/* Instructions Banner */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200 p-4"
+            >
+                <div className="flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                    <p className="text-slate-700">
+                        {selectedLanguage === 'ar' ? (
+                            <>
+                                <strong>كيف يعمل:</strong> راجع الأدوار أدناه، وسّع التفاصيل لرؤية نقاط القوة والفجوات،
+                                ثم انقر على <strong className="text-purple-600">"التركيز على هذا الدور"</strong> لتوليد سيرتك الذاتية ورسالة التحفيز المخصصة!
+                            </>
+                        ) : selectedLanguage === 'fr' ? (
+                            <>
+                                <strong>Comment ça marche :</strong> Consultez les rôles ci-dessous, développez les détails pour voir les forces et les lacunes,
+                                puis cliquez sur <strong className="text-purple-600">"Se concentrer sur ce rôle"</strong> pour générer votre CV et lettre de motivation personnalisés !
+                            </>
+                        ) : selectedLanguage === 'es' ? (
+                            <>
+                                <strong>Cómo funciona:</strong> Revisa los roles a continuación, expande los detalles para ver fortalezas y brechas,
+                                luego haz clic en <strong className="text-purple-600">"Enfocarse en este rol"</strong> para generar tu CV y carta de presentación personalizados!
+                            </>
+                        ) : (
+                            <>
+                                <strong>How it works:</strong> Review the roles below, expand details to see strengths and gaps,
+                                then click <strong className="text-purple-600">"Focus on This Role"</strong> to generate your personalized CV and cover letter!
+                            </>
+                        )}
+                    </p>
+                </div>
+            </motion.div>
+
+            {/* Ready Now Roles */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+            >
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900">Ready Now - Short Term</h2>
+                        <p className="text-slate-600">Roles you can pursue immediately with your current skills</p>
+                    </div>
+                </div>
+
+                <div className="grid gap-4">
+                    {readyRoles.map((role, index) => (
+                        <RoleCard
+                            key={index}
+                            role={role}
+                            isExpanded={expandedRole === role.title}
+                            onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
+                            onSelect={() => selectRole(role)}
+                            color="green"
+                        />
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Future Roles */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+            >
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900">Future Goals - Long Term</h2>
+                        <p className="text-slate-600">Roles to work towards with skill development</p>
+                    </div>
+                </div>
+
+                <div className="grid gap-4">
+                    {futureRoles.map((role, index) => (
+                        <RoleCard
+                            key={index}
+                            role={role}
+                            isExpanded={expandedRole === role.title}
+                            onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
+                            onSelect={() => selectRole(role)}
+                            color="orange"
+                        />
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Continue Button */}
+            <div className="flex justify-center pt-8">
+                <button
+                    onClick={() => router.push('/assessment/results')}
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
+                >
+                    View Full Assessment Results
+                    <ArrowRight className="w-5 h-5" />
+                </button>
+            </div>
+        </div>
+    );
+}
+
+interface RoleCardProps {
+    role: RoleSuggestion;
+    isExpanded: boolean;
+    onToggle: () => void;
+    onSelect: () => void;
+    color: 'green' | 'orange';
+}
+
+function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps) {
+    const colorClasses = {
+        green: {
+            border: 'border-green-200',
+            bg: 'bg-green-50',
+            badge: 'bg-green-100 text-green-700 border-green-200',
+            button: 'bg-green-600 hover:bg-green-700',
+            icon: 'text-green-600',
+        },
+        orange: {
+            border: 'border-orange-200',
+            bg: 'bg-orange-50',
+            badge: 'bg-orange-100 text-orange-700 border-orange-200',
+            button: 'bg-orange-600 hover:bg-orange-700',
+            icon: 'text-orange-600',
+        },
+    };
+
+    const colors = colorClasses[color];
+
+    // Determine opacity and prominence based on match percentage
+    const isHighMatch = role.matchPercentage >= 70;
+    const isMediumMatch = role.matchPercentage >= 50 && role.matchPercentage < 70;
+    const isLowMatch = role.matchPercentage < 50;
+
+    const cardOpacity = isHighMatch ? 'opacity-100' : isMediumMatch ? 'opacity-75' : 'opacity-50';
+    const cardScale = isHighMatch ? 'scale-100' : 'scale-95';
+    const borderWidth = isHighMatch ? 'border-2' : 'border';
+    const shadowIntensity = isHighMatch ? 'hover:shadow-xl' : isMediumMatch ? 'hover:shadow-lg' : 'hover:shadow-md';
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`bg-white rounded-2xl ${borderWidth} ${colors.border} overflow-hidden transition-all ${shadowIntensity} ${cardOpacity} ${cardScale} relative`}
+        >
+            {/* High Match Badge */}
+            {isHighMatch && (
+                <div className="absolute top-4 right-4 z-10">
+                    <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        Top Match
+                    </div>
+                </div>
+            )}
+
+            {/* Low Match Indicator */}
+            {isLowMatch && (
+                <div className="absolute top-4 right-4 z-10">
+                    <div className="bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-medium">
+                        Stretch Goal
+                    </div>
+                </div>
+            )}
+            {/* Header */}
+            <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-2xl font-bold text-slate-900">{role.title}</h3>
+                            <span className={`px-3 py-1 rounded-full text-sm font-bold border ${colors.badge}`}>
+                                {role.matchPercentage}% Match
+                            </span>
+                        </div>
+                        <p className="text-slate-600">{role.description}</p>
+                        {role.timeToReady && (
+                            <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
+                                <Clock className="w-4 h-4" />
+                                <span>Time to ready: {role.timeToReady}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Match Bar */}
+                <div className="w-full bg-slate-200 rounded-full h-3 mb-4">
+                    <div
+                        className={`h-3 rounded-full transition-all duration-1000 ${color === 'green' ? 'bg-green-600' : 'bg-orange-600'}`}
+                        style={{ width: `${role.matchPercentage}%` }}
+                    />
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className={`p-3 ${colors.bg} rounded-xl text-center`}>
+                        <p className="text-xs text-slate-600 mb-1">Strengths</p>
+                        <p className={`text-lg font-bold ${colors.icon}`}>{role.strengths.length}</p>
+                    </div>
+                    <div className={`p-3 ${colors.bg} rounded-xl text-center`}>
+                        <p className="text-xs text-slate-600 mb-1">Gaps</p>
+                        <p className={`text-lg font-bold ${colors.icon}`}>{role.weaknesses.length}</p>
+                    </div>
+                    <div className={`p-3 ${colors.bg} rounded-xl text-center`}>
+                        <p className="text-xs text-slate-600 mb-1">Skills Needed</p>
+                        <p className={`text-lg font-bold ${colors.icon}`}>{role.requiredCompetencies.length}</p>
+                    </div>
+                </div>
+
+                {/* Toggle Details Button */}
+                <button
+                    onClick={onToggle}
+                    className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium flex items-center justify-center gap-2 transition-colors"
+                >
+                    {isExpanded ? (
+                        <>
+                            Hide Details <ChevronUp className="w-5 h-5" />
+                        </>
+                    ) : (
+                        <>
+                            View Details <ChevronDown className="w-5 h-5" />
+                        </>
+                    )}
+                </button>
+            </div>
+
+            {/* Expanded Details */}
+            {isExpanded && (
+                <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="border-t border-slate-200 p-6 bg-slate-50"
+                >
+                    <div className="grid md:grid-cols-3 gap-6 mb-6">
+                        {/* Strengths */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <h4 className="font-bold text-slate-900">Your Strengths</h4>
+                            </div>
+                            <ul className="space-y-2">
+                                {role.strengths.map((strength, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                        <span>{strength}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Weaknesses */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <AlertCircle className="w-5 h-5 text-red-600" />
+                                <h4 className="font-bold text-slate-900">Areas to Develop</h4>
+                            </div>
+                            <ul className="space-y-2">
+                                {role.weaknesses.map((weakness, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <span>{weakness}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Required Competencies */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Award className="w-5 h-5 text-blue-600" />
+                                <h4 className="font-bold text-slate-900">Required Skills</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {role.requiredCompetencies.map((comp, i) => (
+                                    <span key={i} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">
+                                        {comp}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Select Role Button */}
+                    <button
+                        onClick={onSelect}
+                        className={`w-full py-3 ${colors.button} text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2`}
+                    >
+                        <Sparkles className="w-5 h-5" />
+                        Focus on This Role
+                    </button>
+                </motion.div>
+            )}
+        </motion.div>
+    );
+}
