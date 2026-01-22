@@ -19,7 +19,7 @@ export default function DashboardLayout({
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-h-screen transition-all duration-300 md:pl-64">
+            <div className="flex-1 flex flex-col min-h-screen transition-all duration-300 md:pl-80">
 
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30">

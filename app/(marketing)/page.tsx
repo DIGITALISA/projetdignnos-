@@ -205,17 +205,28 @@ export default function Home() {
 
             {/* Footer */}
             <footer className="bg-white py-16 border-t border-slate-100">
-                <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white">
-                            <Sparkles className="w-4 h-4" />
+                <div className="container mx-auto px-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white">
+                                <Sparkles className="w-4 h-4" />
+                            </div>
+                            <span className="font-bold text-xl text-slate-900">CareerUpgrade</span>
                         </div>
-                        <span className="font-bold text-xl text-slate-900">CareerUpgrade</span>
+                        <p className="text-slate-500 text-sm text-center md:text-right">
+                            {t.footer.rights} <br className="hidden md:block" />
+                            {t.footer.tagline}
+                        </p>
                     </div>
-                    <p className="text-slate-500 text-sm text-center md:text-right">
-                        {t.footer.rights} <br className="hidden md:block" />
-                        {t.footer.tagline}
-                    </p>
+                    {/* Discreet Admin Link */}
+                    <div className="flex justify-center md:justify-start">
+                        <Link
+                            href="/admin"
+                            className="text-[10px] text-slate-200 hover:text-slate-400 transition-colors uppercase tracking-[0.2em] font-bold"
+                        >
+                            Administration
+                        </Link>
+                    </div>
                 </div>
             </footer>
         </div>

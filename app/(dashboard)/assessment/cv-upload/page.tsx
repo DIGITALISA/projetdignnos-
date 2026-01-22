@@ -48,10 +48,10 @@ export default function CVUploadPage() {
         setShowResults(false);
 
         try {
-            // Check file size (50MB = 50 * 1024 * 1024 bytes)
-            const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+            // Check file size (100MB = 100 * 1024 * 1024 bytes)
+            const maxSize = 100 * 1024 * 1024; // 100MB in bytes
             if (file.size > maxSize) {
-                throw new Error(`File size exceeds 50MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
+                throw new Error(`File size exceeds 100MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
             }
 
             let cvText = '';
@@ -253,7 +253,7 @@ export default function CVUploadPage() {
                                                 Drag & Drop your resume
                                             </h3>
                                             <p className="text-base text-slate-500">
-                                                Supports PDF, DOCX, TXT (Max 50MB)
+                                                Supports PDF, DOCX, TXT (Max 100MB)
                                             </p>
                                             <button className="mt-6 px-6 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium shadow-sm group-hover:border-blue-400 group-hover:text-blue-600 transition-colors">
                                                 Browse Files
