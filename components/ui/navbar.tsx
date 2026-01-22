@@ -12,7 +12,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
-    const { t } = useLanguage();
+    const { t, dir } = useLanguage();
 
     const navLinks = [
         { name: t.nav.home, href: "/" },
@@ -22,7 +22,7 @@ export function Navbar() {
     ];
 
     return (
-        <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+        <nav dir={dir} className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
@@ -61,7 +61,11 @@ export function Navbar() {
                         className="group relative px-4 py-2 rounded-lg bg-slate-900 text-sm font-medium text-white shadow-lg hover:bg-blue-600 hover:scale-105 transition-all duration-300"
                     >
                         <span className="relative z-10 flex items-center gap-1">
-                            {t.nav.workspace} <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                            {t.nav.workspace}
+                            <ChevronRight className={cn(
+                                "w-4 h-4 transition-transform",
+                                dir === 'rtl' ? "group-hover:-translate-x-0.5 rotate-180" : "group-hover:translate-x-0.5"
+                            )} />
                         </span>
                     </Link>
                 </div>

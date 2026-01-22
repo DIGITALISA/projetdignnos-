@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Search, UserPlus, Filter, MoreVertical, ShieldCheck, Mail, Calendar, Trash2, Edit2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, UserPlus, Filter, MoreVertical, ShieldCheck, Mail, Calendar, Trash2, Edit2, X, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-const participants = [
+const participantsData = [
     { id: 1, name: "Ahmed User", email: "ahmed@example.com", status: "Active", joinDate: "Jan 12, 2026", role: "Premium Member", courses: 3 },
     { id: 2, name: "Sarah Johnson", email: "sarah@example.com", status: "Active", joinDate: "Jan 15, 2026", role: "Free Tier", courses: 1 },
     { id: 3, name: "Michael Chen", email: "michael@example.com", status: "Inactive", joinDate: "Dec 28, 2025", role: "Premium Member", courses: 5 },
@@ -15,6 +15,25 @@ const participants = [
 
 export default function ParticipantsManagement() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        role: "Premium Member",
+        status: "Active"
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsSubmitting(false);
+        setIsAddModalOpen(false);
+        setFormData({ name: "", email: "", role: "Premium Member", status: "Active" });
+        alert("Participant added successfully!");
+    };
 
     return (
         <div className="space-y-8">
@@ -23,7 +42,10 @@ export default function ParticipantsManagement() {
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Participants</h1>
                     <p className="text-slate-500 mt-1">Manage user access and track their session progress.</p>
                 </div>
-                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all">
+                <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
+                >
                     <UserPlus size={20} />
                     Add Participant
                 </button>
@@ -67,7 +89,7 @@ export default function ParticipantsManagement() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {participants.map((user, idx) => (
+                            {participantsData.map((user, idx) => (
                                 <motion.tr
                                     key={user.id}
                                     initial={{ opacity: 0, x: -10 }}
@@ -143,6 +165,127 @@ export default function ParticipantsManagement() {
                     </div>
                 </div>
             </div>
+
+            {/* Add Participant Modal */}
+            <AnimatePresence>
+                {isAddModalOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[70] overflow-hidden border border-slate-200"
+                        >
+                            <div className="p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                            <UserPlus size={24} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-slate-900">Add Participant</h2>
+                                            <p className="text-sm text-slate-500">Create a new user profile</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsAddModalOpen(false)}
+                                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                placeholder="e.g. Jean Dupont"
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email Address</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                placeholder="email@example.com"
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Role</label>
+                                                <select
+                                                    className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900 appearance-none cursor-pointer"
+                                                    value={formData.role}
+                                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                                >
+                                                    <option>Premium Member</option>
+                                                    <option>Free Tier</option>
+                                                    <option>Beta User</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Status</label>
+                                                <select
+                                                    className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900 appearance-none cursor-pointer"
+                                                    value={formData.status}
+                                                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                                >
+                                                    <option>Active</option>
+                                                    <option>Pending</option>
+                                                    <option>Inactive</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAddModalOpen(false)}
+                                            className="flex-1 px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-bold transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="flex-[2] px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 size={20} className="animate-spin" />
+                                                    Adding...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Check size={20} />
+                                                    Create Account
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

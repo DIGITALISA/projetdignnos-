@@ -1,4 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
 @import "tailwindcss";
+
+.font-arabic {
+  font-family: 'Tajawal', sans-serif !important;
+}
 
 @theme {
   --color-border: hsl(214.3 31.8% 91.4%);

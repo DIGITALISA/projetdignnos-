@@ -2,308 +2,257 @@
 
 import { motion } from "framer-motion";
 import {
-    FileText,
-    Users,
     PlayCircle,
     Library,
     MessageSquare,
-    Shield,
     CheckCircle,
-    ArrowRight,
     Award,
     AlertTriangle,
-    Leaf,
-    ClipboardCheck
+    Cpu,
+    Target,
+    Zap,
+    TrendingUp,
+    ShieldCheck,
+    Globe
 } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function MethodologyPage() {
-    const qhseRoles = [
+    const { t, language, dir } = useLanguage();
+    const m = t.methodology;
+
+    const transformationStages = [
         {
-            category: "Quality Management",
-            icon: <Award className="w-6 h-6" />,
+            id: "01",
+            title: m.cycle.stage1.title,
+            subtitle: m.cycle.stage1.sub,
+            icon: Cpu,
+            description: m.cycle.stage1.desc,
             color: "blue",
-            positions: [
-                "Quality Manager",
-                "Quality Assurance Specialist",
-                "Quality Control Inspector",
-                "ISO Auditor",
-                "Six Sigma Black Belt",
-                "Quality Engineer"
-            ]
+            features: [m.cycle.stage1.f1, m.cycle.stage1.f2, m.cycle.stage1.f3]
         },
         {
-            category: "Health & Safety",
-            icon: <Shield className="w-6 h-6" />,
+            id: "02",
+            title: m.cycle.stage2.title,
+            subtitle: m.cycle.stage2.sub,
+            icon: AlertTriangle,
+            description: m.cycle.stage2.desc,
             color: "red",
-            positions: [
-                "HSE Manager",
-                "Safety Officer",
-                "Occupational Health Specialist",
-                "Safety Coordinator",
-                "Fire Safety Officer",
-                "Industrial Hygienist"
-            ]
+            features: [m.cycle.stage2.f1, m.cycle.stage2.f2, m.cycle.stage2.f3]
         },
         {
-            category: "Environmental Management",
-            icon: <Leaf className="w-6 h-6" />,
+            id: "03",
+            title: m.cycle.stage3.title,
+            subtitle: m.cycle.stage3.sub,
+            icon: PlayCircle,
+            description: m.cycle.stage3.desc,
             color: "green",
-            positions: [
-                "Environmental Manager",
-                "Sustainability Specialist",
-                "Environmental Compliance Officer",
-                "Waste Management Coordinator",
-                "EHS Consultant",
-                "Carbon Footprint Analyst"
-            ]
+            features: [m.cycle.stage3.f1, m.cycle.stage3.f2, m.cycle.stage3.f3]
         },
         {
-            category: "Compliance & Auditing",
-            icon: <ClipboardCheck className="w-6 h-6" />,
+            id: "04",
+            title: m.cycle.stage4.title,
+            subtitle: m.cycle.stage4.sub,
+            icon: Library,
+            description: m.cycle.stage4.desc,
+            color: "amber",
+            features: [m.cycle.stage4.f1, m.cycle.stage4.f2, m.cycle.stage4.f3]
+        },
+        {
+            id: "05",
+            title: m.cycle.stage5.title,
+            subtitle: m.cycle.stage5.sub,
+            icon: MessageSquare,
+            description: m.cycle.stage5.desc,
             color: "purple",
-            positions: [
-                "QHSE Auditor",
-                "Compliance Manager",
-                "Regulatory Affairs Specialist",
-                "Risk Assessment Specialist",
-                "Internal Auditor",
-                "Certification Specialist"
-            ]
+            features: [m.cycle.stage5.f1, m.cycle.stage5.f2, m.cycle.stage5.f3]
         }
     ];
 
-    const stages = [
-        {
-            number: "01",
-            title: "QHSE Profile Diagnosis",
-            icon: <FileText className="w-10 h-10" />,
-            description: "Comprehensive analysis of your QHSE experience, certifications, and competency gaps.",
-            features: [
-                "CV analysis for QHSE roles",
-                "ISO certifications verification",
-                "Risk assessment skills evaluation",
-                "Industry-specific compliance knowledge",
-                "Leadership and audit capabilities"
-            ],
-            color: "blue"
-        },
-        {
-            number: "02",
-            title: "QHSE Scenario Simulation",
-            icon: <AlertTriangle className="w-10 h-10" />,
-            description: "Real-world QHSE scenarios including incident investigations and audit simulations.",
-            features: [
-                "Workplace incident investigation",
-                "ISO audit simulations",
-                "Risk assessment exercises",
-                "Emergency response scenarios",
-                "Stakeholder communication practice"
-            ],
-            color: "red"
-        },
-        {
-            number: "03",
-            title: "QHSE Training Academy",
-            icon: <PlayCircle className="w-10 h-10" />,
-            description: "Specialized courses on ISO standards, safety regulations, and environmental compliance.",
-            features: [
-                "ISO 9001, 14001, 45001 training",
-                "NEBOSH and IOSH courses",
-                "Environmental legislation updates",
-                "Risk management methodologies",
-                "Leadership in QHSE"
-            ],
-            color: "green"
-        },
-        {
-            number: "04",
-            title: "QHSE Resource Library",
-            icon: <Library className="w-10 h-10" />,
-            description: "Access to standards, templates, checklists, and industry best practices.",
-            features: [
-                "ISO standards documentation",
-                "Audit checklists and templates",
-                "Risk assessment matrices",
-                "Incident report templates",
-                "QHSE policy examples"
-            ],
-            color: "orange"
-        },
-        {
-            number: "05",
-            title: "QHSE Expert Mentorship",
-            icon: <MessageSquare className="w-10 h-10" />,
-            description: "1-on-1 guidance from certified QHSE professionals and industry experts.",
-            features: [
-                "Career path planning in QHSE",
-                "Certification roadmap guidance",
-                "Interview preparation for QHSE roles",
-                "Industry networking strategies",
-                "Continuous professional development"
-            ],
-            color: "purple"
-        }
+    const valueProps = [
+        { title: t.features.cards.aiTools.title, desc: m.essence.precision, icon: Target },
+        { title: t.features.cards.certificates.title, desc: m.essence.recognition, icon: ShieldCheck },
+        { title: t.features.cards.achievements.title, desc: m.essence.speed, icon: Zap },
+        { title: m.essence.network.split(' ')[0], desc: m.essence.network, icon: Globe }
     ];
+
+    const isRtl = dir === 'rtl';
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className={cn("min-h-screen bg-slate-50 selection:bg-blue-100 italic-none", language === 'ar' ? 'font-arabic' : 'font-sans')} dir={dir}>
             <Navbar />
 
-            <main className="pt-24 pb-16">
+            <main className="pt-20">
                 {/* Hero Section */}
-                <section className="container mx-auto px-4 py-16 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="max-w-4xl mx-auto"
-                    >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-sm font-medium text-blue-600 mb-8">
-                            <Shield className="w-4 h-4" />
-                            QHSE Specialized Platform
-                        </div>
+                <section className="relative overflow-hidden pt-20 pb-16 lg:pt-32 lg:pb-24">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none opacity-20">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400 rounded-full blur-[120px]" />
+                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400 rounded-full blur-[120px]" />
+                    </div>
 
-                        <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
-                            Accelerate Your QHSE Career
-                        </h1>
-                        <p className="text-xl text-slate-600 leading-relaxed mb-4">
-                            The first AI-powered platform dedicated exclusively to Quality, Health, Safety, and Environment professionals.
-                        </p>
-                        <p className="text-lg text-slate-500">
-                            From ISO certifications to incident management, we cover every aspect of your QHSE journey.
-                        </p>
-                    </motion.div>
+                    <div className="container mx-auto px-4 relative z-10">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="max-w-4xl mx-auto text-center"
+                        >
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-black uppercase tracking-[0.2em] mb-8">
+                                <Zap className="w-3 h-3 text-blue-400" />
+                                {m.badge}
+                            </div>
+                            <h1 className="text-4xl lg:text-7xl font-bold text-slate-900 tracking-tight mb-8">
+                                {m.titlePre} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{m.titleHighlight}</span>
+                            </h1>
+                            <p className="text-lg lg:text-xl text-slate-600 leading-relaxed mb-10 max-w-2xl mx-auto">
+                                {m.subtitle}
+                            </p>
+                            <div className="flex flex-wrap items-center justify-center gap-4">
+                                <Link
+                                    href="/auth/register"
+                                    className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all"
+                                >
+                                    {m.ctaStart}
+                                </Link>
+                                <button className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+                                    {m.ctaVideo}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
                 </section>
 
-                {/* QHSE Roles Section */}
-                <section className="container mx-auto px-4 py-16">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-center mb-12"
-                    >
-                        <h2 className="text-4xl font-bold text-slate-900 mb-4">
-                            QHSE Career Paths We Support
-                        </h2>
-                        <p className="text-lg text-slate-600">
-                            Specialized training and guidance for all QHSE disciplines
-                        </p>
-                    </motion.div>
-
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-                        {qhseRoles.map((role, index) => (
+                {/* Core Essence Section */}
+                <section className="py-24 bg-white border-y border-slate-100">
+                    <div className="container mx-auto px-4">
+                        <div className="grid lg:grid-cols-2 gap-16 items-center">
                             <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3 + index * 0.1 }}
-                                className={`bg-white rounded-2xl border-2 border-${role.color}-100 p-6 hover:shadow-xl hover:border-${role.color}-300 transition-all`}
+                                initial={{ opacity: 0, x: isRtl ? 20 : -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                className="space-y-6"
                             >
-                                <div className={`w-14 h-14 rounded-xl bg-${role.color}-50 flex items-center justify-center text-${role.color}-600 mb-4`}>
-                                    {role.icon}
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-900 mb-4">{role.category}</h3>
-                                <ul className="space-y-2">
-                                    {role.positions.map((position, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
-                                            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                            {position}
-                                        </li>
+                                <h2 className="text-4xl font-bold text-slate-900">{m.essence.title}</h2>
+                                <p className="text-lg text-slate-600 leading-relaxed whitespace-pre-line">
+                                    {m.essence.desc}
+                                </p>
+                                <div className="grid grid-cols-2 gap-6 pt-6">
+                                    {valueProps.map((prop, i) => (
+                                        <div key={i} className="space-y-2">
+                                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                                <prop.icon size={20} />
+                                            </div>
+                                            <h4 className="font-bold text-slate-900">{prop.title}</h4>
+                                            <p className="text-xs text-slate-500 leading-relaxed">{prop.desc}</p>
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
+                            </motion.div>
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                className="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-900 aspect-video flex items-center justify-center group"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent" />
+                                <div className="relative z-10 flex flex-col items-center gap-4">
+                                    <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 group-hover:scale-110 transition-transform cursor-pointer">
+                                        <PlayCircle size={40} fill="currentColor" className={isRtl ? "mr-1" : "ml-1"} />
+                                    </div>
+                                    <span className="text-white font-bold tracking-widest uppercase text-xs">{m.ctaVideo}</span>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* The 5-Stage Cycle */}
+                <section className="py-24 bg-slate-50">
+                    <div className="container mx-auto px-4 text-center mb-20">
+                        <h2 className="text-4xl font-bold text-slate-900 mb-4">{m.cycle.title}</h2>
+                        <p className="text-slate-500 max-w-xl mx-auto">{m.cycle.subtitle}</p>
+                    </div>
+
+                    <div className="container mx-auto px-4 space-y-24">
+                        {transformationStages.map((stage, idx) => (
+                            <motion.div
+                                key={stage.id}
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: "-100px" }}
+                                className={cn(
+                                    "flex flex-col items-center gap-8 lg:gap-20",
+                                    idx % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
+                                )}
+                            >
+                                <div className="flex-1 space-y-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-6xl font-black text-slate-200">{stage.id}</div>
+                                        <div className="h-px flex-1 bg-slate-200" />
+                                    </div>
+                                    <h3 className="text-3xl font-bold text-slate-900">{stage.title}</h3>
+                                    <p className="text-blue-600 font-bold text-sm tracking-wide uppercase italic-none">{stage.subtitle}</p>
+                                    <p className="text-slate-600 text-lg leading-relaxed">{stage.description}</p>
+                                    <div className="grid sm:grid-cols-2 gap-3 pt-4">
+                                        {stage.features.map((f, i) => (
+                                            <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                                <CheckCircle className="w-4 h-4 text-blue-500" />
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">{f}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex-1 w-full max-w-md">
+                                    <div className={cn(
+                                        "aspect-square rounded-[3rem] p-12 flex items-center justify-center relative bg-white border border-slate-100 shadow-xl"
+                                    )}>
+                                        <div className={cn(
+                                            "w-full h-full rounded-[2.5rem] flex items-center justify-center bg-slate-50 text-slate-600 transition-colors group-hover:bg-opacity-80"
+                                        )}>
+                                            <stage.icon size={80} strokeWidth={1.5} className={cn(
+                                                stage.color === "blue" ? "text-blue-600" :
+                                                    stage.color === "red" ? "text-red-600" :
+                                                        stage.color === "green" ? "text-green-600" :
+                                                            stage.color === "amber" ? "text-amber-600" :
+                                                                "text-purple-600"
+                                            )} />
+                                        </div>
+                                        <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-3xl bg-slate-900 text-white flex items-center justify-center shadow-2xl">
+                                            <TrendingUp size={32} />
+                                        </div>
+                                    </div>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
                 </section>
 
-                {/* Stages Section */}
-                <section className="bg-white py-16">
-                    <div className="container mx-auto px-4">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="text-center mb-16"
-                        >
-                            <h2 className="text-4xl font-bold text-slate-900 mb-4">
-                                Your 5-Stage QHSE Development Journey
-                            </h2>
-                            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-                                A proven methodology designed specifically for QHSE professionals at every career level
-                            </p>
-                        </motion.div>
-
-                        <div className="space-y-12">
-                            {stages.map((stage, index) => (
-                                <motion.div
-                                    key={stage.number}
-                                    initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className={`flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 items-center`}
-                                >
-                                    {/* Icon & Number */}
-                                    <div className="flex-shrink-0">
-                                        <div className={`relative w-32 h-32 rounded-2xl bg-${stage.color}-50 flex items-center justify-center text-${stage.color}-600`}>
-                                            {stage.icon}
-                                            <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-lg">
-                                                {stage.number}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 bg-slate-50 rounded-2xl p-8">
-                                        <h3 className="text-2xl font-bold text-slate-900 mb-3">{stage.title}</h3>
-                                        <p className="text-slate-600 mb-6">{stage.description}</p>
-
-                                        <div className="grid md:grid-cols-2 gap-3">
-                                            {stage.features.map((feature, idx) => (
-                                                <div key={idx} className="flex items-start gap-2">
-                                                    <ArrowRight className={`w-5 h-5 text-${stage.color}-600 flex-shrink-0 mt-0.5`} />
-                                                    <span className="text-sm text-slate-700">{feature}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* CTA Section */}
-                <section className="container mx-auto px-4 py-16">
+                {/* Final CTA */}
+                <section className="py-24 container mx-auto px-4">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 rounded-3xl p-12 text-center text-white"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        className="bg-slate-900 rounded-[3rem] p-12 lg:p-24 text-center text-white relative overflow-hidden"
                     >
-                        <div className="flex items-center justify-center gap-3 mb-6">
-                            <Shield className="w-12 h-12" />
-                            <Award className="w-12 h-12" />
-                            <Leaf className="w-12 h-12" />
-                        </div>
-                        <h2 className="text-4xl font-bold mb-4">Ready to Advance Your QHSE Career?</h2>
-                        <p className="text-xl mb-8 opacity-90">
-                            Join QHSE professionals who are mastering ISO standards, safety protocols, and environmental compliance
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                        <h2 className="text-3xl lg:text-5xl font-bold mb-6">{m.ctaFinal.title}</h2>
+                        <p className="text-lg lg:text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
+                            {m.ctaFinal.desc}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
-                                href="/dashboard"
-                                className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-slate-100 transition-all shadow-xl"
+                                href="/auth/register"
+                                className="px-10 py-5 bg-white text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all"
                             >
-                                Start Your QHSE Journey
+                                {m.ctaFinal.btnStart}
                             </Link>
                             <Link
                                 href="/pricing"
-                                className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl font-semibold hover:bg-white/10 transition-all"
+                                className="px-10 py-5 bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-white/10 transition-all"
                             >
-                                View Pricing
+                                {m.ctaFinal.btnPlans}
                             </Link>
                         </div>
                     </motion.div>
