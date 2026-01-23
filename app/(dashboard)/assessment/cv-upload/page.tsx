@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, CheckCircle, Loader2, FileText, AlertCircle, TrendingUp, TrendingDown, Target, Award, ArrowRight, BookOpen, Globe, Check } from "lucide-react";
+import { UploadCloud, CheckCircle, Loader2, FileText, AlertCircle, TrendingUp, TrendingDown, Target, Award, ArrowRight, BookOpen, Globe, Check, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const LANGUAGES = [
     { code: 'en', name: 'English', flag: '🇬🇧', nativeName: 'English' },
@@ -14,6 +16,7 @@ const LANGUAGES = [
 
 export default function CVUploadPage() {
     const router = useRouter();
+    const resultsRef = useRef<HTMLDivElement>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -21,8 +24,173 @@ export default function CVUploadPage() {
     const [fileName, setFileName] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<any>(null);
     const [showResults, setShowResults] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isCheckingProgress, setIsCheckingProgress] = useState(true);
+
+    useEffect(() => {
+        const checkProgress = async () => {
+            try {
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName;
+
+                let sessionFound = false;
+
+                // 1. Try to fetch active session from API if user exists
+                if (userId) {
+                    try {
+                        const res = await fetch(`/api/assessment/progress?userId=${encodeURIComponent(userId)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+
+                            if (data.hasActiveSession) {
+                                sessionFound = true;
+                                if (data.currentStep === 'interview_in_progress') {
+                                    if (data.analysis) localStorage.setItem('cvAnalysis', JSON.stringify(data.analysis));
+                                    if (data.language) localStorage.setItem('selectedLanguage', data.language);
+                                    router.push("/assessment/interview");
+                                    return;
+                                }
+
+                                if (data.currentStep === 'analysis_complete' && data.analysis) {
+                                    setAnalysisResult(data.analysis);
+                                    setUploadComplete(true);
+                                    setShowResults(true);
+                                    if (data.language) setSelectedLanguage(data.language);
+
+                                    localStorage.setItem('cvAnalysis', JSON.stringify(data.analysis));
+                                    localStorage.setItem('selectedLanguage', data.language || 'en');
+                                } else if (data.currentStep === 'interview_complete' || data.currentStep === 'completed') {
+                                    router.push("/assessment/results");
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error("API check failed", err);
+                    }
+                }
+
+                // 2. Fallback to LocalStorage if no API session found (Guest or API error)
+                if (!sessionFound) {
+                    const localAnalysis = localStorage.getItem('cvAnalysis');
+                    const localLanguage = localStorage.getItem('selectedLanguage');
+
+                    if (localAnalysis) {
+                        try {
+                            const parsedAnalysis = JSON.parse(localAnalysis);
+                            if (parsedAnalysis && parsedAnalysis.overallScore) {
+                                setAnalysisResult(parsedAnalysis);
+                                setUploadComplete(true);
+                                setShowResults(true);
+                                if (localLanguage) setSelectedLanguage(localLanguage);
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse local analysis", e);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error checking progress:", error);
+            } finally {
+                setIsCheckingProgress(false);
+            }
+        };
+
+        checkProgress();
+    }, [router]);
+
+    const handleDownloadReport = async () => {
+        if (!resultsRef.current) return;
+
+        setIsDownloading(true);
+        try {
+            // 1. Clone the results element to manipulate it safely
+            const element = resultsRef.current;
+            const clone = element.cloneNode(true) as HTMLElement;
+
+            // 2. Cleanup the clone: Remove the download button and other UI elements
+            const ignoreElements = clone.querySelectorAll('[data-html2canvas-ignore], button');
+            ignoreElements.forEach(el => el.remove());
+
+            // 3. Robust Fix for 'lab()' and other unsupported color functions
+            // We traverse all elements and replace any color that might cause html2canvas to fail
+            const allElements = clone.querySelectorAll('*');
+            allElements.forEach(el => {
+                const htmlEl = el as HTMLElement;
+                // Force a background color if it's potentially using something weird
+                // but usually, it's enough to just let it be if we're not using lab() explicitly.
+                // However, Tailwind/Modern browsers might.
+                // Let's strip any 'lab(' from style attributes if present
+                if (htmlEl.getAttribute('style')?.includes('lab(')) {
+                    htmlEl.style.color = 'inherit';
+                    htmlEl.style.backgroundColor = 'transparent';
+                }
+            });
+
+            // 4. Append clone to body (off-screen)
+            clone.style.position = "absolute";
+            clone.style.left = "-9999px";
+            clone.style.top = "0";
+            clone.style.width = `${element.offsetWidth}px`;
+            document.body.appendChild(clone);
+
+            // 5. Capture the canvas
+            const canvas = await html2canvas(clone, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: "#ffffff",
+                scrollX: 0,
+                scrollY: 0,
+                onclone: (clonedDoc) => {
+                    // Final safety check on the internal clone of html2canvas
+                    const styles = clonedDoc.getElementsByTagName('style');
+                    for (let i = 0; i < styles.length; i++) {
+                        if (styles[i].innerHTML.includes('lab(')) {
+                            styles[i].innerHTML = styles[i].innerHTML.replace(/lab\([^)]+\)/g, '#000000');
+                        }
+                    }
+                }
+            });
+
+            // 6. Remove clone from DOM
+            document.body.removeChild(clone);
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            // Add first page
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdfHeight;
+
+            // Add subsequent pages if content overflows
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`CV-Analysis-Report-${fileName?.replace(/\s+/g, '-') || 'Expert'}.pdf`);
+        } catch (error) {
+            console.error("PDF generation failed:", error);
+            alert("Failed to generate PDF report: " + (error instanceof Error ? error.message : "Internal Error"));
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const handleDragOver = (e: React.DragEvent) => {
+        // ... existing drag logic ...
         e.preventDefault();
         setIsDragOver(true);
     };
@@ -43,15 +211,16 @@ export default function CVUploadPage() {
     };
 
     const processFile = async (file: File) => {
+        // ... existing process logic ...
         setFileName(file.name);
         setIsUploading(true);
         setShowResults(false);
 
         try {
-            // Check file size (100MB = 100 * 1024 * 1024 bytes)
-            const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+            // Check file size (500MB = 500 * 1024 * 1024 bytes)
+            const maxSize = 500 * 1024 * 1024; // 500MB in bytes
             if (file.size > maxSize) {
-                throw new Error(`File size exceeds 100MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
+                throw new Error(`File size exceeds 500MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
             }
 
             let cvText = '';
@@ -73,13 +242,20 @@ export default function CVUploadPage() {
 
             console.log('Sending CV text to API:', cvText.substring(0, 200) + '...');
 
+            // Get user info from localStorage
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName || 'anonymous';
+            const userName = userProfile.fullName || 'Anonymous User';
+
             // Call AI Analysis API with selected language
             const response = await fetch('/api/analyze-cv', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     cvText,
-                    language: selectedLanguage || 'en'
+                    language: selectedLanguage || 'en',
+                    userId,
+                    userName
                 }),
             });
 
@@ -253,7 +429,7 @@ export default function CVUploadPage() {
                                                 Drag & Drop your resume
                                             </h3>
                                             <p className="text-base text-slate-500">
-                                                Supports PDF, DOCX, TXT (Max 100MB)
+                                                Supports PDF, DOCX, TXT (Max 500MB)
                                             </p>
                                             <button className="mt-6 px-6 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium shadow-sm group-hover:border-blue-400 group-hover:text-blue-600 transition-colors">
                                                 Browse Files
@@ -308,188 +484,204 @@ export default function CVUploadPage() {
                         </div>
                     </motion.div>
                 ) : (
-                    // Results Section (same as before)
+                    // Results Section
                     <motion.div
                         key="results"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-6"
                     >
-                        {/* Header */}
-                        <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
-                            <div className="flex items-start justify-between mb-4">
-                                <div>
-                                    <h1 className="text-3xl font-bold text-slate-900 mb-2">CV Analysis Results</h1>
-                                    <p className="text-slate-500">Honest feedback from our AI HR Expert</p>
+                        {/* Wrapper div for PDF capture */}
+                        <div ref={resultsRef} style={{ backgroundColor: "#f8fafc", padding: "24px", borderRadius: "12px", fontFamily: "sans-serif" }}>
+
+                            {/* Header */}
+                            <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", marginBottom: "24px", position: "relative", overflow: "hidden" }}>
+                                <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", marginBottom: "16px" }}>
+                                    <div>
+                                        <h1 style={{ fontSize: "30px", fontWeight: "bold", color: "#0f172a", marginBottom: "8px" }}>CV Analysis Results</h1>
+                                        <p style={{ color: "#64748b" }}>Honest feedback from our AI HR Expert</p>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 16px", backgroundColor: "#eff6ff", borderRadius: "12px", border: "1px solid #dbeafe" }}>
+                                            <Award style={{ width: "20px", height: "20px", color: "#2563eb" }} />
+                                            <div style={{ textAlign: "right" }}>
+                                                <p style={{ fontSize: "12px", color: "#64748b", fontWeight: "500", margin: 0 }}>Overall Score</p>
+                                                <p style={{ fontSize: "24px", fontWeight: "bold", color: "#2563eb", margin: 0 }}>{analysisResult?.overallScore || 0}/100</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleDownloadReport}
+                                            disabled={isDownloading}
+                                            data-html2canvas-ignore
+                                            className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors bg-white border border-blue-200 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md"
+                                        >
+                                            {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                            {isDownloading ? 'Generating...' : 'Download Report'}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 rounded-xl border border-blue-100">
-                                    <Award className="w-5 h-5 text-blue-600" />
-                                    <div className="text-right">
-                                        <p className="text-xs text-slate-500 font-medium">Overall Score</p>
-                                        <p className="text-2xl font-bold text-blue-600">{analysisResult?.overallScore || 0}/100</p>
+
+                                {/* Verdict */}
+                                <div style={{ backgroundColor: "#eff6ff", borderRadius: "12px", padding: "16px", borderLeft: "4px solid #3b82f6", position: "relative", zIndex: 10 }}>
+                                    <p style={{ color: "#334155", fontWeight: "500", fontStyle: "italic", margin: 0 }}>"{analysisResult?.verdict}"</p>
+                                </div>
+                            </div>
+
+                            {/* Overview */}
+                            <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", marginBottom: "24px" }}>
+                                <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#0f172a", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <Target style={{ width: "20px", height: "20px", color: "#9333ea" }} />
+                                    Profile Overview
+                                </h2>
+                                <p style={{ color: "#475569", lineHeight: "1.6" }}>{analysisResult?.overview}</p>
+                            </div>
+
+                            {/* Strengths & Weaknesses */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
+                                {/* Strengths */}
+                                <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #bbf7d0", padding: "24px" }}>
+                                    <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#15803d", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <TrendingUp style={{ width: "20px", height: "20px" }} />
+                                        Key Strengths
+                                    </h2>
+                                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                                        {analysisResult?.strengths?.map((strength: string, i: number) => (
+                                            <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", color: "#334155", marginBottom: "8px" }}>
+                                                <CheckCircle style={{ width: "20px", height: "20px", color: "#22c55e", flexShrink: 0, marginTop: "2px" }} />
+                                                <span>{strength}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Weaknesses */}
+                                <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #fecaca", padding: "24px" }}>
+                                    <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#b91c1c", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <TrendingDown style={{ width: "20px", height: "20px" }} />
+                                        Critical Weaknesses
+                                    </h2>
+                                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                                        {analysisResult?.weaknesses?.map((weakness: string, i: number) => (
+                                            <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", color: "#334155", marginBottom: "8px" }}>
+                                                <AlertCircle style={{ width: "20px", height: "20px", color: "#ef4444", flexShrink: 0, marginTop: "2px" }} />
+                                                <span>{weakness}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Skills Assessment */}
+                            <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", marginBottom: "24px" }}>
+                                <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#0f172a", marginBottom: "16px" }}>Skills Assessment</h2>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
+                                    <div>
+                                        <h3 style={{ fontWeight: "bold", color: "#1d4ed8", marginBottom: "8px" }}>Technical Skills</h3>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                            {analysisResult?.skills?.technical?.map((skill: string, i: number) => (
+                                                <span key={i} style={{ padding: "4px 12px", backgroundColor: "#eff6ff", color: "#1d4ed8", borderRadius: "9999px", fontSize: "14px", fontWeight: "500", border: "1px solid #dbeafe" }}>
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontWeight: "bold", color: "#7e22ce", marginBottom: "8px" }}>Soft Skills</h3>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                            {analysisResult?.skills?.soft?.map((skill: string, i: number) => (
+                                                <span key={i} style={{ padding: "4px 12px", backgroundColor: "#faf5ff", color: "#7e22ce", borderRadius: "9999px", fontSize: "14px", fontWeight: "500", border: "1px solid #f3e8ff" }}>
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontWeight: "bold", color: "#c2410c", marginBottom: "8px" }}>Skills Gaps</h3>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                            {analysisResult?.skills?.gaps?.map((skill: string, i: number) => (
+                                                <span key={i} style={{ padding: "4px 12px", backgroundColor: "#fff7ed", color: "#c2410c", borderRadius: "9999px", fontSize: "14px", fontWeight: "500", border: "1px solid #ffedd5" }}>
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Verdict */}
-                            <div className="bg-slate-50 rounded-xl p-4 border-l-4 border-blue-500">
-                                <p className="text-slate-700 font-medium italic">"{analysisResult?.verdict}"</p>
+                            {/* Experience & Education */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
+                                <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px" }}>
+                                    <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#0f172a", marginBottom: "16px" }}>Experience</h2>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <span style={{ color: "#475569" }}>Years:</span>
+                                            <span style={{ fontWeight: "bold", color: "#0f172a" }}>{analysisResult?.experience?.years} years</span>
+                                        </div>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <span style={{ color: "#475569" }}>Level:</span>
+                                            <span style={{ fontWeight: "bold", color: "#2563eb" }}>{analysisResult?.experience?.quality}</span>
+                                        </div>
+                                        <div style={{ paddingTop: "12px", borderTop: "1px solid #e2e8f0" }}>
+                                            <p style={{ fontSize: "14px", color: "#475569" }}>{analysisResult?.experience?.progression}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px" }}>
+                                    <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#0f172a", marginBottom: "16px" }}>Education</h2>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <span style={{ color: "#475569" }}>Level:</span>
+                                            <span style={{ fontWeight: "bold", color: "#0f172a" }}>{analysisResult?.education?.level}</span>
+                                        </div>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <span style={{ color: "#475569" }}>Relevance:</span>
+                                            <span style={{
+                                                fontWeight: "bold",
+                                                color: analysisResult?.education?.relevance === 'High' ? '#16a34a' :
+                                                    analysisResult?.education?.relevance === 'Medium' ? '#ca8a04' : '#dc2626'
+                                            }}>{analysisResult?.education?.relevance}</span>
+                                        </div>
+                                        <div style={{ paddingTop: "12px", borderTop: "1px solid #e2e8f0" }}>
+                                            <p style={{ fontSize: "14px", color: "#475569" }}>{analysisResult?.education?.notes}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Overview */}
-                        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
-                                <Target className="w-5 h-5 text-purple-600" />
-                                Profile Overview
-                            </h2>
-                            <p className="text-slate-600 leading-relaxed">{analysisResult?.overview}</p>
-                        </div>
-
-                        {/* Strengths & Weaknesses */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {/* Strengths */}
-                            <div className="bg-white rounded-2xl border border-green-200 p-6">
-                                <h2 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
-                                    <TrendingUp className="w-5 h-5" />
-                                    Key Strengths
+                            {/* Immediate Actions */}
+                            <div style={{ background: "linear-gradient(to bottom right, #eff6ff, #faf5ff)", borderRadius: "16px", border: "1px solid #bfdbfe", padding: "24px", marginBottom: "24px" }}>
+                                <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#0f172a", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <BookOpen style={{ width: "20px", height: "20px", color: "#2563eb" }} />
+                                    Top 3 Immediate Actions
                                 </h2>
-                                <ul className="space-y-2">
-                                    {analysisResult?.strengths?.map((strength: string, i: number) => (
-                                        <li key={i} className="flex items-start gap-2 text-slate-700">
-                                            <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                                            <span>{strength}</span>
+                                <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "12px" }}>
+                                    {analysisResult?.immediateActions?.map((action: string, i: number) => (
+                                        <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                                            <span style={{ flexShrink: 0, width: "28px", height: "28px", borderRadius: "9999px", backgroundColor: "#2563eb", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "14px" }}>
+                                                {i + 1}
+                                            </span>
+                                            <span style={{ color: "#334155", paddingTop: "2px" }}>{action}</span>
                                         </li>
                                     ))}
-                                </ul>
+                                </ol>
                             </div>
 
-                            {/* Weaknesses */}
-                            <div className="bg-white rounded-2xl border border-red-200 p-6">
-                                <h2 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
-                                    <TrendingDown className="w-5 h-5" />
-                                    Critical Weaknesses
-                                </h2>
-                                <ul className="space-y-2">
-                                    {analysisResult?.weaknesses?.map((weakness: string, i: number) => (
-                                        <li key={i} className="flex items-start gap-2 text-slate-700">
-                                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                                            <span>{weakness}</span>
-                                        </li>
+                            {/* Career Paths */}
+                            <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px" }}>
+                                <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#0f172a", marginBottom: "16px" }}>Recommended Career Paths</h2>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                    {analysisResult?.careerPaths?.map((path: string, i: number) => (
+                                        <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", backgroundColor: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                                            <ArrowRight style={{ width: "20px", height: "20px", color: "#2563eb", flexShrink: 0 }} />
+                                            <span style={{ color: "#334155", fontWeight: "500" }}>{path}</span>
+                                        </div>
                                     ))}
-                                </ul>
-                            </div>
-                        </div>
-
-                        {/* Skills Assessment */}
-                        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-4">Skills Assessment</h2>
-                            <div className="grid md:grid-cols-3 gap-6">
-                                <div>
-                                    <h3 className="font-bold text-blue-700 mb-2">Technical Skills</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysisResult?.skills?.technical?.map((skill: string, i: number) => (
-                                            <span key={i} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">
-                                                {skill}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-purple-700 mb-2">Soft Skills</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysisResult?.skills?.soft?.map((skill: string, i: number) => (
-                                            <span key={i} className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium border border-purple-100">
-                                                {skill}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-orange-700 mb-2">Skills Gaps</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysisResult?.skills?.gaps?.map((skill: string, i: number) => (
-                                            <span key={i} className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium border border-orange-100">
-                                                {skill}
-                                            </span>
-                                        ))}
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Experience & Education */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                                <h2 className="text-xl font-bold text-slate-900 mb-4">Experience</h2>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-600">Years:</span>
-                                        <span className="font-bold text-slate-900">{analysisResult?.experience?.years} years</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-600">Level:</span>
-                                        <span className="font-bold text-blue-600">{analysisResult?.experience?.quality}</span>
-                                    </div>
-                                    <div className="pt-3 border-t">
-                                        <p className="text-sm text-slate-600">{analysisResult?.experience?.progression}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                                <h2 className="text-xl font-bold text-slate-900 mb-4">Education</h2>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-600">Level:</span>
-                                        <span className="font-bold text-slate-900">{analysisResult?.education?.level}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-600">Relevance:</span>
-                                        <span className={`font-bold ${analysisResult?.education?.relevance === 'High' ? 'text-green-600' :
-                                            analysisResult?.education?.relevance === 'Medium' ? 'text-yellow-600' :
-                                                'text-red-600'
-                                            }`}>{analysisResult?.education?.relevance}</span>
-                                    </div>
-                                    <div className="pt-3 border-t">
-                                        <p className="text-sm text-slate-600">{analysisResult?.education?.notes}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Immediate Actions */}
-                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <BookOpen className="w-5 h-5 text-blue-600" />
-                                Top 3 Immediate Actions
-                            </h2>
-                            <ol className="space-y-3">
-                                {analysisResult?.immediateActions?.map((action: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-3">
-                                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                                            {i + 1}
-                                        </span>
-                                        <span className="text-slate-700 pt-0.5">{action}</span>
-                                    </li>
-                                ))}
-                            </ol>
-                        </div>
-
-                        {/* Career Paths */}
-                        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-4">Recommended Career Paths</h2>
-                            <div className="grid md:grid-cols-2 gap-3">
-                                {analysisResult?.careerPaths?.map((path: string, i: number) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                                        <ArrowRight className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                                        <span className="text-slate-700 font-medium">{path}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
+                        {/* Action Buttons - Outside of PDF Capture */}
                         <div className="flex gap-4 justify-center pt-4">
                             <button
                                 onClick={resetUpload}

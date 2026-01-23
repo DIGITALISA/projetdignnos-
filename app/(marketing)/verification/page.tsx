@@ -3,24 +3,57 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, Search, ShieldCheck } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function VerificationPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <VerificationContent />
+        </Suspense>
+    );
+}
+
+function VerificationContent() {
+    const searchParams = useSearchParams();
     const [certId, setCertId] = useState("");
     const [status, setStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
 
-    const handleVerify = (e: React.FormEvent) => {
-        e.preventDefault();
-        setStatus('loading');
+    useEffect(() => {
+        const id = searchParams.get('id');
+        if (id) {
+            setCertId(id);
+            // We need to call the verify logic. I'll refactor handleVerify to be callable.
+            triggerVerify(id);
+        }
+    }, [searchParams]);
 
-        // Simulate API Call
-        setTimeout(() => {
-            if (certId.toUpperCase().startsWith("CERT")) {
+    const [result, setResult] = useState<any>(null);
+
+    const triggerVerify = async (id: string) => {
+        setStatus('loading');
+        setResult(null);
+
+        try {
+            const response = await fetch(`/api/verify-document?id=${id.trim().toUpperCase()}`);
+            const data = await response.json();
+
+            if (data.success) {
+                setResult(data.data);
                 setStatus('valid');
             } else {
                 setStatus('invalid');
             }
-        }, 1500);
+        } catch (error) {
+            console.error("Verification error:", error);
+            setStatus('invalid');
+        }
+    };
+
+    const handleVerify = async (e: React.FormEvent) => {
+        e.preventDefault();
+        triggerVerify(certId);
     };
 
     return (
@@ -88,12 +121,12 @@ export default function VerificationPage() {
                                     <CheckCircle2 className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-green-800">Valid Certificate Found</h3>
+                                    <h3 className="text-lg font-bold text-green-800">Verified {result?.type === 'recommendation' ? 'Recommendation' : 'Certificate'} Found</h3>
                                     <div className="mt-2 space-y-1 text-sm text-green-700">
-                                        <p><span className="font-semibold">Student:</span> Ahmed User</p>
-                                        <p><span className="font-semibold">Course:</span> Advanced Product Management</p>
-                                        <p><span className="font-semibold">Issued:</span> Jan 20, 2026</p>
-                                        <p><span className="font-semibold">Status:</span> Active & Verified</p>
+                                        <p><span className="font-semibold">Recipient:</span> {result?.userName}</p>
+                                        <p><span className="font-semibold">{result?.type === 'recommendation' ? 'Subject' : 'Course'}:</span> {result?.title}</p>
+                                        <p><span className="font-semibold">Issued:</span> {new Date(result?.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                        <p><span className="font-semibold">Status:</span> {result?.status}</p>
                                     </div>
                                 </div>
                             </div>

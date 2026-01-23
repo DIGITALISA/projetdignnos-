@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Bell, Globe, Cloud, Palette, HardDrive, Save, Check, Loader2, Mail, LayoutGrid, Key, Eye, EyeOff, Camera, Github } from "lucide-react";
-import { useState } from "react";
+import { Shield, Lock, Bell, Globe, Cloud, Palette, HardDrive, Save, Check, Loader2, Mail, LayoutGrid, Key, Eye, EyeOff, Camera, Github, Cpu, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 export default function AdminSettings() {
@@ -23,20 +23,55 @@ export default function AdminSettings() {
         enableEmailNotifications: true,
         enableSlackAlerts: false,
         s3Bucket: "career-upgrade-storage",
-        region: "us-east-1"
+        region: "us-east-1",
+        // AI Settings
+        DEEPSEEK_API_KEY: "",
+        DEEPSEEK_BASE_URL: "https://api.deepseek.com/v1",
+        OPENAI_API_KEY: "",
+        ACTIVE_AI_PROVIDER: "deepseek"
     });
+
+    const fetchConfig = async () => {
+        try {
+            const res = await fetch("/api/admin/config");
+            const data = await res.json();
+            if (data.success) {
+                setSettings(prev => ({ ...prev, ...data.configs }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch settings:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchConfig();
+    }, []);
 
     const handleSave = async () => {
         setIsSaving(true);
-        // Simulate API call
-        await new Promise(r => setTimeout(r, 1500));
-        setIsSaving(false);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        try {
+            // Save to DB
+            const res = await fetch("/api/admin/config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ configs: settings })
+            });
+
+            if (res.ok) {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            }
+        } catch (error) {
+            console.error("Save error:", error);
+            alert("Failed to save settings");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const tabs = [
         { name: "General Settings", icon: Globe },
+        { name: "AI Engine", icon: Cpu },
         { name: "Security & Access", icon: Lock },
         { name: "Branding", icon: Palette },
         { name: "Notifications", icon: Bell },
@@ -241,6 +276,83 @@ export default function AdminSettings() {
                                     </div>
                                     <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
                                         <p className="text-xs font-medium text-amber-700">Changing cloud bucket settings will not automatically migrate existing files. Manual migration is required.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === "AI Engine" && (
+                                <div className="space-y-8">
+                                    <div className="space-y-6">
+                                        <SectionHeader icon={Sparkles} title="Global AI Brain" color="blue" />
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase">Active Provider</label>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <button
+                                                        onClick={() => setSettings({ ...settings, ACTIVE_AI_PROVIDER: 'deepseek' })}
+                                                        className={cn(
+                                                            "px-5 py-4 rounded-2xl text-sm font-bold border-2 transition-all text-center",
+                                                            settings.ACTIVE_AI_PROVIDER === 'deepseek' ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-100 text-slate-500 hover:bg-slate-50"
+                                                        )}
+                                                    >
+                                                        DeepSeek (Default)
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setSettings({ ...settings, ACTIVE_AI_PROVIDER: 'openai' })}
+                                                        className={cn(
+                                                            "px-5 py-4 rounded-2xl text-sm font-bold border-2 transition-all text-center",
+                                                            settings.ACTIVE_AI_PROVIDER === 'openai' ? "border-green-600 bg-green-50 text-green-700" : "border-slate-100 text-slate-500 hover:bg-slate-50"
+                                                        )}
+                                                    >
+                                                        OpenAI (GPT-4o)
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6 pt-8 border-t border-slate-50">
+                                        <SectionHeader icon={Cpu} title="Provider Credentials" color="indigo" />
+                                        <div className="space-y-6">
+                                            <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-4">
+                                                <h4 className="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                                    DeepSeek Configuration
+                                                </h4>
+                                                <InputField
+                                                    label="DeepSeek API Key"
+                                                    value={settings.DEEPSEEK_API_KEY}
+                                                    type="password"
+                                                    onChange={(v) => setSettings({ ...settings, DEEPSEEK_API_KEY: v })}
+                                                />
+                                                <InputField
+                                                    label="Base URL"
+                                                    value={settings.DEEPSEEK_BASE_URL}
+                                                    onChange={(v) => setSettings({ ...settings, DEEPSEEK_BASE_URL: v })}
+                                                />
+                                            </div>
+
+                                            <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-4">
+                                                <h4 className="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                                    OpenAI Configuration
+                                                </h4>
+                                                <InputField
+                                                    label="OpenAI API Key"
+                                                    value={settings.OPENAI_API_KEY}
+                                                    type="password"
+                                                    onChange={(v) => setSettings({ ...settings, OPENAI_API_KEY: v })}
+                                                />
+                                                <p className="text-[10px] text-slate-400 italic">OpenAI uses the default base URL for the chat completions API.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                                        <p className="text-xs font-semibold text-blue-800 flex items-center gap-2">
+                                            <Sparkles size={14} />
+                                            If keys are left empty here, the system will fallback to the keys defined in your environment variables (.env).
+                                        </p>
                                     </div>
                                 </div>
                             )}

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeCVWithAI } from '@/lib/deepseek';
+import connectDB from '@/lib/mongodb';
+import Diagnosis from '@/models/Diagnosis';
 
 export async function POST(request: NextRequest) {
     try {
-        const { cvText, language = 'en' } = await request.json();
+        const { cvText, language = 'en', userId, userName } = await request.json();
 
         if (!cvText) {
             return NextResponse.json(
@@ -19,6 +21,24 @@ export async function POST(request: NextRequest) {
                 { error: result.error },
                 { status: 500 }
             );
+        }
+
+        // Save to MongoDB if user info is provided
+        if (userId && userName) {
+            try {
+                await connectDB();
+                await Diagnosis.create({
+                    userId,
+                    userName,
+                    cvText,
+                    analysis: result.analysis,
+                    language
+                });
+            } catch (dbError) {
+                console.error('Database Error:', dbError);
+                // We don't block the response even if saving fails, 
+                // but in a production app we might want to ensure consistency
+            }
         }
 
         return NextResponse.json({

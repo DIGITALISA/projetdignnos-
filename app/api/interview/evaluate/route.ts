@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateInterview } from '@/lib/deepseek';
+import connectDB from '@/lib/mongodb';
+import InterviewResult from '@/models/InterviewResult';
 
 export async function POST(request: NextRequest) {
     try {
-        const { cvAnalysis, conversationHistory, language = 'en' } = await request.json();
+        const { cvAnalysis, conversationHistory, language = 'en', userId, userName } = await request.json();
 
         if (!cvAnalysis || !conversationHistory) {
             return NextResponse.json(
@@ -19,6 +21,23 @@ export async function POST(request: NextRequest) {
                 { error: result.error },
                 { status: 500 }
             );
+        }
+
+        // Save to MongoDB if user info is provided
+        if (userId && userName) {
+            try {
+                await connectDB();
+                await InterviewResult.create({
+                    userId,
+                    userName,
+                    cvAnalysis,
+                    conversationHistory,
+                    evaluation: result.evaluation,
+                    language
+                });
+            } catch (dbError) {
+                console.error('Database Error:', dbError);
+            }
         }
 
         return NextResponse.json({

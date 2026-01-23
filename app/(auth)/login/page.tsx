@@ -1,24 +1,67 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Lock, Mail, Github } from "lucide-react";
+import { ArrowRight, Lock, Mail, Github, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+import { useLanguage } from "@/components/providers/LanguageProvider";
+
+function LoginContent() {
+    const { t, dir } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const callback = searchParams.get("callback");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Mock login delay
-        setTimeout(() => {
-            window.location.href = "/dashboard";
-        }, 1500);
+        setError(null);
+
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Save user profile to local storage for persistence across the app
+                localStorage.setItem("userProfile", JSON.stringify(data.user));
+
+                // Track update for components like Sidebar
+                window.dispatchEvent(new Event("profileUpdated"));
+
+                if (callback) {
+                    window.location.href = callback;
+                } else if (data.user.role === "Admin") {
+                    window.location.href = "/admin";
+                } else if (data.user.role === "Moderator") {
+                    window.location.href = "/moderateur";
+                } else {
+                    window.location.href = "/dashboard";
+                }
+            } else {
+                setError(data.error || t.auth.errorInvalid);
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+            setError(t.auth.errorGeneric);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center relative overflow-hidden">
+        <div dir={dir} className="min-h-screen bg-slate-50 flex items-center justify-center relative overflow-hidden">
             {/* Background Shapes */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-200/50 rounded-full blur-[100px]" />
@@ -32,29 +75,39 @@ export default function LoginPage() {
             >
                 <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h1>
-                        <p className="text-slate-500">Sign in to continue your career journey</p>
+                        <h1 className="text-2xl font-bold text-slate-900 mb-2">{t.auth.welcomeBack}</h1>
+                        <p className="text-slate-500">{t.auth.signInSubtitle}</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4 mb-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">{t.auth.emailLabel}</label>
                             <input
                                 type="email"
                                 placeholder="you@example.com"
                                 className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                 required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">{t.auth.passwordLabel}</label>
                             <input
                                 type="password"
                                 placeholder="••••••••"
                                 className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                 required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
+
+                        {error && (
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold text-center">
+                                {error}
+                            </div>
+                        )}
 
                         <button
                             type="submit"
@@ -62,9 +115,12 @@ export default function LoginPage() {
                             className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                         >
                             {isLoading ? (
-                                "Signing in..."
+                                <Loader2 className="animate-spin w-5 h-5" />
                             ) : (
-                                <>Sign In <ArrowRight className="w-4 h-4" /></>
+                                <span className="flex items-center gap-2">
+                                    {t.auth.signInButton}
+                                    <ArrowRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                                </span>
                             )}
                         </button>
                     </form>
@@ -74,7 +130,7 @@ export default function LoginPage() {
                             <div className="w-full border-t border-slate-200"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-slate-500">Or continue with</span>
+                            <span className="px-2 bg-white text-slate-500">{t.auth.orContinueWith}</span>
                         </div>
                     </div>
 
@@ -91,9 +147,29 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center mt-6 text-sm text-slate-500">
-                    Don't have an account? <Link href="/register" className="text-blue-600 font-semibold hover:underline">Create one</Link>
+                    {t.auth.noAccount} <Link href="/register" className="text-blue-600 font-semibold hover:underline">{t.auth.createOne}</Link>
                 </p>
             </motion.div>
+        </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoginFallback />}>
+            <LoginContent />
+        </Suspense>
+    );
+}
+
+function LoginFallback() {
+    const { t } = useLanguage();
+    return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center text-center p-8">
+            <div className="flex flex-col items-center gap-4">
+                <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                <p className="font-bold text-slate-900 uppercase tracking-widest text-xs">{t.sidebar.loading || "Loading portal..."}</p>
+            </div>
         </div>
     );
 }

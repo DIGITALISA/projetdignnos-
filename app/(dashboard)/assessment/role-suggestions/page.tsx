@@ -1,9 +1,11 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Target, Clock, CheckCircle, AlertCircle, Award, ArrowRight, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Target, Clock, CheckCircle, AlertCircle, Award, ArrowRight, Sparkles, ChevronDown, ChevronUp, Download, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface RoleSuggestion {
     title: string;
@@ -18,11 +20,13 @@ interface RoleSuggestion {
 
 export default function RoleSuggestionsPage() {
     const router = useRouter();
+    const resultsRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
     const [cvAnalysis, setCvAnalysis] = useState<any>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [roleSuggestions, setRoleSuggestions] = useState<RoleSuggestion[]>([]);
     const [expandedRole, setExpandedRole] = useState<string | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     useEffect(() => {
         const stored = localStorage.getItem('cvAnalysis');
@@ -41,6 +45,145 @@ export default function RoleSuggestionsPage() {
             router.push('/assessment/cv-upload');
         }
     }, [router]);
+
+    const handleDownloadReport = async () => {
+        if (!resultsRef.current) return;
+
+        setIsDownloading(true);
+        try {
+            // 1. Clone the element
+            const element = resultsRef.current;
+            const clone = element.cloneNode(true) as HTMLElement;
+
+            // 2. Pre-process the clone before appending to DOM
+            const buttons = clone.querySelectorAll('button, [data-html2canvas-ignore]');
+            buttons.forEach(b => b.remove());
+
+            // 3. Append to body off-screen
+            clone.style.position = "absolute";
+            clone.style.left = "-9999px";
+            clone.style.top = "0";
+            clone.style.width = `${element.offsetWidth}px`;
+            document.body.appendChild(clone);
+
+            // 4. Capture with aggressive style sanitization in onclone
+            const canvas = await html2canvas(clone, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: "#ffffff",
+                onclone: (clonedDoc) => {
+                    // A. THE KILLER FIX: Remove ALL <link> tags. 
+                    // This prevents html2canvas from ever trying to parse external Tailwind CSS which contains 'lab()'.
+                    const links = clonedDoc.getElementsByTagName('link');
+                    while (links.length > 0) {
+                        links[0].parentNode?.removeChild(links[0]);
+                    }
+
+                    // B. Remove all <style> tags that might contain offending colors
+                    const styles = clonedDoc.getElementsByTagName('style');
+                    const colorRegex = /(lab|oklch|oklab)\([^)]+\)/g;
+                    for (let i = styles.length - 1; i >= 0; i--) {
+                        if (colorRegex.test(styles[i].innerHTML)) {
+                            // Instead of removing, let's try to sanitize by replacement first
+                            styles[i].innerHTML = styles[i].innerHTML.replace(colorRegex, '#3b82f6');
+                        }
+                    }
+
+                    // C. Inject a "Safe Mini-Tailwind" to restore essential styling without the bloat/errors
+                    const safeStyle = clonedDoc.createElement('style');
+                    safeStyle.innerHTML = `
+                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+                        * { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+                        .bg-white { background-color: #ffffff !important; }
+                        .text-slate-900 { color: #0f172a !important; }
+                        .text-slate-700 { color: #334155 !important; }
+                        .text-slate-600 { color: #475569 !important; }
+                        .text-slate-500 { color: #64748b !important; }
+                        .text-blue-600 { color: #2563eb !important; }
+                        .text-green-600 { color: #16a34a !important; }
+                        .text-red-600 { color: #dc2626 !important; }
+                        .bg-blue-600 { background-color: #2563eb !important; }
+                        .bg-green-100 { background-color: #dcfce7 !important; }
+                        .bg-orange-100 { background-color: #ffedd5 !important; }
+                        .bg-blue-50 { background-color: #eff6ff !important; }
+                        .bg-slate-50 { background-color: #f8fafc !important; }
+                        .border { border: 1px solid #e2e8f0 !important; }
+                        .border-2 { border: 2px solid #e2e8f0 !important; }
+                        .border-blue-200 { border-color: #bfdbfe !important; }
+                        .rounded-xl { border-radius: 0.75rem !important; }
+                        .rounded-2xl { border-radius: 1rem !important; }
+                        .rounded-full { border-radius: 9999px !important; }
+                        .p-4 { padding: 1rem !important; }
+                        .p-6 { padding: 1.5rem !important; }
+                        .mb-2 { margin-bottom: 0.5rem !important; }
+                        .mb-3 { margin-bottom: 0.75rem !important; }
+                        .mb-4 { margin-bottom: 1rem !important; }
+                        .mb-6 { margin-bottom: 1.5rem !important; }
+                        .flex { display: flex !important; }
+                        .items-center { align-items: center !important; }
+                        .justify-center { justify-content: center !important; }
+                        .grid { display: grid !important; }
+                        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+                        .gap-3 { gap: 0.75rem !important; }
+                        .gap-4 { gap: 1rem !important; }
+                        .w-full { width: 100% !important; }
+                        .h-3 { height: 0.75rem !important; }
+                        .font-bold { font-weight: 700 !important; }
+                        .text-2xl { font-size: 1.5rem !important; }
+                        .text-4xl { font-size: 2.25rem !important; }
+                        .text-sm { font-size: 0.875rem !important; }
+                        /* Fix for the match progress bar */
+                        .bg-green-600 { background-color: #16a34a !important; }
+                        .bg-orange-600 { background-color: #ea580c !important; }
+                    `;
+                    clonedDoc.head.appendChild(safeStyle);
+
+                    // D. Sanitize inline styles on all elements
+                    const allElements = clonedDoc.querySelectorAll('*');
+                    allElements.forEach(el => {
+                        const htmlEl = el as HTMLElement;
+                        const styleAttr = htmlEl.getAttribute?.('style');
+                        if (styleAttr && colorRegex.test(styleAttr)) {
+                            htmlEl.setAttribute('style', styleAttr.replace(colorRegex, '#3b82f6'));
+                        }
+                    });
+                }
+            });
+
+            // 5. Cleanup
+            document.body.removeChild(clone);
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            // Add first page
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+            heightLeft -= pdfHeight;
+
+            // Multipage
+            while (heightLeft > 0) {
+                position -= pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`Career-Path-Recommendations.pdf`);
+        } catch (error) {
+            console.error("PDF generation failed:", error);
+            alert("Failed to generate PDF report: " + (error instanceof Error ? error.message : "Internal Error"));
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const selectRole = (role: RoleSuggestion) => {
         // Store selected role for CV generation
@@ -82,8 +225,22 @@ export default function RoleSuggestionsPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center"
+                className="text-center relative"
             >
+                <div className="absolute top-0 right-0">
+                    <button
+                        onClick={handleDownloadReport}
+                        disabled={isDownloading}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-semibold text-slate-700 shadow-sm"
+                    >
+                        {isDownloading ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                        ) : (
+                            <Download className="w-5 h-5 text-blue-600" />
+                        )}
+                        {isDownloading ? 'Generating...' : 'Download PDF'}
+                    </button>
+                </div>
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <Target className="w-10 h-10 text-white" />
                 </div>
@@ -93,100 +250,105 @@ export default function RoleSuggestionsPage() {
                 </p>
             </motion.div>
 
-            {/* Instructions Banner */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200 p-4"
-            >
-                <div className="flex items-center gap-3">
-                    <Sparkles className="w-6 h-6 text-blue-600 flex-shrink-0" />
-                    <p className="text-slate-700">
-                        {selectedLanguage === 'ar' ? (
-                            <>
-                                <strong>كيف يعمل:</strong> راجع الأدوار أدناه، وسّع التفاصيل لرؤية نقاط القوة والفجوات،
-                                ثم انقر على <strong className="text-purple-600">"التركيز على هذا الدور"</strong> لتوليد سيرتك الذاتية ورسالة التحفيز المخصصة!
-                            </>
-                        ) : selectedLanguage === 'fr' ? (
-                            <>
-                                <strong>Comment ça marche :</strong> Consultez les rôles ci-dessous, développez les détails pour voir les forces et les lacunes,
-                                puis cliquez sur <strong className="text-purple-600">"Se concentrer sur ce rôle"</strong> pour générer votre CV et lettre de motivation personnalisés !
-                            </>
-                        ) : selectedLanguage === 'es' ? (
-                            <>
-                                <strong>Cómo funciona:</strong> Revisa los roles a continuación, expande los detalles para ver fortalezas y brechas,
-                                luego haz clic en <strong className="text-purple-600">"Enfocarse en este rol"</strong> para generar tu CV y carta de presentación personalizados!
-                            </>
-                        ) : (
-                            <>
-                                <strong>How it works:</strong> Review the roles below, expand details to see strengths and gaps,
-                                then click <strong className="text-purple-600">"Focus on This Role"</strong> to generate your personalized CV and cover letter!
-                            </>
-                        )}
-                    </p>
-                </div>
-            </motion.div>
+            {/* Results Wrapper for PDF Capture */}
+            <div ref={resultsRef} className="space-y-8 p-1">
 
-            {/* Ready Now Roles */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-            >
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6 text-green-600" />
+                {/* Instructions Banner */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 }}
+                    className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200 p-4"
+                >
+                    <div className="flex items-center gap-3">
+                        <Sparkles className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                        <p className="text-slate-700">
+                            {selectedLanguage === 'ar' ? (
+                                <>
+                                    <strong>كيف يعمل:</strong> راجع الأدوار أدناه، وسّع التفاصيل لرؤية نقاط القوة والفجوات،
+                                    ثم انقر على <strong className="text-purple-600">"التركيز على هذا الدور"</strong> لتوليد سيرتك الذاتية ورسالة التحفيز المخصصة!
+                                </>
+                            ) : selectedLanguage === 'fr' ? (
+                                <>
+                                    <strong>Comment ça marche :</strong> Consultez les rôles ci-dessous, développez les détails pour voir les forces et les lacunes,
+                                    puis cliquez sur <strong className="text-purple-600">"Se concentrer sur ce rôle"</strong> pour générer votre CV et lettre de motivation personnalisés !
+                                </>
+                            ) : selectedLanguage === 'es' ? (
+                                <>
+                                    <strong>Cómo funciona:</strong> Revisa los roles a continuación, expande los detalles para ver fortalezas y brechas,
+                                    luego haz clic en <strong className="text-purple-600">"Enfocarse en este rol"</strong> para generar tu CV y carta de presentación personalizados!
+                                </>
+                            ) : (
+                                <>
+                                    <strong>How it works:</strong> Review the roles below, expand details to see strengths and gaps,
+                                    then click <strong className="text-purple-600">"Focus on This Role"</strong> to generate your personalized CV and cover letter!
+                                </>
+                            )}
+                        </p>
                     </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Ready Now - Short Term</h2>
-                        <p className="text-slate-600">Roles you can pursue immediately with your current skills</p>
-                    </div>
-                </div>
+                </motion.div>
 
-                <div className="grid gap-4">
-                    {readyRoles.map((role, index) => (
-                        <RoleCard
-                            key={index}
-                            role={role}
-                            isExpanded={expandedRole === role.title}
-                            onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
-                            onSelect={() => selectRole(role)}
-                            color="green"
-                        />
-                    ))}
-                </div>
-            </motion.div>
-
-            {/* Future Roles */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-            >
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-orange-600" />
+                {/* Ready Now Roles */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                >
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-900">Ready Now - Short Term</h2>
+                            <p className="text-slate-600">Roles you can pursue immediately with your current skills</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Future Goals - Long Term</h2>
-                        <p className="text-slate-600">Roles to work towards with skill development</p>
-                    </div>
-                </div>
 
-                <div className="grid gap-4">
-                    {futureRoles.map((role, index) => (
-                        <RoleCard
-                            key={index}
-                            role={role}
-                            isExpanded={expandedRole === role.title}
-                            onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
-                            onSelect={() => selectRole(role)}
-                            color="orange"
-                        />
-                    ))}
-                </div>
-            </motion.div>
+                    <div className="grid gap-4">
+                        {readyRoles.map((role, index) => (
+                            <RoleCard
+                                key={index}
+                                role={role}
+                                isExpanded={expandedRole === role.title}
+                                onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
+                                onSelect={() => selectRole(role)}
+                                color="green"
+                            />
+                        ))}
+                    </div>
+                </motion.div>
+
+                {/* Future Roles */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-orange-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-900">Future Goals - Long Term</h2>
+                            <p className="text-slate-600">Roles to work towards with skill development</p>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4">
+                        {futureRoles.map((role, index) => (
+                            <RoleCard
+                                key={index}
+                                role={role}
+                                isExpanded={expandedRole === role.title}
+                                onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
+                                onSelect={() => selectRole(role)}
+                                color="orange"
+                            />
+                        ))}
+                    </div>
+                </motion.div>
+
+            </div>
 
             {/* Continue Button */}
             <div className="flex justify-center pt-8">

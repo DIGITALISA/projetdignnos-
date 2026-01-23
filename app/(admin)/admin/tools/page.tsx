@@ -1,39 +1,98 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, ExternalLink, Edit2, Trash2, Grid, List, Globe, Lock, X, Check, Loader2, Link as LinkIcon, Activity } from "lucide-react";
-import { useState } from "react";
+import { Plus, Search, ExternalLink, Edit2, Trash2, Grid, List, Globe, Lock, X, Check, Loader2, Link as LinkIcon, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const initialTools = [
-    { id: 1, title: "ChatGPT", category: "General", url: "https://chat.openai.com", visibility: "Public", users: 1200 },
-    { id: 2, title: "Perplexity", category: "Research", url: "https://www.perplexity.ai", visibility: "Public", users: 850 },
-    { id: 3, title: "Grammarly", category: "Writing", url: "https://www.grammarly.com", visibility: "Premium Only", users: 420 },
-    { id: 4, title: "Canva Studio", category: "Design", url: "https://www.canva.com", visibility: "Public", users: 2100 },
-    { id: 5, title: "Interview Warmup", category: "Interview", url: "https://grow.google/...", visibility: "Public", users: 640 },
-];
-
 export default function ToolsManagement() {
+    const [tools, setTools] = useState<any[]>([]);
+    const [isLoadingTools, setIsLoadingTools] = useState(true);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingToolId, setEditingToolId] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
     const [formData, setFormData] = useState({
         title: "",
         category: "General",
         url: "",
+        description: "",
         visibility: "Public"
     });
+
+    const fetchTools = async () => {
+        setIsLoadingTools(true);
+        try {
+            const res = await fetch('/api/admin/tools');
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setTools(data);
+            }
+        } catch (error) {
+            console.error("Error fetching tools:", error);
+        } finally {
+            setIsLoadingTools(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTools();
+    }, []);
+
+    const handleEdit = (tool: any) => {
+        setEditingToolId(tool._id);
+        setFormData({
+            title: tool.title,
+            category: tool.category,
+            url: tool.url,
+            description: tool.description || "",
+            visibility: tool.visibility
+        });
+        setIsAddModalOpen(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this tool?")) return;
+        try {
+            const res = await fetch(`/api/admin/tools?id=${id}`, { method: 'DELETE' });
+            if (res.ok) fetchTools();
+        } catch (error) {
+            console.error("Error deleting tool:", error);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setIsSubmitting(false);
-        setIsAddModalOpen(false);
-        setFormData({ title: "", category: "General", url: "", visibility: "Public" });
-        alert("AI Tool added successfully!");
+        try {
+            const url = '/api/admin/tools';
+            const method = editingToolId ? 'PUT' : 'POST';
+            const body = editingToolId ? { id: editingToolId, ...formData } : formData;
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            if (res.ok) {
+                setIsAddModalOpen(false);
+                setEditingToolId(null);
+                setFormData({ title: "", category: "General", url: "", description: "", visibility: "Public" });
+                fetchTools();
+            }
+        } catch (error) {
+            console.error("Error saving tool:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    const filteredTools = tools.filter(tool =>
+        tool.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tool.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-8">
@@ -43,7 +102,11 @@ export default function ToolsManagement() {
                     <p className="text-slate-500 mt-1">Add, edit or remove external AI tools available to participants.</p>
                 </div>
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={() => {
+                        setEditingToolId(null);
+                        setFormData({ title: "", category: "General", url: "", description: "", visibility: "Public" });
+                        setIsAddModalOpen(true);
+                    }}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
                 >
                     <Plus size={20} />
@@ -57,6 +120,8 @@ export default function ToolsManagement() {
                     <input
                         type="text"
                         placeholder="Search tools..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
                     />
                 </div>
@@ -89,47 +154,62 @@ export default function ToolsManagement() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                        {initialTools.map((tool, idx) => (
-                            <motion.tr
-                                key={tool.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: idx * 0.05 }}
-                                className="group hover:bg-slate-50/50 transition-colors"
-                            >
-                                <td className="px-8 py-5">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
-                                            <Globe size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900">{tool.title}</p>
-                                            <div className="flex items-center gap-1.5 text-xs text-blue-500 hover:underline cursor-pointer">
-                                                <ExternalLink size={10} />
-                                                <span className="truncate max-w-[150px]">{tool.url}</span>
+                        {isLoadingTools ? (
+                            <tr>
+                                <td colSpan={5} className="px-8 py-10 text-center text-slate-400">
+                                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                                    Loading tools...
+                                </td>
+                            </tr>
+                        ) : filteredTools.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="px-8 py-10 text-center text-slate-400">
+                                    No tools found.
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredTools.map((tool, idx) => (
+                                <motion.tr
+                                    key={tool._id}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    className="group hover:bg-slate-50/50 transition-colors"
+                                >
+                                    <td className="px-8 py-5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+                                                <Globe size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-900">{tool.title}</p>
+                                                <div className="flex items-center gap-1.5 text-xs text-blue-500 hover:underline cursor-pointer">
+                                                    <ExternalLink size={10} />
+                                                    <span className="truncate max-w-[150px]">{tool.url}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-8 py-5 text-sm font-medium text-slate-600">{tool.category}</td>
-                                <td className="px-8 py-5">
-                                    <span className={cn(
-                                        "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold",
-                                        tool.visibility === "Public" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"
-                                    )}>
-                                        {tool.visibility === "Public" ? <Globe size={12} /> : <Lock size={12} />}
-                                        {tool.visibility}
-                                    </span>
-                                </td>
-                                <td className="px-8 py-5 text-sm font-bold text-slate-900">{tool.users} users</td>
-                                <td className="px-8 py-5 text-right">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
-                                        <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16} /></button>
-                                    </div>
-                                </td>
-                            </motion.tr>
-                        ))}
+                                    </td>
+                                    <td className="px-8 py-5 text-sm font-medium text-slate-600">{tool.category}</td>
+                                    <td className="px-8 py-5">
+                                        <span className={cn(
+                                            "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold",
+                                            tool.visibility === "Public" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"
+                                        )}>
+                                            {tool.visibility === "Public" ? <Globe size={12} /> : <Lock size={12} />}
+                                            {tool.visibility}
+                                        </span>
+                                    </td>
+                                    <td className="px-8 py-5 text-sm font-bold text-slate-900">{tool.users || 0} users</td>
+                                    <td className="px-8 py-5 text-right">
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleEdit(tool)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                                            <button onClick={() => handleDelete(tool._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16} /></button>
+                                        </div>
+                                    </td>
+                                </motion.tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
@@ -158,7 +238,7 @@ export default function ToolsManagement() {
                                             <Plus size={24} />
                                         </div>
                                         <div>
-                                            <h2 className="text-xl font-bold text-slate-900">Add AI Tool</h2>
+                                            <h2 className="text-xl font-bold text-slate-900">{editingToolId ? "Edit Tool" : "Add AI Tool"}</h2>
                                             <p className="text-sm text-slate-500">Register a new external AI resource</p>
                                         </div>
                                     </div>
@@ -181,6 +261,17 @@ export default function ToolsManagement() {
                                                 className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
                                                 value={formData.title}
                                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Description</label>
+                                            <textarea
+                                                rows={2}
+                                                placeholder="Briefly describe what this tool does..."
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
+                                                value={formData.description}
+                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             />
                                         </div>
 
@@ -262,12 +353,12 @@ export default function ToolsManagement() {
                                             {isSubmitting ? (
                                                 <>
                                                     <Loader2 size={20} className="animate-spin" />
-                                                    Registering...
+                                                    Saving...
                                                 </>
                                             ) : (
                                                 <>
                                                     <Check size={20} />
-                                                    Save Tool
+                                                    {editingToolId ? "Update Tool" : "Save Tool"}
                                                 </>
                                             )}
                                         </button>

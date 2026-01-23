@@ -181,6 +181,86 @@ export const translations = {
                 "Priority Support 24/7",
                 "Exclusive Mentor Workshops"
             ]
+        },
+        expert: {
+            title: "Expert Consultation",
+            subtitle: "Get personalized career advice from AI experts specialized in your field.",
+            quickQuestions: "Quick Questions:",
+            placeholder: "Ask your career question...",
+            send: "Send",
+            careerExpert: "Career Expert",
+            loading: "Expert is thinking...",
+            defaultMessage: "Hello! I'm your AI Career Strategist. I've reviewed your profile and I'm here to help you navigate your career path. What would you like to discuss today?"
+        },
+        auth: {
+            welcomeBack: "Welcome Back",
+            signInSubtitle: "Sign in to continue your career journey",
+            emailLabel: "Email Address",
+            passwordLabel: "Password",
+            signInButton: "Sign In",
+            signingIn: "Signing In...",
+            orContinueWith: "Or continue with",
+            noAccount: "Don't have an account?",
+            createOne: "Create one",
+            errorInvalid: "Invalid login credentials",
+            errorGeneric: "Something went wrong. Please try again."
+        },
+        dashboard: {
+            welcome: "Welcome back",
+            subtitle: "You're on track! Continue your journey to mastery.",
+            topLearner: "Top 5% of learners",
+            stats: {
+                skillsGained: "Skills Gained",
+                hoursLearned: "Hours Learned",
+                certificates: "Certificates"
+            },
+            currentFocus: {
+                title: "Current Focus",
+                continue: "Continue",
+                resume: "Resume Simulation",
+                progress: "Progress"
+            },
+            journey: {
+                title: "Your Journey",
+                stages: {
+                    diagnosis: "Diagnosis & Profiling",
+                    diagnosisDesc: "AI-powered analysis of your CV & skills.",
+                    simulation: "Role Simulation",
+                    simulationDesc: "Practice real-world scenarios.",
+                    training: "Training Hub",
+                    trainingDesc: "Curated courses for your gaps.",
+                    library: "Digital Library",
+                    libraryDesc: "Access premium resources.",
+                    expert: "Expert Consultation",
+                    expertDesc: "1-on-1 strategy session."
+                }
+            },
+            recommended: {
+                title: "Recommended for You",
+                seeAll: "See all"
+            }
+        },
+        sidebar: {
+            categories: {
+                main: "Main",
+                journey: "Career Journey",
+                achievements: "Achievements",
+                system: "System"
+            },
+            items: {
+                overview: "Overview",
+                diagnosis: "1. Diagnosis",
+                tools: "2. Tools AI",
+                training: "3. Training Hub",
+                library: "4. Library",
+                expert: "5. Expert Chat",
+                certificates: "My Certificates",
+                recommendation: "Lettre de Recommandation",
+                settings: "Settings",
+                signOut: "Sign Out"
+            },
+            premium: "Premium Member",
+            loading: "Loading your workspace..."
         }
     },
     fr: {
@@ -363,6 +443,86 @@ export const translations = {
                 "Support prioritaire 24/7",
                 "Ateliers mentors exclusifs"
             ]
+        },
+        expert: {
+            title: "Consultation d'Expert",
+            subtitle: "Obtenez des conseils de carrière personnalisés d'experts IA spécialisés dans votre domaine.",
+            quickQuestions: "Questions Rapides :",
+            placeholder: "Posez votre question de carrière...",
+            send: "Envoyer",
+            careerExpert: "Expert en Carrière",
+            loading: "L'expert réfléchit...",
+            defaultMessage: "Bonjour ! Je suis votre stratège de carrière IA. J'ai examiné votre profil et je suis ici pour vous aider à naviguer dans votre parcours professionnel. De quoi souhaitez-vous discuter aujourd'hui ?"
+        },
+        auth: {
+            welcomeBack: "Bon Retour",
+            signInSubtitle: "Connectez-vous pour continuer votre parcours professionnel",
+            emailLabel: "Adresse E-mail",
+            passwordLabel: "Mot de passe",
+            signInButton: "Se Connecter",
+            signingIn: "Connexion...",
+            orContinueWith: "Ou continuer avec",
+            noAccount: "Vous n'avez pas de compte ?",
+            createOne: "En créer un",
+            errorInvalid: "Identifiants de connexion invalides",
+            errorGeneric: "Une erreur est survenue. Veuillez réessayer."
+        },
+        dashboard: {
+            welcome: "Bon retour",
+            subtitle: "Vous êtes sur la bonne voie ! Continuez votre apprentissage.",
+            topLearner: "Top 5% des apprenants",
+            stats: {
+                skillsGained: "Compétences Acquises",
+                hoursLearned: "Heures Apprises",
+                certificates: "Certificats"
+            },
+            currentFocus: {
+                title: "Focus Actuel",
+                continue: "Continuer",
+                resume: "Reprendre la Simulation",
+                progress: "Progression"
+            },
+            journey: {
+                title: "Votre Parcours",
+                stages: {
+                    diagnosis: "Diagnostic & Profilage",
+                    diagnosisDesc: "Analyse par IA de votre CV et de vos compétences.",
+                    simulation: "Simulation de Rôle",
+                    simulationDesc: "Pratiquez des scénarios réels.",
+                    training: "Hub de Formation",
+                    trainingDesc: "Cours sélectionnés pour vos lacunes.",
+                    library: "Bibliothèque Numérique",
+                    libraryDesc: "Accédez à des ressources premium.",
+                    expert: "Consultation d'Expert",
+                    expertDesc: "Session stratégique individuelle."
+                }
+            },
+            recommended: {
+                title: "Recommandé pour Vous",
+                seeAll: "Tout voir"
+            }
+        },
+        sidebar: {
+            categories: {
+                main: "Principal",
+                journey: "Parcours de Carrière",
+                achievements: "Réalisations",
+                system: "Système"
+            },
+            items: {
+                overview: "Vue d'ensemble",
+                diagnosis: "1. Diagnostic",
+                tools: "2. Outils IA",
+                training: "3. Hub de Formation",
+                library: "4. Bibliothèque",
+                expert: "5. Chat Expert",
+                certificates: "Mes Certificats",
+                recommendation: "Lettre de Recommandation",
+                settings: "Paramètres",
+                signOut: "Déconnexion"
+            },
+            premium: "Membre Premium",
+            loading: "Chargement de votre espace..."
         }
     },
     ar: {
@@ -545,6 +705,86 @@ export const translations = {
                 "دعم ذو أولوية 24/7",
                 "ورش عمل حصرية مع الموجهين"
             ]
+        },
+        expert: {
+            title: "استشارة الخبراء",
+            subtitle: "احصل على نصائح مهنية مخصصة من خبراء الذكاء الاصطناعي المتخصصين في مجالك.",
+            quickQuestions: "أسئلة سريعة:",
+            placeholder: "اسأل سؤالك المهني...",
+            send: "إرسال",
+            careerExpert: "خبير مهني",
+            loading: "الخبير يفكر...",
+            defaultMessage: "مرحباً! أنا استراتيجي المهن الخاص بك بالذكاء الاصطناعي. لقد راجعت ملفك الشخصي وأنا هنا لمساعدتك في التنقل في مسارك المهني. ماذا تود أن نناقش اليوم؟"
+        },
+        auth: {
+            welcomeBack: "مرحباً بعودتك",
+            signInSubtitle: "سجل الدخول لمواصلة رحلتك المهنية",
+            emailLabel: "عنوان البريد الإلكتروني",
+            passwordLabel: "كلمة المرور",
+            signInButton: "تسجيل الدخول",
+            signingIn: "جاري الدخول...",
+            orContinueWith: "أو الاستمرار بواسطة",
+            noAccount: "ليس لديك حساب؟",
+            createOne: "أنشئ حساباً",
+            errorInvalid: "بيانات الاعتماد غير صالحة",
+            errorGeneric: "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+        },
+        dashboard: {
+            welcome: "مرحباً بعودتك",
+            subtitle: "أنت على المسار الصحيح! واصل رحلتك نحو الإتقان.",
+            topLearner: "أفضل 5% من المتعلمين",
+            stats: {
+                skillsGained: "المهارات المكتسبة",
+                hoursLearned: "ساعات التعلم",
+                certificates: "الشهادات"
+            },
+            currentFocus: {
+                title: "التركيز الحالي",
+                continue: "استمرار",
+                resume: "استئناف المحاكاة",
+                progress: "التقدم"
+            },
+            journey: {
+                title: "رحلتك",
+                stages: {
+                    diagnosis: "التشخيص والتعريف",
+                    diagnosisDesc: "تحليل مدعوم بالذكاء الاصطناعي لسيرتك الذاتية ومهاراتك.",
+                    simulation: "محاكاة الأدوار",
+                    simulationDesc: "ممارسة سيناريوهات العالم الحقيقي.",
+                    training: "مركز التدريب",
+                    trainingDesc: "دورات منسقة لسد فجواتك.",
+                    library: "المكتبة الرقمية",
+                    libraryDesc: "الوصول إلى الموارد المتميزة.",
+                    expert: "استشارة الخبراء",
+                    expertDesc: "جلسة استراتيجية 1-على-1."
+                }
+            },
+            recommended: {
+                title: "موصى به لك",
+                seeAll: "عرض الكل"
+            }
+        },
+        sidebar: {
+            categories: {
+                main: "الرئيسية",
+                journey: "الرحلة المهنية",
+                achievements: "الإنجازات",
+                system: "النظام"
+            },
+            items: {
+                overview: "نظرة عامة",
+                diagnosis: "1. التشخيص",
+                tools: "2. أدوات الذكاء الاصطناعي",
+                training: "3. مركز التدريب",
+                library: "4. المكتبة",
+                expert: "5. محادثة خبير",
+                certificates: "شهاداتي",
+                recommendation: "خطاب توصية",
+                settings: "الإعدادات",
+                signOut: "تسجيل الخروج"
+            },
+            premium: "عضو مميز",
+            loading: "جاري تحميل مساحة العمل..."
         }
     }
 };

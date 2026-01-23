@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Menu } from "lucide-react";
+import { Menu, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
     children,
@@ -11,6 +12,31 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        const checkAuth = () => {
+            const savedProfile = localStorage.getItem("userProfile");
+            if (!savedProfile) {
+                router.push("/login?callback=/dashboard");
+                return;
+            }
+            setIsLoading(false);
+        };
+        checkAuth();
+    }, [router]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                    <p className="text-slate-500 font-medium">Chargement de votre espace...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex">

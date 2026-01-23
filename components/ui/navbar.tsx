@@ -53,9 +53,6 @@ export function Navbar() {
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
                     <LanguageSwitcher />
-                    <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                        {t.nav.signIn}
-                    </Link>
                     <Link
                         href="/dashboard"
                         className="group relative px-4 py-2 rounded-lg bg-slate-900 text-sm font-medium text-white shadow-lg hover:bg-blue-600 hover:scale-105 transition-all duration-300"
@@ -97,13 +94,6 @@ export function Navbar() {
                         </Link>
                     ))}
                     <div className="h-px bg-slate-100 my-2" />
-                    <Link
-                        href="/login"
-                        className="text-center text-slate-600 p-2"
-                        onClick={() => setIsOpen(false)}
-                    >
-                        {t.nav.signIn}
-                    </Link>
                     <Link
                         href="/dashboard"
                         className="text-center bg-blue-600 text-white p-3 rounded-xl font-semibold shadow-lg shadow-blue-500/20"

@@ -18,13 +18,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import { useLanguage } from "@/components/providers/LanguageProvider";
+
 export default function DashboardPage() {
-    const [userName, setUserName] = useState("Ahmed");
-    const progress = 35; // Example progress
+    const { t, dir } = useLanguage();
+    const [userName, setUserName] = useState("");
+    const [stats, setStats] = useState([
+        { label: t.dashboard.stats.skillsGained, value: "0", icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
+        { label: t.dashboard.stats.hoursLearned, value: "0", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
+        { label: t.dashboard.stats.certificates, value: "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
+    ]);
+    const [hasStarted, setHasStarted] = useState(false);
 
     useEffect(() => {
-        // Function to load profile
-        const loadProfile = () => {
+        // Function to load profile and real data
+        const loadDashboardData = () => {
             try {
                 const savedProfile = localStorage.getItem("userProfile");
                 if (savedProfile) {
@@ -33,47 +41,51 @@ export default function DashboardPage() {
                         setUserName(fullName.split(' ')[0] || fullName);
                     }
                 }
+
+                // Check if user has started any activity (e.g. uploaded CV)
+                const cvAnalysis = localStorage.getItem('cvAnalysis');
+                if (cvAnalysis) {
+                    setHasStarted(true);
+                    // In a real app, calculate these from DB
+                    setStats([
+                        { label: t.dashboard.stats.skillsGained, value: "3", icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" }, // Demo: found 3 skills
+                        { label: t.dashboard.stats.hoursLearned, value: "0.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
+                        { label: t.dashboard.stats.certificates, value: "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
+                    ]);
+                }
+
             } catch (e) {
-                console.error("Failed to load profile", e);
+                console.error("Failed to load dashboard data", e);
             }
         };
 
-        // Initial load
-        loadProfile();
-
-        // Listen for updates
-        window.addEventListener("profileUpdated", loadProfile);
-        return () => window.removeEventListener("profileUpdated", loadProfile);
-    }, []);
-
-    const stats = [
-        { label: "Skills Gained", value: "12", icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
-        { label: "Hours Learned", value: "8.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
-        { label: "Certificates", value: "2", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
-    ];
+        loadDashboardData();
+        window.addEventListener("profileUpdated", loadDashboardData);
+        return () => window.removeEventListener("profileUpdated", loadDashboardData);
+    }, [t]);
 
     const steps = [
         {
-            title: "Diagnosis & Profiling",
-            description: "AI-powered analysis of your CV & skills.",
-            status: "completed",
+            title: t.dashboard.journey.stages.diagnosis,
+            description: t.dashboard.journey.stages.diagnosisDesc,
+            status: hasStarted ? "completed" : "in-progress",
             icon: Target,
             href: "/assessment/cv-upload",
             color: "bg-blue-50 text-blue-600",
             borderColor: "border-blue-200"
         },
         {
-            title: "Role Simulation",
-            description: "Practice real-world scenarios.",
-            status: "in-progress",
+            title: t.dashboard.journey.stages.simulation,
+            description: t.dashboard.journey.stages.simulationDesc,
+            status: hasStarted ? "in-progress" : "locked",
             icon: Zap,
             href: "/simulation",
             color: "bg-purple-50 text-purple-600",
             borderColor: "border-purple-200"
         },
         {
-            title: "Training Hub",
-            description: "Curated courses for your gaps.",
+            title: t.dashboard.journey.stages.training,
+            description: t.dashboard.journey.stages.trainingDesc,
             status: "locked",
             icon: PlayCircle,
             href: "/training",
@@ -81,8 +93,8 @@ export default function DashboardPage() {
             borderColor: "border-slate-100"
         },
         {
-            title: "Digital Library",
-            description: "Access premium resources.",
+            title: t.dashboard.journey.stages.library,
+            description: t.dashboard.journey.stages.libraryDesc,
             status: "locked",
             icon: BookOpen,
             href: "/library",
@@ -90,8 +102,8 @@ export default function DashboardPage() {
             borderColor: "border-slate-100"
         },
         {
-            title: "Expert Consultation",
-            description: "1-on-1 strategy session.",
+            title: t.dashboard.journey.stages.expert,
+            description: t.dashboard.journey.stages.expertDesc,
             status: "locked",
             icon: MessageSquare,
             href: "/expert",
@@ -107,36 +119,39 @@ export default function DashboardPage() {
     ];
 
     return (
-        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 pb-24 md:pb-8">
+        <div dir={dir} className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 pb-24 md:pb-8">
             {/* Welcome Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col md:flex-row md:items-end justify-between gap-4"
+                className={`flex flex-col md:flex-row md:items-end justify-between gap-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}
             >
-                <div>
+                <div className={dir === 'rtl' ? 'flex-1' : ''}>
                     <h1 className="text-2xl md:text-4xl font-bold text-slate-900 mb-1 md:mb-2">
-                        Welcome back, {userName} 👋
+                        {t.dashboard.welcome}, {userName} {dir === 'rtl' ? '👋' : '👋'}
                     </h1>
                     <p className="text-slate-500 text-sm md:text-lg">
-                        You're on track! Continue your journey to mastery.
+                        {t.dashboard.subtitle}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-slate-200 shadow-sm w-fit">
-                    <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
-                    <span className="font-semibold text-xs md:text-sm text-slate-700">Top 5% of learners</span>
-                </div>
+                {/* Only show "Top Learner" badge if they have actually done something */}
+                {hasStarted && (
+                    <div className={`flex items-center gap-2 bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-slate-200 shadow-sm w-fit ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
+                        <span className="font-semibold text-xs md:text-sm text-slate-700">{t.dashboard.topLearner}</span>
+                    </div>
+                )}
             </motion.div>
 
             {/* Stats Grid - Mobile Optimized */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4">
+            <div className={`grid grid-cols-3 gap-3 md:gap-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                 {stats.map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white p-3 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-4"
+                        className={`bg-white p-3 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-4 ${dir === 'rtl' ? 'md:flex-row-reverse md:text-right' : ''}`}
                     >
                         <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${stat.bg} ${stat.text}`}>
                             <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
@@ -153,74 +168,85 @@ export default function DashboardPage() {
             <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
                 {/* Left Col: Current Focus */}
                 <motion.div
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: dir === 'rtl' ? 20 : -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                     className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm flex flex-col relative overflow-hidden group"
                 >
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100/50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    {hasStarted ? (
+                        <>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100/50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                    <div className="flex items-center justify-between mb-6 md:mb-8 relative z-10">
-                        <h2 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <Zap className="w-5 h-5 text-purple-600" />
-                            Current Focus
-                        </h2>
-                        <Link href="/simulation" className="text-xs md:text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 group-hover:gap-2 transition-all">
-                            Continue
-                            <ArrowRight className="w-4 h-4" />
-                        </Link>
-                    </div>
+                            <div className={`flex items-center justify-between mb-6 md:mb-8 relative z-10 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                <h2 className={`text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                    <Zap className="w-5 h-5 text-purple-600" />
+                                    {t.dashboard.currentFocus.title}
+                                </h2>
+                                <Link href="/simulation" className={`text-xs md:text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 group-hover:gap-2 transition-all ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                    {t.dashboard.currentFocus.continue}
+                                    <ArrowRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                                </Link>
+                            </div>
 
-                    <div className="flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 border border-purple-100/50 relative">
-                        <div className="relative z-10 flex-1 space-y-3 md:space-y-4 w-full">
-                            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider">
-                                In Progress
-                            </span>
-                            <h3 className="text-xl md:text-2xl font-bold text-slate-900">Role Simulation: Product Manager</h3>
-                            <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                                You have completed 2 out of 5 scenarios. Your conflict resolution score is improving!
-                            </p>
-
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs font-semibold text-slate-500">
-                                    <span>Progress</span>
-                                    <span>40%</span>
+                            <div className={`flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 border border-purple-100/50 relative ${dir === 'rtl' ? 'md:flex-row-reverse text-right' : ''}`}>
+                                <div className="relative z-10 flex-1 space-y-3 md:space-y-4 w-full">
+                                    <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider">
+                                        {dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress'}
+                                    </span>
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900">Career Diagnosis</h3>
+                                    <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                                        {dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!'}
+                                    </p>
                                 </div>
-                                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: "40%" }}
-                                        transition={{ duration: 1, delay: 0.5 }}
-                                        className="bg-purple-600 h-full rounded-full relative"
-                                    >
-                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                                    </motion.div>
+                                <div className="relative z-10 w-full md:w-auto mt-2 md:mt-0">
+                                    <Link href="/simulation" className="w-full md:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base inline-block text-center">
+                                        {t.dashboard.currentFocus.continue}
+                                    </Link>
                                 </div>
                             </div>
-                        </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* Empty State / Call to Action */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                        <div className="relative z-10 w-full md:w-auto mt-2 md:mt-0">
-                            <button className="w-full md:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base">
-                                Resume Simulation
-                            </button>
-                        </div>
-                    </div>
+                            <div className={`flex flex-col items-center justify-center h-full text-center space-y-6 relative z-10 py-8`}>
+                                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
+                                    <Target className="w-10 h-10 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                                        {dir === 'rtl' ? 'لنبدأ رحلتك المهنية' : 'Let\'s Start Your Career Journey'}
+                                    </h2>
+                                    <p className="text-slate-500 max-w-md mx-auto">
+                                        {dir === 'rtl'
+                                            ? 'الخطوة الأولى هي فهم مهاراتك. قم برفع سيرتك الذاتية ليقوم الذكاء الاصطناعي ببناء مسار مخصص لك.'
+                                            : 'The first step is understanding your skills. Upload your CV to let our AI build a personalized path for you.'}
+                                    </p>
+                                </div>
+                                <Link href="/assessment/cv-upload" className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 hover:scale-105 transition-all flex items-center gap-2">
+                                    {dir === 'rtl' ? 'ابدأ التشخيص الآن' : 'Start Diagnosis Now'}
+                                    <ArrowRight className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                                </Link>
+                            </div>
+                        </>
+                    )}
                 </motion.div>
 
                 {/* Right Col: Timeline */}
                 <motion.div
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: dir === 'rtl' ? -20 : 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm overflow-hidden h-fit"
+                    className={`bg-white rounded-3xl border border-slate-200 p-6 shadow-sm overflow-hidden h-fit ${dir === 'rtl' ? 'text-right' : ''}`}
                 >
-                    <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6">Your Journey</h2>
+                    <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6">{t.dashboard.journey.title}</h2>
                     <div className="relative space-y-0">
                         {/* Vertical Line */}
-                        <div className="absolute left-[23px] md:left-[27px] top-4 bottom-4 w-[2px] bg-slate-100" />
+                        <div className={`absolute top-4 bottom-4 w-[2px] bg-slate-100 ${dir === 'rtl' ? 'right-[23px] md:right-[27px]' : 'left-[23px] md:left-[27px]'}`} />
 
                         {steps.map((step, idx) => (
-                            <div key={idx} className="relative flex items-start gap-3 md:gap-4 pb-6 last:pb-0">
+                            <div key={idx} className={`relative flex items-start gap-3 md:gap-4 pb-6 last:pb-0 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 {/* Status Indicator */}
                                 <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all ${step.status === 'completed' || step.status === 'in-progress' ? 'bg-white ' + step.borderColor : 'bg-slate-50 border-transparent text-slate-300'}`}>
                                     {step.status === 'completed' ? (
@@ -249,29 +275,30 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
+                className={dir === 'rtl' ? 'text-right' : ''}
             >
-                <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">Recommended for You</h2>
-                    <Link href="/library" className="text-xs md:text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                        See all
-                        <ChevronRight className="w-4 h-4" />
+                <div className={`flex items-center justify-between mb-4 md:mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">{t.dashboard.recommended.title}</h2>
+                    <Link href="/library" className={`text-xs md:text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        {t.dashboard.recommended.seeAll}
+                        <ChevronRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                     </Link>
                 </div>
 
                 {/* Scroll Container */}
-                <div className="flex overflow-x-auto pb-4 gap-4 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0 scrollbar-none snap-x">
+                <div className={`flex overflow-x-auto pb-4 gap-4 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0 scrollbar-none snap-x ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                     {resources.map((item, i) => (
                         <div
                             key={item.id}
-                            className="min-w-[280px] md:min-w-0 bg-white p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-lg transition-all cursor-pointer group snap-center"
+                            className={`min-w-[280px] md:min-w-0 bg-white p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-lg transition-all cursor-pointer group snap-center ${dir === 'rtl' ? 'text-right' : ''}`}
                         >
-                            <div className="flex items-start gap-4">
+                            <div className={`flex items-start gap-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-${item.color}-50 text-${item.color}-600 group-hover:bg-${item.color}-600 group-hover:text-white transition-colors`}>
                                     <item.icon className="w-6 h-6" />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <h4 className={`font-bold text-slate-900 group-hover:text-${item.color}-700 transition-colors`}>{item.title}</h4>
-                                    <div className="flex items-center gap-2 mt-1">
+                                    <div className={`flex items-center gap-2 mt-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                         <span className="text-xs font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{item.type}</span>
                                         <span className="text-xs text-slate-400">• {item.duration}</span>
                                     </div>

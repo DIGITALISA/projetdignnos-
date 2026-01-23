@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Target, ArrowRight, Home } from "lucide-react";
+import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Target, ArrowRight, Home, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ResultsPage() {
@@ -215,6 +215,31 @@ export default function ResultsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
+                className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6"
+            >
+                <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <ShieldCheck className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">📜 Official Recommendation Letter</h3>
+                        <p className="text-slate-700 mb-4">
+                            Based on your excellent performance in the interview and your training progress, you can now generate an official <strong>Recommendation Letter</strong> from our AI HR Expert.
+                        </p>
+                        <button
+                            onClick={() => router.push('/recommendation')}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-md"
+                        >
+                            Generate My Letter
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
                 className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-6"
             >
                 <div className="flex items-start gap-4">

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, Filter, MoreVertical, ShieldCheck, Mail, Calendar, Trash2, Edit2, X, Check, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Search, UserPlus, Filter, MoreVertical, ShieldCheck, Mail, Calendar, Trash2, Edit2, X, Check, Loader2, Lock } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const participantsData = [
@@ -17,22 +17,111 @@ export default function ParticipantsManagement() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [participants, setParticipants] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+
+    // Form State
     const [formData, setFormData] = useState({
         name: "",
         email: "",
+        password: "", // Default empty
         role: "Premium Member",
         status: "Active"
     });
 
+    const fetchParticipants = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch("/api/admin/users");
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setParticipants(data);
+            }
+        } catch (error) {
+            console.error("Error fetching participants:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchParticipants();
+    }, []);
+
+    const handleDelete = async (userId: string) => {
+        if (!confirm("Are you sure you want to delete this user?")) return;
+
+        try {
+            const res = await fetch(`/api/admin/users?id=${userId}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                setParticipants(prev => prev.filter(p => p._id !== userId));
+                alert("User deleted successfully");
+            } else {
+                alert("Failed to delete user");
+            }
+        } catch (error) {
+            console.error("Error deleting user:", error);
+        }
+    };
+
+    const handleEdit = (user: any) => {
+        setEditingUserId(user._id);
+        setFormData({
+            name: user.fullName,
+            email: user.email,
+            password: "", // Keep empty to indicate no change unless user types
+            role: user.role,
+            status: user.status
+        });
+        setIsAddModalOpen(true);
+    };
+
+    const openAddModal = () => {
+        setEditingUserId(null);
+        setFormData({ name: "", email: "", password: "", role: "Premium Member", status: "Active" });
+        setIsAddModalOpen(true);
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setIsSubmitting(false);
-        setIsAddModalOpen(false);
-        setFormData({ name: "", email: "", role: "Premium Member", status: "Active" });
-        alert("Participant added successfully!");
+        try {
+            const method = editingUserId ? "PUT" : "POST";
+            const body = {
+                id: editingUserId,
+                fullName: formData.name,
+                email: formData.email,
+                role: formData.role,
+                status: formData.status,
+                password: formData.password
+            };
+
+            const res = await fetch("/api/admin/users", {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                await fetchParticipants();
+                setIsAddModalOpen(false);
+                setFormData({ name: "", email: "", password: "", role: "Premium Member", status: "Active" });
+                setEditingUserId(null);
+                alert(editingUserId ? "User updated successfully!" : "User created successfully!");
+            } else {
+                const error = await res.json();
+                alert(`Error: ${error.error}`);
+            }
+        } catch (error) {
+            console.error("Error saving user:", error);
+            alert("Failed to save user");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -43,7 +132,7 @@ export default function ParticipantsManagement() {
                     <p className="text-slate-500 mt-1">Manage user access and track their session progress.</p>
                 </div>
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={openAddModal}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
                 >
                     <UserPlus size={20} />
@@ -89,9 +178,14 @@ export default function ParticipantsManagement() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {participantsData.map((user, idx) => (
+                            {participants.filter(p => {
+                                const isParticipant = p.role !== 'Admin' && p.role !== 'Moderator';
+                                const matchesSearch = p.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                    p.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                                return isParticipant && matchesSearch;
+                            }).map((user, idx) => (
                                 <motion.tr
-                                    key={user.id}
+                                    key={user._id || user.id}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.05 }}
@@ -99,11 +193,11 @@ export default function ParticipantsManagement() {
                                 >
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center font-bold text-slate-600">
-                                                {user.name.charAt(0)}
+                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center font-bold text-slate-600 uppercase">
+                                                {user.fullName?.charAt(0) || user.name?.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-slate-900">{user.name}</p>
+                                                <p className="text-sm font-bold text-slate-900">{user.fullName || user.name}</p>
                                                 <p className="text-xs text-slate-500">{user.email}</p>
                                             </div>
                                         </div>
@@ -126,7 +220,9 @@ export default function ParticipantsManagement() {
                                     </td>
                                     <td className="px-8 py-5">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-slate-700">{user.joinDate}</span>
+                                            <span className="text-sm font-medium text-slate-700">
+                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : user.joinDate}
+                                            </span>
                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{user.role}</span>
                                         </div>
                                     </td>
@@ -135,15 +231,23 @@ export default function ParticipantsManagement() {
                                             <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
                                                 <div className="w-1/2 h-full bg-blue-500 rounded-full" />
                                             </div>
-                                            <span className="text-sm font-bold text-slate-900">{user.courses}</span>
+                                            <span className="text-sm font-bold text-slate-900">{user.courses || 0}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit">
+                                            <button
+                                                onClick={() => handleEdit(user)}
+                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                title="Edit"
+                                            >
                                                 <Edit2 size={16} />
                                             </button>
-                                            <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete">
+                                            <button
+                                                onClick={() => handleDelete(user._id)}
+                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                title="Delete"
+                                            >
                                                 <Trash2 size={16} />
                                             </button>
                                             <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
@@ -158,7 +262,7 @@ export default function ParticipantsManagement() {
                 </div>
                 {/* Pagination Placeholder */}
                 <div className="px-8 py-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                    <p className="text-xs text-slate-500 font-medium">Showing <span className="text-slate-900 font-bold">5</span> of <span className="text-slate-900 font-bold">1,280</span> participants</p>
+                    <p className="text-xs text-slate-500 font-medium">Showing <span className="text-slate-900 font-bold">{participants.length}</span> participants</p>
                     <div className="flex items-center gap-2">
                         <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-400 cursor-not-allowed">Previous</button>
                         <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 hover:bg-slate-50 transition-all shadow-sm">Next</button>
@@ -166,7 +270,7 @@ export default function ParticipantsManagement() {
                 </div>
             </div>
 
-            {/* Add Participant Modal */}
+            {/* Add/Edit Participant Modal */}
             <AnimatePresence>
                 {isAddModalOpen && (
                     <>
@@ -190,8 +294,8 @@ export default function ParticipantsManagement() {
                                             <UserPlus size={24} />
                                         </div>
                                         <div>
-                                            <h2 className="text-xl font-bold text-slate-900">Add Participant</h2>
-                                            <p className="text-sm text-slate-500">Create a new user profile</p>
+                                            <h2 className="text-xl font-bold text-slate-900">{editingUserId ? "Edit User" : "Create New User"}</h2>
+                                            <p className="text-sm text-slate-500">{editingUserId ? "Update user details" : "Create a new user profile"}</p>
                                         </div>
                                     </div>
                                     <button
@@ -224,6 +328,20 @@ export default function ParticipantsManagement() {
                                                 className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 flex items-center gap-1">
+                                                <Lock size={12} />
+                                                {editingUserId ? "Reset Password (Optional)" : "Assign Password"}
+                                            </label>
+                                            <input
+                                                required={!editingUserId}
+                                                type="text"
+                                                placeholder={editingUserId ? "Leave empty to keep current" : "Set user password"}
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -270,12 +388,12 @@ export default function ParticipantsManagement() {
                                             {isSubmitting ? (
                                                 <>
                                                     <Loader2 size={20} className="animate-spin" />
-                                                    Adding...
+                                                    {editingUserId ? "Updating..." : "Adding..."}
                                                 </>
                                             ) : (
                                                 <>
                                                     <Check size={20} />
-                                                    Create Account
+                                                    {editingUserId ? "Update User" : "Create Account"}
                                                 </>
                                             )}
                                         </button>

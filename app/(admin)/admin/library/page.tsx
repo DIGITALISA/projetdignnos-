@@ -1,70 +1,105 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, FileText, Download, Trash2, Edit2, Search, Filter, HardDrive, X, Check, Loader2, Link as LinkIcon, Globe, ArrowUpRight } from "lucide-react";
-import { useState } from "react";
+import { Plus, Search, Filter, X, Check, Loader2, Link as LinkIcon, Globe, ArrowUpRight, Edit2, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface Resource {
-    id: number | null;
+    _id?: string;
     title: string;
     url: string;
     type: string;
     totalDownloads: number;
-    lastUpdated: string;
 }
 
-const initialResources: Resource[] = [
-    { id: 1, title: "Quarterly Budget Tracker", url: "https://example.com/budget", type: "External Tool", totalDownloads: 1240, lastUpdated: "2 days ago" },
-    { id: 2, title: "Project Proposal Template", url: "https://example.com/proposal", type: "Google Doc", totalDownloads: 890, lastUpdated: "5 days ago" },
-    { id: 3, title: "QHSE Compliance Guide", url: "https://example.com/guide", type: "PDF Link", totalDownloads: 2100, lastUpdated: "1 week ago" },
-    { id: 4, title: "Safety Protocol Briefing", url: "https://example.com/safety", type: "Documentation", totalDownloads: 450, lastUpdated: "3 weeks ago" },
-];
-
 export default function LibraryManagement() {
-    const [resources, setResources] = useState<Resource[]>(initialResources);
+    const [resources, setResources] = useState<Resource[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<Resource>({
-        id: null,
         title: "",
         url: "",
-        type: "External Link",
+        type: "Google Doc",
         totalDownloads: 0,
-        lastUpdated: "Just now"
     });
 
+    const fetchResources = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/admin/library');
+            const data = await res.json();
+            if (Array.isArray(data)) setResources(data);
+        } catch (error) {
+            console.error("Error fetching resources:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchResources();
+    }, []);
+
     const handleAdd = () => {
-        setFormData({ id: null, title: "", url: "", type: "External Link", totalDownloads: 0, lastUpdated: "Just now" });
+        setEditingId(null);
+        setFormData({ title: "", url: "", type: "Google Doc", totalDownloads: 0 });
         setIsAddModalOpen(true);
     };
 
     const handleEdit = (res: Resource) => {
-        setFormData(res);
+        setEditingId(res._id!);
+        setFormData({
+            title: res.title,
+            url: res.url,
+            type: res.type,
+            totalDownloads: res.totalDownloads
+        });
         setIsAddModalOpen(true);
     };
 
-    const handleDelete = (id: number | null) => {
-        if (id && confirm("Are you sure you want to delete this resource?")) {
-            setResources(resources.filter(r => r.id !== id));
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this resource?")) return;
+        try {
+            const res = await fetch(`/api/admin/library?id=${id}`, { method: 'DELETE' });
+            if (res.ok) fetchResources();
+        } catch (error) {
+            console.error("Error deleting resource:", error);
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        await new Promise(r => setTimeout(r, 1000));
+        try {
+            const url = '/api/admin/library';
+            const method = editingId ? 'PUT' : 'POST';
+            const body = editingId ? { id: editingId, ...formData } : formData;
 
-        if (formData.id) {
-            setResources(resources.map(r => r.id === formData.id ? formData : r));
-        } else {
-            setResources([...resources, { ...formData, id: Date.now() }]);
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            if (res.ok) {
+                setIsAddModalOpen(false);
+                fetchResources();
+            }
+        } catch (error) {
+            console.error("Error saving resource:", error);
+        } finally {
+            setIsSubmitting(false);
         }
-
-        setIsSubmitting(false);
-        setIsAddModalOpen(false);
     };
+
+    const filteredResources = resources.filter(r =>
+        r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-8">
@@ -101,56 +136,63 @@ export default function LibraryManagement() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {resources.filter(r => r.title.toLowerCase().includes(searchTerm.toLowerCase())).map((res, idx) => (
-                    <motion.div
-                        key={res.id || idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden"
-                    >
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-inner">
-                                <LinkIcon size={28} />
-                            </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => handleEdit(res)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
-                                <button onClick={() => handleDelete(res.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16} /></button>
-                            </div>
-                        </div>
-
-                        <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">{res.title}</h3>
-                        <a
-                            href={res.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-500 font-medium flex items-center gap-1 mt-1 hover:underline truncate"
+            {isLoading ? (
+                <div className="py-20 text-center">
+                    <Loader2 className="w-10 h-10 animate-spin mx-auto text-blue-600 mb-4" />
+                    <p className="text-slate-500 font-medium">Loading resources...</p>
+                </div>
+            ) : filteredResources.length === 0 ? (
+                <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                    <p className="text-slate-400">No resources found.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredResources.map((res, idx) => (
+                        <motion.div
+                            key={res._id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden"
                         >
-                            <ArrowUpRight size={12} />
-                            {res.url}
-                        </a>
-
-                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase">Source</span>
-                                <span className="text-sm font-bold text-slate-700">{res.type}</span>
-                            </div>
-                            <div className="flex flex-col text-right">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Total Clicks</span>
-                                <div className="flex items-center gap-1.5 justify-end">
-                                    <Globe size={12} className="text-slate-400" />
-                                    <span className="text-sm font-bold text-slate-700">{res.totalDownloads}</span>
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-inner">
+                                    <LinkIcon size={28} />
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => handleEdit(res)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                                    <button onClick={() => handleDelete(res._id!)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                                 </div>
                             </div>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Added {res.lastUpdated}</p>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+
+                            <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">{res.title}</h3>
+                            <a
+                                href={res.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-500 font-medium flex items-center gap-1 mt-1 hover:underline truncate"
+                            >
+                                <ArrowUpRight size={12} />
+                                {res.url}
+                            </a>
+
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase">Source</span>
+                                    <span className="text-sm font-bold text-slate-700">{res.type}</span>
+                                </div>
+                                <div className="flex flex-col text-right">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Total Clicks</span>
+                                    <div className="flex items-center gap-1.5 justify-end">
+                                        <Globe size={12} className="text-slate-400" />
+                                        <span className="text-sm font-bold text-slate-700">{res.totalDownloads}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
 
             {/* Modal for adding/editing resource */}
             <AnimatePresence>
@@ -165,7 +207,7 @@ export default function LibraryManagement() {
                                             <Plus size={24} />
                                         </div>
                                         <div>
-                                            <h2 className="text-xl font-bold text-slate-900">{formData.id ? "Edit Resource" : "Add Resource Link"}</h2>
+                                            <h2 className="text-xl font-bold text-slate-900">{editingId ? "Edit Resource" : "Add Resource Link"}</h2>
                                             <p className="text-sm text-slate-500">Provide a title and external URL</p>
                                         </div>
                                     </div>
@@ -227,7 +269,7 @@ export default function LibraryManagement() {
                                             {isSubmitting ? (
                                                 <><Loader2 size={20} className="animate-spin" /> Saving...</>
                                             ) : (
-                                                <><Check size={20} /> {formData.id ? "Update Link" : "Add Link"}</>
+                                                <><Check size={20} /> {editingId ? "Update Link" : "Add Link"}</>
                                             )}
                                         </button>
                                     </div>

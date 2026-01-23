@@ -42,6 +42,7 @@ const sidebarItems = [
         category: "Achievements",
         items: [
             { name: "My Certificates", icon: Award, href: "/certificate" },
+            { name: "Lettre de Recommandation", icon: ShieldCheck, href: "/recommendation" },
         ]
     },
     {
@@ -57,9 +58,44 @@ interface SidebarProps {
     onClose: () => void;
 }
 
+import { useLanguage } from "@/components/providers/LanguageProvider";
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
-    const [userName, setUserName] = useState("Ahmed User");
+    const { t, dir } = useLanguage();
+    const [userName, setUserName] = useState(t.sidebar.items.overview === "Overview" ? "User" : "مستخدم");
+
+    const sidebarItems = [
+        {
+            category: t.sidebar.categories.main,
+            items: [
+                { name: t.sidebar.items.overview, icon: LayoutDashboard, href: "/dashboard" },
+            ]
+        },
+        {
+            category: t.sidebar.categories.journey,
+            items: [
+                { name: t.sidebar.items.diagnosis, icon: FileText, href: "/assessment/cv-upload" },
+                { name: t.sidebar.items.tools, icon: Users, href: "/simulation" },
+                { name: t.sidebar.items.training, icon: PlayCircle, href: "/training" },
+                { name: t.sidebar.items.library, icon: Library, href: "/library" },
+                { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert" },
+            ]
+        },
+        {
+            category: t.sidebar.categories.achievements,
+            items: [
+                { name: t.sidebar.items.certificates, icon: Award, href: "/certificate" },
+                { name: t.sidebar.items.recommendation, icon: ShieldCheck, href: "/recommendation" },
+            ]
+        },
+        {
+            category: t.sidebar.categories.system,
+            items: [
+                { name: t.sidebar.items.settings, icon: Settings, href: "/settings" },
+            ]
+        }
+    ];
 
     useEffect(() => {
         const loadProfile = () => {
@@ -80,7 +116,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }, []);
 
     return (
-        <>
+        <div dir={dir}>
             {/* Mobile Overlay with Blur */}
             <AnimatePresence>
                 {isOpen && (
@@ -95,8 +131,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </AnimatePresence>
 
             <aside className={cn(
-                "fixed left-0 top-0 h-screen w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none",
-                isOpen ? "translate-x-0" : "-translate-x-full"
+                "fixed top-0 h-screen w-72 bg-white/80 backdrop-blur-xl border-slate-200/60 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none",
+                dir === 'rtl' ? "right-0 border-l" : "left-0 border-r",
+                isOpen ? "translate-x-0" : (dir === 'rtl' ? "translate-x-full" : "-translate-x-full")
             )}>
                 {/* Brand Header */}
                 <div className="h-20 flex items-center justify-between px-7 border-b border-slate-100/80 bg-white/50">
@@ -125,11 +162,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className="flex-1 overflow-y-auto pt-8 pb-32 px-4 space-y-8 custom-scrollbar h-full">
                     {sidebarItems.map((group, idx) => (
                         <div key={idx} className="space-y-2">
-                            <div className="px-4 flex items-center justify-between mb-2">
+                            <div className={`px-4 flex items-center justify-between mb-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">
                                     {group.category}
                                 </h3>
-                                <div className="h-px flex-1 bg-slate-100 ml-3 opacity-50" />
+                                <div className={`h-px flex-1 bg-slate-100 opacity-50 ${dir === 'rtl' ? 'mr-3' : 'ml-3'}`} />
                             </div>
 
                             <div className="space-y-1">
@@ -144,7 +181,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
                                                 isActive
                                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50"
+                                                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50",
+                                                dir === 'rtl' && "flex-row-reverse"
                                             )}
                                         >
                                             <div className={cn(
@@ -161,10 +199,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                                     layoutId="activeChevron"
                                                     className="relative z-10"
                                                 >
-                                                    <ChevronRight className="w-4 h-4 text-white/70" />
+                                                    <ChevronRight className={`w-4 h-4 text-white/70 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                                                 </motion.div>
                                             ) : (
-                                                <ChevronRight className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                                <ChevronRight className={`w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-all ${dir === 'rtl' ? 'rotate-180 translate-x-2 group-hover:translate-x-0' : '-translate-x-2 group-hover:translate-x-0'}`} />
                                             )}
 
                                             {isActive && (
@@ -186,32 +224,36 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {/* Premium User Profile Footer */}
                 <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent">
                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
-                        <div className="flex items-center gap-3">
+                        <div className={`flex items-center gap-3 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                             <div className="relative">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold border border-white shadow-sm overflow-hidden">
                                     {userName.charAt(0)}
                                     <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+                                <div className={`absolute -bottom-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full ${dir === 'rtl' ? '-left-1' : '-right-1'}`} />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className={`flex-1 min-w-0 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
                                 <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{userName}</p>
-                                <div className="flex items-center gap-1.5">
+                                <div className={`flex items-center gap-1.5 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Premium Member</p>
+                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{t.sidebar.premium}</p>
                                 </div>
                             </div>
                             <button
-                                onClick={() => window.location.href = '/'}
+                                onClick={() => {
+                                    localStorage.removeItem("userProfile");
+                                    sessionStorage.removeItem("admin_section_unlocked");
+                                    window.location.href = '/';
+                                }}
                                 className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group"
-                                title="Déconnexion"
+                                title={t.sidebar.items.signOut}
                             >
-                                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                <LogOut className={`w-4 h-4 transition-transform ${dir === 'rtl' ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
                             </button>
                         </div>
                     </div>
                 </div>
             </aside>
-        </>
+        </div>
     );
 }

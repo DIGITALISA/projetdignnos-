@@ -1,9 +1,18 @@
 import OpenAI from 'openai';
+import { getAIConfig } from './config';
 
-const deepseek = new OpenAI({
-    apiKey: process.env.DEEPSEEK_API_KEY,
-    baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1',
-});
+async function getAI() {
+    const config = await getAIConfig();
+    const isOpenAI = config.activeProvider === 'openai';
+
+    return {
+        client: new OpenAI({
+            apiKey: isOpenAI ? config.openai.apiKey : config.deepseek.apiKey,
+            baseURL: isOpenAI ? undefined : config.deepseek.baseURL,
+        }),
+        model: isOpenAI ? 'gpt-4o' : 'deepseek-chat'
+    };
+}
 
 export async function analyzeCVWithAI(cvText: string, language: string = 'en') {
     try {
@@ -17,8 +26,9 @@ export async function analyzeCVWithAI(cvText: string, language: string = 'en') {
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
             messages: [
                 {
                     role: 'system',
@@ -126,8 +136,9 @@ export async function generateInterviewQuestion(cvAnalysis: any, conversationHis
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
             messages: [
                 {
                     role: 'system',
@@ -172,8 +183,9 @@ Based on the candidate's CV analysis, ask relevant, insightful questions to unde
 
 export async function evaluateInterviewAnswer(question: string, answer: string, cvAnalysis: any) {
     try {
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
             messages: [
                 {
                     role: 'system',
@@ -215,8 +227,9 @@ export async function startStructuredInterview(cvAnalysis: any, language: string
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
             messages: [
                 {
                     role: 'system',
@@ -303,8 +316,9 @@ export async function generateNextInterviewQuestion(
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
             messages: [
                 {
                     role: 'system',
@@ -373,8 +387,9 @@ export async function evaluateInterview(cvAnalysis: any, conversationHistory: an
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
             messages: [
                 {
                     role: 'system',
@@ -458,3 +473,134 @@ ALL content must be in ${language}.`
 }
 
 
+export async function chatWithExpert(messages: any[], language: string = 'en') {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.',
+            'es': 'Responde en español.',
+        };
+
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are an AI Career Strategist and Expert. Your goal is to provide personalized career advice, help with career transitions, skill development, and salary negotiations.
+                    
+${languageInstruction}
+
+**RULES:**
+- Be professional, encouraging, and insightful.
+- Provide actionable advice based on industry trends.
+- If the user asks about specific roles, give details about market demand and required skills.
+- Use a helpful and conversational tone.`
+                },
+                ...messages
+            ],
+            temperature: 0.7,
+            max_tokens: 1000,
+        });
+
+        return {
+            success: true,
+            content: response.choices[0]?.message?.content || '',
+        };
+    } catch (error) {
+        console.error('DeepSeek API Error:', error);
+        return {
+            success: false,
+            error: 'Failed to get response from expert AI',
+        };
+    }
+}
+
+export async function generateRecommendationLetter(
+    userProfile: any,
+    completedCourses: any[],
+    diagnosticResults: any,
+    language: string = 'en'
+) {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.',
+        };
+
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a world-class HR Expert and Career Consultant. Your task is to write a highly professional, persuasive Recommendation Letter for a participant.
+                    
+**CONTEXT:**
+The participant has undergone a rigorous diagnostic process (CV analysis and technical interview) and has completed specialized training.
+
+**YOUR GOAL:**
+Write a letter that a recruiter or employer would find extremely valuable. It should highlight:
+1. The participant's current skill level and expertise.
+2. Their commitment to continuous learning (based on completed courses).
+3. Their strengths identified during the diagnostic phase.
+4. A professional endorsement of their potential for future roles.
+
+**STRUCTURE OF THE LETTER:**
+1. **Header**: Professional header (To Whom It May Concern, etc.)
+2. **Introduction**: Introduce the participant and the context of the recommendation.
+3. **Professional Profile**: Based on the diagnostic results.
+4. **Skills & Training**: Highlight the courses completed and the skills mastered.
+5. **Personal Attributes**: Soft skills and attitude observed.
+6. **Final Endorsement**: A strong closing statement recommending the candidate.
+
+**TONE:**
+- Professional, authoritative, yet supportive.
+- Use high-impact professional vocabulary.
+- Be specific about their achievements.
+
+${languageInstruction}
+
+**IMPORTANT:**
+Return the response as a JSON object with:
+{
+  "subject": "string (Professional Subject Line)",
+  "content": "string (The full text of the letter with proper formatting/paragraphs)",
+  "keyEndorsements": ["string (3-4 brief bullet points summarizing why they are recommended)"]
+}`
+                },
+                {
+                    role: 'user',
+                    content: `Participant Profile: ${JSON.stringify(userProfile)}
+Completed Training: ${JSON.stringify(completedCourses)}
+Diagnostic Results: ${JSON.stringify(diagnosticResults)}
+
+Write the recommendation letter in ${language}.`
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 2500,
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+
+        const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        return {
+            success: true,
+            recommendation: JSON.parse(cleanedResult),
+        };
+    } catch (error) {
+        console.error('DeepSeek API Error:', error);
+        return {
+            success: false,
+            error: 'Failed to generate recommendation letter',
+        };
+    }
+}

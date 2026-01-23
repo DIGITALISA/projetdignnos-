@@ -29,35 +29,87 @@ export default function InterviewPage() {
     const [totalQuestions, setTotalQuestions] = useState(15); // Default 15 questions
     const [interviewComplete, setInterviewComplete] = useState(false);
     const [finalEvaluation, setFinalEvaluation] = useState<any>(null);
+    const [diagnosisId, setDiagnosisId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Load CV analysis and language from localStorage
-        const stored = localStorage.getItem('cvAnalysis');
-        const storedLanguage = localStorage.getItem('selectedLanguage');
+        const loadSession = async () => {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
 
-        if (stored) {
-            const analysis = JSON.parse(stored);
-            setCvAnalysis(analysis);
-        }
+            // First check URL/API for active session
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/assessment/progress?userId=${encodeURIComponent(userId)}`);
+                    const data = await res.json();
 
-        if (storedLanguage) {
-            setSelectedLanguage(storedLanguage);
-        }
+                    if (data.hasActiveSession) {
+                        setDiagnosisId(data.diagnosisId);
+                        if (data.analysis) setCvAnalysis(data.analysis);
+                        if (data.language) setSelectedLanguage(data.language);
+
+                        if (data.conversationHistory && data.conversationHistory.length > 0) {
+                            // Resume existing chat
+                            // Convert string timestamps back to Date objects
+                            const restoredMessages = data.conversationHistory.map((m: any) => ({
+                                ...m,
+                                timestamp: new Date(m.timestamp)
+                            }));
+                            setMessages(restoredMessages);
+                            setCurrentQuestionIndex(Math.floor(restoredMessages.length / 2)); // Approx
+                            return; // Don't start new interview
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load session", e);
+                }
+            }
+
+            // Fallback to localStorage (new session flow)
+            const stored = localStorage.getItem('cvAnalysis');
+            const storedLanguage = localStorage.getItem('selectedLanguage');
+
+            if (stored && !cvAnalysis) {
+                const analysis = JSON.parse(stored);
+                setCvAnalysis(analysis);
+            }
+
+            if (storedLanguage && !selectedLanguage) {
+                setSelectedLanguage(storedLanguage);
+            }
+        };
+
+        loadSession();
     }, []);
 
     useEffect(() => {
-        // Start interview when language is selected and CV analysis is loaded
-        if (selectedLanguage && cvAnalysis && messages.length === 0) {
+        // Start interview ONLY if we have analysis + language AND NO messages yet
+        // and we haven't already started (check diagnosisId? actually we might not have it yet for new session)
+        if (selectedLanguage && cvAnalysis && messages.length === 0 && !isLoading) {
             startInterview();
         }
     }, [selectedLanguage, cvAnalysis]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+
+        // Save progress whenever messages change (debounce could be better but this is simple)
+        if (messages.length > 0 && diagnosisId) {
+            fetch('/api/interview/save-progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    diagnosisId,
+                    messages,
+                    currentQuestionIndex, // Note: index might be desync'd on reload if not saved explicitly
+                    totalQuestions
+                })
+            }).catch(err => console.error("Error saving chat", err));
+        }
+    }, [messages, diagnosisId]);
 
     const startInterview = async () => {
+        if (messages.length > 0) return; // Prevention
         setIsLoading(true);
         try {
             const response = await fetch('/api/interview/start', {
@@ -73,19 +125,31 @@ export default function InterviewPage() {
 
             if (result.success) {
                 setTotalQuestions(result.totalQuestions || 15);
-                setMessages([{
+                const welcomeMsg = {
                     role: 'ai',
                     content: result.welcomeMessage,
                     timestamp: new Date(),
-                }]);
+                };
+
+                // We need to set messages.
+                // ALSO logic: ensure we create a Diagnosis ID if we don't have one?
+                // Actually `cv-upload` should have created it? No, `cv-upload` calls `analyze-cv` which creates it.
+                // BUT `analyze-cv` (Step 1232) creates it IF `userId` is present.
+                // So if we came from `analyze-cv`, we should have one.
+                // We should probably rely on `loadSession` finding it. 
+                // If `loadSession` found it, `diagnosisId` is set.
+                // If I am just testing without login, `diagnosisId` is null.
+
+                setMessages([welcomeMsg as Message]); // Cast needed or type match
 
                 // Add first question
                 setTimeout(() => {
-                    setMessages(prev => [...prev, {
+                    const q1 = {
                         role: 'ai',
                         content: result.firstQuestion,
                         timestamp: new Date(),
-                    }]);
+                    };
+                    setMessages(prev => [...prev, q1 as Message]);
                     setCurrentQuestionIndex(1);
                 }, 1000);
             }
@@ -112,6 +176,11 @@ export default function InterviewPage() {
         try {
             // Check if this is the last question
             if (currentQuestionIndex >= totalQuestions) {
+                // Get user info from localStorage
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName || 'anonymous';
+                const userName = userProfile.fullName || 'Anonymous User';
+
                 // Finish interview and get final evaluation
                 const response = await fetch('/api/interview/evaluate', {
                     method: 'POST',
@@ -120,6 +189,8 @@ export default function InterviewPage() {
                         cvAnalysis,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
+                        userId,
+                        userName
                     }),
                 });
 
@@ -193,6 +264,11 @@ export default function InterviewPage() {
         try {
             // Check if this is the last question
             if (currentQuestionIndex >= totalQuestions) {
+                // Get user info from localStorage
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName || 'anonymous';
+                const userName = userProfile.fullName || 'Anonymous User';
+
                 // Finish interview
                 const response = await fetch('/api/interview/evaluate', {
                     method: 'POST',
@@ -201,6 +277,8 @@ export default function InterviewPage() {
                         cvAnalysis,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
+                        userId,
+                        userName
                     }),
                 });
 
