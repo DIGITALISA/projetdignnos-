@@ -60,7 +60,10 @@ Conduct a focused 6-question interview to gather ADDITIONAL information needed t
 - Ask strategic questions that reveal concrete, quantifiable information
 - Focus on details that will make their CV stand out
 - Gather information that's relevant to "${selectedRole.title}"
-- Help them articulate their value in recruiter-friendly language`
+- Help them articulate their value in recruiter-friendly language
+ 
+**CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
+**IMPORTANT: The language instruction applies ONLY to the text content INSIDE the JSON fields.**`
                 },
                 {
                     role: 'user',
@@ -82,7 +85,7 @@ Respond in JSON format:
                 }
             ],
             temperature: 0.7,
-            max_tokens: 500,
+            max_tokens: 2000,
         });
 
         const result = response.choices[0]?.message?.content;
@@ -272,7 +275,41 @@ Create THREE professional documents:
 
 **OUTPUT FORMAT (JSON):**
 {
-  "cv": "string (full ATS-optimized CV text)",
+  "cv": {
+    "personalDetails": {
+        "fullName": "string",
+        "jobTitle": "targeted role title",
+        "email": "string",
+        "phone": "string",
+        "location": "string",
+        "linkedin": "string"
+    },
+    "professionalSummary": "string (impactful 3-4 lines)",
+    "experience": [
+        {
+            "title": "string",
+            "company": "string",
+            "location": "string",
+            "period": "string",
+            "highlights": ["array of 3-4 bullet points with metrics and impact"]
+        }
+    ],
+    "skills": {
+        "technical": ["array of hard skills"],
+        "tools": ["array of software/tools"],
+        "soft": ["array of interpersonal skills"]
+    },
+    "education": [
+        {
+            "degree": "string",
+            "institution": "string",
+            "location": "string",
+            "period": "string"
+        }
+    ],
+    "languages": ["string"],
+    "certifications": ["string"]
+  },
   "coverLetter": "string (complete cover letter)",
   "professionalTips": "string (marketing and presentation tips)",
   "keywords": ["array of key terms used for ATS optimization"]

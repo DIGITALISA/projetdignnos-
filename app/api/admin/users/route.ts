@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { fullName, email, password, role, status } = body;
+        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, rawPassword } = body;
 
         if (!fullName || !email || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -36,7 +36,12 @@ export async function POST(req: NextRequest) {
             email,
             password: hashedPassword,
             role: role || "Free Tier",
-            status: status || "Active"
+            status: status || "Active",
+            whatsapp: whatsapp || "",
+            plan: plan || "Free Trial",
+            canAccessCertificates: !!canAccessCertificates,
+            canAccessRecommendations: !!canAccessRecommendations,
+            rawPassword: rawPassword || password
         });
 
         return NextResponse.json(user, { status: 201 });
@@ -49,13 +54,23 @@ export async function PUT(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { id, fullName, email, password, role, status } = body;
+        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, rawPassword } = body;
 
         if (!id) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
         }
 
-        const updateData: any = { fullName, email, role, status };
+        const updateData: any = {
+            fullName,
+            email,
+            role,
+            status,
+            whatsapp,
+            plan,
+            canAccessCertificates: !!canAccessCertificates,
+            canAccessRecommendations: !!canAccessRecommendations,
+            rawPassword: rawPassword
+        };
         if (password && password.trim() !== "") {
             updateData.password = await bcrypt.hash(password, 10);
         }

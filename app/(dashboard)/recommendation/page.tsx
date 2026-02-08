@@ -7,32 +7,55 @@ import {
     ShieldCheck,
     Download,
     Printer,
-    Share2,
     Loader2,
     Sparkles,
     Award,
     CheckCircle2,
-    FileText,
     ArrowRight,
     RefreshCw,
-    AlertCircle
+    AlertCircle,
+    Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AssetLocked } from "@/components/layout/AssetLocked";
 
 export default function RecommendationPage() {
     const [recommendation, setRecommendation] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [readiness, setReadiness] = useState({ isReady: false, hasDiagnosis: false, hasSimulation: false });
+
+    const checkReadiness = async (userId: string) => {
+        try {
+            const res = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            if (data.success) {
+                setReadiness(data);
+                return data.isReady;
+            }
+        } catch (err) {
+            console.error("Readiness check error:", err);
+        }
+        return false;
+    };
 
     const fetchRecommendation = async () => {
         setLoading(true);
         try {
-            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const savedProfile = localStorage.getItem('userProfile');
+            const userProfile = JSON.parse(savedProfile || '{}');
             const userId = userProfile.email || userProfile.fullName;
 
             if (!userId) {
                 setError("User profile not found. Please log in again.");
+                setLoading(false);
+                return;
+            }
+
+            const ready = await checkReadiness(userId);
+            if (!ready) {
+                setLoading(false);
                 return;
             }
 
@@ -58,10 +81,11 @@ export default function RecommendationPage() {
         setGenerating(true);
         setError(null);
         try {
-            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const savedProfile = localStorage.getItem('userProfile');
+            const userProfile = JSON.parse(savedProfile || '{}');
             const userId = userProfile.email || userProfile.fullName;
             const userName = userProfile.fullName;
-            const language = localStorage.getItem('selectedLanguage') || 'fr';
+            const language = localStorage.getItem('career-upgrade-lang') || 'fr';
 
             const response = await fetch('/api/user/recommendation', {
                 method: 'POST',
@@ -110,10 +134,20 @@ export default function RecommendationPage() {
         );
     }
 
+    if (!readiness.isReady) {
+        return (
+            <AssetLocked
+                title="Letter of Recommendation"
+                description="Your Official Executive Endorsement is currently locked. This asset is synthesized based on your full platform history."
+                readiness={readiness}
+            />
+        );
+    }
+
     return (
         <div className="flex-1 p-4 md:p-10 max-w-7xl mx-auto space-y-10 bg-slate-50/30 min-h-screen">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200">
-                <div className="space-y-2">
+                <div className="space-y-4">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -125,8 +159,8 @@ export default function RecommendationPage() {
                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
                         Lettre de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600">Recommandation</span>
                     </h1>
-                    <p className="text-slate-500 text-lg max-w-2xl font-medium leading-relaxed">
-                        Un document de prestige, validé par l'IA, pour propulser votre carrière au niveau supérieur.
+                    <p className="text-slate-500 text-lg max-w-2xl font-medium leading-relaxed font-arabic" dir="rtl">
+                        يتم إنشاء هذه الرسالة بناءً على كامل مسارك (التشخيص، التدريب، والمحاكاة).
                     </p>
                 </div>
 
@@ -156,7 +190,27 @@ export default function RecommendationPage() {
             </header>
 
             <AnimatePresence mode="wait">
-                {!recommendation ? (
+                {generating && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="p-12 text-center space-y-4 bg-blue-50/50 rounded-[3rem] border border-blue-100 border-dashed"
+                    >
+                        <div className="relative inline-block">
+                            <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+                            <Zap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 w-6 h-6" />
+                        </div>
+                        <h3 className="text-xl font-black text-blue-900 font-arabic" dir="rtl">
+                            الذكاء الاصطناعي يقوم الآن بتحليل كامل مسارك لإنشاء توصية حصرية...
+                        </h3>
+                        <p className="text-blue-600 text-sm font-bold uppercase tracking-[0.2em] animate-pulse">
+                            Processing Dashboard Data + Expert Feedback
+                        </p>
+                    </motion.div>
+                )}
+
+                {!recommendation && !generating ? (
                     <motion.div
                         key="empty"
                         initial={{ opacity: 0, y: 30 }}
@@ -177,7 +231,7 @@ export default function RecommendationPage() {
                                     Prêt à transformer vos efforts en opportunités ?
                                 </h2>
                                 <p className="text-slate-600 text-xl leading-relaxed font-medium">
-                                    Notre IA va synthétiser vos diagnostics techniques et vos certifications pour créer une lettre de recommandation d'une qualité exceptionnelle.
+                                    سيقوم الذكاء الاصطناعي بتحليل المعطيات الموجودة في الداشبورد الخاصة بك (التشخيص، الورشات، والمحاكاة) لإنتاج رسالة توصية احترافية.
                                 </p>
                             </div>
 
@@ -195,40 +249,18 @@ export default function RecommendationPage() {
                             <div className="pt-4">
                                 <button
                                     onClick={generateRecommendation}
-                                    disabled={generating}
                                     className="group relative px-12 py-6 bg-slate-900 text-white rounded-3xl font-black text-2xl shadow-2xl shadow-slate-900/30 hover:shadow-slate-900/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 overflow-hidden"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <span className="relative flex items-center gap-4">
-                                        {generating ? (
-                                            <>
-                                                <Loader2 className="w-8 h-8 animate-spin" />
-                                                Génération en cours...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Générer ma Recommandation
-                                                <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
-                                            </>
-                                        )}
+                                        Générer ma Recommandation
+                                        <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
                                     </span>
                                 </button>
                             </div>
-
-                            <div className="flex flex-wrap justify-center gap-8 text-sm font-bold uppercase tracking-widest text-slate-400">
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Profil Vérifié
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Analyse AI Intégrale
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Prêt pour Recrutement
-                                </div>
-                            </div>
                         </div>
                     </motion.div>
-                ) : (
+                ) : (recommendation && !generating && (
                     <motion.div
                         key="content"
                         initial={{ opacity: 0 }}
@@ -330,9 +362,8 @@ export default function RecommendationPage() {
                             </motion.div>
                         </div>
 
-                        {/* Sidebar Info - High Contrast for Premium Feel */}
+                        {/* Sidebar Info */}
                         <div className="lg:col-span-1 space-y-6">
-                            {/* Key Endorsements - Dark Mode Accent */}
                             <motion.div
                                 initial={{ x: 30, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
@@ -340,8 +371,6 @@ export default function RecommendationPage() {
                                 className="bg-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/5"
                             >
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-[100px]" />
-                                <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-600/20 rounded-full -ml-20 -mb-20 blur-[80px]" />
-
                                 <div className="relative space-y-8">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-lg">
@@ -366,19 +395,9 @@ export default function RecommendationPage() {
                                             </motion.div>
                                         ))}
                                     </div>
-
-                                    <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-white/5">
-                                        <div className="flex items-center gap-3">
-                                            <Sparkles className="w-5 h-5 text-yellow-500" />
-                                            <p className="text-[10px] text-blue-200 font-black uppercase tracking-[0.2em] leading-relaxed">
-                                                Performance Excédente à 98% des Candidats Analysés.
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             </motion.div>
 
-                            {/* Download Action - Call to Action */}
                             <motion.div
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
@@ -386,24 +405,23 @@ export default function RecommendationPage() {
                                 className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-xl overflow-hidden relative group"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-700 ease-in-out" />
-
                                 <div className="relative group-hover:text-white transition-colors duration-500">
                                     <h4 className="font-black text-2xl mb-3 tracking-tight">Exporter le Prestige</h4>
                                     <p className="text-sm text-slate-500 group-hover:text-blue-100 mb-8 font-medium leading-relaxed">
-                                        Ce certificat est votre passeport vers des rôles de haute responsabilité. Téléchargez-le maintenant.
+                                        Prenez possession de votre recommandation officielle.
                                     </p>
                                     <button
                                         onClick={handlePrint}
                                         className="w-full py-5 bg-slate-900 text-white group-hover:bg-white group-hover:text-blue-900 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95"
                                     >
                                         <Download className="w-6 h-6" />
-                                        Télécharger Certificat
+                                        Télécharger PDF
                                     </button>
                                 </div>
                             </motion.div>
                         </div>
                     </motion.div>
-                )}
+                ))}
             </AnimatePresence>
 
             <style jsx global>{`
@@ -426,12 +444,6 @@ export default function RecommendationPage() {
                         top: 0;
                         width: 100%;
                         background: white !important;
-                    }
-                    .lg\\:col-span-3 > div {
-                        box-shadow: none !important;
-                        border: none !important;
-                        background: white !important;
-                        padding: 0 !important;
                     }
                     header, .lg\\:col-span-1, button {
                         display: none !important;

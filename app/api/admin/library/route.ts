@@ -28,7 +28,7 @@ export async function PUT(req: NextRequest) {
         await connectDB();
         const body = await req.json();
         const { id, ...updateData } = body;
-        const resource = await Resource.findByIdAndUpdate(id, updateData, { new: true });
+        const resource = await Resource.findByIdAndUpdate(id, updateData, { new: true, strict: false });
         return NextResponse.json(resource);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });

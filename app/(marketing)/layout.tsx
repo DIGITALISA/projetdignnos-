@@ -1,6 +1,5 @@
-"use client";
-
 import { Navbar } from "@/components/ui/navbar";
+import { Footer } from "@/components/ui/footer";
 
 export default function MarketingLayout({
     children,
@@ -8,9 +7,10 @@ export default function MarketingLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* We render Navbar inside the pages now or here globaly */}
+        <div className="min-h-screen bg-slate-50 dark:bg-[#050505]">
+            <Navbar />
             {children}
+            <Footer />
         </div>
     );
 }

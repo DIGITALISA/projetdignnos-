@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, TrendingUp, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -31,6 +31,7 @@ export default function InterviewPage() {
     const [finalEvaluation, setFinalEvaluation] = useState<any>(null);
     const [diagnosisId, setDiagnosisId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const isEvaluatingRef = useRef(false);
 
     useEffect(() => {
         const loadSession = async () => {
@@ -47,17 +48,32 @@ export default function InterviewPage() {
                         setDiagnosisId(data.diagnosisId);
                         if (data.analysis) setCvAnalysis(data.analysis);
                         if (data.language) setSelectedLanguage(data.language);
+                        if (data.totalQuestions) setTotalQuestions(data.totalQuestions);
+
+                        if (data.currentStep === 'interview_complete' || data.currentStep === 'completed') {
+                            if (data.evaluation) setFinalEvaluation(data.evaluation);
+                            setInterviewComplete(true);
+                            if (data.conversationHistory) {
+                                setMessages(data.conversationHistory.map((m: any) => ({
+                                    ...m,
+                                    timestamp: new Date(m.timestamp)
+                                })));
+                            }
+                            return;
+                        }
 
                         if (data.conversationHistory && data.conversationHistory.length > 0) {
                             // Resume existing chat
-                            // Convert string timestamps back to Date objects
                             const restoredMessages = data.conversationHistory.map((m: any) => ({
                                 ...m,
                                 timestamp: new Date(m.timestamp)
                             }));
                             setMessages(restoredMessages);
-                            setCurrentQuestionIndex(Math.floor(restoredMessages.length / 2)); // Approx
-                            return; // Don't start new interview
+
+                            // Calculate current index accurately, capped by total
+                            const calculatedIndex = Math.floor(restoredMessages.length / 2);
+                            setCurrentQuestionIndex(Math.min(calculatedIndex, data.totalQuestions || 15));
+                            return;
                         }
                     }
                 } catch (e) {
@@ -84,16 +100,24 @@ export default function InterviewPage() {
 
     useEffect(() => {
         // Start interview ONLY if we have analysis + language AND NO messages yet
-        // and we haven't already started (check diagnosisId? actually we might not have it yet for new session)
-        if (selectedLanguage && cvAnalysis && messages.length === 0 && !isLoading) {
+        const shouldStart = selectedLanguage && cvAnalysis && messages.length === 0 && !isLoading;
+        if (shouldStart) {
             startInterview();
         }
-    }, [selectedLanguage, cvAnalysis]);
+    }, [selectedLanguage, cvAnalysis, messages.length, isLoading]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-        // Save progress whenever messages change (debounce could be better but this is simple)
+        // Auto-focus input when AI finishes
+        if (!isLoading && !interviewComplete) {
+            setTimeout(() => {
+                const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+                if (input) input.focus();
+            }, 500);
+        }
+
+        // Save progress whenever messages change
         if (messages.length > 0 && diagnosisId) {
             fetch('/api/interview/save-progress', {
                 method: 'POST',
@@ -101,24 +125,36 @@ export default function InterviewPage() {
                 body: JSON.stringify({
                     diagnosisId,
                     messages,
-                    currentQuestionIndex, // Note: index might be desync'd on reload if not saved explicitly
+                    currentQuestionIndex,
                     totalQuestions
                 })
             }).catch(err => console.error("Error saving chat", err));
         }
     }, [messages, diagnosisId]);
 
+    // Safety valve: Ensure interviewComplete matches actual progress
+    useEffect(() => {
+        if (interviewComplete && currentQuestionIndex < totalQuestions) {
+            setInterviewComplete(false);
+        }
+    }, [currentQuestionIndex, totalQuestions, interviewComplete]);
+
+    const forceUnlock = () => {
+        setIsLoading(false);
+        setInterviewComplete(false);
+        // Re-calculate progress
+        const calculatedIndex = Math.floor(messages.length / 2);
+        setCurrentQuestionIndex(Math.min(calculatedIndex, totalQuestions));
+    };
+
     const startInterview = async () => {
-        if (messages.length > 0) return; // Prevention
+        if (messages.length > 0) return;
         setIsLoading(true);
         try {
             const response = await fetch('/api/interview/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cvAnalysis,
-                    language: selectedLanguage
-                }),
+                body: JSON.stringify({ cvAnalysis, language: selectedLanguage }),
             });
 
             const result = await response.json();
@@ -131,16 +167,7 @@ export default function InterviewPage() {
                     timestamp: new Date(),
                 };
 
-                // We need to set messages.
-                // ALSO logic: ensure we create a Diagnosis ID if we don't have one?
-                // Actually `cv-upload` should have created it? No, `cv-upload` calls `analyze-cv` which creates it.
-                // BUT `analyze-cv` (Step 1232) creates it IF `userId` is present.
-                // So if we came from `analyze-cv`, we should have one.
-                // We should probably rely on `loadSession` finding it. 
-                // If `loadSession` found it, `diagnosisId` is set.
-                // If I am just testing without login, `diagnosisId` is null.
-
-                setMessages([welcomeMsg as Message]); // Cast needed or type match
+                setMessages([welcomeMsg as Message]);
 
                 // Add first question
                 setTimeout(() => {
@@ -160,22 +187,51 @@ export default function InterviewPage() {
         }
     };
 
-    const handleSendMessage = async () => {
-        if (!inputValue.trim() || isLoading) return;
+    const handleSendMessage = async (e?: React.FormEvent | React.KeyboardEvent) => {
+        if (e && 'preventDefault' in e) e.preventDefault();
+        if (!inputValue.trim() || isLoading || interviewComplete) return;
 
+        const currentInput = inputValue;
         const userMessage: Message = {
             role: 'user',
-            content: inputValue,
+            content: currentInput,
             timestamp: new Date(),
         };
 
+        await processStep(userMessage, currentInput);
+    };
+
+    const handleSkipQuestion = async () => {
+        if (isLoading || interviewComplete) return;
+
+        const skipMessages: Record<string, string> = {
+            'en': "I don't have enough information for this question, please move on to the next one.",
+            'fr': "Je n'ai pas assez d'informations pour cette question, veuillez passer à la suivante.",
+            'ar': "ليس لدي معلومات كافية لهذا السؤال، يرجى الانتقال إلى السؤال التالي.",
+            'es': "No tengo suficiente información para esta pregunta, por favor pase a la siguiente.",
+        };
+
+        const skipMessage = skipMessages[selectedLanguage || 'en'] || skipMessages['en'];
+        const userMessage: Message = {
+            role: 'user',
+            content: skipMessage,
+            timestamp: new Date(),
+        };
+
+        await processStep(userMessage);
+    };
+
+    const processStep = async (userMessage: Message, originalInput?: string) => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue("");
         setIsLoading(true);
 
         try {
-            // Check if this is the last question
+            // Check if this is the last interaction
             if (currentQuestionIndex >= totalQuestions) {
+                if (isEvaluatingRef.current) return;
+                isEvaluatingRef.current = true;
+
                 // Get user info from localStorage
                 const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                 const userId = userProfile.email || userProfile.fullName || 'anonymous';
@@ -200,12 +256,24 @@ export default function InterviewPage() {
                     setFinalEvaluation(result.evaluation);
                     setInterviewComplete(true);
 
+                    // Update userProfile in localStorage to unlock other modules
+                    const savedProfile = localStorage.getItem("userProfile");
+                    if (savedProfile) {
+                        const profile = JSON.parse(savedProfile);
+                        profile.isDiagnosisComplete = true;
+                        profile.diagnosisData = result.evaluation;
+                        localStorage.setItem("userProfile", JSON.stringify(profile));
+                        window.dispatchEvent(new Event("profileUpdated"));
+                    }
+
                     const aiMessage: Message = {
                         role: 'ai',
                         content: result.closingMessage,
                         timestamp: new Date(),
                     };
                     setMessages(prev => [...prev, aiMessage]);
+                } else {
+                    throw new Error(result.error || "Evaluation failed");
                 }
             } else {
                 // Get next question
@@ -230,99 +298,23 @@ export default function InterviewPage() {
                         timestamp: new Date(),
                     };
                     setMessages(prev => [...prev, aiMessage]);
-                    setCurrentQuestionIndex(prev => prev + 1);
+                    // Increment progress index correctly
+                    setCurrentQuestionIndex(prev => Math.min(prev + 1, totalQuestions));
+                } else {
+                    throw new Error(result.error || "Failed to get next question");
                 }
             }
         } catch (error) {
-            console.error('Error:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+            console.error('Interview Process Error:', error);
+            if (originalInput) setInputValue(originalInput);
 
-    const handleSkipQuestion = async () => {
-        if (isLoading) return;
+            const errorMsg = selectedLanguage === 'ar'
+                ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
+                : "Connection error. Please try again.";
+            alert(errorMsg);
 
-        const skipMessages: Record<string, string> = {
-            'en': "I don't know the answer to this question / I prefer to skip this question.",
-            'fr': "Je ne connais pas la réponse à cette question / Je préfère passer cette question.",
-            'ar': "لا أعرف إجابة هذا السؤال / أفضل تخطي هذا السؤال.",
-            'es': "No sé la respuesta a esta pregunta / Prefiero omitir esta pregunta.",
-        };
-
-        const skipMessage = skipMessages[selectedLanguage || 'en'] || skipMessages['en'];
-
-        const userMessage: Message = {
-            role: 'user',
-            content: skipMessage,
-            timestamp: new Date(),
-        };
-
-        setMessages(prev => [...prev, userMessage]);
-        setIsLoading(true);
-
-        try {
-            // Check if this is the last question
-            if (currentQuestionIndex >= totalQuestions) {
-                // Get user info from localStorage
-                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                const userId = userProfile.email || userProfile.fullName || 'anonymous';
-                const userName = userProfile.fullName || 'Anonymous User';
-
-                // Finish interview
-                const response = await fetch('/api/interview/evaluate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cvAnalysis,
-                        conversationHistory: [...messages, userMessage],
-                        language: selectedLanguage,
-                        userId,
-                        userName
-                    }),
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    setFinalEvaluation(result.evaluation);
-                    setInterviewComplete(true);
-
-                    const aiMessage: Message = {
-                        role: 'ai',
-                        content: result.closingMessage,
-                        timestamp: new Date(),
-                    };
-                    setMessages(prev => [...prev, aiMessage]);
-                }
-            } else {
-                // Get next question
-                const response = await fetch('/api/interview/next-question', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cvAnalysis,
-                        conversationHistory: [...messages, userMessage],
-                        language: selectedLanguage,
-                        questionNumber: currentQuestionIndex + 1,
-                        totalQuestions,
-                    }),
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const aiMessage: Message = {
-                        role: 'ai',
-                        content: result.question,
-                        timestamp: new Date(),
-                    };
-                    setMessages(prev => [...prev, aiMessage]);
-                    setCurrentQuestionIndex(prev => prev + 1);
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
+            // Reset evaluation ref on error to allow retry
+            isEvaluatingRef.current = false;
         } finally {
             setIsLoading(false);
         }
@@ -344,7 +336,7 @@ export default function InterviewPage() {
                     className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 md:p-12"
                 >
                     <div className="text-center mb-10">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                             <Globe className="w-10 h-10 text-white" />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
@@ -364,7 +356,7 @@ export default function InterviewPage() {
                                 onClick={() => setSelectedLanguage(lang.code)}
                                 className="group relative p-6 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-2xl transition-all text-left overflow-hidden"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                 <div className="relative flex items-center gap-4">
                                     <div className="text-5xl">{lang.flag}</div>
@@ -393,12 +385,12 @@ export default function InterviewPage() {
                     className="space-y-6"
                 >
                     {/* Completion Header */}
-                    <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl border border-green-200 p-8 text-center">
+                    <div className="bg-linear-to-br from-green-50 to-blue-50 rounded-2xl border border-green-200 p-8 text-center">
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <CheckCircle className="w-10 h-10 text-green-600" />
                         </div>
                         <h1 className="text-3xl font-bold text-slate-900 mb-2">Interview Complete!</h1>
-                        <p className="text-slate-600">Thank you for your honest answers. Here's your evaluation summary.</p>
+                        <p className="text-slate-600">Thank you for your honest answers. Here&apos;s your evaluation summary.</p>
                     </div>
 
                     {/* Quick Stats */}
@@ -447,7 +439,7 @@ export default function InterviewPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">AI Career Interview</h1>
                     <p className="text-slate-500">
-                        Answer honestly - we're verifying your CV and understanding your real capabilities.
+                        Answer honestly - we&apos;re verifying your CV and understanding your real capabilities.
                     </p>
                 </div>
 
@@ -457,9 +449,15 @@ export default function InterviewPage() {
                         <p className="text-sm text-slate-500">Progress</p>
                         <p className="text-lg font-bold text-blue-600">{currentQuestionIndex}/{totalQuestions}</p>
                     </div>
-                    <div className="w-16 h-16 rounded-full border-4 border-slate-200 flex items-center justify-center">
-                        <span className="text-lg font-bold text-slate-700">
-                            {Math.round((currentQuestionIndex / totalQuestions) * 100)}%
+                    <div className="relative w-10 h-10 rounded-xl bg-linear-to-br from-emerald-600 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <div
+                            className="absolute inset-0 border-4 border-blue-600 transition-all duration-1000"
+                            style={{
+                                clipPath: `inset(${100 - Math.min(100, (currentQuestionIndex / totalQuestions) * 100)}% 0 0 0)`
+                            }}
+                        />
+                        <span className="text-lg font-bold text-slate-700 relative z-10">
+                            {Math.min(100, Math.round((currentQuestionIndex / totalQuestions) * 100))}%
                         </span>
                     </div>
                 </div>
@@ -524,7 +522,11 @@ export default function InterviewPage() {
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                handleSendMessage(e);
+                            }
+                        }}
                         placeholder="Type your answer here..."
                         disabled={isLoading || interviewComplete}
                         className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-900 placeholder:text-slate-400"
@@ -551,6 +553,19 @@ export default function InterviewPage() {
                                 selectedLanguage === 'es' ? 'Enviar' : 'Send'}
                     </button>
                 </div>
+
+                {/* Emergency Unlock - Only shows if potentially stuck */}
+                {(isLoading || interviewComplete) && currentQuestionIndex < totalQuestions && (
+                    <div className="mt-4 flex justify-center">
+                        <button
+                            onClick={forceUnlock}
+                            className="text-[10px] font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest flex items-center gap-1"
+                        >
+                            <AlertCircle size={10} />
+                            Si le chat est bloqué, cliquez هنا لإعادة التفعيل / Si bloqué, cliquez ici
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

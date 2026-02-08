@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Menu, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+
+import { usePathname, useRouter } from "next/navigation";
 
 export default function DashboardLayout({
     children,
@@ -14,18 +14,107 @@ export default function DashboardLayout({
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         const checkAuth = () => {
             const savedProfile = localStorage.getItem("userProfile");
             if (!savedProfile) {
-                router.push("/login?callback=/dashboard");
+                // Ensure we don't loop on login redirect
+                if (!pathname.startsWith("/login")) {
+                    router.push("/login?callback=" + encodeURIComponent(pathname));
+                }
                 return;
             }
-            setIsLoading(false);
+
+            try {
+                const profile = JSON.parse(savedProfile);
+                
+                // 1. Diagnosis & Plan Access Control
+                const isDiagnosisComplete = profile.isDiagnosisComplete === true;
+                const userPlan = profile.plan;
+                const isPro = userPlan === "Pro Essential" || userPlan === "Elite Full Pack";
+                const isAdmin = profile.role === "Admin" || profile.role === "Moderator";
+
+                if (!isAdmin) {
+                    const assessmentPaths = [
+                        "/assessment/cv-upload",
+                        "/assessment/interview",
+                        "/assessment/results",
+                        "/assessment/role-discovery",
+                        "/assessment/role-suggestions",
+                        "/assessment/role-matching"
+                    ];
+                    
+                    const alwaysOpen = ["/dashboard", "/subscription", "/settings"];
+                    
+                    const isAlwaysOpen = alwaysOpen.some(p => pathname.startsWith(p));
+                    const isAssessmentPath = assessmentPaths.some(p => pathname.startsWith(p));
+                    const isSimulationPath = pathname.startsWith("/simulation");
+                    const isTrainingPath = pathname.startsWith("/training");
+
+                    // Check Time Limit (3 Hours from account creation)
+                    let isTimeUp = false;
+                    if (!isPro && profile.createdAt) {
+                        const created = new Date(profile.createdAt).getTime();
+                        const now = new Date().getTime();
+                        // 3 hours in milliseconds
+                        if (now - created > (3 * 60 * 60 * 1000)) {
+                            isTimeUp = true;
+                        }
+                    }
+
+                    // Logic for Free Users (Non-Pro)
+                    if (!isPro) {
+                        // CASE 1: Diagnosis Complete OR Time is Up
+                        // Result: Diagnosis Locked, Simulations & Workshops Open
+                        if (isDiagnosisComplete || isTimeUp) {
+                            // 1. Assessment: LOCKED
+                            if (isAssessmentPath) {
+                                console.log("🔒 Access Denied (Complete/Expired) - Redirecting to Simulation");
+                                router.replace("/simulation");
+                                return;
+                            }
+
+                            // 2. Simulations & Workshops: OPEN
+                            if (isSimulationPath || isTrainingPath) {
+                                return;
+                            }
+
+                            // 3. Others: LOCKED (Redirect to Simulation)
+                            if (!isAlwaysOpen) {
+                                console.log("🔒 Feature Locked - Redirecting to Simulation");
+                                router.replace("/simulation");
+                                return;
+                            }
+                        }
+                        
+                        // CASE 2: Diagnosis Incomplete AND Time Remaining
+                        // Result: Only Assessment Open
+                        else {
+                            if (!isAlwaysOpen && !isAssessmentPath) {
+                                console.log("🔒 Diagnosis Incomplete - Redirecting to CV Upload");
+                                router.replace("/assessment/cv-upload");
+                                return;
+                            }
+                        }
+                    }
+                    // Logic for Pro Users
+                    else {
+                        // Pro: Access everything
+                        return;
+                    }
+                }
+
+            } catch (e) {
+                console.error("Auth redirect error", e);
+            } finally {
+                setIsLoading(false);
+            }
         };
+
         checkAuth();
-    }, [router]);
+    }, [pathname, router]);
 
     if (isLoading) {
         return (

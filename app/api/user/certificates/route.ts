@@ -25,21 +25,31 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { userId, userName, courseId, courseTitle } = body;
 
-        // Generate a unique certificate ID
-        const certificateId = `CERT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        // Fetch user's domain from Diagnosis
+        const Diagnosis = (await import("@/models/Diagnosis")).default;
+        const diagnosis = await Diagnosis.findOne({ userId }).sort({ createdAt: -1 });
+        const domain = diagnosis?.analysis?.careerPaths?.[0] || "Strategic Management";
+
+        // Generate a unique professional certificate ID
+        const certificateId = `WARRANT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
         // Check if already issued
         const existing = await Certificate.findOne({ userId, courseId });
         if (existing) {
-            return NextResponse.json({ message: "Certificate already issued", certificate: existing });
+            return NextResponse.json({ message: "Warrant already issued", certificate: existing });
         }
 
         const certificate = await Certificate.create({
             userId,
             userName,
             courseId,
-            courseTitle,
-            certificateId
+            courseTitle: courseTitle || domain,
+            certificateId,
+            metadata: {
+                domain: domain,
+                auditLevel: "Elite",
+                overallScore: diagnosis?.analysis?.overallScore || 0
+            }
         });
 
         return NextResponse.json(certificate, { status: 201 });

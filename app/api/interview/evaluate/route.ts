@@ -27,6 +27,24 @@ export async function POST(request: NextRequest) {
         if (userId && userName) {
             try {
                 await connectDB();
+                
+                const Diagnosis = (await import('@/models/Diagnosis')).default;
+                const User = (await import('@/models/User')).default;
+
+                // ✅ حفظ نتيجة المقابلة في Diagnosis
+                await Diagnosis.findOneAndUpdate(
+                    { userId },
+                    {
+                        interviewEvaluation: result.evaluation,
+                        conversationHistory,
+                        currentStep: 'interview_complete',
+                        'completionStatus.interviewComplete': true,
+                        updatedAt: new Date()
+                    },
+                    { upsert: false, new: true } // لا نريد إنشاء سجل جديد، فقط تحديث الموجود
+                );
+                
+                // حفظ في InterviewResult أيضاً (للتوافق مع الكود القديم)
                 await InterviewResult.create({
                     userId,
                     userName,
@@ -35,8 +53,23 @@ export async function POST(request: NextRequest) {
                     evaluation: result.evaluation,
                     language
                 });
+
+                // ✅ تحديث حالة المستخدم
+                await User.findOneAndUpdate(
+                    { email: userId },
+                    {
+                        isDiagnosisComplete: true,
+                        diagnosisData: {
+                            cvAnalysis,
+                            interviewEvaluation: result.evaluation,
+                            completedAt: new Date()
+                        }
+                    }
+                );
+
+                console.log('✅ Interview evaluation saved to MongoDB for user:', userId);
             } catch (dbError) {
-                console.error('Database Error:', dbError);
+                console.error('❌ Database Error:', dbError);
             }
         }
 

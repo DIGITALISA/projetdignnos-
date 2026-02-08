@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Play, BookOpen, Clock, Users, Edit3, Trash2, ChevronRight, X, Check, Loader2, Video, FileText, ArrowLeft, Save } from "lucide-react";
+import { Plus, Play, BookOpen, Clock, Users, Edit3, Trash2, ChevronRight, X, Check, Loader2, Video, FileText, ArrowLeft, Save, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -16,13 +16,13 @@ export default function TrainingManagement() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Form States
-    const [courseForm, setCourseForm] = useState<any>({ title: "", instructor: "", status: "Published", description: "", thumbnail: "" });
+    const [courseForm, setCourseForm] = useState<any>({ title: "", instructor: "", status: "Published", description: "", thumbnail: "", date: "", location: "", price: 0, maxParticipants: 10 });
     const [sessionForm, setSessionForm] = useState<any>({ title: "", duration: "", videoUrl: "", supportLink: "" });
 
     const fetchCourses = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/courses');
+            const res = await fetch('/api/admin/courses', { cache: 'no-store' });
             const data = await res.json();
             if (Array.isArray(data)) setCourses(data);
         } catch (error) {
@@ -48,7 +48,7 @@ export default function TrainingManagement() {
 
     // Course Actions
     const handleAddCourse = () => {
-        setCourseForm({ title: "", instructor: "", status: "Published", description: "", thumbnail: "General" });
+        setCourseForm({ title: "", instructor: "", status: "Published", description: "", thumbnail: "General", date: "", location: "", price: 0, maxParticipants: 10, isAccessOpen: false, allowedUsers: [] });
         setIsCourseModalOpen(true);
     };
 
@@ -59,7 +59,13 @@ export default function TrainingManagement() {
             instructor: course.instructor,
             status: course.status,
             description: course.description,
-            thumbnail: course.thumbnail
+            thumbnail: course.thumbnail,
+            date: course.date || "",
+            location: course.location || "",
+            price: course.price || 0,
+            maxParticipants: course.maxParticipants || 10,
+            allowedUsers: course.allowedUsers || [],
+            isAccessOpen: course.isAccessOpen || false
         });
         setIsCourseModalOpen(true);
     };
@@ -160,26 +166,26 @@ export default function TrainingManagement() {
                     >
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div>
-                                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Training Hub Manager</h1>
-                                <p className="text-slate-500 mt-1">Organize courses, upload videos, and manage support materials.</p>
+                                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Workshop Manager</h1>
+                                <p className="text-slate-500 mt-1">Organize workshops, upload videos, and manage support materials.</p>
                             </div>
                             <button
                                 onClick={handleAddCourse}
                                 className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
                             >
                                 <Plus size={20} />
-                                New Course
+                                New Workshop
                             </button>
                         </div>
 
                         {isLoading ? (
                             <div className="py-20 text-center">
                                 <Loader2 className="w-10 h-10 animate-spin mx-auto text-blue-600 mb-4" />
-                                <p className="text-slate-500 font-medium">Loading training modules...</p>
+                                <p className="text-slate-500 font-medium">Loading workshops...</p>
                             </div>
                         ) : courses.length === 0 ? (
                             <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-                                <p className="text-slate-400">No courses created yet.</p>
+                                <p className="text-slate-400">No workshops created yet.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-6">
@@ -212,14 +218,64 @@ export default function TrainingManagement() {
                                                             <BookOpen size={16} />
                                                             <span className="text-xs uppercase tracking-wider">{course.sessions || 0} sessions</span>
                                                         </div>
+                                                        <div className="flex items-center gap-2 text-indigo-500 font-bold">
+                                                            <span className="text-xs uppercase tracking-wider">{course.price || 0} €</span>
+                                                        </div>
                                                         <div className="flex items-center gap-2 text-slate-400 font-bold">
                                                             <Users size={16} />
-                                                            <span className="text-xs uppercase tracking-wider">{course.enrolled || 0} participants</span>
+                                                            <span className="text-xs uppercase tracking-wider">{course.enrolled || 0} / {course.maxParticipants || 10} participants</span>
                                                         </div>
+                                                        {(course.date || course.location) && (
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex items-center gap-2 text-blue-500 font-bold">
+                                                                    <Clock size={16} />
+                                                                    <span className="text-xs uppercase tracking-wider">{course.date}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 text-emerald-500 font-bold">
+                                                                    <Check size={16} />
+                                                                    <span className="text-xs uppercase tracking-wider">{course.location}</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            const newStatus = !course.isAccessOpen;
+                                                            // Optimistic Update
+                                                            setCourses(prev => prev.map(c => c._id === course._id ? { ...c, isAccessOpen: newStatus } : c));
+
+                                                            try {
+                                                                const res = await fetch('/api/admin/courses', {
+                                                                    method: 'PUT',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ id: course._id, isAccessOpen: newStatus })
+                                                                });
+                                                                if (!res.ok) {
+                                                                    // Revert if failed
+                                                                    setCourses(prev => prev.map(c => c._id === course._id ? { ...c, isAccessOpen: !newStatus } : c));
+                                                                    alert("Failed to update status");
+                                                                }
+                                                            } catch (err) {
+                                                                console.error("Failed to toggle access", err);
+                                                                // Revert if error
+                                                                setCourses(prev => prev.map(c => c._id === course._id ? { ...c, isAccessOpen: !newStatus } : c));
+                                                            }
+                                                        }}
+                                                        className={cn(
+                                                            "px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2",
+                                                            course.isAccessOpen
+                                                                ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                                                : "bg-rose-100 text-rose-700 hover:bg-rose-200"
+                                                        )}
+                                                        title={course.isAccessOpen ? "Close Access" : "Open Access"}
+                                                    >
+                                                        {course.isAccessOpen ? <><Check size={14} /> Open</> : <><Lock size={14} /> Closed</>}
+                                                    </button>
+
                                                     <button
                                                         onClick={() => openSessions(course)}
                                                         className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
@@ -254,7 +310,7 @@ export default function TrainingManagement() {
                             </button>
                             <div>
                                 <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{selectedCourse?.title} Sessions</h1>
-                                <p className="text-slate-500 font-medium capitalize">Course Instructor: {selectedCourse?.instructor}</p>
+                                <p className="text-slate-500 font-medium capitalize">Workshop Instructor: {selectedCourse?.instructor}</p>
                             </div>
                         </div>
 
@@ -293,7 +349,7 @@ export default function TrainingManagement() {
                                 ))}
                                 {sessions.length === 0 && (
                                     <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-3xl">
-                                        <p className="text-slate-400 font-medium">No sessions added yet for this course.</p>
+                                        <p className="text-slate-400 font-medium">No sessions added yet for this workshop.</p>
                                     </div>
                                 )}
                             </div>
@@ -310,13 +366,13 @@ export default function TrainingManagement() {
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white rounded-3xl shadow-2xl z-[70] overflow-hidden">
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
-                                    <h2 className="text-2xl font-bold text-slate-900">{courseForm.id ? "Edit Course" : "New Course"}</h2>
+                                    <h2 className="text-2xl font-bold text-slate-900">{courseForm.id ? "Edit Workshop" : "New Workshop"}</h2>
                                     <button onClick={() => setIsCourseModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl"><X size={20} /></button>
                                 </div>
                                 <form onSubmit={handleCourseSubmit} className="space-y-5">
                                     <div className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Course Title</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Workshop Title</label>
                                             <input required type="text" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.title} onChange={e => setCourseForm({ ...courseForm, title: e.target.value })} />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -332,6 +388,36 @@ export default function TrainingManagement() {
                                                 </select>
                                             </div>
                                         </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Date (e.g. 25 Jan, 10:00)</label>
+                                                <input type="text" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.date} onChange={e => setCourseForm({ ...courseForm, date: e.target.value })} />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Location (Online/Address)</label>
+                                                <input type="text" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.location} onChange={e => setCourseForm({ ...courseForm, location: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Price (€)</label>
+                                                <input type="number" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.price} onChange={e => setCourseForm({ ...courseForm, price: Number(e.target.value) })} />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Max Participants</label>
+                                                <input type="number" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.maxParticipants} onChange={e => setCourseForm({ ...courseForm, maxParticipants: Number(e.target.value) })} />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Allowed Participants (Emails, comma separated)</label>
+                                            <textarea
+                                                rows={2}
+                                                placeholder="e.g. user1@example.com, user2@example.com"
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-medium text-slate-600"
+                                                value={Array.isArray(courseForm.allowedUsers) ? courseForm.allowedUsers.join(", ") : (courseForm.allowedUsers || "")}
+                                                onChange={e => setCourseForm({ ...courseForm, allowedUsers: e.target.value.split(',').map((email: string) => email.trim()) })}
+                                            />
+                                        </div>
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
                                             <textarea rows={3} className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-medium text-slate-600" value={courseForm.description} onChange={e => setCourseForm({ ...courseForm, description: e.target.value })} />
@@ -340,7 +426,7 @@ export default function TrainingManagement() {
                                     <div className="flex gap-3 pt-4">
                                         <button type="button" onClick={() => setIsCourseModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
                                         <button type="submit" disabled={isSubmitting} className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
-                                            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> {courseForm.id ? "Update Course" : "Create Course"}</>}
+                                            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> {courseForm.id ? "Update Workshop" : "Create Workshop"}</>}
                                         </button>
                                     </div>
                                 </form>

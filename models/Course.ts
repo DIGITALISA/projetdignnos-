@@ -26,6 +26,30 @@ const CourseSchema = new Schema({
         type: Number,
         default: 0,
     },
+    date: {
+        type: String,
+        default: "Upcoming",
+    },
+    location: {
+        type: String,
+        default: "Online",
+    },
+    price: {
+        type: Number,
+        default: 0,
+    },
+    maxParticipants: {
+        type: Number,
+        default: 10,
+    },
+    allowedUsers: {
+        type: [String],
+        default: [], // List of user emails who have access
+    },
+    isAccessOpen: {
+        type: Boolean,
+        default: false, // Master switch for workshop access
+    },
 }, {
     timestamps: true,
 });

@@ -29,6 +29,10 @@ const ResourceSchema = new Schema({
         type: Number,
         default: 0,
     },
+    allowedUsers: {
+        type: [String],
+        default: [],
+    },
 }, {
     timestamps: true,
 });

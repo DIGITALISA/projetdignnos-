@@ -11,6 +11,7 @@ interface Resource {
     url: string;
     type: string;
     totalDownloads: number;
+    allowedUsers?: string[];
 }
 
 export default function LibraryManagement() {
@@ -25,6 +26,7 @@ export default function LibraryManagement() {
         url: "",
         type: "Google Doc",
         totalDownloads: 0,
+        allowedUsers: []
     });
 
     const fetchResources = async () => {
@@ -46,7 +48,7 @@ export default function LibraryManagement() {
 
     const handleAdd = () => {
         setEditingId(null);
-        setFormData({ title: "", url: "", type: "Google Doc", totalDownloads: 0 });
+        setFormData({ title: "", url: "", type: "Google Doc", totalDownloads: 0, allowedUsers: [] });
         setIsAddModalOpen(true);
     };
 
@@ -56,7 +58,8 @@ export default function LibraryManagement() {
             title: res.title,
             url: res.url,
             type: res.type,
-            totalDownloads: res.totalDownloads
+            totalDownloads: res.totalDownloads,
+            allowedUsers: res.allowedUsers || []
         });
         setIsAddModalOpen(true);
     };
@@ -257,6 +260,16 @@ export default function LibraryManagement() {
                                                 <option>Other Link</option>
                                             </select>
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Allowed Participants (Emails, comma separated)</label>
+                                            <textarea
+                                                rows={2}
+                                                placeholder="e.g. user1@example.com, user2@example.com"
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
+                                                value={Array.isArray(formData.allowedUsers) ? formData.allowedUsers.join(", ") : (formData.allowedUsers || "")}
+                                                onChange={(e) => setFormData({ ...formData, allowedUsers: e.target.value.split(',').map((email: string) => email.trim()) })}
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center gap-3 pt-4">
@@ -277,8 +290,9 @@ export default function LibraryManagement() {
                             </div>
                         </motion.div>
                     </>
-                )}
-            </AnimatePresence>
-        </div>
+                )
+                }
+            </AnimatePresence >
+        </div >
     );
 }

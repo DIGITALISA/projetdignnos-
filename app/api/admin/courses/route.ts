@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest) {
         await connectDB();
         const body = await req.json();
         const { id, ...updateData } = body;
-        const course = await Course.findByIdAndUpdate(id, updateData, { new: true });
+        const course = await Course.findByIdAndUpdate(id, updateData, { new: true, strict: false });
         return NextResponse.json(course);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });

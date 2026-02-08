@@ -28,7 +28,11 @@ const InterviewResultSchema = new Schema({
         },
         cvImprovements: [String],
         skillDevelopmentPriorities: [String],
-        verdict: String
+        verdict: String,
+        executiveSummary: String,
+        seniorityLevel: String,
+        suggestedRoles: [String],
+        expertCaseSummary: String
     },
     language: {
         type: String,

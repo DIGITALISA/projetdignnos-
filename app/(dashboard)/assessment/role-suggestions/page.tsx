@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Target, Clock, CheckCircle, AlertCircle, Award, ArrowRight, Sparkles, ChevronDown, ChevronUp, Download, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
@@ -22,7 +22,6 @@ export default function RoleSuggestionsPage() {
     const router = useRouter();
     const resultsRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
-    const [cvAnalysis, setCvAnalysis] = useState<any>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [roleSuggestions, setRoleSuggestions] = useState<RoleSuggestion[]>([]);
     const [expandedRole, setExpandedRole] = useState<string | null>(null);
@@ -34,10 +33,8 @@ export default function RoleSuggestionsPage() {
         const storedRoles = localStorage.getItem('roleSuggestions');
 
         if (stored && storedRoles) {
-            const analysis = JSON.parse(stored);
             const roles = JSON.parse(storedRoles);
 
-            setCvAnalysis(analysis);
             setSelectedLanguage(storedLanguage || 'en');
             setRoleSuggestions(roles);
             setLoading(false);
@@ -73,13 +70,14 @@ export default function RoleSuggestionsPage() {
                 logging: false,
                 backgroundColor: "#ffffff",
                 onclone: (clonedDoc) => {
-                    // A. THE KILLER FIX: Remove ALL <link> tags. 
+                    // A. THE KILLER FIX: Remove ALL <link> tags.
                     // This prevents html2canvas from ever trying to parse external Tailwind CSS which contains 'lab()'.
                     const links = clonedDoc.getElementsByTagName('link');
                     while (links.length > 0) {
                         links[0].parentNode?.removeChild(links[0]);
                     }
-
+                    // "Future Goals" are aspirational roles that might require some upskilling.
+                    // "Ready Now" roles are those where you meet most requirements today.
                     // B. Remove all <style> tags that might contain offending colors
                     const styles = clonedDoc.getElementsByTagName('style');
                     const colorRegex = /(lab|oklch|oklab)\([^)]+\)/g;
@@ -185,9 +183,27 @@ export default function RoleSuggestionsPage() {
         }
     };
 
-    const selectRole = (role: RoleSuggestion) => {
-        // Store selected role for CV generation
+    const selectRole = async (role: RoleSuggestion) => {
+        // Store locally
         localStorage.setItem('selectedRole', JSON.stringify(role));
+
+        // Persist to DB
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        if (userProfile.email) {
+            try {
+                await fetch('/api/user/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: userProfile.email,
+                        updates: { selectedRole: role.title }
+                    })
+                });
+            } catch (e) {
+                console.error("Failed to persist selected role", e);
+            }
+        }
+
         router.push('/assessment/cv-generation');
     };
 
@@ -209,15 +225,6 @@ export default function RoleSuggestionsPage() {
     const futureRoles = roleSuggestions
         .filter(r => r.category === 'future')
         .sort((a, b) => b.matchPercentage - a.matchPercentage);
-
-    // Separate high-match and low-match roles for better visual organization
-    const highMatchReady = readyRoles.filter(r => r.matchPercentage >= 70);
-    const mediumMatchReady = readyRoles.filter(r => r.matchPercentage >= 50 && r.matchPercentage < 70);
-    const lowMatchReady = readyRoles.filter(r => r.matchPercentage < 50);
-
-    const highMatchFuture = futureRoles.filter(r => r.matchPercentage >= 70);
-    const mediumMatchFuture = futureRoles.filter(r => r.matchPercentage >= 50 && r.matchPercentage < 70);
-    const lowMatchFuture = futureRoles.filter(r => r.matchPercentage < 50);
 
     return (
         <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -241,7 +248,7 @@ export default function RoleSuggestionsPage() {
                         {isDownloading ? 'Generating...' : 'Download PDF'}
                     </button>
                 </div>
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 shrink-0">
                     <Target className="w-10 h-10 text-white" />
                 </div>
                 <h1 className="text-4xl font-bold text-slate-900 mb-3">Career Path Recommendations</h1>
@@ -258,30 +265,30 @@ export default function RoleSuggestionsPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200 p-4"
+                    className="bg-linear-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200 p-4"
                 >
                     <div className="flex items-center gap-3">
-                        <Sparkles className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                        <Sparkles className="w-6 h-6 text-blue-600 shrink-0" />
                         <p className="text-slate-700">
                             {selectedLanguage === 'ar' ? (
                                 <>
                                     <strong>كيف يعمل:</strong> راجع الأدوار أدناه، وسّع التفاصيل لرؤية نقاط القوة والفجوات،
-                                    ثم انقر على <strong className="text-purple-600">"التركيز على هذا الدور"</strong> لتوليد سيرتك الذاتية ورسالة التحفيز المخصصة!
+                                    ثم انقر على <strong className="text-purple-600">&quot;التركيز على هذا الدور&quot;</strong> لتوليد سيرتك الذاتية ورسالة التحفيز المخصصة!
                                 </>
                             ) : selectedLanguage === 'fr' ? (
                                 <>
                                     <strong>Comment ça marche :</strong> Consultez les rôles ci-dessous, développez les détails pour voir les forces et les lacunes,
-                                    puis cliquez sur <strong className="text-purple-600">"Se concentrer sur ce rôle"</strong> pour générer votre CV et lettre de motivation personnalisés !
+                                    puis cliquez sur <strong className="text-purple-600">&quot;Se concentrer sur ce rôle&quot;</strong> pour générer votre CV et lettre de motivation personnalisés !
                                 </>
                             ) : selectedLanguage === 'es' ? (
                                 <>
                                     <strong>Cómo funciona:</strong> Revisa los roles a continuación, expande los detalles para ver fortalezas y brechas,
-                                    luego haz clic en <strong className="text-purple-600">"Enfocarse en este rol"</strong> para generar tu CV y carta de presentación personalizados!
+                                    luego haz clic en <strong className="text-purple-600">&quot;Enfocarse en este rol&quot;</strong> para generar tu CV y carta de presentación personalizados!
                                 </>
                             ) : (
                                 <>
                                     <strong>How it works:</strong> Review the roles below, expand details to see strengths and gaps,
-                                    then click <strong className="text-purple-600">"Focus on This Role"</strong> to generate your personalized CV and cover letter!
+                                    then click <strong className="text-purple-600">&quot;Focus on This Role&quot;</strong> to generate your personalized CV and cover letter!
                                 </>
                             )}
                         </p>
@@ -295,7 +302,7 @@ export default function RoleSuggestionsPage() {
                     transition={{ delay: 0.1 }}
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                             <CheckCircle className="w-6 h-6 text-green-600" />
                         </div>
                         <div>
@@ -411,7 +418,7 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
             {/* High Match Badge */}
             {isHighMatch && (
                 <div className="absolute top-4 right-4 z-10">
-                    <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                    <div className="bg-linear-to-r from-yellow-400 to-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                         <Sparkles className="w-3 h-3" />
                         Top Match
                     </div>
@@ -430,8 +437,9 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
             <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3">
                             <h3 className="text-2xl font-bold text-slate-900">{role.title}</h3>
+                            <span className="text-sm font-bold text-indigo-600 shrink-0">{role.matchPercentage}% Match</span>
                             <span className={`px-3 py-1 rounded-full text-sm font-bold border ${colors.badge}`}>
                                 {role.matchPercentage}% Match
                             </span>
@@ -505,7 +513,7 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
                             <ul className="space-y-2">
                                 {role.strengths.map((strength, i) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                                         <span>{strength}</span>
                                     </li>
                                 ))}
@@ -521,7 +529,7 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
                             <ul className="space-y-2">
                                 {role.weaknesses.map((weakness, i) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                                         <span>{weakness}</span>
                                     </li>
                                 ))}
@@ -547,7 +555,7 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
                     {/* Select Role Button */}
                     <button
                         onClick={onSelect}
-                        className={`w-full py-3 ${colors.button} text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2`}
+                        className="w-full py-4 bg-linear-to-r from-slate-900 to-slate-800 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-slate-500/20 transition-all flex items-center justify-center gap-2 group"
                     >
                         <Sparkles className="w-5 h-5" />
                         Focus on This Role

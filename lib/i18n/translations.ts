@@ -4,77 +4,108 @@ export const translations = {
     en: {
         nav: {
             home: "Home",
-            methodology: "Methodology",
+            methodology: "Our Services",
             pricing: "Pricing",
-            verify: "Verify Cert",
+            verify: "Verify Accreditation",
             signIn: "Sign In",
-            workspace: "My Workspace"
+            workspace: "My Workspace",
+            digitalization: "Business Solutions",
+            professionals: "For Professionals",
+            enterprises: "For Enterprises"
+        },
+        contract: {
+            title: "Service Agreement",
+            subtitle: "Professional Consulting Agreement",
+            step1: "Identity Verification",
+            step2: "Terms of Service",
+            step3: "Digital Signature",
+            firstName: "First Name",
+            lastName: "Last Name",
+            phone: "Mobile Number",
+            email: "Email Address",
+            readTerms: "I have read and accept the agreement terms.",
+            signLabel: "Digital Signature (Type Full Name)",
+            signPlaceholder: "e.g. John Doe",
+            submit: "Sign Agreement",
+            successTitle: "Agreement Signed",
+            successDesc: "Your commitment has been recorded successfully.",
+            download: "Download Agreement (PDF)",
+            terms: `
+**PROFESSIONAL CONSULTING SERVICE AGREEMENT**
+
+1. **Objective**: The client agrees to participate in the professional development program.
+2. **Confidentiality**: All assessment results and advice provided are strictly confidential.
+3. **Commitment**: Results depend on active participation in all program stages.
+4. **Certification**: The "Information Verification" is issued upon successful completion of the program.
+5. **Payment**: The client agrees to the fees as defined in the pricing plan.
+
+By signing below, you agree to start the consulting process.
+            `
         },
         hero: {
-            badge: "The All-In-One Career Ecosystem",
-            titlePre: "Elevate Your",
-            titleHighlight: "Potential",
-            subtitle: "A complete professional development platform combining Advanced AI Tools, Expert Training, and Verified Certification.",
-            ctaDashboard: "Launch Dashboard",
-            ctaTour: "Watch Ecosystem Tour"
+            badge: "Global Career & Business Consulting",
+            titlePre: "Grow Your Career &",
+            titleHighlight: "Business Strategy",
+            subtitle: "The world's leading consulting platform for professionals and entrepreneurs. We help you advance your career and scale your business using global expertise and AI.",
+            ctaDashboard: "Start Now",
+            ctaTour: "How It Works"
         },
         features: {
-            title: "Your Complete Growth Engine",
-            subtitle: "Everything you need to analyze, improve, and certify your professional skills in one place.",
+            title: "Our Consulting Services",
+            subtitle: "Comprehensive leadership transformation through seven integrated consulting services designed to elevate your strategic capabilities.",
             cards: {
-                aiTools: {
-                    title: "AI Career Tools",
-                    desc: "Access our suite of neural engines for CV analysis, role innovation, and career path verification.",
-                    availability: "60% Operational",
-                    tags: ["Deep Diagnosis", "Smart Strategy", "Gap Analysis"]
+                diagnosis: {
+                    title: "1. Strategic Career Assessment",
+                    desc: "Comprehensive analysis of your professional profile against global leadership standards to identify strategic development opportunities.",
+                    tags: ["Career Analysis", "Leadership Assessment"]
+                },
+                simulation: {
+                    title: "2. Leadership Crisis Simulations",
+                    desc: "Real-world crisis scenarios to evaluate and enhance your decision-making capabilities under pressure.",
+                    tags: ["Crisis Management", "Decision Intelligence"]
                 },
                 training: {
-                    title: "Training Hub",
-                    desc: "A premium library of recorded masterclasses and workshops designed to close your specific skill gaps.",
-                    availability: "2% Concept Preview",
-                    tags: ["Recorded Sessions", "Workshops", "Skill Drills"]
+                    title: "3. Executive Development Programs",
+                    desc: "Customized leadership development programs and executive coaching sessions based on global consulting methodologies.",
+                    tags: ["Executive Coaching", "Leadership Development"]
+                },
+                mentor: {
+                    title: "4. AI Strategic Advisor",
+                    desc: "Your personal strategic advisor powered by AI, available 24/7 for career guidance and leadership insights.",
+                    tags: ["Strategic Guidance", "24/7 Support"]
+                },
+                academy: {
+                    title: "5. Global Knowledge Center",
+                    desc: "Access to elite frameworks, case studies, and methodologies from Harvard, INSEAD, and leading consulting firms.",
+                    tags: ["Best Practices", "Global Standards"]
                 },
                 library: {
-                    title: "Resource Library",
-                    desc: "Downloadable templates, industry cheatsheets, and guides curated by top professionals.",
-                    availability: "2% Concept Preview",
-                    tags: ["Templates", "Guides", "Methodologies"]
+                    title: "6. Strategic Toolkit Library",
+                    desc: "Professional tools, frameworks, and templates used by McKinsey, BCG, and Bain consultants.",
+                    tags: ["Consulting Tools", "Frameworks"]
                 },
-                chat: {
-                    title: "Expert Chat",
-                    desc: "24/7 access to specialized AI advisors for instant feedback on negotiation, leadership, and technical challenges.",
-                    availability: "2% Concept Preview",
-                    tags: ["24/7 Availability", "Instant Feedback", "Specialized Personas"]
-                },
-                achievements: {
-                    title: "Achievements",
-                    desc: "Track your progress with a gamified growth system. Earn badges as you master new competencies.",
-                    availability: "2% Concept Preview",
-                    tags: ["Progress Tracking", "Milestone Badges", "Gamified Growth"]
-                },
-                certificates: {
-                    title: "My Certificates",
-                    desc: "Prove your skills with verifiable digital certificates issued upon completion of simulations and courses.",
-                    availability: "2% Concept Preview",
-                    tags: ["Job-Ready Proof", "Shareable", "Blockchain Verified"]
+                expert: {
+                    title: "7. Executive Network Access",
+                    desc: "Direct connection to our global network of C-level executives and industry leaders for mentorship and opportunities.",
+                    tags: ["Executive Network", "Mentorship"]
                 }
             }
         },
         cert: {
-            badge: "OFFICIAL CERTIFICATION",
-            title: "Validate Your Expertise to the World.",
-            desc: "Don't just say you can do it—prove it. Our integrated certification system awards you with industry-recognized credentials immediately after you pass our rigorous AI simulations.",
-            check1: "Verifiable Digital ID for LinkedIn",
-            check2: "Based on Real-World Performance",
-            check3: "Recognized by Top Tech Partners",
-            cta: "Get Certified Now",
-            cardTitle: "Certificate of Excellence",
-            cardSubtitle: "Strategic Product Management",
-            cardFooter: "\"Awarded for demonstrating exceptional strategic foresight and execution capabilities in advanced simulations.\""
+            badge: "EXECUTIVE ACCREDITATION",
+            title: "Professional Accreditation & Endorsement",
+            desc: "Receive an official professional endorsement and accreditation that validates your strategic capabilities and executive readiness.",
+            check1: "Professional Executive Accreditation",
+            check2: "Strategic Endorsement",
+            check3: "Validated by Global Standards",
+            cta: "Get Accredited",
+            cardTitle: "Executive Accreditation",
+            cardSubtitle: "STRATEGIC ENDORSEMENT",
+            cardFooter: "\"Accredited for demonstrating exceptional strategic capabilities and executive readiness.\""
         },
         footer: {
-            rights: "© 2026 CareerUpgrade Intelligence.",
-            tagline: "Engineered for the ambitious."
+            rights: "© 2026 MA-TRAINING-CONSULTING.",
+            tagline: "Global Consulting & Training Excellence."
         },
         saleBanner: {
             title: "Licensed Operations Partner",
@@ -85,258 +116,470 @@ export const translations = {
         demoDisclaimer: {
             text: "This is a prototype model for demonstration purposes only, not a fully operational system."
         },
+        verification: {
+            badge: "Certificate Verification",
+            titlePre: "Verify Professional",
+            titleHighlight: "Credentials",
+            subtitle: "Ensure the authenticity of our certificates and recommendations through our secure validation system.",
+            label: "Certificate ID",
+            placeholder: "e.g. CERT-2026-XXXX",
+            buttonIdle: "Verify Now",
+            buttonLoading: "Checking...",
+            resultTitle: "Valid Certificate Found",
+            resultSubtitle: "Verification successful",
+            subject: "Certificate Holder",
+            domain: "Field of Expertise",
+            date: "Issue Date",
+            status: "Status",
+            statusElite: "Valid & Active",
+            viewSign: "View Digital Signature",
+            errorTitle: "Verification Failed",
+            errorDesc: "No certificate found for ID: {id}. Please check the reference code."
+        },
         methodology: {
-            badge: "The CareerUpgrade Methodology",
-            titlePre: "How We Turn Professionals into",
-            titleHighlight: "QHSE Leaders",
-            subtitle: "We've engineered a data-driven transformation cycle that bridges the gap between theoretical knowledge and real-world leadership.",
-            ctaStart: "Start Transformation",
-            ctaVideo: "Watch Methodology Video",
+            badge: "OUR CONSULTING METHODOLOGY",
+            titlePre: "From Professional to",
+            titleHighlight: "Strategic Leader",
+            subtitle: "We don't train. We transform. Our proven 5-stage consulting methodology combines global best practices with AI-powered personalization to accelerate your leadership journey.",
+            ctaStart: "Begin Your Transformation",
+            ctaVideo: "Explore Our Approach",
             essence: {
-                title: "The \"Core\" of QHSE Excellence",
-                desc: "CareerUpgrade AI isn't just a learning platform; it's a **Career Readiness Ecosystem**. We realize that in the world of Quality, Safety, and Environment, a certificate is only valuable if it's backed by the ability to handle pressure.",
-                precision: "AI-powered assessments that pinpoint exactly what you need to learn.",
-                recognition: "Certificates and training recognized by the most demanding industries.",
-                speed: "Accelerated learning paths that cut down career growth time by 50%.",
-                network: "Direct access to a global community of safety and quality experts."
+                title: "Why Choose MA-TRAINING-CONSULTING",
+                desc: "MA-TRAINING-CONSULTING is your Global Partner. We combine expert consulting wih practical training.",
+                precision: "Data-driven assessment of your leadership potential and development needs.",
+                recognition: "Internationally recognized certifications valued by global employers.",
+                speed: "Accelerated career growth through targeted, personalized development.",
+                network: "Exclusive access to our global network of C-level executives and industry leaders."
             },
             cycle: {
-                title: "The 5-Stage Transformation Cycle",
-                subtitle: "From diagnostic to leadership, we guide every step of your journey with AI precision and expert insight.",
+                title: "The Transformation Mandate",
+                subtitle: "A rigorous 5-stage architectural journey from diagnostic to board-level leadership.",
                 stage1: {
-                    title: "AI-Driven Profile Diagnosis",
-                    sub: "Understanding your current QHSE DNA",
-                    desc: "We don't just look at your CV. Our AI analyzes your experience against international ISO standards and identifying precise competency gaps in safety, quality, and environmental protocols.",
-                    f1: "ISO Competency Mapping",
-                    f2: "Regulatory Knowledge Audit",
-                    f3: "Technical Gap Analysis"
+                    title: "Deep Skill Audit",
+                    sub: "Analyzing Professional DNA",
+                    desc: "Our AI engines perform a deep-level audit of your professional assets, mapping them against global leadership standards.",
+                    f1: "Asset Mapping",
+                    f2: "Compliance Audit",
+                    f3: "Gap Analysis"
                 },
                 stage2: {
-                    title: "Immersive Scenario Simulation",
-                    sub: "Testing your nerves, not just your knowledge",
-                    desc: "Step into high-stakes simulations. Manage a workplace incident, lead an ISO mock-audit, or handle a compliance crisis in a safe, AI-controlled environment that mirrors real-world pressure.",
-                    f1: "Incident Response Simulations",
-                    f2: "ISO Mock Auditing",
-                    f3: "Emergency Communication Practice"
+                    title: "Pressure Simulations",
+                    sub: "Operational Intelligence",
+                    desc: "Verify your leadership capacity in high-stakes environments. Manage crisis scenarios in an AI-controlled room.",
+                    f1: "Scenario Pressure",
+                    f2: "Crisis Audit",
+                    f3: "Executive Comms"
                 },
                 stage3: {
-                    title: "Specialized Training Academy",
-                    sub: "Global standards, personalized learning",
-                    desc: "Access a curriculum designed by industry veterans. From ISO 9001 to NEBOSH standards, our training is focused on bridging the gaps identified in Stage 1 with high-impact, visual content.",
-                    f1: "Certification-Ready Courses",
-                    f2: "Interactive Workshops",
-                    f3: "Latest Regulatory Updates"
+                    title: "Strategic Implementation",
+                    sub: "Architecting Capability",
+                    desc: "Access specialized implementation mandates designed to close identified gaps with high-yield content.",
+                    f1: "Capability Build",
+                    f2: "Execution frameworks",
+                    f3: "Operational IQ"
                 },
                 stage4: {
-                    title: "Strategic Resource Ecosystem",
-                    sub: "Your operational toolkit for the field",
-                    desc: "Don't start from scratch. Access our curated library of audit checklists, risk assessment templates, and compliance matrices used by top-tier QHSE managers globally.",
-                    f1: "Global Audit Checklists",
-                    f2: "Standard Operating Procedures",
-                    f3: "Risk Assessment Matrices"
+                    title: "Strategic Resource Bank",
+                    sub: "The Executive Toolkit",
+                    desc: "Access our curated bank of audit protocols, risk matrices, and compliance frameworks from top consultancies.",
+                    f1: "Global Protocols",
+                    f2: "Operating Standards",
+                    f3: "Risk Matrices"
                 },
                 stage5: {
-                    title: "Expert Strategic Mentorship",
-                    sub: "Building the legacy of a QHSE leader",
-                    desc: "Connect with certified mentors who have led QHSE departments in Fortune 500 companies. Get personalized career pathing and high-level interview strategies to land senior roles.",
-                    f1: "1-on-1 Career Strategy",
-                    f2: "Interview Masterclasses",
-                    f3: "Leadership Development"
+                    title: "Global Boardroom Access",
+                    sub: "Executive Mentorship",
+                    desc: "Connect with high-level advisors for strategic career pathing and board-level interview readiness.",
+                    f1: "Boardroom Strategy",
+                    f2: "Executive Masterclasses",
+                    f3: "Legacy Leadership"
                 }
             },
             ctaFinal: {
-                title: "Stop Learning. Start Leading.",
-                desc: "Join the thousands of QHSE professionals who have redefined their career trajectory using our specialized methodology.",
-                btnStart: "Begin My Journey",
-                btnPlans: "View Plans"
+                title: "Stop Training. Start Dominating.",
+                desc: "Join the elite professionals who have redefined their career trajectory using the Success Protocol.",
+                btnStart: "Begin My Mandate",
+                btnPlans: "View Access Plans"
             }
         },
         pricing: {
-            badge: "All-Inclusive Plan",
-            title: "One Plan, Everything Included",
-            subtitle: "Get full access to all features and accelerate your career growth with AI-powered tools.",
-            monthly: "Monthly",
-            yearly: "Yearly",
-            save: "Save",
-            bestValue: "Best Value",
-            planTitle: "Complete Access",
-            month: "month",
-            year: "year",
-            saveAnnually: "Save €{amount} annually",
-            effectivePrice: "That's only €{amount}/month when billed yearly",
-            cta: "Start Your Journey Now",
-            guarantee: "30-day money-back guarantee • Cancel anytime",
-            faqTitle: "Questions?",
-            faqSubtitle: "Our team is here to help you succeed",
-            contactSupport: "Contact Support",
-            features: [
-                "Unlimited CV Analysis with AI",
-                "Advanced QHSE Role Simulations",
-                "ISO Audit Mock-up Mastery",
-                "Full Training Academy Access",
-                "Complete Operational Library",
-                "Expert AI QHSE Consultation",
-                "Strategic Career Roadmap",
-                "Verifiable Digital Certificates",
-                "Priority Support 24/7",
-                "Exclusive Mentor Workshops"
-            ]
+            badge: "MEMBERSHIP PLANS",
+            title: "Propel Your Leadership Journey",
+            subtitle: "Select the mandate that centers on your professional growth and specific strategic requirements.",
+            tiers: {
+                initial: {
+                    name: "Initial Pack",
+                    badge: "Discovery",
+                    price: "Free",
+                    duration: "3-Hour Access",
+                    features: [
+                        "3-Hour Protocol Access",
+                        "AI Initial Audit (CV & Profile)",
+                        "Limited Simulations Pool",
+                        "Limited Workshops Access",
+                        "Community Assistance"
+                    ]
+                },
+                pro: {
+                    name: "Pro Essential",
+                    badge: "Executive Selection",
+                    price: "30€",
+                    duration: "/ year",
+                    features: [
+                        "Unlimited AI Audit Tools",
+                        "Full AI Advisor Access",
+                        "Pay-per-item Simulations",
+                        "Pay-per-item Workshops",
+                        "Strategic Content Updates"
+                    ]
+                },
+                elite: {
+                    name: "Elite Full Pack",
+                    badge: "Total Immersion",
+                    price: "65€",
+                    duration: "/ month",
+                    features: [
+                        "Unlimited Simulations & Coaching",
+                        "All Executive Workshops Included",
+                        "Dedicated Expert Support (1-on-1)",
+                        "Elite Recommendation Letter",
+                        "Weekly Strategic Advisory",
+                        "12-Month Mandate Required"
+                    ]
+                }
+            },
+            cta: "Choose Your Mandate",
+            contact: "Inquire with an Advisor",
+            guarantee: "100% Secure Processing & Executive Invoicing"
         },
         expert: {
-            title: "Expert Consultation",
-            subtitle: "Get personalized career advice from AI experts specialized in your field.",
-            quickQuestions: "Quick Questions:",
-            placeholder: "Ask your career question...",
-            send: "Send",
-            careerExpert: "Career Expert",
-            loading: "Expert is thinking...",
-            defaultMessage: "Hello! I'm your AI Career Strategist. I've reviewed your profile and I'm here to help you navigate your career path. What would you like to discuss today?"
+            title: "Expert Intelligence",
+            subtitle: "Get personalized strategic advice from AI specialized in executive leadership.",
+            quickQuestions: "Intelligence Queries:",
+            placeholder: "Interrogate the advisor...",
+            send: "Command",
+            careerExpert: "Strategic Advisor",
+            loading: "Advisor is calculating...",
+            defaultMessage: "Ready for briefing. I've audited your latest performance. What is your current strategic objective?"
         },
         auth: {
-            welcomeBack: "Welcome Back",
-            signInSubtitle: "Sign in to continue your career journey",
-            emailLabel: "Email Address",
-            passwordLabel: "Password",
-            signInButton: "Sign In",
-            signingIn: "Signing In...",
-            orContinueWith: "Or continue with",
-            noAccount: "Don't have an account?",
-            createOne: "Create one",
-            errorInvalid: "Invalid login credentials",
-            errorGeneric: "Something went wrong. Please try again."
+            welcomeBack: "Identity Confirmed",
+            signInSubtitle: "Sign in to access your Strategic Workspace",
+            emailLabel: "Email / ID",
+            passwordLabel: "Access Code",
+            signInButton: "Authorize Access",
+            signingIn: "Verifying Identity...",
+            orContinueWith: "Alternative Auth",
+            noAccount: "Not registered yet?",
+            createOne: "Free Registration",
+            errorInvalid: "Access Denied: Invalid Credentials",
+            errorGeneric: "System Error. Attempting reconnection."
         },
         dashboard: {
             welcome: "Welcome back",
-            subtitle: "You're on track! Continue your journey to mastery.",
-            topLearner: "Top 5% of learners",
+            subtitle: "Your professional development journey is active.",
+            topLearner: "Top 5% Talent",
             stats: {
-                skillsGained: "Skills Gained",
-                hoursLearned: "Hours Learned",
+                skillsGained: "Skills Verified",
+                hoursLearned: "Training Hours",
                 certificates: "Certificates"
             },
             currentFocus: {
-                title: "Current Focus",
-                continue: "Continue",
-                resume: "Resume Simulation",
-                progress: "Progress"
+                title: "Current Mandate",
+                continue: "Execute",
+                resume: "Return to Simulation",
+                progress: "Maturity",
+                accessWorkshop: "Protocol Materials"
             },
             journey: {
-                title: "Your Journey",
+                title: "Your Leadership Journey",
                 stages: {
-                    diagnosis: "Diagnosis & Profiling",
-                    diagnosisDesc: "AI-powered analysis of your CV & skills.",
-                    simulation: "Role Simulation",
-                    simulationDesc: "Practice real-world scenarios.",
-                    training: "Training Hub",
-                    trainingDesc: "Curated courses for your gaps.",
-                    library: "Digital Library",
-                    libraryDesc: "Access premium resources.",
-                    expert: "Expert Consultation",
-                    expertDesc: "1-on-1 strategy session."
+                    diagnosis: "Career Assessment",
+                    diagnosisDesc: "Professional profile analysis and gap identification.",
+                    simulation: "Leadership Simulations",
+                    simulationDesc: "Crisis management and decision-making evaluation.",
+                    training: "Development Programs",
+                    trainingDesc: "Customized leadership development and coaching.",
+                    library: "Resources & Tools",
+                    libraryDesc: "Access to premium frameworks and toolkits.",
+                    expert: "Executive Network",
+                    expertDesc: "Connect with global leaders and mentors."
                 }
             },
             recommended: {
-                title: "Recommended for You",
-                seeAll: "See all"
+                title: "Prioritized for You",
+                seeAll: "View All"
             }
         },
         sidebar: {
             categories: {
                 main: "Main",
-                journey: "Career Journey",
-                achievements: "Achievements",
-                system: "System"
+                journey: "Success Strategy",
+                achievements: "Official Assets",
+                system: "Advisory Settings"
             },
             items: {
-                overview: "Overview",
-                diagnosis: "1. Diagnosis",
-                tools: "2. Tools AI",
-                training: "3. Training Hub",
-                library: "4. Library",
-                expert: "5. Expert Chat",
-                certificates: "My Certificates",
-                recommendation: "Lettre de Recommandation",
+                overview: "Dashboard",
+                diagnosis: "Career Assessment",
+                tools: "Leadership Simulations",
+                training: "Development Programs",
+                mentor: "AI Strategic Advisor",
+                academy: "Knowledge Center",
+                library: "Tools & Resources",
+                expert: "Executive Network",
+                certificates: "Executive Performance Profile",
+                recommendation: "Get Recommendation",
                 settings: "Settings",
                 signOut: "Sign Out"
             },
-            premium: "Premium Member",
-            loading: "Loading your workspace..."
+            premium: "Elite Member",
+            loading: "Decrypting workspace..."
+        },
+        digitalization: {
+            hero: {
+                badge: "AI Business Consulting",
+                title: "Scale Your Business with",
+                titleHighlight: "Data-Driven Strategy",
+                subtitle: "We help businesses grow, optimize operations, and launch new products using advanced AI analysis and global consulting frameworks.",
+                ctaStart: "Start Business Assessment",
+                ctaPortfolio: "View Our Solutions"
+            },
+            process: {
+                title: "Where are you starting?",
+                subtitle: "Select your current status to get a tailored AI roadmap.",
+                options: {
+                    existing: {
+                        title: "Existing Project",
+                        desc: "I have a running business and need optimization or scaling."
+                    },
+                    idea: {
+                        title: "Project Idea",
+                        desc: "I have a concept but need a roadmap to launch."
+                    },
+                    none: {
+                        title: "No Idea Yet",
+                        desc: "I want to invest but need profitable opportunities."
+                    }
+                }
+            },
+            questions: {
+                existing: [
+                    { id: "q1", label: "Strategic Position", placeholder: "e.g., Market Leader, Challenger, Niche Player", type: "text" },
+                    { id: "q2", label: "Current Revenue & Growth Rate", placeholder: "e.g., $500k/yr, +20% YoY", type: "text" },
+                    { id: "q3", label: "Primary Operational Bottleneck", placeholder: "e.g., Client Acquisition, Tech Scalability, Team Efficiency", type: "text" },
+                    { id: "q4", label: "12-Month Strategic Goal", placeholder: "e.g., Expansion to new market, 2x Revenue", type: "text" }
+                ],
+                idea: [
+                    { id: "q1", label: "Core Value Proposition", placeholder: "What problem are you solving and for whom?", type: "text" },
+                    { id: "q2", label: "Market Validation Status", placeholder: "e.g., Concept only, Surveyed 100 people, MVP ready", type: "text" },
+                    { id: "q3", label: "Go-to-Market Strategy", placeholder: "e.g., Paid Ads, Direct Sales, Viral Growth", type: "text" }
+                ],
+                none: [
+                    { id: "q1", label: "Investment Capital Available", placeholder: "e.g., $10k - $50k, $100k+", type: "text" },
+                    { id: "q2", label: "Key Professional Assets", placeholder: "e.g., Strong Sales Network, Technical Skills", type: "text" },
+                    { id: "q3", label: "Preferred Sector/Industry", placeholder: "e.g., High Tech, Real Estate, E-commerce", type: "text" }
+                ],
+                freeTextLabel: "Executive Summary / Specific Challenge",
+                freeTextPlaceholder: "Describe your situation in detail. What is stopping you from reaching the next level? (The AI will use this to build your custom roadmap)",
+                submit: "Generate Strategic Roadmap"
+            },
+            portfolio: {
+                title: "Our Success Stories",
+                subtitle: "From Strategy to Execution.",
+                strategy: "Strategy",
+                website: "Digital Product",
+                training: "Team Training"
+            },
+            diagnostic: {
+                title: "AI Executive Consultant",
+                subtitle: "I will analyze your inputs to generate a professional SWOT Analysis and a Quarter-by-Quarter Execution Map.",
+                step: "Step",
+                submit: "Generate Analysis",
+                analyzing: "Consultant AI is architecting your roadmap...",
+                swot: {
+                    strengths: "Strengths",
+                    weaknesses: "Weaknesses",
+                    opportunities: "Opportunities",
+                    threats: "Threats"
+                },
+                plan: "Strategic Execution Roadmap"
+            },
+            blueprints: {
+                title: "Industry Innovation Models",
+                subtitle: "Select your sector to see a complete digital transformation framework.",
+                accompaniment: "Included Service: We build the technology, design the marketing funnel, and train your team.",
+                demoLabel: "Live Strategy Demo",
+                items: [
+                    {
+                        id: "edtech",
+                        title: "Training & Education",
+                        strategy: "The Hybrid Academy Model",
+                        desc: "Transform traditional training into a scalable digital academy. High-ticket automated webinars + LMS platform.",
+                        demoTitle: "Academy Platform Demo"
+                    },
+                    {
+                        id: "retail",
+                        title: "Retail & Commerce",
+                        strategy: "Direct-to-Consumer (D2C) Engine",
+                        desc: "Bypass marketplaces. Build a brand-centric store with AI recommendations and automated retargeting.",
+                        demoTitle: "E-Store Experience"
+                    },
+                    {
+                        id: "services",
+                        title: "Professional Services",
+                        strategy: "Productized Service Hub",
+                        desc: "Stop selling hours. Sell outcomes. Automated booking, client portals, and subscription-based service models.",
+                        demoTitle: "Client Portal Demo"
+                    }
+                ]
+            },
+            tools: {
+                title: "Proprietary Growth Engines",
+                subtitle: "Automated assets we deploy to accelerate your project development.",
+                items: [
+                    {
+                        title: "Meta-Manager Pro",
+                        desc: "Automated Facebook & Instagram management system for content and engagement."
+                    },
+                    {
+                        title: "LeadPulse CRM",
+                        desc: "Integrated customer tracking system designed for rapid scaling."
+                    },
+                    {
+                        title: "AutoFunnel Builder",
+                        desc: "High-conversion sales funnel architecture deployed in days, not months."
+                    }
+                ]
+            },
+            trustedBy: {
+                title: "Strategically Aligned with Global Excellence",
+                subtitle: "Trusted by visionary companies seeking digital dominance."
+            },
+            metrics: {
+                title: "Proven Strategic Impact",
+                items: [
+                    { value: "140M+", label: "Capital Optimized", icon: "DollarSign" },
+                    { value: "450+", label: "Digital Success Stories", icon: "TrendingUp" },
+                    { value: "12ms", label: "AI Latency Average", icon: "Zap" },
+                    { value: "98%", label: "Client Retention", icon: "ShieldCheck" }
+                ]
+            },
+            methodology: {
+                title: "The Industrial AI Framework",
+                subtitle: "Our proprietary architecture for sustainable scaling.",
+                pillars: [
+                    { title: "Business Audit", desc: "We analyze your current business model, revenue, and challenges." },
+                    { title: "Action Plan", desc: "We create a step-by-step roadmap to achieve your growth goals." },
+                    { title: "Execution & Training", desc: "We help you implement the strategy and train your team." }
+                ]
+            }
         }
     },
     fr: {
         nav: {
             home: "Accueil",
-            methodology: "Méthodologie",
-            pricing: "Tarification",
-            verify: "Vérifier Cert",
+            methodology: "Nos Services",
+            pricing: "Tarifs",
+            verify: "Vérifier Accréditation",
             signIn: "Connexion",
-            workspace: "Mon Espace"
+            workspace: "Mon Espace",
+            digitalization: "Solutions Entreprises",
+            professionals: "Pour Professionnels",
+            enterprises: "Pour Entreprises"
+        },
+        contract: {
+            title: "Contrat de Service",
+            subtitle: "Accord de Conseil Professionnel",
+            step1: "Vérification d'Identité",
+            step2: "Conditions de Service",
+            step3: "Signature Numérique",
+            firstName: "Prénom",
+            lastName: "Nom",
+            phone: "Numéro de Mobile",
+            email: "Adresse Email",
+            readTerms: "J'ai lu et j'accepte les termes du contrat.",
+            signLabel: "Signature Numérique (Tapez votre nom complet)",
+            signPlaceholder: "ex: Jean Dupont",
+            submit: "Signer le Contrat",
+            successTitle: "Contrat Signé",
+            successDesc: "Votre engagement a été enregistré avec succès.",
+            download: "Télécharger le Contrat (PDF)",
+            terms: `
+**CONTRAT DE SERVICE DE CONSEIL PROFESSIONNEL**
+
+1. **Objectif** : Le client accepte de participer au programme de développement professionnel.
+2. **Confidentialité** : Tous les résultats d'évaluation et conseils fournis sont strictement confidentiels.
+3. **Engagement** : Les résultats dépendent d'une participation active à toutes les étapes du programme.
+4. **Certification** : La "Vérification d'Information" est délivrée après la réussite du programme.
+5. **Paiement** : Le client accepte les frais tels que définis dans le plan tarifaire.
+
+En signant ci-dessous, vous acceptez de commencer le processus de conseil.
+            `
         },
         hero: {
-            badge: "L'Écosystème de Carrière Tout-en-Un",
-            titlePre: "Élevez Votre",
-            titleHighlight: "Potentiel",
-            subtitle: "Une plateforme complète de développement professionnel combinant Outils IA Avancés, Formation d'Experts et Certification Vérifiée.",
-            ctaDashboard: "Lancer le Tableau de Bord",
-            ctaTour: "Visite de l'Écosystème"
+            badge: "Conseil en Carrière & Affaires",
+            titlePre: "Développez votre Carrière &",
+            titleHighlight: "Stratégie d'Affaires",
+            subtitle: "La plateforme de conseil leader pour les professionnels et entrepreneurs. Nous vous aidons à avancer votre carrière et à développer votre entreprise.",
+            ctaDashboard: "Commencer Maintenant",
+            ctaTour: "Comment ça Marche"
         },
         features: {
-            title: "Votre Moteur de Croissance Complet",
-            subtitle: "Tout ce dont vous avez besoin pour analyser, améliorer et certifier vos compétences professionnelles en un seul endroit.",
+            title: "Nos Services de Conseil",
+            subtitle: "Transformation complète du leadership à travers sept services de conseil intégrés conçus pour élever vos capacités stratégiques.",
             cards: {
-                aiTools: {
-                    title: "Outils de Carrière IA",
-                    desc: "Accédez à notre suite de moteurs neuronaux pour l'analyse de CV, l'innovation de rôle et la vérification de parcours professionnel.",
-                    availability: "60% Opérationnel",
-                    tags: ["Diagnostic Profond", "Stratégie Intelligente", "Analyse des Écarts"]
+                diagnosis: {
+                    title: "1. Évaluation Stratégique de Carrière",
+                    desc: "Analyse complète de votre profil professionnel par rapport aux standards mondiaux de leadership pour identifier les opportunités de développement stratégique.",
+                    tags: ["Analyse de Carrière", "Évaluation du Leadership"]
+                },
+                simulation: {
+                    title: "2. Simulations de Crise en Leadership",
+                    desc: "Scénarios de crise réels pour évaluer et améliorer vos capacités de prise de décision sous pression.",
+                    tags: ["Gestion de Crise", "Intelligence Décisionnelle"]
                 },
                 training: {
-                    title: "Hub de Formation",
-                    desc: "Une bibliothèque premium de masterclasses et d'ateliers enregistrés conçus pour combler vos lacunes spécifiques.",
-                    availability: "2% Aperçu du Concept",
-                    tags: ["Sessions Enregistrées", "Ateliers", "Exercices de Compétences"]
+                    title: "3. Programmes de Développement Exécutif",
+                    desc: "Programmes de développement du leadership et sessions de coaching exécutif basés sur les méthodologies mondiales.",
+                    tags: ["Coaching Exécutif", "Développement du Leadership"]
+                },
+                mentor: {
+                    title: "4. Conseiller Stratégique IA",
+                    desc: "Votre conseiller stratégique personnel alimenté par l'IA, disponible 24/7 pour des conseils de carrière et des insights en leadership.",
+                    tags: ["Orientation Stratégique", "Support 24/7"]
+                },
+                academy: {
+                    title: "5. Centre de Connaissances Mondial",
+                    desc: "Accès aux cadres d'élite, études de cas et méthodologies de Harvard, INSEAD et des principaux cabinets de conseil.",
+                    tags: ["Meilleures Pratiques", "Standards Mondiaux"]
                 },
                 library: {
-                    title: "Bibliothèque de Ressources",
-                    desc: "Modèles téléchargeables, antisèches de l'industrie et guides sélectionnés par les meilleurs professionnels.",
-                    availability: "2% Aperçu du Concept",
-                    tags: ["Modèles", "Guides", "Méthodologies"]
+                    title: "6. Bibliothèque d'Outils Stratégiques",
+                    desc: "Outils professionnels, cadres et modèles utilisés par les consultants de McKinsey, BCG et Bain.",
+                    tags: ["Outils de Conseil", "Cadres"]
                 },
-                chat: {
-                    title: "Chat Expert",
-                    desc: "Accès 24/7 à des conseillers IA spécialisés pour un feedback instantané sur la négociation et les défis techniques.",
-                    availability: "2% Aperçu du Concept",
-                    tags: ["Disponibilité 24/7", "Feedback Instantané", "Personnalités Spécialisées"]
-                },
-                achievements: {
-                    title: "Réalisations",
-                    desc: "Suivez vos progrès avec un système de croissance ludifié. Gagnez des badges en maîtrisant de nouvelles compétences.",
-                    availability: "2% Aperçu du Concept",
-                    tags: ["Suivi des Progrès", "Badges Jalons", "Croissance Ludifiée"]
-                },
-                certificates: {
-                    title: "Mes Certificats",
-                    desc: "Prouvez vos compétences avec des certificats numériques vérifiables délivrés après la réussite de simulations et de cours.",
-                    availability: "2% Aperçu du Concept",
-                    tags: ["Preuve Prête à l'Emploi", "Partageable", "Vérifié par Blockchain"]
+                expert: {
+                    title: "7. Accès au Réseau Exécutif",
+                    desc: "Connexion directe à notre réseau mondial de dirigeants de niveau C et de leaders de l'industrie pour le mentorat et les opportunités.",
+                    tags: ["Réseau Exécutif", "Mentorat"]
                 }
             }
         },
         cert: {
-            badge: "CERTIFICATION OFFICIELLE",
-            title: "Validez Votre Expertise au Monde.",
-            desc: "Ne dites pas seulement que vous pouvez le faire—prouvez-le. Notre système de certification intégré vous décerne des titres reconnus par l'industrie immédiatement après la réussite de nos simulations IA rigoureuses.",
-            check1: "ID Numérique Vérifiable pour LinkedIn",
-            check2: "Basé sur la Performance Réelle",
-            check3: "Reconnu par les Partenaires Tech",
-            cta: "Obtenez Votre Certification",
-            cardTitle: "Certificat d'Excellence",
-            cardSubtitle: "Gestion de Produit Stratégique",
-            cardFooter: "\"Décerné pour avoir démontré une prévision stratégique exceptionnelle et des capacités d'exécution dans des simulations avancées.\""
+            badge: "ACCRÉDITATION EXÉCUTIVE",
+            title: "Accréditation & Endossement Professionnel",
+            desc: "Recevez un endossement professionnel officiel et une accréditation qui valide vos capacités stratégiques et votre préparation exécutive.",
+            check1: "Accréditation Exécutive Professionnelle",
+            check2: "Endossement Stratégique",
+            check3: "Validé par les Standards Mondiaux",
+            cta: "Obtenir l'Accréditation",
+            cardTitle: "Accréditation Exécutive",
+            cardSubtitle: "ENDOSSEMENT STRATÉGIQUE",
+            cardFooter: "\"Accrédité pour avoir démontré des capacités stratégiques exceptionnelles et une préparation exécutive.\""
         },
         footer: {
-            rights: "© 2026 CareerUpgrade Intelligence.",
-            tagline: "Conçu pour les ambitieux."
+            rights: "© 2026 MA-TRAINING-CONSULTING.",
+            tagline: "L'excellence en Conseil & Formation."
         },
         saleBanner: {
             title: "Partenaire d'Opérations Licencié",
@@ -347,258 +590,470 @@ export const translations = {
         demoDisclaimer: {
             text: "Ceci est un modèle prototype à des fins de démonstration uniquement, et non un système opérationnel complet."
         },
+        verification: {
+            badge: "Vérification de Certificat",
+            titlePre: "Vérifier les Titres",
+            titleHighlight: "Professionnels",
+            subtitle: "Assurez l'authenticité de nos certificats et recommandations via notre système de validation sécurisé.",
+            label: "ID du Certificat",
+            placeholder: "ex: CERT-2026-XXXX",
+            buttonIdle: "Vérifier Maintenant",
+            buttonLoading: "Vérification...",
+            resultTitle: "Certificat Valide Trouvé",
+            resultSubtitle: "Vérification réussie",
+            subject: "Titulaire du Certificat",
+            domain: "Domaine d'Expertise",
+            date: "Date d'Émission",
+            status: "Statut",
+            statusElite: "Valide & Actif",
+            viewSign: "Voir Signature Numérique",
+            errorTitle: "Échec de Vérification",
+            errorDesc: "Aucun certificat trouvé pour l'ID : {id}. Veuillez vérifier le code."
+        },
         methodology: {
-            badge: "La Méthodologie CareerUpgrade",
-            titlePre: "Comment nous transformons les professionnels en",
-            titleHighlight: "Leaders QHSE",
-            subtitle: "Nous avons conçu un cycle de transformation basé sur les données qui comble le fossé entre les connaissances théoriques et le leadership réel.",
+            badge: "LE PROTOCOLE DE SUCCÈS",
+            titlePre: "De Professionnel à",
+            titleHighlight: "Actif Stratégique",
+            subtitle: "Nous n'enseignons pas. Nous architecturons. Notre cycle de transformation en 5 étapes est conçu pour une domination professionnelle à fort impact.",
             ctaStart: "Démarrer la Transformation",
-            ctaVideo: "Regarder la Vidéo",
+            ctaVideo: "Regarder le Protocole",
             essence: {
-                title: "Le \"Cœur\" de l'Excellence QHSE",
-                desc: "CareerUpgrade AI n'est pas seulement une plateforme d'apprentissage ; c'est un **Écosystème de Préparation à la Carrière**. Nous réalisons que dans le monde de la Qualité, de la Sécurité et de l'Environnement, un certificat n'a de valeur que s'il est soutenu par la capacité à gérer la pression.",
-                precision: "Évaluations par IA qui ciblent exactement ce que vous devez apprendre.",
-                recognition: "Certificats et formations reconnus par les industries les plus exigeantes.",
-                speed: "Des parcours d'apprentissage accélérés qui réduisent de 50% le temps de croissance de carrière.",
-                network: "Accès direct à une communauté mondiale d'experts en sécurité et qualité."
+                title: "Pourquoi choisir MA-TRAINING-CONSULTING",
+                desc: "MA-TRAINING-CONSULTING est votre partenaire mondial. Nous combinons conseil expert et formation pratique.",
+                precision: "Diagnostics de précision qui cartographient votre ADN professionnel.",
+                recognition: "Garanties reconnues par les cadres institutionnels mondiaux.",
+                speed: "Vitesse de carrière accélérée avec comblement d'écarts par IA.",
+                network: "Accès stratégique au réseau mondial de l'élite dirigeante."
             },
             cycle: {
-                title: "Le Cycle de Transformation en 5 Étapes",
-                subtitle: "Du diagnostic au leadership, nous guidons chaque étape de votre parcours avec la précision de l'IA et l'expertise d'experts.",
+                title: "Le Mandat de Transformation",
+                subtitle: "Un voyage architectural rigoureux en 5 étapes, du diagnostic au leadership de haut niveau.",
                 stage1: {
-                    title: "Diagnostic de Profil par IA",
-                    sub: "Comprendre votre ADN QHSE actuel",
-                    desc: "Nous ne nous contentons pas de regarder votre CV. Notre IA analyse votre expérience par rapport aux normes ISO internationales et identifie les lacunes de compétences précises dans les protocoles de sécurité, de qualité et d'environnement.",
-                    f1: "Cartographie des Compétences ISO",
-                    f2: "Audit des Connaissances Réglementaires",
-                    f3: "Analyse des Lacunes Techniques"
+                    title: "Audit Profond des Compétences",
+                    sub: "Analyse de l'ADN Professionnel",
+                    desc: "Nos moteurs IA effectuent un audit de haut niveau de vos actifs professionnels selon les standards mondiaux.",
+                    f1: "Cartographie d'Actifs",
+                    f2: "Audit de Conformité",
+                    f3: "Analyse d'Écarts"
                 },
                 stage2: {
-                    title: "Simulation de Scénarios Immersive",
-                    sub: "Tester vos nerfs, pas seulement vos connaissances",
-                    desc: "Plongez dans des simulations à enjeux élevés. Gérez un incident de travail, menez un audit à blanc ISO, ou gérez une crise de conformité dans un environnement sécurisé contrôlé par l'IA qui reflète la pression réelle.",
-                    f1: "Simulations de Réponse aux Incidents",
-                    f2: "Audit à Blanc ISO",
-                    f3: "Pratique de Communication d'Urgence"
+                    title: "Simulations de Pression",
+                    sub: "Intelligence Opérationnelle",
+                    desc: "Vérifiez votre capacité de leadership dans des environnements à enjeux élevés. Gérez les crises en temps réel.",
+                    f1: "Pression de Scénario",
+                    f2: "Audit de Crise",
+                    f3: "Comms Exécutives"
                 },
                 stage3: {
-                    title: "Académie de Formation Spécialisée",
-                    sub: "Normes mondiales, apprentissage personnalisé",
-                    desc: "Accédez à un programme conçu par des vétérans de l'industrie. Des normes ISO 9001 aux normes NEBOSH, notre formation se concentre sur le comblement des lacunes identifiées à l'étape 1 avec un contenu visuel à fort impact.",
-                    f1: "Cours Prêts pour la Certification",
-                    f2: "Ateliers Interactifs",
-                    f3: "Dernières Mises à Jour Réglementaires"
+                    title: "Implémentation Stratégique",
+                    sub: "Architecture de Capacité",
+                    desc: "Accédez à des mandats d'implémentation spécialisés conçus pour combler les lacunes identifiées.",
+                    f1: "Bâtir la Capacité",
+                    f2: "Cadres d'Exécution",
+                    f3: "QI Opérationnel"
                 },
                 stage4: {
-                    title: "Écosystème de Ressources Stratégiques",
-                    sub: "Votre boîte à outils opérationnelle pour le terrain",
-                    desc: "Ne partez pas de zéro. Accédez à notre bibliothèque sélectionnée de listes de contrôle d'audit, de modèles d'évaluation des risques et de matrices de conformité utilisés par les gestionnaires QHSE de haut niveau mondialement.",
-                    f1: "Listes de Contrôle d'Audit Globales",
-                    f2: "Procédures Opérationnelles Standards",
-                    f3: "Matrices d'Évaluation des Risques"
+                    title: "Banque de Ressources Stratégiques",
+                    sub: "La Boîte à Outils Exécutive",
+                    desc: "Accédez à notre banque de protocoles d'audit et matrices de risques provenant des meilleurs cabinets.",
+                    f1: "Protocoles Mondiaux",
+                    f2: "Standards Opérationnels",
+                    f3: "Matrices de Risques"
                 },
                 stage5: {
-                    title: "Mentorat Stratégique d'Experts",
-                    sub: "Bâtir l'héritage d'un leader QHSE",
-                    desc: "Connectez-vous avec des mentors certifiés qui ont dirigé des départements QHSE dans des entreprises du Fortune 500. Obtenez un plan de carrière personnalisé et des stratégies d'entretien de haut niveau pour décrocher des postes de direction.",
-                    f1: "Stratégie de Carrière 1-à-1",
-                    f2: "Masterclasses d'Entretien",
-                    f3: "Développement du Leadership"
+                    title: "Accès Direct au Boardroom",
+                    sub: "Mentorat Exécutif",
+                    desc: "Connectez-vous avec des conseillers de haut niveau pour votre stratégie de carrière.",
+                    f1: "Stratégie de Boardroom",
+                    f2: "Masterclasses Exécutives",
+                    f3: "Leadership d'Héritage"
                 }
             },
             ctaFinal: {
-                title: "Arrêtez d'Apprendre. Commencez à Diriger.",
-                desc: "Rejoignez les milliers de professionnels QHSE qui ont redéfini leur trajectoire de carrière en utilisant notre méthodologie spécialisée.",
-                btnStart: "Commencer Mon Parcours",
-                btnPlans: "Voir les Plans"
+                title: "Arrêtez de Former. Commencez à Dominer.",
+                desc: "Rejoignez l'élite des professionnels qui ont redéfini leur trajectoire avec le Protocole Success.",
+                btnStart: "Commencer Mon Mandat",
+                btnPlans: "Voir les Plans d'Accès"
             }
         },
         pricing: {
-            badge: "Plan Tout Inclus",
-            title: "Un Plan, Tout Inclus",
-            subtitle: "Accédez à toutes les fonctionnalités et accélérez votre carrière avec des outils alimentés par l'IA.",
-            monthly: "Mensuel",
-            yearly: "Annuel",
-            save: "Économisez",
-            bestValue: "Meilleure Offre",
-            planTitle: "Accès Complet",
-            month: "mois",
-            year: "an",
-            saveAnnually: "Économisez €{amount} par an",
-            effectivePrice: "Soit seulement €{amount}/mois en facturation annuelle",
-            cta: "Commencer Mon Voyage Maintenant",
-            guarantee: "Garantie de remboursement de 30 jours • Annulez à tout moment",
-            faqTitle: "Des questions ?",
-            faqSubtitle: "Notre équipe est là pour vous aider à réussir",
-            contactSupport: "Contacter le Support",
-            features: [
-                "Analyse de CV illimitée par IA",
-                "Simulations de rôles QHSE avancées",
-                "Maîtrise des audits à blanc ISO",
-                "Accès complet à l'Académie de Formation",
-                "Bibliothèque opérationnelle complète",
-                "Consultation QHSE par IA d'expert",
-                "Feuille de route stratégique de carrière",
-                "Certificats numériques vérifiables",
-                "Support prioritaire 24/7",
-                "Ateliers mentors exclusifs"
-            ]
+            badge: "PLANS DE MEMBRE",
+            title: "Propulsez votre Leadership",
+            subtitle: "Sélectionnez le mandat qui correspond à votre croissance professionnelle et à vos exigences stratégiques.",
+            tiers: {
+                initial: {
+                    name: "Pack Initial",
+                    badge: "Découverte",
+                    price: "Gratuit",
+                    duration: "Accès 3 heures",
+                    features: [
+                        "Accès complet pendant 3 heures",
+                        "Audit initial IA (CV & Profil)",
+                        "Simulations (Limité)",
+                        "Workshops (Limité)",
+                        "Assistance communautaire"
+                    ]
+                },
+                pro: {
+                    name: "Pack Pro Essential",
+                    badge: "Sélection Exécutive",
+                    price: "30€",
+                    duration: "/ an",
+                    features: [
+                        "Outils Audit IA (Illimité)",
+                        "Accès complet AI Advisor",
+                        "Simulations (Payantes par item)",
+                        "Workshops (Payants par item)",
+                        "Mises à jour stratégiques"
+                    ]
+                },
+                elite: {
+                    name: "Elite Full Pack",
+                    badge: "Immersion Totale",
+                    price: "65€",
+                    duration: "/ mois",
+                    features: [
+                        "Simulations & Coaching Illimités",
+                        "Tous les Workshops Inclus",
+                        "Accompagnement Expert (1-on-1)",
+                        "Lettre de Recommandation Elite",
+                        "Conseil Stratégique Hebdomadaire",
+                        "Engagement de 12 mois requis"
+                    ]
+                }
+            },
+            cta: "Choisir mon Mandat",
+            contact: "Consulter un Conseiller",
+            guarantee: "Traitement 100% Sécurisé & Facturation Exécutive"
         },
         expert: {
-            title: "Consultation d'Expert",
-            subtitle: "Obtenez des conseils de carrière personnalisés d'experts IA spécialisés dans votre domaine.",
-            quickQuestions: "Questions Rapides :",
-            placeholder: "Posez votre question de carrière...",
-            send: "Envoyer",
-            careerExpert: "Expert en Carrière",
-            loading: "L'expert réfléchit...",
-            defaultMessage: "Bonjour ! Je suis votre stratège de carrière IA. J'ai examiné votre profil et je suis ici pour vous aider à naviguer dans votre parcours professionnel. De quoi souhaitez-vous discuter aujourd'hui ?"
+            title: "Intelligence d'Expert",
+            subtitle: "Conseils stratégiques personnalisés par une IA spécialisée en leadership exécutif.",
+            quickQuestions: "Requêtes d'Intelligence :",
+            placeholder: "Interroger le conseiller...",
+            send: "Commande",
+            careerExpert: "Conseiller Stratégique",
+            loading: "Calcul en cours...",
+            defaultMessage: "Prêt pour le briefing. J'ai audité votre performance. Quel est votre objectif stratégique ?"
         },
         auth: {
-            welcomeBack: "Bon Retour",
-            signInSubtitle: "Connectez-vous pour continuer votre parcours professionnel",
-            emailLabel: "Adresse E-mail",
-            passwordLabel: "Mot de passe",
-            signInButton: "Se Connecter",
-            signingIn: "Connexion...",
-            orContinueWith: "Ou continuer avec",
-            noAccount: "Vous n'avez pas de compte ?",
-            createOne: "En créer un",
-            errorInvalid: "Identifiants de connexion invalides",
-            errorGeneric: "Une erreur est survenue. Veuillez réessayer."
+            welcomeBack: "Identité Confirmée",
+            signInSubtitle: "Connectez-vous à votre Espace Stratégique",
+            emailLabel: "Email / ID",
+            passwordLabel: "Code d'Accès",
+            signInButton: "Autoriser l'Accès",
+            signingIn: "Vérification...",
+            orContinueWith: "Authentification Alternative",
+            noAccount: "Pas encore inscrit ?",
+            createOne: "Inscription Gratuite",
+            errorInvalid: "Accès Refusé : Identifiants Invalides",
+            errorGeneric: "Erreur Système. Tentative de reconnexion."
         },
         dashboard: {
             welcome: "Bon retour",
-            subtitle: "Vous êtes sur la bonne voie ! Continuez votre apprentissage.",
-            topLearner: "Top 5% des apprenants",
+            subtitle: "Votre parcours de développement professionnel est actif.",
+            topLearner: "Top 5% Talent",
             stats: {
-                skillsGained: "Compétences Acquises",
-                hoursLearned: "Heures Apprises",
+                skillsGained: "Compétences Vérifiées",
+                hoursLearned: "Heures de Formation",
                 certificates: "Certificats"
             },
             currentFocus: {
-                title: "Focus Actuel",
-                continue: "Continuer",
-                resume: "Reprendre la Simulation",
-                progress: "Progression"
+                title: "Mandat Actuel",
+                continue: "Exécuter",
+                resume: "Retour à la Simulation",
+                progress: "Maturité",
+                accessWorkshop: "Matériels de Protocole"
             },
             journey: {
-                title: "Votre Parcours",
+                title: "Votre Parcours de Leadership",
                 stages: {
-                    diagnosis: "Diagnostic & Profilage",
-                    diagnosisDesc: "Analyse par IA de votre CV et de vos compétences.",
-                    simulation: "Simulation de Rôle",
-                    simulationDesc: "Pratiquez des scénarios réels.",
-                    training: "Hub de Formation",
-                    trainingDesc: "Cours sélectionnés pour vos lacunes.",
-                    library: "Bibliothèque Numérique",
-                    libraryDesc: "Accédez à des ressources premium.",
-                    expert: "Consultation d'Expert",
-                    expertDesc: "Session stratégique individuelle."
+                    diagnosis: "Évaluation de Carrière",
+                    diagnosisDesc: "Analyse du profil professionnel et identification des lacunes.",
+                    simulation: "Simulations de Leadership",
+                    simulationDesc: "Évaluation de la gestion de crise et de la prise de décision.",
+                    training: "Programmes de Développement",
+                    trainingDesc: "Développement du leadership et coaching personnalisé.",
+                    library: "Ressources & Outils",
+                    libraryDesc: "Accès aux cadres et outils premium.",
+                    expert: "Réseau Exécutif",
+                    expertDesc: "Connexion avec des leaders mondiaux et mentors."
                 }
             },
             recommended: {
-                title: "Recommandé pour Vous",
-                seeAll: "Tout voir"
+                title: "Priorités Pour Vous",
+                seeAll: "Tout Voir"
             }
         },
         sidebar: {
             categories: {
                 main: "Principal",
-                journey: "Parcours de Carrière",
-                achievements: "Réalisations",
-                system: "Système"
+                journey: "Stratégie de Succès",
+                achievements: "Actifs Officiels",
+                system: "Paramètres"
             },
             items: {
-                overview: "Vue d'ensemble",
-                diagnosis: "1. Diagnostic",
-                tools: "2. Outils IA",
-                training: "3. Hub de Formation",
-                library: "4. Bibliothèque",
-                expert: "5. Chat Expert",
-                certificates: "Mes Certificats",
-                recommendation: "Lettre de Recommandation",
+                overview: "Tableau de Bord",
+                diagnosis: "Évaluation de Carrière",
+                tools: "Simulations de Leadership",
+                training: "Programmes de Développement",
+                mentor: "Conseiller Stratégique IA",
+                academy: "Centre de Connaissances",
+                library: "Outils & Ressources",
+                expert: "Réseau Exécutif",
+                certificates: "Profil de Performance Exécutive",
+                recommendation: "Obtenir Recommandation",
                 settings: "Paramètres",
                 signOut: "Déconnexion"
             },
-            premium: "Membre Premium",
-            loading: "Chargement de votre espace..."
+            premium: "Membre Élite",
+            loading: "Décryptage de l'espace..."
+        },
+        digitalization: {
+            hero: {
+                badge: "Conseil en Stratégie IA",
+                title: "Développez votre Entreprise avec",
+                titleHighlight: "l'Intelligence Stratégique",
+                subtitle: "Nous aidons les entreprises à croître, optimiser leurs opérations et lancer de nouveaux produits grâce à l'analyse IA et aux méthodes de conseil mondiales.",
+                ctaStart: "Démarrer l'Audit Business",
+                ctaPortfolio: "Voir Nos Solutions"
+            },
+            process: {
+                title: "D'où commencez-vous ?",
+                subtitle: "Sélectionnez votre statut actuel pour obtenir une feuille de route IA personnalisée.",
+                options: {
+                    existing: {
+                        title: "Projet Existant",
+                        desc: "J'ai une entreprise en activité et j'ai besoin d'optimisation ou de croissance."
+                    },
+                    idea: {
+                        title: "Idée de Projet",
+                        desc: "J'ai un concept mais j'ai besoin d'une feuille de route pour le lancer."
+                    },
+                    none: {
+                        title: "Pas d'Idée",
+                        desc: "Je veux investir mais j'ai besoin d'opportunités rentables."
+                    }
+                }
+            },
+            questions: {
+                existing: [
+                    { id: "q1", label: "Positionnement Stratégique", placeholder: "ex: Leader du marché, Challenger, Spécialiste de niche", type: "text" },
+                    { id: "q2", label: "Revenus Actuels & Croissance", placeholder: "ex: 500k€/an, +20% sur un an", type: "text" },
+                    { id: "q3", label: "Goulot d'Étranglement Principal", placeholder: "ex: Acquisition Client, Scalabilité Tech, Efficacité Équipe", type: "text" },
+                    { id: "q4", label: "Objectif Stratégique à 12 mois", placeholder: "ex: Expansion nouveau marché, Doubler le CA", type: "text" }
+                ],
+                idea: [
+                    { id: "q1", label: "Proposition de Valeur Centrale", placeholder: "Quel problème résolvez-vous et pour qui ?", type: "text" },
+                    { id: "q2", label: "Statut de Validation Marché", placeholder: "ex: Concept seulement, Sondage 100 personnes, MVP prêt", type: "text" },
+                    { id: "q3", label: "Stratégie de Go-to-Market", placeholder: "ex: Publicité payante, Vente directe, Croissance virale", type: "text" }
+                ],
+                none: [
+                    { id: "q1", label: "Capital d'Investissement Disponible", placeholder: "ex: 10k€ - 50k€, 100k€+", type: "text" },
+                    { id: "q2", label: "Actifs Professionnels Clés", placeholder: "ex: Réseau commercial fort, Compétences techniques", type: "text" },
+                    { id: "q3", label: "Secteur/Industrie Préféré", placeholder: "ex: High Tech, Immobilier, E-commerce", type: "text" }
+                ],
+                freeTextLabel: "Résumé Exécutif / Défi Spécifique",
+                freeTextPlaceholder: "Décrivez votre situation en détail. Qu'est-ce qui vous empêche d'atteindre le niveau supérieur ? (L'IA utilisera ceci pour construire votre feuille de route personnalisée)",
+                submit: "Générer la Feuille de Route Stratégique"
+            },
+            portfolio: {
+                title: "Nos Réussites",
+                subtitle: "De la Stratégie à l'Exécution.",
+                strategy: "Stratégie",
+                website: "Produit Digital",
+                training: "Formation d'Équipe"
+            },
+            diagnostic: {
+                title: "Consultant Exécutif IA",
+                subtitle: "J'analyserai vos entrées pour générer une analyse SWOT professionnelle et un plan d'exécution trimestre par trimestre.",
+                step: "Étape",
+                submit: "Générer l'Analyse",
+                analyzing: "L'IA Consultante architecture votre plan...",
+                swot: {
+                    strengths: "Forces",
+                    weaknesses: "Faiblesses",
+                    opportunities: "Opportunités",
+                    threats: "Menaces"
+                },
+                plan: "Feuille de Route d'Exécution"
+            },
+            blueprints: {
+                title: "Modèles d'Innovation Sectorielle",
+                subtitle: "Sélectionnez votre secteur pour voir un cadre de transformation numérique complet.",
+                accompaniment: "Service Inclus : Nous construisons la technologie, concevons le funnel marketing et formons votre équipe.",
+                demoLabel: "Démo Stratégie Live",
+                items: [
+                    {
+                        id: "edtech",
+                        title: "Formation & Éducation",
+                        strategy: "Modèle Académie Hybride",
+                        desc: "Transformez la formation traditionnelle en académie numérique évolutive. Webinaires automatisés High-Ticket + Plateforme LMS.",
+                        demoTitle: "Démo Plateforme Académie"
+                    },
+                    {
+                        id: "retail",
+                        title: "Commerce & Retail",
+                        strategy: "Moteur Direct-Consumer (D2C)",
+                        desc: "Contournez les marketplaces. Construisez une boutique centrée sur la marque avec recommandations IA et retargeting.",
+                        demoTitle: "Expérience E-Store"
+                    },
+                    {
+                        id: "services",
+                        title: "Services Professionnels",
+                        strategy: "Hub de Services Productisés",
+                        desc: "Arrêtez de vendre des heures. Vendez des résultats. Réservation automatisée, portails clients et modèles par abonnement.",
+                        demoTitle: "Démo Portail Client"
+                    }
+                ]
+            },
+            tools: {
+                title: "Moteurs de Croissance Propriétaires",
+                subtitle: "Des outils automatisés que nous déployons pour accélérer le développement de votre projet.",
+                items: [
+                    {
+                        title: "Meta-Manager Pro",
+                        desc: "Système de gestion automatisé Facebook & Instagram pour le contenu et l'engagement."
+                    },
+                    {
+                        title: "LeadPulse CRM",
+                        desc: "Système de suivi client intégré conçu pour une mise à l'échelle rapide."
+                    },
+                    {
+                        title: "AutoFunnel Builder",
+                        desc: "Architecture de tunnel de vente à haute conversion déployée en quelques jours."
+                    }
+                ]
+            },
+            trustedBy: {
+                title: "Aligné Stratégiquement avec l'Excellence Mondiale",
+                subtitle: "Approuvé par des entreprises visionnaires recherchant la dominance numérique."
+            },
+            metrics: {
+                title: "Impact Stratégique Prouvé",
+                items: [
+                    { value: "140M€+", label: "Capital Optimisé", icon: "DollarSign" },
+                    { value: "450+", label: "Réussites Digitales", icon: "TrendingUp" },
+                    { value: "12ms", label: "Latence IA Moyenne", icon: "Zap" },
+                    { value: "98%", label: "Rétention Client", icon: "ShieldCheck" }
+                ]
+            },
+            methodology: {
+                title: "Le Cadre IA Industriel",
+                subtitle: "Notre architecture propriétaire pour une croissance durable.",
+                pillars: [
+                    { title: "Audit d'Entreprise", desc: "Nous analysons votre modèle commercial, vos revenus et vos défis." },
+                    { title: "Plan d'Action", desc: "Nous créons une feuille de route étape par étape pour atteindre vos objectifs." },
+                    { title: "Exécution & Formation", desc: "Nous vous aidons à mettre en œuvre la stratégie et formons votre équipe." }
+                ]
+            }
         }
     },
     ar: {
         nav: {
             home: "الرئيسية",
-            methodology: "المنهجية",
+            methodology: "خدماتنا",
             pricing: "الأسعار",
-            verify: "التحقق من الشهادة",
+            verify: "التحقق من الاعتماد",
             signIn: "تسجيل الدخول",
-            workspace: "مساحة العمل"
+            workspace: "مساحتي",
+            digitalization: "حلول الأعمال",
+            professionals: "للمهنيين",
+            enterprises: "للشركات"
+        },
+        contract: {
+            title: "اتفاقية الخدمة",
+            subtitle: "اتفاقية الاستشارات المهنية",
+            step1: "التحقق من الهوية",
+            step2: "شروط الخدمة",
+            step3: "التوقيع الرقمي",
+            firstName: "الاسم الأول",
+            lastName: "الاسم الأخير",
+            phone: "رقم الجوال",
+            email: "البريد الإلكتروني",
+            readTerms: "لقد قرأت وقبلت شروط الاتفاقية.",
+            signLabel: "التوقيع الرقمي (اكتب الاسم الكامل)",
+            signPlaceholder: "مثال: فلان الفلاني",
+            submit: "توقيع الاتفاقية",
+            successTitle: "تم توقيع الاتفاقية",
+            successDesc: "تم تسجيل التزامك بنجاح.",
+            download: "تحميل الاتفاقية (PDF)",
+            terms: `
+**اتفاقية خدمة الاستشارات المهنية**
+
+1. **الهدف**: يوافق العميل على المشاركة في برنامج التطوير المهني.
+2. **السرية**: جميع نتائج التقييم والنصائح المقدمة سرية تماماً.
+3. **الالتزام**: تعتمد النتائج على المشاركة الفعالة في جميع مراحل البرنامج.
+4. **الشهادة**: يتم إصدار "التحقق من المعلومات" بعد إتمام البرنامج بنجاح.
+5. **الدفع**: يوافق العميل على الرسوم كما هو محدد في خطة الأسعار.
+
+بالتوقيع أدناه، أنت توافق على بدء عملية الاستشارة.
+            `
         },
         hero: {
-            badge: "النظام البيئي الوظيفي المتكامل",
-            titlePre: "ارفع سقف",
-            titleHighlight: "إمكانياتك",
-            subtitle: "منصة تطوير مهني شاملة تجمع بين أدوات الذكاء الاصطناعي المتقدمة، تدريب الخبراء، والشهادات الموثقة.",
-            ctaDashboard: "تشغيل لوحة التحكم",
-            ctaTour: "جولة في النظام"
+            badge: "استشارات مهنية وتجارية عالمية",
+            titlePre: "طوّر مسارك المهني و",
+            titleHighlight: "استراتيجية أعمالك",
+            subtitle: "المنصة الاستشارية الرائدة للمحترفين ورواد الأعمال. نساعدك على تطوير مسارك المهني وتنمية مشروعك التجاري باستخدام الخبرات العالمية.",
+            ctaDashboard: "ابدأ الآن",
+            ctaTour: "كيف نعمل"
         },
         features: {
-            title: "محرك نموك المتكامل",
-            subtitle: "كل ما تحتاجه لتحليل وتحسين وتوثيق مهاراتك المهنية في مكان واحد.",
+            title: "خدماتنا الاستشارية",
+            subtitle: "تحول قيادي شامل من خلال سبع خدمات استشارية متكاملة مصممة لتطوير قدراتك الاستراتيجية.",
             cards: {
-                aiTools: {
-                    title: "أدوات الوظائف بالذكاء الاصطناعي",
-                    desc: "وصل إلى محركاتنا العصبية لتحليل السيرة الذاتية، ابتكار الأدوار، والتحقق من المسار المهني.",
-                    availability: "60% قيد التشغيل",
-                    tags: ["تشخيص عميق", "استراتيجية ذكية", "تحليل الفجوات"]
+                diagnosis: {
+                    title: "1. التقييم الاستراتيجي للمسار المهني",
+                    desc: "تحليل شامل لملفك المهني مقابل معايير القيادة العالمية لتحديد فرص التطوير الاستراتيجي.",
+                    tags: ["تحليل المسار المهني", "تقييم القيادة"]
+                },
+                simulation: {
+                    title: "2. محاكاة القيادة في الأزمات",
+                    desc: "سيناريوهات أزمات واقعية لتقييم وتطوير قدرتك على اتخاذ القرارات تحت الضغط.",
+                    tags: ["إدارة الأزمات", "ذكاء القرارات"]
                 },
                 training: {
-                    title: "مركز التدريب",
-                    desc: "مكتبة متميزة من الدروس وورش العمل المسجلة المصممة لسد فجوات مهاراتك المحددة.",
-                    availability: "2% معاينة المفهوم",
-                    tags: ["جلسات مسجلة", "ورش عمل", "تدريبات المهارات"]
+                    title: "3. برامج التطوير التنفيذي",
+                    desc: "برامج تطوير قيادي وجلسات كوتشينغ تنفيذي مخصصة مبنية على منهجيات عالمية.",
+                    tags: ["كوتشينغ تنفيذي", "تطوير القيادة"]
+                },
+                mentor: {
+                    title: "4. المستشار الاستراتيجي الذكي",
+                    desc: "مستشارك الاستراتيجي الشخصي المدعوم بالذكاء الاصطناعي، متاح 24/7 للإرشاد المهني ورؤى القيادة.",
+                    tags: ["إرشاد استراتيجي", "دعم 24/7"]
+                },
+                academy: {
+                    title: "5. مركز المعرفة العالمي",
+                    desc: "الوصول لأطر العمل النخبوية ودراسات الحالة والمنهجيات من Harvard وINSEAD وأفضل شركات الاستشارات.",
+                    tags: ["أفضل الممارسات", "معايير عالمية"]
                 },
                 library: {
-                    title: "مكتبة الموارد",
-                    desc: "قوالب قابلة للتنزيل، أوراق عمل صناعية، وأدلة مختارة من قبل أفضل المحترفين.",
-                    availability: "2% معاينة المفهوم",
-                    tags: ["قوالب", "أدلة", "منهجيات"]
+                    title: "6. مكتبة الأدوات الاستراتيجية",
+                    desc: "أدوات احترافية وأطر عمل ونماذج يستخدمها مستشارو McKinsey وBCG وBain.",
+                    tags: ["أدوات استشارية", "أطر عمل"]
                 },
-                chat: {
-                    title: "محادثة الخبراء",
-                    desc: "وصول 24/7 إلى مستشاري الذكاء الاصطناعي المتخصصين للحصول على تعليقات فورية حول المفاوضات والتحديات التقنية.",
-                    availability: "2% معاينة المفهوم",
-                    tags: ["متاح 24/7", "تعليقات فورية", "شخصيات متخصصة"]
-                },
-                achievements: {
-                    title: "الإنجازات",
-                    desc: "تتبع تقدمك مع نظام نمو تفاعلي. اكسب شارات عند إتقان كفاءات جديدة.",
-                    availability: "2% معاينة المفهوم",
-                    tags: ["تتبع التقدم", "شارات الإنجاز", "نمو تفاعلي"]
-                },
-                certificates: {
-                    title: "شهاداتي",
-                    desc: "أثبت مهاراتك بشهادات رقمية يمكن التحقق منها تصدر عند إكمال المحاكاة والدورات.",
-                    availability: "2% معاينة المفهوم",
-                    tags: ["إثبات جاهز للعمل", "قابل للمشاركة", "موثق بالبلوكشين"]
+                expert: {
+                    title: "7. الوصول لشبكة القيادات التنفيذية",
+                    desc: "تواصل مباشر مع شبكتنا العالمية من القيادات التنفيذية وقادة الصناعة للتوجيه والفرص.",
+                    tags: ["شبكة تنفيذية", "توجيه مهني"]
                 }
             }
         },
         cert: {
-            badge: "شهادة رسمية",
-            title: "وثق خبرتك للعالم.",
-            desc: "لا تقل فقط أنك تستطيع فعل ذلك—أثبت ذلك. يمنحك نظام الشهادات المتكامل لدينا اعتمادات معترف بها في الصناعة فور اجتيازك لمحاكاة الذكاء الاصطناعي الصارمة.",
-            check1: "هوية رقمية قابلة للتحقق لـ LinkedIn",
-            check2: "مبني على الأداء الواقعي",
-            check3: "معترف به من قبل شركاء التكنولوجيا",
-            cta: "احصل على الاعتماد الآن",
-            cardTitle: "شهادة التميز",
-            cardSubtitle: "إدارة المنتجات الاستراتيجية",
-            cardFooter: "\"مُنحت لإظهار بصيرة استراتيجية استثنائية وقدرات تنفيذية في المحاكاة المتقدمة.\""
+            badge: "الاعتماد التنفيذي",
+            title: "الاعتماد والتزكية المهنية",
+            desc: "احصل على تزكية مهنية رسمية واعتماد يثبت قدراتك الاستراتيجية وجاهزيتك للمناصب التنفيذية.",
+            check1: "اعتماد تنفيذي محترف",
+            check2: "تزكية استراتيجية",
+            check3: "مصدق وفق المعايير العالمية",
+            cta: "احصل على الاعتماد",
+            cardTitle: "الاعتماد التنفيذي",
+            cardSubtitle: "تزكية استراتيجية",
+            cardFooter: "\"معتمد لإظهار قدرات استراتيجية استثنائية وجاهزية تنفيذية.\""
         },
         footer: {
-            rights: "© 2026 استخبارات CareerUpgrade.",
-            tagline: "صممت للطموحين."
+            rights: "© 2026 MA-TRAINING-CONSULTING.",
+            tagline: "التميز في الاستشارات والتدريب."
         },
         saleBanner: {
             title: "شريك تشغيلي مرخّص",
@@ -609,182 +1064,363 @@ export const translations = {
         demoDisclaimer: {
             text: "هذا فقط نموذج وليس نظام متكامل الأركان، للتفسير والفهم فقط."
         },
+        verification: {
+            badge: "التحقق من الشهادات",
+            titlePre: "التحقق من المؤهلات",
+            titleHighlight: "المهنية",
+            subtitle: "تأكد من صحة شهاداتنا وتوصياتنا من خلال نظام التحقق الآمن لدينا.",
+            label: "رقم الشهادة",
+            placeholder: "مثال: CERT-2026-XXXX",
+            buttonIdle: "تحقق الآن",
+            buttonLoading: "جاري التحقق...",
+            resultTitle: "تم العثور على شهادة صالحة",
+            resultSubtitle: "تم التحقق بنجاح",
+            subject: "صاحب الشهادة",
+            domain: "مجال الخبرة",
+            date: "تاريخ الإصدار",
+            status: "الحالة",
+            statusElite: "صالح ونشط",
+            viewSign: "عرض التوقيع الرقمي",
+            errorTitle: "فشل التحقق",
+            errorDesc: "لم يتم العثور على شهادة بالرقم: {id}. يرجى التحقق من الرمز."
+        },
         methodology: {
-            badge: "منهجية CareerUpgrade",
-            titlePre: "كيف نحول المهنيين إلى",
-            titleHighlight: "قادة في الجودة والسلامة والبيئة (QHSE)",
-            subtitle: "لقد هندسنا دورة تحول تعتمد على البيانات تسد الفجوة بين المعرفة النظرية والقيادة في العالم الحقيقي.",
+            badge: "بروتوكول النجاح",
+            titlePre: "من مجرد موظف إلى",
+            titleHighlight: "أصل استراتيجي",
+            subtitle: "نحن لا نعلم. نحن نهندس. دورة التحول المكونة من 5 مراحل مصممة للسيطرة المهنية عالية التأثير.",
             ctaStart: "ابدأ التحول",
-            ctaVideo: "شاهد فيديو المنهجية",
+            ctaVideo: "شاهد البروتوكول",
             essence: {
-                title: "جوهر التميز في الجودة والسلامة (QHSE)",
-                desc: "CareerUpgrade AI ليست مجرد منصة تعليمية؛ إنها **نظام بيئي للجاهزية المهنية**. نحن ندرك أنه في عالم الجودة والسلامة والبيئة، الشهادة لا قيمة لها إلا إذا كانت مدعومة بالقدرة على التعامل مع الضغوط.",
-                precision: "تقييمات مدعومة بالذكاء الاصطناعي تحدد بالضبط ما تحتاجه للتعلم.",
-                recognition: "شهادات وتدريبات معترف بها من قبل الصناعات الأكثر تطلباً.",
-                speed: "مسارات تعلم متسارعة تقلل وقت نمو حياتك المهنية بنسبة 50%.",
-                network: "وصول مباشر إلى مجتمع عالمي من خبراء السلامة والجودة."
+                title: "لماذا تختار MA-TRAINING-CONSULTING",
+                desc: "MA-TRAINING-CONSULTING هي شريكك العالمي. نجمع بين الاستشارات الخبيرة والتدريب العملي. قدرتك على إدارة الضغوط.",
+                precision: "تشخيصات دقيقة ترسم خريطة حمضك النووي المهني.",
+                recognition: "ضمانات معترف بها من قبل الأطر المؤسسية العالمية.",
+                speed: "تسريع المسار المهني مع سد الفجوات بالذكاء الاصطناعي.",
+                network: "وصول استراتيجي لشبكة مجالس الإدارة العالمية النخبوية."
             },
             cycle: {
-                title: "دورة التحول المكونة من 5 مراحل",
-                subtitle: "من التشخيص إلى القيادة، نوجهك في كل خطوة من رحلتك بدقة الذكاء الاصطناعي ورؤية الخبراء.",
+                title: "تفويض التحول",
+                subtitle: "رحلة معمارية صارمة من 5 مراحل من التشخيص إلى القيادة العليا.",
                 stage1: {
-                    title: "تشخيص الملف الشخصي بالذكاء الاصطناعي",
-                    sub: "فهم الحمض النووي (DNA) الحالي لمهاراتك",
-                    desc: "نحن لا ننظر فقط إلى سيرتك الذاتية. يقوم الذكاء الاصطناعي لدينا بتحليل خبرتك مقابل معايير ISO الدولية وتحديد فجوات الكفاءة الدقيقة في بروتوكولات السلامة والجودة والبيئة.",
-                    f1: "رسم خرائط كفاءة ISO",
-                    f2: "تدقيق المعرفة التنظيمية",
-                    f3: "تحليل الفجوات التقنية"
+                    title: "تدقيق المهارات العميق",
+                    sub: "تحليل الحمض النووي المهني",
+                    desc: "تقوم محركاتنا بالذكاء الاصطناعي بجرء تدقيق عميق لأصولك المهنية مقابل المعايير القيادية العالمية.",
+                    f1: "رسم خرائط الأصول",
+                    f2: "تدقيق الامتثال",
+                    f3: "تحليل الفجوات"
                 },
                 stage2: {
-                    title: "محاكاة السيناريو الغامرة",
-                    sub: "اختبار أعصابك، وليس فقط معرفتك",
-                    desc: "ادخل في عمليات محاكاة عالية المخاطر. أدر حادث عمل، أو قم بقيادة تدقيق ISO وهمي، أو تعامل مع أزمة امتثال في بيئة آمنة يتحكم فيها الذكاء الاصطناعي تعكس الضغط في العالم الحقيقي.",
-                    f1: "محاكاة الاستجابة للحوادث",
-                    f2: "تدقيق ISO وهمي",
-                    f3: "ممارسة الاتصال في حالات الطوارئ"
+                    title: "محاكاة الضغوط",
+                    sub: "الذكاء العملياتي",
+                    desc: "تحقق من قدرتك القيادية في بيئة عالية المخاطر. أدر سيناريوهات الأزمات في غرفة تحكم ذكية.",
+                    f1: "ضغط السيناريو",
+                    f2: "تدقيق الأزمات",
+                    f3: "التواصل التنفيذي"
                 },
                 stage3: {
-                    title: "أكاديمية التدريب المتخصصة",
-                    sub: "معايير عالمية، تعلم شخصي",
-                    desc: "الوصول إلى منهج صممه خبراء الصناعة. من معايير ISO 9001 إلى معايير NEBOSH، يركز تدريبنا على سد الفجوات المحددة في المرحلة الأولى بمحتوى مرئي عالي التأثير.",
-                    f1: "دورات جاهزة للشهادات",
-                    f2: "ورش عمل تفاعلية",
-                    f3: "أحدث التحديثات التنظيمية"
+                    title: "التنفيذ الاستراتيجي",
+                    sub: "هندسة القدرات",
+                    desc: "الوصول إلى تفويضات تنفيذية مصممة لسد الفجوات المحددة بمحتوى عالي المردود.",
+                    f1: "بناء القدرات",
+                    f2: "أطر التنفيذ",
+                    f3: "الذكاء العملي"
                 },
                 stage4: {
-                    title: "نظام بيئي للموارد الاستراتيجية",
-                    sub: "مجموعة الأدوات التشغيلية الخاصة بك للميدان",
-                    desc: "لا تبدأ من الصفر. الوصول إلى مكتبتنا المنسقة من قوائم مراجعة التدقيق، وقوالب تقييم المخاطر، ومصفوفات الامتثال المستخدمة من قبل كبار مديري QHSE عالمياً.",
-                    f1: "قوائم مراجعة التدقيق العالمية",
-                    f2: "إجراءات التشغيل القياسية (SOPs)",
-                    f3: "مصفوفات تقييم المخاطر"
+                    title: "بنك الموارد الاستراتيجية",
+                    sub: "مجموعة الأدوات التنفيذية",
+                    desc: "الوصول إلى بنك بروتوكولات التدقيق ومصفوفات المخاطر من كبرى شركات الاستشارة.",
+                    f1: "بروتوكولات عالمية",
+                    f2: "معايير التشغيل",
+                    f3: "مصفوفات المخاطر"
                 },
                 stage5: {
-                    title: "توجيه استراتيجي من الخبراء",
-                    sub: "بناء إرث لقائد في مجال الجودة والسلامة والبيئة",
-                    desc: "تواصل مع مرشدين معتمدين قادوا أقسام الجودة والسلامة والبيئة في شركات Fortune 500. احصل على مسار مهني شخصي واستراتيجيات مقابلات عالية المستوى للحصول على أدوار قيادية.",
-                    f1: "استراتيجية مهنية 1-إلى-1",
-                    f2: "دروس المقابلات المتقدمة",
-                    f3: "تطوير القيادة"
+                    title: "الوصول لمجالس الإدارة",
+                    sub: "التوجيه التنفيذي",
+                    desc: "تواصل مع مستشارين رفيعي المستوى للتخطيط لمسار مسيرتك الاستراتيجي.",
+                    f1: "استراتيجية الإدارة",
+                    f2: "دروس قيادية متقدمة",
+                    f3: "إرث القيادة"
                 }
             },
             ctaFinal: {
-                title: "توقف عن التعلم. ابدأ القيادة.",
-                desc: "انضم إلى الآلاف من محترفي QHSE الذين أعادوا تحديد مسار حياتهم المهنية باستخدام منهجيتنا المتخصصة.",
-                btnStart: "ابدأ رحلتي",
-                btnPlans: "عرض الخطط"
+                title: "توقف عن التدرب. ابدأ بالسيطرة.",
+                desc: "انضم إلى نخبة المحترفين الذين أعادوا رسم مسارهم باستخدام بروتوكول النجاح.",
+                btnStart: "ابدأ تفويضي",
+                btnPlans: "عرض خطط الوصول"
             }
         },
         pricing: {
-            badge: "خطة شاملة",
-            title: "خطة واحدة، تشمل كل شيء",
-            subtitle: "احصل على وصول كامل لجميع الميزات وتسريع نمو حياتك المهنية باستخدام أدوات الذكاء الاصطناعي.",
-            monthly: "شهري",
-            yearly: "سنوي",
-            save: "وفر",
-            bestValue: "أفضل قيمة",
-            planTitle: "وصول كامل",
-            month: "شهر",
-            year: "سنة",
-            saveAnnually: "وفر €{amount} سنوياً",
-            effectivePrice: "هذا فقط €{amount}/الشهر عند الدفع سنوياً",
-            cta: "ابدأ رحلتك الآن",
-            guarantee: "ضمان استرداد الأموال لمدة 30 يوماً • إلغاء في أي وقت",
-            faqTitle: "لديك أسئلة؟",
-            faqSubtitle: "فريقنا هنا لمساعدتك على النجاح",
-            contactSupport: "اتصل بالدعم",
-            features: [
-                "تحليل غير محدود للسيرة الذاتية بالذكاء الاصطناعي",
-                "محاكاة متقدمة لأدوار QHSE",
-                "إتقان تدقيق ISO الوهمي",
-                "رسوم كاملة لأكاديمية التدريب",
-                "مكتبة تشغيلية متكاملة",
-                "استشارة خبيرة في QHSE بالذكاء الاصطناعي",
-                "خارطة طريق مهنية استراتيجية",
-                "شهادات رقمية قابلة للتحقق",
-                "دعم ذو أولوية 24/7",
-                "ورش عمل حصرية مع الموجهين"
-            ]
+            badge: "خطط العضوية",
+            title: "ادفع مسيرتك القيادية للأمام",
+            subtitle: "اختر التفويض الذي يتماشى مع أهدافك الاستراتيجية ومتطلباتك المهنية.",
+            tiers: {
+                initial: {
+                    name: "الباقة الأولية",
+                    badge: "اكتشاف",
+                    price: "مجاني",
+                    duration: "وصول لمدة 3 ساعات",
+                    features: [
+                        "وصول كامل للبروتوكول لمدة 3 ساعات",
+                        "تدقيق الأصول الأولي بالذكاء الاصطناعي",
+                        "وصول محدود للمحاكاة",
+                        "وصول محدود لورش العمل",
+                        "دعم مجتمعي"
+                    ]
+                },
+                pro: {
+                    name: "برو الأساسي",
+                    badge: "الاختيار التنفيذي",
+                    price: "30€",
+                    duration: "/ سنوياً",
+                    features: [
+                        "أدوات تدقيق غير محدودة",
+                        "وصول كامل للمستشار الذكي",
+                        "دفع لكل محاكاة بشكل فردي",
+                        "دفع لكل ورشة عمل بشكل فردي",
+                        "تحديثات استراتيجية دورية"
+                    ]
+                },
+                elite: {
+                    name: "باقة النخبة الكاملة",
+                    badge: "غمر كامل",
+                    price: "65€",
+                    duration: "/ شهرياً",
+                    features: [
+                        "محاكاة وكوتشينغ غير محدود",
+                        "جميع ورش العمل التنفيذية مشمولة",
+                        "دعم خبير مخصص (1-on-1)",
+                        "خطاب توصية للنخبة",
+                        "استشارات استراتيجية أسبوعية",
+                        "مطلوب التزام لمدة 12 شهراً"
+                    ]
+                }
+            },
+            cta: "اختر تفويضك",
+            contact: "استفسر من مستشار",
+            guarantee: "معالجة آمنة 100% وفواتير رسمية"
         },
         expert: {
-            title: "استشارة الخبراء",
-            subtitle: "احصل على نصائح مهنية مخصصة من خبراء الذكاء الاصطناعي المتخصصين في مجالك.",
-            quickQuestions: "أسئلة سريعة:",
-            placeholder: "اسأل سؤالك المهني...",
-            send: "إرسال",
-            careerExpert: "خبير مهني",
-            loading: "الخبير يفكر...",
-            defaultMessage: "مرحباً! أنا استراتيجي المهن الخاص بك بالذكاء الاصطناعي. لقد راجعت ملفك الشخصي وأنا هنا لمساعدتك في التنقل في مسارك المهني. ماذا تود أن نناقش اليوم؟"
+            title: "استخبارات الخبراء",
+            subtitle: "احصل على نصيحة استراتيجية مخصصة من ذكاء اصطناعي متخصص في القيادة التنفيذية.",
+            quickQuestions: "استعلامات الاستخبارات:",
+            placeholder: "استجوب المستشار...",
+            send: "أمر",
+            careerExpert: "مستشار استراتيجي",
+            loading: "المستشار يقوم بالحسابات...",
+            defaultMessage: "جاهز لتقديم الإيجاز. لقد دققت أداءك الأخير. ما هو هدفك الاستراتيجي الحالي؟"
         },
         auth: {
-            welcomeBack: "مرحباً بعودتك",
-            signInSubtitle: "سجل الدخول لمواصلة رحلتك المهنية",
-            emailLabel: "عنوان البريد الإلكتروني",
-            passwordLabel: "كلمة المرور",
-            signInButton: "تسجيل الدخول",
-            signingIn: "جاري الدخول...",
-            orContinueWith: "أو الاستمرار بواسطة",
-            noAccount: "ليس لديك حساب؟",
-            createOne: "أنشئ حساباً",
-            errorInvalid: "بيانات الاعتماد غير صالحة",
-            errorGeneric: "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+            welcomeBack: "تم تأكيد الهوية",
+            signInSubtitle: "سجل الدخول للوصول لمساحتك الاستراتيجية",
+            emailLabel: "البريد الإلكتروني / الهوية",
+            passwordLabel: "كود الوصول",
+            signInButton: "مصادقة الدخول",
+            signingIn: "جاري التحقق...",
+            orContinueWith: "مصادقة بديلة",
+            noAccount: "لست مسجلاً بعد؟",
+            createOne: "تسجيل مجاني",
+            errorInvalid: "تم رفض الوصول: بيانات غير صالحة",
+            errorGeneric: "خطأ في النظام. جاري محاولة إعادة الاتصال."
         },
         dashboard: {
             welcome: "مرحباً بعودتك",
-            subtitle: "أنت على المسار الصحيح! واصل رحلتك نحو الإتقان.",
-            topLearner: "أفضل 5% من المتعلمين",
+            subtitle: "رحلة تطويرك المهني نشطة.",
+            topLearner: "ضمن أفضل 5% من المواهب",
             stats: {
-                skillsGained: "المهارات المكتسبة",
-                hoursLearned: "ساعات التعلم",
+                skillsGained: "مهارات تم التحقق منها",
+                hoursLearned: "ساعات التدريب",
                 certificates: "الشهادات"
             },
             currentFocus: {
-                title: "التركيز الحالي",
-                continue: "استمرار",
-                resume: "استئناف المحاكاة",
-                progress: "التقدم"
+                title: "التفويض الحالي",
+                continue: "تنفيذ",
+                resume: "العودة للمحاكاة",
+                progress: "مستوى النضج",
+                accessWorkshop: "موارد البروتوكول"
             },
             journey: {
-                title: "رحلتك",
+                title: "رحلتك القيادية",
                 stages: {
-                    diagnosis: "التشخيص والتعريف",
-                    diagnosisDesc: "تحليل مدعوم بالذكاء الاصطناعي لسيرتك الذاتية ومهاراتك.",
-                    simulation: "محاكاة الأدوار",
-                    simulationDesc: "ممارسة سيناريوهات العالم الحقيقي.",
-                    training: "مركز التدريب",
-                    trainingDesc: "دورات منسقة لسد فجواتك.",
-                    library: "المكتبة الرقمية",
-                    libraryDesc: "الوصول إلى الموارد المتميزة.",
-                    expert: "استشارة الخبراء",
-                    expertDesc: "جلسة استراتيجية 1-على-1."
+                    diagnosis: "تقييم المسار المهني",
+                    diagnosisDesc: "تحليل الملف المهني وتحديد الفجوات.",
+                    simulation: "محاكاة القيادة",
+                    simulationDesc: "تقييم إدارة الأزمات واتخاذ القرارات.",
+                    training: "برامج التطوير",
+                    trainingDesc: "تطوير قيادي وكوتشينغ مخصص.",
+                    library: "الموارد والأدوات",
+                    libraryDesc: "الوصول لأطر العمل والأدوات المتميزة.",
+                    expert: "شبكة القيادات",
+                    expertDesc: "التواصل مع قادة عالميين وموجهين."
                 }
             },
             recommended: {
-                title: "موصى به لك",
+                title: "الأولويات الموكلة إليك",
                 seeAll: "عرض الكل"
             }
         },
         sidebar: {
             categories: {
                 main: "الرئيسية",
-                journey: "الرحلة المهنية",
-                achievements: "الإنجازات",
-                system: "النظام"
+                journey: "استراتيجية النجاح",
+                achievements: "الأصول الرسمية",
+                system: "الإعدادات"
             },
             items: {
-                overview: "نظرة عامة",
-                diagnosis: "1. التشخيص",
-                tools: "2. أدوات الذكاء الاصطناعي",
-                training: "3. مركز التدريب",
-                library: "4. المكتبة",
-                expert: "5. محادثة خبير",
-                certificates: "شهاداتي",
-                recommendation: "خطاب توصية",
+                overview: "لوحة التحكم",
+                diagnosis: "تقييم المسار المهني",
+                tools: "محاكاة القيادة",
+                training: "برامج التطوير",
+                mentor: "المستشار الاستراتيجي",
+                academy: "مركز المعرفة",
+                library: "الأدوات والموارد",
+                expert: "شبكة القيادات",
+                certificates: "ملف الأداء التنفيذي الاستراتيجي",
+                recommendation: "احصل على توصية",
                 settings: "الإعدادات",
                 signOut: "تسجيل الخروج"
             },
-            premium: "عضو مميز",
-            loading: "جاري تحميل مساحة العمل..."
+            premium: "عضو نخبوِي",
+            loading: "جاري فك تشفير مساحة العمل..."
+        },
+        digitalization: {
+            hero: {
+                badge: "استشارات الأعمال والذكاء الاصطناعي",
+                title: "طوّر أعمالك باستخدام",
+                titleHighlight: "تحليل البيانات الاستراتيجي",
+                subtitle: "نساعد الشركات على النمو، وتحسين العمليات، وإطلاق منتجات جديدة باستخدام تحليل الذكاء الاصطناعي ومنهجيات الاستشارة العالمية.",
+                ctaStart: "ابدأ تقييم مشروعك",
+                ctaPortfolio: "شاهد حلولنا"
+            },
+            process: {
+                title: "من أين ستبدأ؟",
+                subtitle: "اختر وضعك الحالي للحصول على خارطة طريق مخصصة.",
+                options: {
+                    existing: {
+                        title: "مشروع قائم",
+                        desc: "لدي عمل تجاري قائم وأحتاج إلى تحسين أو توسيع."
+                    },
+                    idea: {
+                        title: "فكرة مشروع",
+                        desc: "لدي مفهوم ولكن أحتاج إلى خطة للإطلاق."
+                    },
+                    none: {
+                        title: "لا توجد فكرة",
+                        desc: "أرغب في الاستثمار ولكن أحتاج إلى فرص مربحة."
+                    }
+                }
+            },
+            questions: {
+                existing: [
+                    { id: "q1", label: "التمركز الاستراتيجي", placeholder: "مثال: رائد في السوق، منافس، متخصص في نيش", type: "text" },
+                    { id: "q2", label: "الإيرادات الحالية ومعدل النمو", placeholder: "مثال: 500 ألف/سنة، +20% نمو سنوي", type: "text" },
+                    { id: "q3", label: "عنق الزجاجة التشغيلي الرئيسي", placeholder: "مثال: اكتساب العملاء، التوسع التقني، كفاءة الفريق", type: "text" },
+                    { id: "q4", label: "الهدف الاستراتيجي لـ 12 شهر", placeholder: "مثال: التوسع لسوق جديد، مضاعفة الإيرادات", type: "text" }
+                ],
+                idea: [
+                    { id: "q1", label: "عرض القيمة الأساسي", placeholder: "ما المشكلة التي تحلها ومن المستهدف؟", type: "text" },
+                    { id: "q2", label: "حالة التحقق من السوق", placeholder: "مثال: مجرد فكرة، استبيان 100 شخص، نموذج أولي جاهز", type: "text" },
+                    { id: "q3", label: "استراتيجية دخول السوق", placeholder: "مثال: إعلانات مدفوعة، مبيعات مباشرة، نمو فيروسي", type: "text" }
+                ],
+                none: [
+                    { id: "q1", label: "رأس المال الاستثماري المتاح", placeholder: "مثال: 10k - 50k، 100k+", type: "text" },
+                    { id: "q2", label: "الأصول المهنية الرئيسية", placeholder: "مثال: شبكة علاقات قوية، مهارات تقنية", type: "text" },
+                    { id: "q3", label: "القطاع/الصناعة المفضلة", placeholder: "مثال: التكنولوجيا المالية، العقارات، التجارة الإلكترونية", type: "text" }
+                ],
+                freeTextLabel: "الملخص التنفيذي / التحدي المحدد",
+                freeTextPlaceholder: "صف وضعك بالتفصيل. ما الذي يمنعك من الوصول للمستوى التالي؟ (سيستخدم المستشار الذكي هذا لبناء خارطة طريق مخصصة لك)",
+                submit: "إنشاء خارطة الطريق الاستراتيجية"
+            },
+            portfolio: {
+                title: "قصص نجاحنا",
+                subtitle: "من الاستراتيجية إلى التنفيذ.",
+                strategy: "الاستراتيجية",
+                website: "المنتج الرقمي",
+                training: "تدريب الفريق"
+            },
+            diagnostic: {
+                title: "المستشار التنفيذي الذكي",
+                subtitle: "سأقوم بتحليل مدخلاتك لإنشاء تحليل SWOT احترافي وخريطة تنفيذ ربع سنوية.",
+                step: "خطوة",
+                submit: "إنشاء التحليل",
+                analyzing: "يقوم المستشار الذكي بهندسة خطتك...",
+                swot: {
+                    strengths: "نقاط القوة",
+                    weaknesses: "نقاط الضعف",
+                    opportunities: "الفرص",
+                    threats: "التهديدات"
+                },
+                plan: "خارطة طريق التنفيذ"
+            },
+            blueprints: {
+                title: "نماذج الابتكار القطاعي",
+                subtitle: "اختر قطاعك لرؤية إطار عمل تحول رقمي كامل.",
+                accompaniment: "الخدمة المرافقة: نقوم ببناء التكنولوجيا، تصميم قمع التسويق، وتدريب فريقك بالكامل.",
+                demoLabel: "ديمو استراتيجية حي",
+                items: [
+                    {
+                        id: "edtech",
+                        title: "التدريب والتعليم",
+                        strategy: "نموذج الأكاديمية الهجين",
+                        desc: "تحويل التدريب التقليدي إلى أكاديمية رقمية قابلة للتوسع. ويبينار مبيعات آلي + منصة تعليمية.",
+                        demoTitle: "ديمو منصة الأكاديمية"
+                    },
+                    {
+                        id: "retail",
+                        title: "التجارة والتجزئة",
+                        strategy: "محرك البيع المباشر (D2C)",
+                        desc: "تجاوز الأسواق العامة. ابن متجراً يركز على العلامة التجارية مع توصيات الذكاء الاصطناعي وإعادة الاستهداف.",
+                        demoTitle: "تجربة المتجر الإلكتروني"
+                    },
+                    {
+                        id: "services",
+                        title: "الخدمات المهنية",
+                        strategy: "مركز الخدمات الإنتاجية",
+                        desc: "توقف عن بيع الساعات. بع النتائج. حجز آلي، بوابات عملاء، ونماذج اشتراك شهرية.",
+                        demoTitle: "ديمو بوابة العملاء"
+                    }
+                ]
+            },
+            tools: {
+                title: "أدوات النمو الحصرية",
+                subtitle: "أنظمة برمجية جاهزة نقوم بتفعيلها لتسريع تطوير مشروعك.",
+                items: [
+                    {
+                        title: "Meta-Manager Pro",
+                        desc: "نظام آلي لإدارة محتوى وتفاعل صفحات فيسبوك وإنستغرام."
+                    },
+                    {
+                        title: "LeadPulse CRM",
+                        desc: "نظام متكامل لتتبع العملاء مصمم خصيصاً للتوسع السريع."
+                    },
+                    {
+                        title: "AutoFunnel Builder",
+                        desc: "هيكلية أقماع مبيعات عالية التحويل يتم تفعيلها في أيام معدودة."
+                    }
+                ]
+            },
+            trustedBy: {
+                title: "تحالفات استراتيجية مع التميز العالمي",
+                subtitle: "موثوقون من قبل شركات رؤيوية تسعى للهيمنة الرقمية."
+            },
+            metrics: {
+                title: "تأثير استراتيجي مثبت بالأرقام",
+                items: [
+                    { value: "+140 مليون", label: "رؤوس أموال تم تحسينها", icon: "DollarSign" },
+                    { value: "+450", label: "قصة نجاح رقمية", icon: "TrendingUp" },
+                    { value: "12ms", label: "متوسط سرعة الاستجابة", icon: "Zap" },
+                    { value: "98%", label: "نسبة رضا العملاء", icon: "ShieldCheck" }
+                ]
+            },
+            methodology: {
+                title: "منهجية الذكاء الاصطناعي الصناعي",
+                subtitle: "هندستنا الخاصة للنمو المستدام والقابل للتوسع.",
+                pillars: [
+                    { title: "تدقيق المشروع", desc: "نحلل نموذج عملك الحالي، إيراداتك، والتحديات التي تواجهها." },
+                    { title: "خطة العمل", desc: "نضع لك خارطة طريق خطوة بخطوة لتحقيق أهداف نموك." },
+                    { title: "التنفيذ والتدريب", desc: "نساعدك في تنفيذ الاستراتيجية وتدريب فريق عملك." }
+                ]
+            }
         }
     }
 };

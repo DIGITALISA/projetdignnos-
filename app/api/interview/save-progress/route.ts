@@ -15,9 +15,7 @@ export async function POST(request: NextRequest) {
         await Diagnosis.findByIdAndUpdate(diagnosisId, {
             conversationHistory: messages,
             currentStep: 'interview_in_progress',
-            // We could store question index too if we added it to schema, but user only asked for "step" generally.
-            // But to resume exactly where left off, saving messages is enough IF we can deduce state from messages.
-            // However, saving question index is safer.
+            totalQuestions
         });
 
         return NextResponse.json({ success: true });

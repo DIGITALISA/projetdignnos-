@@ -14,6 +14,32 @@ const LANGUAGES = [
     { code: 'es', name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
 ];
 
+// ✅ تعريف نوع بيانات تحليل السيرة الذاتية
+interface CVAnalysisResult {
+    overallScore: number;
+    verdict: string;
+    overview: string;
+    strengths: string[];
+    weaknesses: string[];
+    skills: {
+        technical: string[];
+        soft: string[];
+        gaps: string[];
+    };
+    experience: {
+        years: number;
+        quality: string;
+        progression: string;
+    };
+    education: {
+        level: string;
+        relevance: string;
+        notes: string;
+    };
+    immediateActions: string[];
+    careerPaths: string[];
+}
+
 export default function CVUploadPage() {
     const router = useRouter();
     const resultsRef = useRef<HTMLDivElement>(null);
@@ -22,10 +48,9 @@ export default function CVUploadPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadComplete, setUploadComplete] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
-    const [analysisResult, setAnalysisResult] = useState<any>(null);
+    const [analysisResult, setAnalysisResult] = useState<CVAnalysisResult | null>(null);
     const [showResults, setShowResults] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const [isCheckingProgress, setIsCheckingProgress] = useState(true);
 
     useEffect(() => {
         const checkProgress = async () => {
@@ -35,42 +60,72 @@ export default function CVUploadPage() {
 
                 let sessionFound = false;
 
-                // 1. Try to fetch active session from API if user exists
+                // ✅ 1. المصدر الأساسي: MongoDB عبر API الجديد
                 if (userId) {
                     try {
-                        const res = await fetch(`/api/assessment/progress?userId=${encodeURIComponent(userId)}`);
+                        const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
                         if (res.ok) {
-                            const data = await res.json();
+                            const response = await res.json();
 
-                            if (data.hasActiveSession) {
+                            if (response.hasData && response.data) {
+                                const data = response.data;
                                 sessionFound = true;
-                                if (data.currentStep === 'interview_in_progress') {
-                                    if (data.analysis) localStorage.setItem('cvAnalysis', JSON.stringify(data.analysis));
-                                    if (data.language) localStorage.setItem('selectedLanguage', data.language);
-                                    router.push("/assessment/interview");
-                                    return;
+
+                                // حفظ البيانات في localStorage كنسخة احتياطية
+                                if (data.cvAnalysis) {
+                                    localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
+                                }
+                                if (data.language) {
+                                    localStorage.setItem('selectedLanguage', data.language);
+                                }
+                                if (data.interviewEvaluation) {
+                                    localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
+                                }
+                                if (data.roleSuggestions) {
+                                    localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
+                                }
+                                if (data.selectedRole) {
+                                    localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
+                                }
+                                if (data.generatedDocuments) {
+                                    localStorage.setItem('generatedDocuments', JSON.stringify(data.generatedDocuments));
                                 }
 
-                                if (data.currentStep === 'analysis_complete' && data.analysis) {
-                                    setAnalysisResult(data.analysis);
-                                    setUploadComplete(true);
-                                    setShowResults(true);
-                                    if (data.language) setSelectedLanguage(data.language);
-
-                                    localStorage.setItem('cvAnalysis', JSON.stringify(data.analysis));
-                                    localStorage.setItem('selectedLanguage', data.language || 'en');
-                                } else if (data.currentStep === 'interview_complete' || data.currentStep === 'completed') {
-                                    router.push("/assessment/results");
-                                    return;
+                                // التوجيه بناءً على currentStep
+                                switch (data.currentStep) {
+                                    case 'interview_in_progress':
+                                        router.push("/assessment/interview");
+                                        return;
+                                    case 'interview_complete':
+                                        router.push("/assessment/results");
+                                        return;
+                                    case 'role_discovery':
+                                        router.push("/assessment/role-discovery");
+                                        return;
+                                    case 'role_selected':
+                                        router.push("/assessment/cv-generation");
+                                        return;
+                                    case 'completed':
+                                        router.push("/dashboard");
+                                        return;
+                                    case 'analysis_complete':
+                                        // عرض النتائج في هذه الصفحة
+                                        if (data.cvAnalysis) {
+                                            setAnalysisResult(data.cvAnalysis);
+                                            setUploadComplete(true);
+                                            setShowResults(true);
+                                            setSelectedLanguage(data.language || 'en');
+                                        }
+                                        break;
                                 }
                             }
                         }
                     } catch (err) {
-                        console.error("API check failed", err);
+                        console.error("❌ API check failed", err);
                     }
                 }
 
-                // 2. Fallback to LocalStorage if no API session found (Guest or API error)
+                // 2. Fallback: LocalStorage (للضيوف أو في حالة فشل API)
                 if (!sessionFound) {
                     const localAnalysis = localStorage.getItem('cvAnalysis');
                     const localLanguage = localStorage.getItem('selectedLanguage');
@@ -92,8 +147,6 @@ export default function CVUploadPage() {
 
             } catch (error) {
                 console.error("Error checking progress:", error);
-            } finally {
-                setIsCheckingProgress(false);
             }
         };
 
@@ -311,7 +364,7 @@ export default function CVUploadPage() {
                     className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 md:p-12"
                 >
                     <div className="text-center mb-10">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                             <Globe className="w-10 h-10 text-white" />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
@@ -331,7 +384,7 @@ export default function CVUploadPage() {
                                 onClick={() => setSelectedLanguage(lang.code)}
                                 className="group relative p-6 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-2xl transition-all text-left overflow-hidden"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                 <div className="relative flex items-center gap-4">
                                     <div className="text-5xl">{lang.flag}</div>
@@ -523,7 +576,7 @@ export default function CVUploadPage() {
 
                                 {/* Verdict */}
                                 <div style={{ backgroundColor: "#eff6ff", borderRadius: "12px", padding: "16px", borderLeft: "4px solid #3b82f6", position: "relative", zIndex: 10 }}>
-                                    <p style={{ color: "#334155", fontWeight: "500", fontStyle: "italic", margin: 0 }}>"{analysisResult?.verdict}"</p>
+                                    <p style={{ color: "#334155", fontWeight: "500", fontStyle: "italic", margin: 0 }}>&ldquo;{analysisResult?.verdict}&rdquo;</p>
                                 </div>
                             </div>
 

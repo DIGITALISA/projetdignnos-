@@ -15,7 +15,6 @@ import {
     ChevronRight
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -188,7 +187,7 @@ export default function DashboardPage() {
                                 </Link>
                             </div>
 
-                            <div className={`flex-1 bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 border border-purple-100/50 relative ${dir === 'rtl' ? 'md:flex-row-reverse text-right' : ''}`}>
+                            <div className={`flex-1 bg-linear-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 border border-purple-100/50 relative ${dir === 'rtl' ? 'md:flex-row-reverse text-right' : ''}`}>
                                 <div className="relative z-10 flex-1 space-y-3 md:space-y-4 w-full">
                                     <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider">
                                         {dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress'}
@@ -248,7 +247,7 @@ export default function DashboardPage() {
                         {steps.map((step, idx) => (
                             <div key={idx} className={`relative flex items-start gap-3 md:gap-4 pb-6 last:pb-0 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 {/* Status Indicator */}
-                                <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all ${step.status === 'completed' || step.status === 'in-progress' ? 'bg-white ' + step.borderColor : 'bg-slate-50 border-transparent text-slate-300'}`}>
+                                <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all ${step.status === 'completed' || step.status === 'in-progress' ? 'bg-white ' + step.borderColor : 'bg-slate-50 border-transparent text-slate-300'}`}>
                                     {step.status === 'completed' ? (
                                         <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
                                     ) : (
@@ -287,7 +286,7 @@ export default function DashboardPage() {
 
                 {/* Scroll Container */}
                 <div className={`flex overflow-x-auto pb-4 gap-4 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0 scrollbar-none snap-x ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                    {resources.map((item, i) => (
+                    {resources.map((item) => (
                         <div
                             key={item.id}
                             className={`min-w-[280px] md:min-w-0 bg-white p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-lg transition-all cursor-pointer group snap-center ${dir === 'rtl' ? 'text-right' : ''}`}

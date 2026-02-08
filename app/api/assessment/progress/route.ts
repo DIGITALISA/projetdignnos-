@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Diagnosis from '@/models/Diagnosis';
+import InterviewResult from '@/models/InterviewResult';
 
 export async function GET(request: NextRequest) {
     try {
@@ -22,9 +23,13 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // You might want to define a cutoff time (e.g., if > 24 hours, start over)
-        // For now, we assume it's always resumable unless 'completed' maybe? 
-        // Or strictly follow user request "doesn't return to beginning".
+        let evaluation = null;
+        if (latestDiagnosis.currentStep === 'interview_complete' || latestDiagnosis.currentStep === 'completed') {
+            const latestResult = await InterviewResult.findOne({ userId }).sort({ createdAt: -1 });
+            if (latestResult) {
+                evaluation = latestResult.evaluation;
+            }
+        }
 
         return NextResponse.json({
             hasActiveSession: true,
@@ -32,7 +37,9 @@ export async function GET(request: NextRequest) {
             diagnosisId: latestDiagnosis._id,
             analysis: latestDiagnosis.analysis,
             language: latestDiagnosis.language,
-            conversationHistory: latestDiagnosis.conversationHistory
+            conversationHistory: latestDiagnosis.conversationHistory,
+            totalQuestions: latestDiagnosis.totalQuestions,
+            evaluation
         });
 
     } catch (error) {

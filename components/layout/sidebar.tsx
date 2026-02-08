@@ -15,55 +15,31 @@ import {
     Sparkles,
     X,
     Award,
-    ChevronRight,
-    ShieldCheck
+    ShieldCheck,
+    BookOpen,
+    Lock,
+    CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-
-const sidebarItems = [
-    {
-        category: "Main",
-        items: [
-            { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-        ]
-    },
-    {
-        category: "Career Journey",
-        items: [
-            { name: "1. Diagnosis", icon: FileText, href: "/assessment/cv-upload" },
-            { name: "2. Tools AI", icon: Users, href: "/simulation" },
-            { name: "3. Training Hub", icon: PlayCircle, href: "/training" },
-            { name: "4. Library", icon: Library, href: "/library" },
-            { name: "5. Expert Chat", icon: MessageSquare, href: "/expert" },
-        ]
-    },
-    {
-        category: "Achievements",
-        items: [
-            { name: "My Certificates", icon: Award, href: "/certificate" },
-            { name: "Lettre de Recommandation", icon: ShieldCheck, href: "/recommendation" },
-        ]
-    },
-    {
-        category: "System",
-        items: [
-            { name: "Settings", icon: Settings, href: "/settings" },
-        ]
-    }
-];
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-import { useLanguage } from "@/components/providers/LanguageProvider";
-
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
     const { t, dir } = useLanguage();
-    const [userName, setUserName] = useState(t.sidebar.items.overview === "Overview" ? "User" : "مستخدم");
+    const [userName, setUserName] = useState("User");
+    const [userRole, setUserRole] = useState("");
+    const [trialTimeLeft, setTrialTimeLeft] = useState<string | null>(null);
+    const [isTrialExpired, setIsTrialExpired] = useState(false);
+    const [canAccessCerts, setCanAccessCerts] = useState(false);
+    const [canAccessRecs, setCanAccessRecs] = useState(false);
+    const [userPlan, setUserPlan] = useState("None");
+    const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
 
     const sidebarItems = [
         {
@@ -73,13 +49,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             ]
         },
         {
-            category: t.sidebar.categories.journey,
+            category: "Strategic Career Management",
             items: [
-                { name: t.sidebar.items.diagnosis, icon: FileText, href: "/assessment/cv-upload" },
-                { name: t.sidebar.items.tools, icon: Users, href: "/simulation" },
-                { name: t.sidebar.items.training, icon: PlayCircle, href: "/training" },
-                { name: t.sidebar.items.library, icon: Library, href: "/library" },
-                { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert" },
+                { name: "1. Diagnosis & Audit", icon: FileText, href: "/assessment/cv-upload" },
+                { name: "2. Real-world Simulations", icon: Users, href: "/simulation" },
+                { name: "3. Executive Workshops", icon: PlayCircle, href: "/training" },
+                { name: "4. AI Advisor", icon: Sparkles, href: "/mentor" },
+                { name: "5. Knowledge Base", icon: BookOpen, href: "/academy" },
+                { name: "6. Resource Center", icon: Library, href: "/library" },
+                { name: "7. Expert Consultation", icon: MessageSquare, href: "/expert" },
             ]
         },
         {
@@ -92,6 +70,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {
             category: t.sidebar.categories.system,
             items: [
+                { name: "My Subscription", icon: CreditCard, href: "/subscription" },
                 { name: t.sidebar.items.settings, icon: Settings, href: "/settings" },
             ]
         }
@@ -102,22 +81,117 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             try {
                 const savedProfile = localStorage.getItem("userProfile");
                 if (savedProfile) {
-                    const { fullName } = JSON.parse(savedProfile);
-                    if (fullName) setUserName(fullName);
+                    const profile = JSON.parse(savedProfile);
+                    if (profile.fullName) setUserName(profile.fullName);
+                    if (profile.role) setUserRole(profile.role);
+                    if (profile.plan) setUserPlan(profile.plan);
+                    setCanAccessCerts(!!profile.canAccessCertificates);
+                    setCanAccessRecs(!!profile.canAccessRecommendations);
+                    setIsDiagnosisComplete(!!profile.isDiagnosisComplete);
+
+                    if (profile.role === "Trial User" && profile.trialExpiry) {
+                        const expiry = new Date(profile.trialExpiry).getTime();
+                        const updateTimer = () => {
+                            const now = new Date().getTime();
+                            const diff = expiry - now;
+                            if (diff <= 0) {
+                                setTrialTimeLeft("Expired");
+                                setIsTrialExpired(true);
+                            } else {
+                                const h = Math.floor(diff / (1000 * 60 * 60));
+                                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                setTrialTimeLeft(`${h}h ${m}m`);
+                                setIsTrialExpired(false);
+                            }
+                        };
+                        updateTimer();
+                        const intervalId = setInterval(updateTimer, 60000);
+                        return () => clearInterval(intervalId);
+                    }
                 }
             } catch (e) {
                 console.error("Failed to load profile", e);
             }
         };
 
-        loadProfile();
+        const cleanup = loadProfile();
         window.addEventListener("profileUpdated", loadProfile);
-        return () => window.removeEventListener("profileUpdated", loadProfile);
+        return () => {
+            window.removeEventListener("profileUpdated", loadProfile);
+            if (cleanup) cleanup();
+        };
     }, []);
+
+    // Check if an item should be locked based on diagnosis status, trial status, and admin override
+    const isLocked = (href: string) => {
+        // High security paths: certificates and recommendations
+        if (href === "/certificate" && !canAccessCerts) return true;
+        if (href === "/recommendation" && !canAccessRecs) return true;
+
+        const alwaysOpen = ["/dashboard", "/subscription", "/settings"];
+        if (alwaysOpen.includes(href)) return false;
+
+        const assessmentPaths = [
+            "/assessment/cv-upload",
+            "/assessment/interview",
+            "/assessment/results",
+            "/assessment/role-discovery",
+            "/assessment/role-suggestions",
+            "/assessment/role-matching"
+        ];
+        const isAssessment = assessmentPaths.some(p => href.startsWith(p));
+        
+        // Determine Plan & Time Status
+        const isPro = userPlan === "Pro Essential" || userPlan === "Elite Full Pack";
+        let isTimeUp = false;
+        
+        // Get createdAt from profile if available
+        try {
+            const savedProfile = localStorage.getItem("userProfile");
+            if (savedProfile) {
+                const p = JSON.parse(savedProfile);
+                if (p.createdAt) {
+                    const created = new Date(p.createdAt).getTime();
+                    const now = new Date().getTime();
+                    if (now - created > (3 * 60 * 60 * 1000)) {
+                        isTimeUp = true;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error reading profile time", e);
+        }
+
+        if (isPro) {
+            // Pro: All Open
+            return false;
+        }
+
+        // Free User Logic
+        
+        // Condition 1: Time Up OR Diagnosis Complete
+        // -> Assessment Locked
+        // -> Simulations & Workshops Open
+        if (isTimeUp || isDiagnosisComplete) {
+            if (isAssessment) return true; // Locked (cannot redo)
+            
+            if (href.startsWith("/simulation")) return false; // Open
+            if (href.startsWith("/training")) return false;   // Open
+            
+            return true; // Others locked
+        }
+        
+        // Condition 2: Time Remaining AND Diagnosis Incomplete
+        // -> Assessment Open
+        // -> Rest Locked
+        else {
+            if (isAssessment) return false;
+            return true;
+        }
+    };
 
     return (
         <div dir={dir}>
-            {/* Mobile Overlay with Blur */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
@@ -135,85 +209,69 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 dir === 'rtl' ? "right-0 border-l" : "left-0 border-r",
                 isOpen ? "translate-x-0" : (dir === 'rtl' ? "translate-x-full" : "-translate-x-full")
             )}>
-                {/* Brand Header */}
                 <div className="h-20 flex items-center justify-between px-7 border-b border-slate-100/80 bg-white/50">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:rotate-6 transition-transform duration-300">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:rotate-6 transition-transform duration-300">
                             <Sparkles className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">
-                                CareerUpgrade
-                            </span>
-                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-blue-600 mt-1">
-                                AI Platform
-                            </span>
+                            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">CareerUpgrade</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-blue-600 mt-1">AI Platform</span>
                         </div>
                     </Link>
-                    <button
-                        onClick={onClose}
-                        className="md:hidden p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-                    >
+                    <button onClick={onClose} className="md:hidden p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 outline-none">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Navigation Scroll Area */}
                 <div className="flex-1 overflow-y-auto pt-8 pb-32 px-4 space-y-8 custom-scrollbar h-full">
                     {sidebarItems.map((group, idx) => (
                         <div key={idx} className="space-y-2">
-                            <div className={`px-4 flex items-center justify-between mb-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">
-                                    {group.category}
-                                </h3>
-                                <div className={`h-px flex-1 bg-slate-100 opacity-50 ${dir === 'rtl' ? 'mr-3' : 'ml-3'}`} />
+                            <div className={cn("px-4 flex items-center justify-between mb-2", dir === 'rtl' && "flex-row-reverse")}>
+                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">{group.category}</h3>
+                                <div className={cn("h-px flex-1 bg-slate-100 opacity-50", dir === 'rtl' ? "mr-3" : "ml-3")} />
                             </div>
 
                             <div className="space-y-1">
                                 {group.items.map((item) => {
+                                    const locked = isLocked(item.href);
                                     const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+
                                     return (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            onClick={() => onClose()}
-                                            className={cn(
-                                                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
-                                                isActive
-                                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50",
-                                                dir === 'rtl' && "flex-row-reverse"
-                                            )}
-                                        >
-                                            <div className={cn(
-                                                "relative z-10 w-5 h-5 flex items-center justify-center",
-                                                isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600"
-                                            )}>
-                                                <item.icon className="w-full h-full" />
-                                            </div>
-
-                                            <span className="relative z-10 flex-1">{item.name}</span>
-
-                                            {isActive ? (
-                                                <motion.div
-                                                    layoutId="activeChevron"
-                                                    className="relative z-10"
+                                        <div key={item.href} className="relative group">
+                                            {locked ? (
+                                                <div
+                                                    className={cn(
+                                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 cursor-not-allowed opacity-60 text-slate-400 bg-slate-50/50",
+                                                        dir === 'rtl' && "flex-row-reverse"
+                                                    )}
                                                 >
-                                                    <ChevronRight className={`w-4 h-4 text-white/70 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                                                </motion.div>
+                                                    <div className="w-5 h-5 flex items-center justify-center">
+                                                        <Lock size={16} className="text-slate-300" />
+                                                    </div>
+                                                    <span className="flex-1">{item.name}</span>
+                                                </div>
                                             ) : (
-                                                <ChevronRight className={`w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-all ${dir === 'rtl' ? 'rotate-180 translate-x-2 group-hover:translate-x-0' : '-translate-x-2 group-hover:translate-x-0'}`} />
+                                                    <Link
+                                                    href={item.href}
+                                                    onClick={() => onClose()}
+                                                    prefetch={false} // Disable prefetch to stop log spam
+                                                    className={cn(
+                                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
+                                                        isActive ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50",
+                                                        dir === 'rtl' && "flex-row-reverse"
+                                                    )}
+                                                >
+                                                    <div className={cn("relative z-10 w-5 h-5 flex items-center justify-center", isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600")}>
+                                                        <item.icon className="w-full h-full" />
+                                                    </div>
+                                                    <span className="relative z-10 flex-1">{item.name}</span>
+                                                    {isActive && (
+                                                        <motion.div layoutId="activeHighlight" className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600" initial={false} transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                                                    )}
+                                                </Link>
                                             )}
-
-                                            {isActive && (
-                                                <motion.div
-                                                    layoutId="activeHighlight"
-                                                    className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600"
-                                                    initial={false}
-                                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                                />
-                                            )}
-                                        </Link>
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -221,34 +279,58 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     ))}
                 </div>
 
-                {/* Premium User Profile Footer */}
-                <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent">
+                <div className="absolute bottom-0 w-full p-6 bg-linear-to-t from-white via-white to-transparent">
                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
-                        <div className={`flex items-center gap-3 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <div className={cn("flex items-center gap-3", dir === 'rtl' && "flex-row-reverse")}>
                             <div className="relative">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold border border-white shadow-sm overflow-hidden">
+                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold border border-white shadow-sm overflow-hidden">
                                     {userName.charAt(0)}
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
                                 </div>
-                                <div className={`absolute -bottom-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full ${dir === 'rtl' ? '-left-1' : '-right-1'}`} />
+                                <div className={cn("absolute -bottom-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full", dir === 'rtl' ? "-left-1" : "-right-1")} />
                             </div>
-                            <div className={`flex-1 min-w-0 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
-                                <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{userName}</p>
-                                <div className={`flex items-center gap-1.5 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{t.sidebar.premium}</p>
+                            <div className={cn("flex-1 min-w-0", dir === 'rtl' ? "text-right" : "text-left")}>
+                                <div className="flex items-center gap-1.5 justify-between">
+                                    <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{userName}</p>
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border",
+                                        userPlan === "Elite Full Pack" ? "bg-amber-100 text-amber-700 border-amber-200" :
+                                            userPlan === "Pro Essential" ? "bg-blue-100 text-blue-700 border-blue-200" :
+                                                "bg-slate-100 text-slate-600 border-slate-200"
+                                    )}>
+                                        {userPlan === "Elite Full Pack" ? "élite" :
+                                            userPlan === "Pro Essential" ? "pro" : "essai"}
+                                    </span>
+                                </div>
+                                <div className={cn("flex items-center gap-1.5 mt-0.5", dir === 'rtl' && "flex-row-reverse")}>
+                                    <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse",
+                                        userRole === "Trial User" ? "bg-amber-500" : "bg-blue-500"
+                                    )} />
+                                    <p className={cn(
+                                        "text-[10px] font-bold uppercase tracking-wider",
+                                        userRole === "Trial User" && !isTrialExpired ? "text-amber-600" :
+                                            userRole === "Trial User" && isTrialExpired ? "text-red-500" : "text-blue-600"
+                                    )}>
+                                        {userRole === "Trial User" ? `${isTrialExpired ? "Accès Limité" : "Essai : " + trialTimeLeft}` : t.sidebar.premium}
+                                    </p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => {
-                                    localStorage.removeItem("userProfile");
-                                    sessionStorage.removeItem("admin_section_unlocked");
-                                    window.location.href = '/';
+                                    // Clear everything
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                    // Clear common cookies
+                                    document.cookie.split(";").forEach((c) => {
+                                        document.cookie = c
+                                            .replace(/^ +/, "")
+                                            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                                    });
+                                    window.location.replace('/');
                                 }}
                                 className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group"
                                 title={t.sidebar.items.signOut}
                             >
-                                <LogOut className={`w-4 h-4 transition-transform ${dir === 'rtl' ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
+                                <LogOut className={cn("w-4 h-4 transition-transform", dir === 'rtl' ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1")} />
                             </button>
                         </div>
                     </div>

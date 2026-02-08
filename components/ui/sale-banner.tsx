@@ -30,7 +30,7 @@ export function SaleBanner() {
             >
                 <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-6 overflow-hidden">
                     {/* Decorative gradient background opacity */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
+                    <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-600 via-purple-600 to-pink-600" />
 
                     <button
                         onClick={() => setIsVisible(false)}

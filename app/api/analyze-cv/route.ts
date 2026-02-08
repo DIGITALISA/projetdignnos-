@@ -27,15 +27,28 @@ export async function POST(request: NextRequest) {
         if (userId && userName) {
             try {
                 await connectDB();
-                await Diagnosis.create({
-                    userId,
-                    userName,
-                    cvText,
-                    analysis: result.analysis,
-                    language
-                });
+                // ✅ استخدام findOneAndUpdate لتحديث السجل الموجود أو إنشاء جديد
+                await Diagnosis.findOneAndUpdate(
+                    { userId }, // البحث عن السجل بواسطة userId
+                    {
+                        userId,
+                        userName,
+                        cvText,
+                        analysis: result.analysis,
+                        language,
+                        currentStep: 'analysis_complete',
+                        'completionStatus.cvAnalysisComplete': true,
+                        updatedAt: new Date()
+                    },
+                    { 
+                        upsert: true, // إنشاء سجل جديد إذا لم يكن موجود
+                        new: true, // إرجاع السجل المحدث
+                        setDefaultsOnInsert: true // تطبيق القيم الافتراضية عند الإنشاء
+                    }
+                );
+                console.log('✅ CV Analysis saved to MongoDB for user:', userId);
             } catch (dbError) {
-                console.error('Database Error:', dbError);
+                console.error('❌ Database Error:', dbError);
                 // We don't block the response even if saving fails, 
                 // but in a production app we might want to ensure consistency
             }

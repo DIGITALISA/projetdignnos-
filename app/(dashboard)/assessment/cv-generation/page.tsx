@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Send, Loader2, FileText, Mail, ArrowRight, CheckCircle, Sparkles, Download } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, Loader2, FileText, Mail, ArrowRight, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Globe, Briefcase, GraduationCap, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface Message {
     role: 'ai' | 'user';
@@ -25,6 +27,9 @@ export default function CVGenerationPage() {
     const [generationComplete, setGenerationComplete] = useState(false);
     const [generatedDocuments, setGeneratedDocuments] = useState<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const cvRef = useRef<HTMLDivElement>(null);
+    const letterRef = useRef<HTMLDivElement>(null);
+    const [isExporting, setIsExporting] = useState<string | null>(null);
 
     useEffect(() => {
         const storedCV = localStorage.getItem('cvAnalysis');
@@ -255,10 +260,57 @@ export default function CVGenerationPage() {
         }
     };
 
+    const handleDownloadPDF = async (ref: React.RefObject<HTMLDivElement | null>, filename: string) => {
+        if (!ref.current) return;
+        setIsExporting(filename);
+        try {
+            const element = ref.current;
+            const canvas = await html2canvas(element, {
+                scale: 3, // Very high quality for documents
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                onclone: (clonedDoc) => {
+                    const el = clonedDoc.getElementById('printable-doc');
+                    if (el) {
+                        (el as HTMLElement).style.display = 'block';
+                        (el as HTMLElement).style.padding = '0';
+                    }
+                }
+            });
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position -= pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`${filename}.pdf`);
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("Failed to export PDF");
+        } finally {
+            setIsExporting(null);
+        }
+    };
+
     // Generation Complete Screen
     if (generationComplete && generatedDocuments) {
         return (
-            <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+            <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -268,105 +320,158 @@ export default function CVGenerationPage() {
                         <CheckCircle className="w-10 h-10 text-green-600" />
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">Documents Generated Successfully!</h1>
-                    <p className="text-slate-600">Your professional CV and cover letter are ready</p>
+                    <p className="text-slate-600">Your professional ATS-optimized CV and cover letter are ready</p>
                 </motion.div>
 
                 {/* Generated Documents Preview */}
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* CV Preview */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white rounded-2xl border-2 border-blue-200 p-6"
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <FileText className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-900">ATS-Optimized CV</h2>
-                                <p className="text-sm text-slate-500">Tailored for {selectedRole?.title}</p>
-                            </div>
+                <div className="grid lg:grid-cols-2 gap-8">
+                    {/* CV Column */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                                ATS-Optimized CV
+                            </h2>
+                            <button
+                                onClick={() => handleDownloadPDF(cvRef, `CV-${generatedDocuments.cv.personalDetails?.fullName?.replace(/\s+/g, '_') || 'Professional'}`)}
+                                disabled={!!isExporting}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-600/20 text-sm"
+                            >
+                                {isExporting && isExporting.startsWith('CV-') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                Download PDF
+                            </button>
                         </div>
 
-                        <div className="bg-slate-50 rounded-xl p-4 mb-4 max-h-96 overflow-y-auto">
-                            <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans">
-                                {generatedDocuments.cv}
-                            </pre>
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                const blob = new Blob([generatedDocuments.cv], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = 'CV_ATS_Optimized.txt';
-                                a.click();
-                            }}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                        >
-                            <Download className="w-5 h-5" />
-                            Download CV
-                        </button>
-                    </motion.div>
-
-                    {/* Cover Letter Preview */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="bg-white rounded-2xl border-2 border-purple-200 p-6"
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                                <Mail className="w-6 h-6 text-purple-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-900">Cover Letter</h2>
-                                <p className="text-sm text-slate-500">Professional & Compelling</p>
+                        {/* CV Preview Scrollbox */}
+                        <div className="bg-slate-200 rounded-2xl p-4 md:p-8 overflow-y-auto max-h-[800px] shadow-inner border border-slate-300 custom-scrollbar">
+                            <div ref={cvRef}>
+                                <CVDocument data={generatedDocuments.cv} language={selectedLanguage} />
                             </div>
                         </div>
+                    </div>
 
-                        <div className="bg-slate-50 rounded-xl p-4 mb-4 max-h-96 overflow-y-auto">
-                            <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans">
-                                {generatedDocuments.coverLetter}
-                            </pre>
+                    {/* Cover Letter Column */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <Mail className="w-5 h-5 text-purple-600" />
+                                Professional Cover Letter
+                            </h2>
+                            <button
+                                onClick={() => handleDownloadPDF(letterRef, 'Cover_Letter')}
+                                disabled={!!isExporting}
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all font-bold shadow-lg shadow-purple-600/20 text-sm"
+                            >
+                                {isExporting === 'Cover_Letter' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                Download PDF
+                            </button>
                         </div>
 
-                        <button
-                            onClick={() => {
-                                const blob = new Blob([generatedDocuments.coverLetter], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = 'Cover_Letter.txt';
-                                a.click();
-                            }}
-                            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                        >
-                            <Download className="w-5 h-5" />
-                            Download Cover Letter
-                        </button>
-                    </motion.div>
+                        {/* Letter Preview Scrollbox */}
+                        <div className="bg-slate-200 rounded-2xl p-4 md:p-8 overflow-y-auto max-h-[800px] shadow-inner border border-slate-300 custom-scrollbar">
+                            <div ref={letterRef}>
+                                <LetterDocument
+                                    content={generatedDocuments.coverLetter}
+                                    fullName={generatedDocuments.cv.personalDetails?.fullName}
+                                    jobTitle={generatedDocuments.cv.personalDetails?.jobTitle}
+                                    language={selectedLanguage}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Professional Tips */}
+                {/* Professional Tips - REIMAGINED UI */}
                 {generatedDocuments.professionalTips && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-white rounded-2xl border border-slate-200 p-6"
+                        className="relative group overflow-hidden"
                     >
-                        <div className="flex items-center gap-3 mb-4">
-                            <Sparkles className="w-6 h-6 text-yellow-600" />
-                            <h3 className="text-xl font-bold text-slate-900">Professional Marketing Tips</h3>
-                        </div>
-                        <div className="prose prose-slate max-w-none">
-                            <div className="text-slate-700 whitespace-pre-wrap">
-                                {generatedDocuments.professionalTips}
+                        {/* Animated Gradient Background for Border Effect */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-400 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+
+                        <div className="relative bg-white rounded-2xl p-8 md:p-10 shadow-xl border border-yellow-100 flex flex-col md:flex-row gap-8">
+                            {/* Sticky Sidebar for Title */}
+                            <div className="md:w-1/3">
+                                <div className="sticky top-0">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                        <Sparkles className="w-8 h-8 text-white" />
+                                    </div>
+                                    <h3 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight leading-tight">
+                                        Professional <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">Marketing Tips</span>
+                                    </h3>
+                                    <p className="text-slate-500 text-lg font-medium leading-relaxed">
+                                        Expert strategy to showcase your profile and stand out from other candidates.
+                                    </p>
+
+                                    <div className="mt-10 hidden md:block">
+                                        <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                                            <p className="text-sm text-yellow-800 font-bold mb-2 flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-yellow-600 animate-pulse"></div>
+                                                Expert Strategy
+                                            </p>
+                                            <p className="text-xs text-yellow-700 leading-relaxed">
+                                                These tips are generated based on local market trends and HR best practices.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Main Content Area */}
+                            <div className="flex-1 space-y-6">
+                                <div className="grid gap-4">
+                                    {generatedDocuments.professionalTips
+                                        .split(/\n(?=\d+\.)/) // Split by numbered lists
+                                        .map((tip: string, idx: number) => {
+                                            const cleanTip = tip.replace(/^\d+\.\s*/, '').trim();
+                                            if (!cleanTip) return null;
+
+                                            return (
+                                                <motion.div
+                                                    key={idx}
+                                                    whileHover={{ x: 5 }}
+                                                    className="p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all group/tip"
+                                                >
+                                                    <div className="flex gap-4">
+                                                        <span className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-900 text-lg group-hover/tip:text-yellow-600 group-hover/tip:border-yellow-200 transition-colors">
+                                                            {idx + 1}
+                                                        </span>
+                                                        <p className="text-slate-700 leading-relaxed font-medium pt-1">
+                                                            {cleanTip}
+                                                        </p>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                </div>
+
+                                {/* Premium Keywords Display */}
+                                {generatedDocuments.keywords && (
+                                    <div className="mt-12 pt-8 border-t border-slate-100">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-black uppercase tracking-widest">
+                                                ATS Core
+                                            </div>
+                                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Optimization Keywords</h4>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {generatedDocuments.keywords.map((kw: string, i: number) => (
+                                                <motion.span
+                                                    key={i}
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ delay: i * 0.05 }}
+                                                    className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:border-blue-400 hover:text-blue-600 hover:shadow-lg hover:shadow-blue-500/10 transition-all cursor-default"
+                                                >
+                                                    {kw}
+                                                </motion.span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -512,6 +617,181 @@ export default function CVGenerationPage() {
                                 selectedLanguage === 'es' ? 'Enviar' : 'Send'}
                     </button>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+// PREMIUM CV DOCUMENT COMPONENT
+function CVDocument({ data, language }: { data: any, language: string }) {
+    const isAR = language === 'ar';
+
+    // Labels based on language
+    const labels: Record<string, any> = {
+        en: { summary: "Professional Summary", experience: "Professional Experience", education: "Education", skills: "Skills", tech: "Technical", tools: "Tools", soft: "Soft Skills", lang: "Languages", certs: "Certifications" },
+        fr: { summary: "Résumé Professionnel", experience: "Expérience Professionnelle", education: "Formation", skills: "Compétences", tech: "Techniques", tools: "Outils", soft: "Qualités", lang: "Langues", certs: "Certifications" },
+        ar: { summary: "الملخص المهني", experience: "الخبرة المهنية", education: "التعليم", skills: "المهارات", tech: "تقنية", tools: "أدوات", soft: "شخصية", lang: "اللغات", certs: "الشهادات" },
+    };
+
+    const t = labels[language] || labels.en;
+
+    return (
+        <div id="printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-12 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
+            {/* Header */}
+            <header className="border-b-2 border-blue-600 pb-6 mb-8">
+                <h1 className="text-4xl font-extrabold text-slate-900 mb-2">{data.personalDetails?.fullName}</h1>
+                <p className="text-xl text-blue-600 font-bold mb-4">{data.personalDetails?.jobTitle}</p>
+
+                <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+                    {data.personalDetails?.email && <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {data.personalDetails.email}</span>}
+                    {data.personalDetails?.phone && <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> {data.personalDetails.phone}</span>}
+                    {data.personalDetails?.location && <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {data.personalDetails.location}</span>}
+                    {data.personalDetails?.linkedin && <span className="flex items-center gap-1"><Linkedin className="w-4 h-4" /> {data.personalDetails.linkedin}</span>}
+                </div>
+            </header>
+
+            {/* Content Body */}
+            <div className="space-y-8">
+                {/* Summary */}
+                <section>
+                    <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{t.summary}</h2>
+                    <p className="leading-relaxed text-slate-700">{data.professionalSummary}</p>
+                </section>
+
+                <div className="grid grid-cols-3 gap-8">
+                    {/* Left Column (Main Content) */}
+                    <div className="col-span-2 space-y-8">
+                        {/* Experience */}
+                        <section>
+                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.experience}</h2>
+                            <div className="space-y-6">
+                                {data.experience?.map((exp: any, i: number) => (
+                                    <div key={i} className="relative">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h3 className="font-bold text-slate-900">{exp.title}</h3>
+                                            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">{exp.period}</span>
+                                        </div>
+                                        <p className="text-sm font-semibold text-blue-600 mb-2">{exp.company} • {exp.location}</p>
+                                        <ul className="list-disc list-outside ml-4 space-y-1 text-sm text-slate-600">
+                                            {exp.highlights?.map((point: string, j: number) => (
+                                                <li key={j}>{point}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Education */}
+                        <section>
+                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.education}</h2>
+                            <div className="space-y-4">
+                                {data.education?.map((edu: any, i: number) => (
+                                    <div key={i}>
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h4 className="font-bold text-slate-900">{edu.degree}</h4>
+                                            <span className="text-xs font-bold text-slate-500">{edu.period}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-600">{edu.institution} • {edu.location}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    </div>
+
+                    {/* Right Column (Sidebar) */}
+                    <div className="space-y-8">
+                        {/* Skills */}
+                        <section>
+                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.skills}</h2>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-xs font-bold text-blue-600 uppercase mb-2">{t.tech}</h3>
+                                    <div className="flex flex-wrap gap-1">
+                                        {data.skills?.technical?.map((s: string, i: number) => (
+                                            <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100">{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xs font-bold text-purple-600 uppercase mb-2">{t.tools}</h3>
+                                    <div className="flex flex-wrap gap-1">
+                                        {data.skills?.tools?.map((s: string, i: number) => (
+                                            <span key={i} className="px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded border border-purple-100">{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xs font-bold text-emerald-600 uppercase mb-2">{t.soft}</h3>
+                                    <div className="flex flex-wrap gap-1">
+                                        {data.skills?.soft?.map((s: string, i: number) => (
+                                            <span key={i} className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100">{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Languages */}
+                        {data.languages?.length > 0 && (
+                            <section>
+                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{t.lang}</h2>
+                                <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                                    {data.languages.map((l: string, i: number) => (
+                                        <span key={i}>{l}</span>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Certifications */}
+                        {data.certifications?.length > 0 && (
+                            <section>
+                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{t.certs}</h2>
+                                <div className="space-y-2">
+                                    {data.certifications.map((c: string, i: number) => (
+                                        <div key={i} className="flex gap-2 text-sm text-slate-600">
+                                            <Award className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                                            <span>{c}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// PROFESSIONAL COVER LETTER DOCUMENT COMPONENT
+function LetterDocument({ content, fullName, jobTitle, language }: { content: string, fullName: string, jobTitle: string, language: string }) {
+    const isAR = language === 'ar';
+    const date = new Date().toLocaleDateString(language === 'ar' ? 'ar-SA' : language === 'fr' ? 'fr-FR' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    return (
+        <div id="printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-20 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
+            <div className="border-b-2 border-slate-100 pb-10 mb-10">
+                <h1 className="text-3xl font-bold text-slate-900 mb-1">{fullName}</h1>
+                <p className="text-slate-500 uppercase tracking-widest text-sm">{jobTitle}</p>
+            </div>
+
+            <p className="text-slate-500 mb-8">{date}</p>
+
+            <div className="prose prose-slate max-w-none">
+                <div className="text-slate-700 leading-[1.8] whitespace-pre-wrap text-lg">
+                    {content}
+                </div>
+            </div>
+
+            <div className="mt-12 pt-8 border-t border-slate-100">
+                <p className="font-bold text-slate-900">{fullName}</p>
             </div>
         </div>
     );

@@ -70,7 +70,10 @@ You will assess their response on:
 2. **Task Management** (1-10): How well do they prioritize and organize?
 3. **Thinking** (1-10): Is their reasoning logical and strategic?
 4. **Behavior** (1-10): Professional, appropriate, effective communication?
-5. **Decision Making** (1-10): Sound judgments based on available info?`
+5. **Decision Making** (1-10): Sound judgments based on available info?
+ 
+**CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
+**IMPORTANT: The language instruction applies ONLY to the text content INSIDE the JSON fields.**`
                 },
                 {
                     role: 'user',
@@ -82,6 +85,7 @@ Create:
 1. A warm welcome message introducing the simulation
 2. A detailed ${scenarioType} scenario for this role
 
+IMPORTANT: You MUST respond with VALID JSON only.
 Respond in JSON format:
 {
   "welcomeMessage": "string",
@@ -92,7 +96,7 @@ Respond in JSON format:
                 }
             ],
             temperature: 0.7,
-            max_tokens: 800,
+            max_tokens: 2000,
         });
 
         const result = response.choices[0]?.message?.content;
@@ -245,7 +249,7 @@ Evaluate this response now.`
                 }
             ],
             temperature: 0.4,
-            max_tokens: 1500,
+            max_tokens: 2000,
         });
 
         const result = response.choices[0]?.message?.content;
@@ -321,6 +325,9 @@ Scenario ${scenarioNumber} of 4 (${scenarioType})
 **PREVIOUS PERFORMANCE:**
 ${JSON.stringify(previousResults)}
 
+**CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
+**IMPORTANT: The language instruction applies ONLY to the text content INSIDE the JSON fields.**
+
 **YOUR TASK:**
 Based on their previous performance, create a ${scenarioType} scenario that:
 - Tests areas where they showed weakness
@@ -338,6 +345,7 @@ ${scenarioType === 'MAJOR' ?
                     role: 'user',
                     content: `Create scenario ${scenarioNumber} (${scenarioType}) for ${selectedRole.title}.
 
+IMPORTANT: You MUST respond with VALID JSON only.
 Respond in JSON format:
 {
   "scenario": "string (detailed scenario)",
@@ -346,7 +354,7 @@ Respond in JSON format:
                 }
             ],
             temperature: 0.7,
-            max_tokens: 600,
+            max_tokens: 2000,
         });
 
         const result = response.choices[0]?.message?.content;

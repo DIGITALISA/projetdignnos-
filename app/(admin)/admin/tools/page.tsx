@@ -18,7 +18,8 @@ export default function ToolsManagement() {
         category: "General",
         url: "",
         description: "",
-        visibility: "Public"
+        visibility: "Public",
+        allowedUsers: [] as string[]
     });
 
     const fetchTools = async () => {
@@ -47,7 +48,8 @@ export default function ToolsManagement() {
             category: tool.category,
             url: tool.url,
             description: tool.description || "",
-            visibility: tool.visibility
+            visibility: tool.visibility,
+            allowedUsers: tool.allowedUsers || []
         });
         setIsAddModalOpen(true);
     };
@@ -79,7 +81,7 @@ export default function ToolsManagement() {
             if (res.ok) {
                 setIsAddModalOpen(false);
                 setEditingToolId(null);
-                setFormData({ title: "", category: "General", url: "", description: "", visibility: "Public" });
+                setFormData({ title: "", category: "General", url: "", description: "", visibility: "Public", allowedUsers: [] });
                 fetchTools();
             }
         } catch (error) {
@@ -104,7 +106,7 @@ export default function ToolsManagement() {
                 <button
                     onClick={() => {
                         setEditingToolId(null);
-                        setFormData({ title: "", category: "General", url: "", description: "", visibility: "Public" });
+                        setFormData({ title: "", category: "General", url: "", description: "", visibility: "Public", allowedUsers: [] });
                         setIsAddModalOpen(true);
                     }}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
@@ -334,6 +336,17 @@ export default function ToolsManagement() {
                                                     <Lock size={16} /> Premium
                                                 </button>
                                             </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Allowed Participants (Emails, comma separated)</label>
+                                            <textarea
+                                                rows={2}
+                                                placeholder="e.g. user1@example.com, user2@example.com"
+                                                className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl outline-none transition-all font-medium text-slate-900"
+                                                value={Array.isArray(formData.allowedUsers) ? formData.allowedUsers.join(", ") : (formData.allowedUsers || "")}
+                                                onChange={(e) => setFormData({ ...formData, allowedUsers: e.target.value.split(',').map((email: string) => email.trim()) })}
+                                            />
                                         </div>
                                     </div>
 

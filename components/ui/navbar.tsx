@@ -16,7 +16,8 @@ export function Navbar() {
 
     const navLinks = [
         { name: t.nav.home, href: "/" },
-        { name: t.nav.methodology, href: "/methodology" },
+        { name: t.nav.professionals, href: "/professionals" },
+        { name: t.nav.enterprises, href: "/digitalization" },
         { name: t.nav.pricing, href: "/pricing" },
         { name: t.nav.verify, href: "/verification" },
     ];
@@ -25,24 +26,26 @@ export function Navbar() {
         <nav dir={dir} className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
-                        <Sparkles className="w-5 h-5 text-white" />
+                {/* Logo */}
+                <Link href="/" className="flex items-center gap-3 group">
+                    <div className="relative h-14 w-48">
+                        <img
+                            src="/logo-matc.png"
+                            alt="MA-TRAINING-CONSULTING"
+                            className="w-full h-full object-contain object-left"
+                        />
                     </div>
-                    <span className="font-bold text-lg tracking-tight text-slate-900">
-                        CareerUpgrade
-                    </span>
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden md:flex items-center gap-10">
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
                             href={link.href}
                             className={cn(
-                                "text-sm font-medium transition-colors hover:text-blue-600",
-                                pathname === link.href ? "text-blue-600" : "text-slate-600"
+                                "text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:opacity-100",
+                                pathname === link.href ? "opacity-100 text-blue-600" : "opacity-40 text-slate-900 dark:text-white hover:text-blue-600"
                             )}
                         >
                             {link.name}
@@ -51,18 +54,14 @@ export function Navbar() {
                 </div>
 
                 {/* Auth Buttons */}
-                <div className="hidden md:flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-6">
                     <LanguageSwitcher />
                     <Link
                         href="/dashboard"
-                        className="group relative px-4 py-2 rounded-lg bg-slate-900 text-sm font-medium text-white shadow-lg hover:bg-blue-600 hover:scale-105 transition-all duration-300"
+                        className="group relative px-6 py-2.5 rounded-full bg-slate-950 dark:bg-white text-[10px] font-bold uppercase tracking-[0.25em] text-white dark:text-black shadow-xl hover:scale-105 active:scale-95 transition-all duration-300"
                     >
-                        <span className="relative z-10 flex items-center gap-1">
+                        <span className="relative z-10 flex items-center gap-2">
                             {t.nav.workspace}
-                            <ChevronRight className={cn(
-                                "w-4 h-4 transition-transform",
-                                dir === 'rtl' ? "group-hover:-translate-x-0.5 rotate-180" : "group-hover:translate-x-0.5"
-                            )} />
                         </span>
                     </Link>
                 </div>

@@ -1,33 +1,81 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { Download, Share2, Award, CheckCircle2, QrCode, BookmarkCheck, ChevronRight, Loader2 } from "lucide-react";
+import { Download, ShieldCheck, CheckCircle2, QrCode, BookmarkCheck, ChevronRight, Loader2, Award, Briefcase, Sparkles, Target, Zap } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+import { AssetLocked } from "@/components/layout/AssetLocked";
+import { cn } from "@/lib/utils";
+
 export default function CertificatePage() {
     const certificateRef = useRef<HTMLDivElement>(null);
-    const [studentName, setStudentName] = useState("Ahmed User");
-    const [certificates, setCertificates] = useState<any[]>([]);
+    const [studentName, setStudentName] = useState("User");
+    const [profile, setProfile] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedCertId, setSelectedCertId] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [readiness, setReadiness] = useState({ isReady: false, hasDiagnosis: false, hasSimulation: false });
 
-    const fetchCertificates = async (userName: string) => {
+    const checkReadiness = async (userId: string) => {
+        try {
+            const res = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            if (data.success) {
+                setReadiness(data);
+                return data.isReady;
+            }
+        } catch (err) {
+            console.error("Readiness check error:", err);
+        }
+        return false;
+    };
+
+    const fetchProfile = async (identifier: string) => {
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/user/certificates?userId=${userName}`);
+            const ready = await checkReadiness(identifier);
+            if (!ready) {
+                setIsLoading(false);
+                return;
+            }
+
+            const res = await fetch(`/api/user/performance-profile?userId=${encodeURIComponent(identifier)}`);
             const data = await res.json();
-            if (Array.isArray(data)) {
-                setCertificates(data);
-                if (data.length > 0) setSelectedCertId(data[0].certificateId);
+            if (data.success) {
+                setProfile(data.profile);
             }
         } catch (error) {
-            console.error("Error fetching certificates:", error);
+            console.error("Error fetching profile:", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleGenerate = async () => {
+        setIsGenerating(true);
+        try {
+            const savedProfile = localStorage.getItem("userProfile");
+            const { fullName, email } = JSON.parse(savedProfile || '{}');
+            const identifier = email || fullName;
+            const language = localStorage.getItem('selectedLanguage') || 'en';
+
+            const res = await fetch('/api/user/performance-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: identifier, userName: fullName, language })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setProfile(data.profile);
+            } else {
+                alert(data.error || "Generation failed");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -36,17 +84,18 @@ export default function CertificatePage() {
             try {
                 const savedProfile = localStorage.getItem("userProfile");
                 if (savedProfile) {
-                    const { fullName } = JSON.parse(savedProfile);
-                    if (fullName) {
-                        setStudentName(fullName);
-                        fetchCertificates(fullName);
+                    const { fullName, email } = JSON.parse(savedProfile);
+                    const identifier = email || fullName;
+                    if (identifier) {
+                        setStudentName(fullName || "User");
+                        fetchProfile(identifier);
                     }
                 } else {
-                    fetchCertificates("Ahmed User");
+                    setIsLoading(false);
                 }
             } catch (e) {
                 console.error("Failed to load profile", e);
-                fetchCertificates("Ahmed User");
+                setIsLoading(false);
             }
         };
 
@@ -55,18 +104,15 @@ export default function CertificatePage() {
         return () => window.removeEventListener("profileUpdated", loadProfile);
     }, []);
 
-    const selectedCert = certificates.find(c => c.certificateId === selectedCertId) || (certificates.length > 0 ? certificates[0] : null);
-
     const handleDownload = async () => {
-        if (!certificateRef.current || !selectedCert) return;
+        if (!certificateRef.current || !profile) return;
 
         setIsDownloading(true);
-        // Wait for render
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
             const canvas = await html2canvas(certificateRef.current, {
-                scale: 3, // Higher quality
+                scale: 3,
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
@@ -74,8 +120,6 @@ export default function CertificatePage() {
             });
 
             const imgData = canvas.toDataURL('image/png');
-
-            // Standard A4 Landscape
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'mm',
@@ -84,31 +128,25 @@ export default function CertificatePage() {
 
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-
-            // Margins (10mm)
             const margin = 10;
             const contentWidth = pdfWidth - (margin * 2);
             const contentHeight = pdfHeight - (margin * 2);
-
-            // Fit image to content area preserving ratio
             const imgProps = pdf.getImageProperties(imgData);
             const ratio = imgProps.width / imgProps.height;
 
             let w = contentWidth;
             let h = contentWidth / ratio;
 
-            // If height exceeds content height, scale down by height
             if (h > contentHeight) {
                 h = contentHeight;
                 w = contentHeight * ratio;
             }
 
-            // Center content
             const x = margin + (contentWidth - w) / 2;
             const y = margin + (contentHeight - h) / 2;
 
             pdf.addImage(imgData, 'PNG', x, y, w, h);
-            pdf.save(`Certificate-${selectedCert.certificateId}.pdf`);
+            pdf.save(`Executive-Performance-Profile-${profile.referenceId}.pdf`);
         } catch (error: any) {
             console.error("PDF generation failed:", error);
             alert(`Failed to generate PDF: ${error.message || "Unknown error"}`);
@@ -117,193 +155,213 @@ export default function CertificatePage() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="py-20 text-center flex flex-col items-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-6" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Retrieving Validated Credentials...</p>
+            </div>
+        );
+    }
+
+    if (!readiness.isReady) {
+        return (
+            <AssetLocked
+                title="Executive Performance Profile"
+                description="Your Official Capability Profile is synthesized from your entire platform journey."
+                readiness={readiness}
+            />
+        );
+    }
+
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                        <Award className="w-8 h-8 text-yellow-500" />
-                        My Certificates
-                    </h1>
-                    <p className="text-slate-500 mt-1">Select a certificate to view, verify, or download.</p>
+        <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 pb-20">
+            {/* Header & Generation */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
+                <div className="flex-1">
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Executive Performance Profile</h2>
+                    <p className="text-slate-500 font-medium max-w-lg mt-1 font-arabic" dir="rtl">
+                        ملفك التنفيذي يتم إنشاؤه بناءً على كامل مسارك: التشخيص، الورشات، والمحاكاة مع الخبير.
+                    </p>
                 </div>
-                <div className="flex gap-3">
+
+                <div className="flex items-center gap-3">
                     <button
-                        onClick={handleDownload}
-                        disabled={!selectedCert || isDownloading}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10 disabled:opacity-50"
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                        className="flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
                     >
-                        {isDownloading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Download className="w-4 h-4" />
-                        )}
-                        {isDownloading ? "Generating PDF..." : "Download PDF"}
+                        {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                        {profile ? "Regenerate Profile" : "Generate Profile"}
                     </button>
+                    {profile && (
+                        <button
+                            onClick={handleDownload}
+                            disabled={isDownloading}
+                            className="flex items-center gap-3 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50"
+                        >
+                            {isDownloading ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+                            Export PDF
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {isLoading ? (
-                <div className="py-20 text-center">
-                    <Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-600 mb-4" />
-                    <p className="text-slate-500 font-medium">Authenticating your achievements...</p>
-                </div>
-            ) : certificates.length === 0 ? (
-                <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-                    <Award className="w-16 h-16 mx-auto text-slate-200 mb-4" />
-                    <h3 className="text-xl font-bold text-slate-900">No certificates yet</h3>
-                    <p className="text-slate-400 mt-2 max-w-sm mx-auto">Complete courses in the Training Hub to earn your professional certifications.</p>
-                </div>
-            ) : (
-                <div className="grid lg:grid-cols-4 gap-8">
-                    {/* Sidebar List */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider px-2">Your Collection</h3>
-                        <div className="space-y-2">
-                            {certificates.map((cert) => (
-                                <button
-                                    key={cert._id}
-                                    onClick={() => setSelectedCertId(cert.certificateId)}
-                                    className={`w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between group ${selectedCertId === cert.certificateId
-                                        ? "bg-white border-blue-500 shadow-md ring-1 ring-blue-500/20"
-                                        : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                                        }`}
-                                >
-                                    <div>
-                                        <h4 className={`font-bold ${selectedCertId === cert.certificateId ? "text-slate-900" : "text-slate-600"}`}>
-                                            {cert.courseTitle}
-                                        </h4>
-                                        <p className="text-xs text-slate-400 mt-1">{new Date(cert.issueDate).toLocaleDateString()}</p>
-                                    </div>
-                                    {selectedCertId === cert.certificateId && (
-                                        <ChevronRight className="w-5 h-5 text-blue-500" />
-                                    )}
-                                </button>
-                            ))}
-                        </div>
+            {isGenerating && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-12 text-center space-y-4 bg-blue-50/50 rounded-[3rem] border border-blue-100 border-dashed"
+                >
+                    <div className="relative inline-block">
+                        <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+                        <Zap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 w-6 h-6" />
                     </div>
+                    <h3 className="text-xl font-black text-blue-900 font-arabic" dir="rtl">
+                        الذكاء الاصطناعي يقوم الآن بتحليل كامل مسارك...
+                    </h3>
+                    <p className="text-blue-600 text-sm font-bold uppercase tracking-[0.2em] animate-pulse">
+                        Synthesizing Diagnosis + Training + Simulation Data
+                    </p>
+                </motion.div>
+            )}
 
-                    {/* Certificate Preview Area */}
-                    <div className="lg:col-span-3">
-                        {selectedCert && (
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={selectedCert.certificateId}
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.98 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="relative p-2 rounded-xl shadow-lg overflow-hidden"
-                                    style={{ backgroundColor: "#f1f5f9", border: "1px solid #e2e8f0" }}
+            {/* Empty State */}
+            {!profile && !isGenerating && (
+                <div className="py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-100">
+                    <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-slate-300">
+                        <Target size={40} />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-900 font-arabic" dir="rtl">لم يتم إنشاء ملف الأداء بعد</h3>
+                    <p className="text-slate-500 mt-2 max-w-sm mx-auto font-medium font-arabic" dir="rtl">
+                        اضغط على الزر أعلاه لتحليل بياناتك وإنتاج وثيقة الاعتماد التنفيذية الخاصة بك.
+                    </p>
+                </div>
+            )}
+
+            {/* Profile Display */}
+            {profile && !isGenerating && (
+                <div className="flex flex-col items-center">
+                    <div className="w-full max-w-6xl">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={profile.referenceId}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="relative p-1 bg-slate-200 rounded-[3.5rem] shadow-2xl"
+                            >
+                                <div
+                                    ref={certificateRef}
+                                    className="relative w-full aspect-[1.414/1] bg-white rounded-[3.4rem] flex flex-col p-16 md:p-20 overflow-hidden"
+                                    style={{
+                                        backgroundImage: "radial-gradient(circle at center, #ffffff 40%, #fcfcfc 100%)"
+                                    }}
                                 >
-                                    <div
-                                        ref={certificateRef}
-                                        className="relative w-full aspect-[1.414/1] flex flex-col items-center text-center overflow-hidden"
-                                        style={{
-                                            backgroundColor: "#ffffff",
-                                            color: "#0f172a",
-                                            padding: "24px", // Reduced padding
-                                            boxShadow: "inset 0 0 0 15px #ffffff, inset 0 0 0 18px #94a3b8",
-                                            backgroundImage: "radial-gradient(circle at center, #ffffff 40%, #f8fafc 100%)"
-                                        }}
-                                    >
-                                        {/* Decorative Corner Backgrounds */}
-                                        <div style={{ position: 'absolute', top: 0, left: 0, width: '80px', height: '80px', borderTop: '20px solid rgba(15, 23, 42, 0.05)', borderLeft: '20px solid rgba(15, 23, 42, 0.05)', borderBottomRightRadius: '60px' }} />
-                                        <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', borderTop: '20px solid rgba(15, 23, 42, 0.05)', borderRight: '20px solid rgba(15, 23, 42, 0.05)', borderBottomLeftRadius: '60px' }} />
-                                        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '80px', height: '80px', borderBottom: '20px solid rgba(15, 23, 42, 0.05)', borderLeft: '20px solid rgba(15, 23, 42, 0.05)', borderTopRightRadius: '60px' }} />
-                                        <div style={{ position: 'absolute', bottom: 0, right: 0, width: '80px', height: '80px', borderBottom: '20px solid rgba(15, 23, 42, 0.05)', borderRight: '20px solid rgba(15, 23, 42, 0.05)', borderTopLeftRadius: '60px' }} />
+                                    {/* Security & Design Elements */}
+                                    <div className="absolute inset-8 border-[0.5px] border-slate-200 pointer-events-none" />
+                                    <div className="absolute inset-10 border-[3px] border-double border-slate-900/10 pointer-events-none" />
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none">
+                                        <ShieldCheck size={600} />
+                                    </div>
 
-                                        {/* Main Content Container */}
-                                        <div className="relative z-10 w-full h-full flex flex-col justify-between py-2">
-
-                                            {/* Top Section */}
-                                            <div className="space-y-2 pt-2">
-                                                <div className="flex items-center justify-center gap-2 mb-1" style={{ color: "#eab308" }}>
-                                                    <Award className="w-5 h-5" />
-                                                    <span className="text-[10px] font-bold tracking-[0.3em] uppercase" style={{ color: "#94a3b8" }}>Official Certification</span>
-                                                    <Award className="w-5 h-5" />
+                                    <div className="relative z-10 h-full flex flex-col justify-between">
+                                        {/* Header */}
+                                        <div className="flex justify-between items-start border-b-[0.5px] border-slate-200 pb-12">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-2 text-slate-900/40 font-black text-[9px] uppercase tracking-[0.6em]">
+                                                    Executive Certification Board
                                                 </div>
-                                                <h1 className="text-3xl md:text-5xl font-serif font-bold tracking-wide leading-tight" style={{ color: "#0f172a" }}>
-                                                    Certificate of Excellence
-                                                </h1>
-                                                <p className="text-xs font-serif italic" style={{ color: "#64748b" }}>Proudly presented to</p>
-                                            </div>
-
-                                            {/* Name Section */}
-                                            <div className="py-2 flex flex-col items-center">
-                                                <span className="text-3xl md:text-5xl font-serif font-medium px-8" style={{ color: "#0f172a", display: "inline-block" }}>
-                                                    {selectedCert.userName}
-                                                </span>
-                                                {/* Line clearly separated below the text */}
-                                                <div style={{
-                                                    height: "2px",
-                                                    width: "100%",
-                                                    maxWidth: "400px",
-                                                    background: "linear-gradient(90deg, transparent, #cbd5e1, transparent)",
-                                                    marginTop: "24px"
-                                                }} />
-                                            </div>
-
-                                            {/* Course Content */}
-                                            <div className="space-y-1">
-                                                <p className="text-xs font-serif italic" style={{ color: "#64748b" }}>
-                                                    for successfully completing the rigorous requirements of
-                                                </p>
-                                                <h2 className="text-xl md:text-3xl font-bold font-serif max-w-3xl mx-auto leading-tight" style={{ color: "#1e3a8a" }}>
-                                                    {selectedCert.courseTitle}
+                                                <h2 className="text-5xl font-serif font-black tracking-tighter text-slate-900 uppercase leading-none">
+                                                    Performance Dossier
                                                 </h2>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="px-3 py-1 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
+                                                        Ref: {profile.referenceId}
+                                                    </div>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                                    <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verification Active</div>
+                                                </div>
                                             </div>
-
-                                            {/* ID Section */}
-                                            <div className="my-2 p-2 rounded-lg border-2 border-dashed max-w-md mx-auto w-full transform scale-90"
-                                                style={{ backgroundColor: "#f8fafc", borderColor: "#cbd5e1" }}>
-                                                <p className="text-[9px] uppercase tracking-widest font-bold mb-1" style={{ color: "#94a3b8" }}>CREDENTIAL IDENTIFIER</p>
-                                                <p className="text-lg font-mono font-bold tracking-[0.1em]" style={{ color: "#000000" }}>
-                                                    {selectedCert.certificateId || "PENDING-ISSUANCE"}
-                                                </p>
+                                            <div className="w-24 h-24 bg-slate-900 flex items-center justify-center text-white rounded-[2.5rem] shadow-2xl">
+                                                <Award size={48} />
                                             </div>
+                                        </div>
 
-                                            {/* Footer Signatures */}
-                                            <div className="grid grid-cols-2 gap-12 items-end pt-2 px-12">
-                                                <div className="text-center">
-                                                    <p className="font-serif pb-1 mb-1 px-4 text-sm" style={{ color: "#0f172a", borderBottom: "1px solid #cbd5e1" }}>
-                                                        {new Date(selectedCert.issueDate).toLocaleDateString()}
-                                                    </p>
-                                                    <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "#94a3b8" }}>Date Issued</p>
+                                        {/* Content */}
+                                        <div className="grid grid-cols-12 gap-16 py-12">
+                                            <div className="col-span-8 space-y-10">
+                                                <div className="space-y-4">
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Institutional Capability Analysis for</p>
+                                                    <h1 className="text-7xl font-serif font-black text-slate-900 tracking-tight leading-none italic">
+                                                        {profile.userName}
+                                                    </h1>
                                                 </div>
 
-                                                <div className="text-center">
-                                                    <div className="w-24 h-6 mb-1 mx-auto relative opacity-80">
-                                                        <svg viewBox="0 0 140 50" style={{ width: '100%', height: '100%', stroke: '#0f172a', fill: 'none', strokeWidth: 2 }}>
-                                                            <path d="M10,35 Q40,5 70,25 T130,15" />
-                                                        </svg>
+                                                <p className="text-xl font-serif text-slate-700 leading-relaxed max-w-2xl font-medium border-l-4 border-blue-600 pl-8">
+                                                    {profile.summary}
+                                                </p>
+
+                                                <div className="flex gap-4">
+                                                    <div className="px-8 py-3.5 bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-xl">
+                                                        Classification: {profile.verdict}
                                                     </div>
-                                                    <p className="font-serif pb-1 mb-1 px-4 text-sm font-bold" style={{ color: "#0f172a", borderBottom: "1px solid #cbd5e1" }}>
-                                                        Director Signature
-                                                    </p>
-                                                    <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "#94a3b8" }}>Authorized By</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="col-span-4 bg-slate-50/80 border border-slate-100 rounded-[3rem] p-10 space-y-10">
+                                                <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900 border-b border-slate-200 pb-5">Core Competencies</h4>
+                                                <div className="space-y-8">
+                                                    {profile.competencies?.map((item: any, i: number) => (
+                                                        <div key={i} className="space-y-3">
+                                                            <div className="flex justify-between items-end">
+                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                                                <span className="text-xs font-black text-blue-700 uppercase tracking-tighter">{item.status}</span>
+                                                            </div>
+                                                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-slate-900 transition-all duration-1000" style={{ width: `${item.score}%` }} />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="pt-8 border-t border-slate-200">
+                                                    <div className="flex items-center gap-3 text-emerald-700">
+                                                        <CheckCircle2 size={18} />
+                                                        <span className="text-[11px] font-black uppercase tracking-[0.2em]">Verified Readiness</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        )}
 
-                        <div className="mt-8 bg-blue-50 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 border border-blue-100">
-                            <div className="flex items-start gap-4">
-                                <div className="p-3 bg-white rounded-xl shadow-sm text-blue-600">
-                                    <QrCode className="w-6 h-6" />
+                                        {/* Footer */}
+                                        <div className="flex items-end justify-between border-t-[0.5px] border-slate-200 pt-12">
+                                            <div className="flex gap-20">
+                                                <div className="space-y-2">
+                                                    <p className="text-2xl font-serif font-black text-slate-900 border-b-2 border-slate-900 pb-2 mb-2 w-48">
+                                                        {new Date(profile.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Date of Attestation</p>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <div className="w-24 h-12 bg-slate-50 rounded-lg flex items-center justify-center mb-2 border border-slate-100">
+                                                        <QrCode size={32} className="opacity-20" />
+                                                    </div>
+                                                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Digital Seal</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-right">
+                                                <p className="text-[8px] font-bold text-slate-300 uppercase tracking-[0.35em] leading-relaxed">
+                                                    THIS DOCUMENT IS GENERATED BY AI<br />
+                                                    BASED ON MULTI-STAGE SIMULATION DATA<br />
+                                                    AND VERIFIED TRAINING PERFORMANCE.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900">Digital Verification available</h3>
-                                    <p className="text-sm text-slate-600 max-w-lg mt-1">
-                                        Verify this certificate instantly at <Link href={`/verification?id=${selectedCert.certificateId}`} target="_blank" className="font-mono text-blue-700 hover:underline">/verification</Link> using the unique ID.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
                 </div>
             )}

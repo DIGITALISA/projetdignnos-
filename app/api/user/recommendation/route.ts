@@ -3,7 +3,8 @@ import { generateRecommendationLetter } from '@/lib/deepseek';
 import connectDB from '@/lib/mongodb';
 import Recommendation from '@/models/Recommendation';
 import Certificate from '@/models/Certificate';
-import InterviewResult from '@/models/InterviewResult';
+import Diagnosis from '@/models/Diagnosis';
+import Simulation from '@/models/Simulation';
 
 export async function POST(request: NextRequest) {
     try {
@@ -28,12 +29,15 @@ export async function POST(request: NextRequest) {
         // Fetch completed courses (certificates)
         const certificates = await Certificate.find({ userId });
 
-        // Fetch latest interview result
-        const interviewResult = await InterviewResult.findOne({ userId }).sort({ createdAt: -1 });
+        // Fetch Diagnosis (Audit)
+        const diagnosis = await Diagnosis.findOne({ userId, currentStep: 'completed' });
 
-        if (!interviewResult) {
+        // Fetch Simulations
+        const simulations = await Simulation.find({ userId, status: 'completed' });
+
+        if (!diagnosis) {
             return NextResponse.json(
-                { error: 'No interview results found. Please complete the assessment first.' },
+                { error: 'No completed diagnosis found. Please complete the assessment first.' },
                 { status: 404 }
             );
         }
@@ -46,7 +50,8 @@ export async function POST(request: NextRequest) {
         const result = await generateRecommendationLetter(
             userProfile,
             certificates,
-            interviewResult.evaluation,
+            diagnosis.analysis,
+            simulations,
             language
         );
 

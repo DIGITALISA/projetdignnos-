@@ -1,127 +1,167 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, PlayCircle, Library, Wrench, TrendingUp, ArrowUpRight, Clock, ShieldCheck } from "lucide-react";
+import { Users, Clock, ShieldCheck, AlertCircle, Zap, Brain } from "lucide-react";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 
-const stats = [
-    { name: "Total Participants", value: "1,280", change: "+12%", icon: Users, color: "blue" },
-    { name: "Courses Active", value: "24", change: "+3", icon: PlayCircle, color: "green" },
-    { name: "Total Resources", value: "145", change: "+8", icon: Library, color: "purple" },
-    { name: "AI Tools", value: "18", change: "+2", icon: Wrench, color: "orange" },
-];
+interface AdminStats {
+    totalUsers: number | string;
+    pendingUsers: number;
+    activeTrials: number | string;
+    completedDiagnoses: number | string;
+    totalSimulations: number | string;
+}
 
 export default function AdminDashboard() {
+    const [stats, setStats] = useState<AdminStats | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch("/api/admin/stats");
+                const data = await res.json();
+                if (data.success) {
+                    setStats(data.stats);
+                }
+            } catch (e) {
+                console.error("Failed to fetch admin stats", e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    const statCards = [
+        {
+            name: "Total Participants",
+            value: stats?.totalUsers || "0",
+            change: "Live",
+            icon: Users,
+            color: "blue",
+            link: "/admin/users"
+        },
+        {
+            name: "Pending Requests",
+            value: stats?.pendingUsers || "0",
+            change: (stats?.pendingUsers || 0) > 0 ? "Action Required" : "Clean",
+            icon: AlertCircle,
+            color: (stats?.pendingUsers || 0) > 0 ? "red" : "green",
+            link: "/admin/users"
+        },
+        {
+            name: "Active Trials",
+            value: stats?.activeTrials || "0",
+            change: "3h Limit",
+            icon: Zap,
+            color: "orange",
+            link: "/admin/users"
+        },
+        {
+            name: "AI Diagnoses",
+            value: stats?.completedDiagnoses || "0",
+            change: "Completed",
+            icon: Brain,
+            color: "purple",
+            link: "/admin/users"
+        },
+    ];
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Admin Overview</h1>
-                    <p className="text-slate-500 mt-1 text-lg">Manage your platform content and participant access.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex -space-x-3">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm" />
-                        ))}
-                    </div>
-                    <p className="text-sm font-medium text-slate-600">
-                        <span className="text-slate-900 font-bold">12 Users</span> online now
-                    </p>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Admin Overview</h1>
+                    <p className="text-slate-500 mt-1 font-medium">Manage your platform content and participant access.</p>
                 </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, idx) => (
-                    <motion.div
-                        key={stat.name}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
-                    >
-                        <div className="flex items-start justify-between mb-4">
-                            <div className={cn(
-                                "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6",
-                                stat.color === "blue" ? "bg-blue-50 text-blue-600" :
-                                    stat.color === "green" ? "bg-green-50 text-green-600" :
-                                        stat.color === "purple" ? "bg-purple-50 text-purple-600" :
-                                            "bg-orange-50 text-orange-600"
-                            )}>
-                                <stat.icon size={28} />
+                {statCards.map((stat, idx) => (
+                    <Link href={stat.link} key={stat.name}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="bg-white p-6 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all group cursor-pointer"
+                        >
+                            <div className="flex items-start justify-between mb-4">
+                                <div className={cn(
+                                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6 shadow-inner",
+                                    stat.color === "blue" ? "bg-blue-50 text-blue-600" :
+                                        stat.color === "red" ? "bg-red-50 text-red-600" :
+                                            stat.color === "green" ? "bg-green-50 text-green-600" :
+                                                stat.color === "purple" ? "bg-purple-50 text-purple-600" :
+                                                    "bg-orange-50 text-orange-600"
+                                )}>
+                                    <stat.icon size={28} />
+                                </div>
+                                <span className={cn(
+                                    "flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                                    stat.color === "red" ? "bg-red-100 text-red-700 animate-pulse" : "bg-slate-100 text-slate-600"
+                                )}>
+                                    {stat.change}
+                                </span>
                             </div>
-                            <span className={cn(
-                                "flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold",
-                                stat.color === "blue" ? "bg-blue-50 text-blue-700" :
-                                    stat.color === "green" ? "bg-green-50 text-green-700" :
-                                        stat.color === "purple" ? "bg-purple-50 text-purple-700" :
-                                            "bg-orange-50 text-orange-700"
-                            )}>
-                                {stat.change} <TrendingUp size={12} />
-                            </span>
-                        </div>
-                        <h3 className="text-slate-500 font-medium text-sm">{stat.name}</h3>
-                        <p className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{stat.value}</p>
-                    </motion.div>
+                            <h3 className="text-slate-400 font-bold text-xs uppercase tracking-widest">{stat.name}</h3>
+                            <p className="text-4xl font-black text-slate-900 mt-2 tracking-tight">
+                                {isLoading ? "..." : stat.value}
+                            </p>
+                        </motion.div>
+                    </Link>
                 ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                {/* Recent Activities */}
-                <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
+                {/* Recent Activities Placeholder */}
+                <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-8">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                        <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
                             <Clock size={22} className="text-blue-600" />
-                            Recent Activities
+                            Global Activity Stream
                         </h2>
-                        <button className="text-blue-600 text-sm font-bold hover:underline flex items-center gap-1">
-                            View all logs <ArrowUpRight size={14} />
-                        </button>
                     </div>
 
                     <div className="space-y-6">
-                        {[
-                            { user: "Sarah J.", action: "completed 'React Patterns' course", time: "2 mins ago", icon: ShieldCheck, color: "text-green-500" },
-                            { user: "Michael C.", action: "added new AI tool: 'Perplexity'", time: "45 mins ago", icon: Wrench, color: "text-orange-500" },
-                            { user: "Admin", action: "granted access to 5 new participants", time: "2 hours ago", icon: Users, color: "text-blue-500" },
-                            { user: "Library", action: "new file uploaded: 'QHSE Guide'", time: "5 hours ago", icon: Library, color: "text-purple-500" },
-                        ].map((log, i) => (
-                            <div key={i} className="flex items-center gap-4 group p-3 hover:bg-slate-50 rounded-2xl transition-all">
-                                <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-white group-hover:shadow-sm transition-all", log.color)}>
-                                    <log.icon size={18} />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm text-slate-900">
-                                        <span className="font-bold">{log.user}</span> {log.action}
-                                    </p>
-                                    <p className="text-xs text-slate-400 mt-0.5">{log.time}</p>
-                                </div>
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
                             </div>
-                        ))}
+                        ) : (
+                            <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-4xl">
+                                <p className="text-slate-400 font-medium">Activity logs will appear here as users interact with the platform.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Platform Status */}
-                <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                {/* Platform Insights */}
+                <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
                     <div className="relative z-10">
-                        <h2 className="text-xl font-bold mb-6">Platform Status</h2>
-                        <div className="space-y-6">
+                        <h2 className="text-xl font-black mb-8 flex items-center gap-3">
+                            <ShieldCheck className="text-blue-400" />
+                            Platform Health
+                        </h2>
+                        <div className="space-y-8">
                             {[
-                                { label: "Server Load", value: "15%", progress: 15, color: "bg-blue-500" },
-                                { label: "Database Health", value: "99.9%", progress: 99, color: "bg-green-500" },
-                                { label: "API Latency", value: "48ms", progress: 85, color: "bg-indigo-500" },
-                                { label: "Storage", value: "4.2TB / 10TB", progress: 42, color: "bg-purple-500" },
+                                { label: "Total Simulations", value: stats?.totalSimulations || "0", color: "bg-blue-500" },
+                                { label: "Database Objects", value: "Optimized", color: "bg-green-500" },
+                                { label: "AI Response Time", value: "Sub 2s", color: "bg-indigo-500" },
                             ].map((s, i) => (
-                                <div key={i} className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-400 font-medium">{s.label}</span>
-                                        <span className="font-bold">{s.value}</span>
+                                <div key={i} className="space-y-3">
+                                    <div className="flex justify-between text-xs tracking-widest font-black uppercase">
+                                        <span className="text-slate-400">{s.label}</span>
+                                        <span className="text-white">{s.value}</span>
                                     </div>
-                                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
-                                            animate={{ width: `${s.progress}%` }}
-                                            className={cn("h-full rounded-full", s.color)}
+                                            animate={{ width: `70%` }}
+                                            className={cn("h-full rounded-full transition-all duration-1000", s.color)}
                                         />
                                     </div>
                                 </div>
@@ -136,7 +176,21 @@ export default function AdminDashboard() {
     );
 }
 
-// Helper function to handle conditional classes (mimicking cn)
-function cn(...classes: string[]) {
-    return classes.filter(Boolean).join(" ");
+function Loader2(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        </svg>
+    )
 }
