@@ -38,6 +38,8 @@ interface AlignmentReport {
 
 interface AlignmentData {
     _id: string;
+    userId: string;
+    userName: string;
     type: string;
     jobDescription: string;
     questions: Question[];
