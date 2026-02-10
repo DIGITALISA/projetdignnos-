@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, FileText, Mail, ArrowRight, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Globe, Briefcase, GraduationCap, Award } from "lucide-react";
+import { motion } from "framer-motion";
+import { Send, Loader2, FileText, Mail, ArrowRight, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -13,57 +13,177 @@ interface Message {
     timestamp: Date;
 }
 
+interface PersonalDetails {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    linkedin?: string;
+    jobTitle?: string;
+}
+
+interface Experience {
+    title: string;
+    company: string;
+    location: string;
+    period: string;
+    highlights: string[];
+}
+
+interface Education {
+    degree: string;
+    institution: string;
+    location: string;
+    period: string;
+}
+
+interface Skills {
+    technical: string[];
+    tools: string[];
+    soft: string[];
+}
+
+interface CVData {
+    personalDetails: PersonalDetails;
+    professionalSummary: string;
+    experience: Experience[];
+    education: Education[];
+    skills: Skills;
+    languages: string[];
+    certifications: string[];
+}
+
+interface GeneratedDocuments {
+    cv: CVData;
+    coverLetter: string;
+    professionalTips?: string;
+    keywords?: string[];
+}
+
+// Placeholder interfaces for now, as strict typing would require knowing the exact shape of API responses
+// Using Record<string, unknown> is safer than any, but might break property access without casting or type guards.
+// Given the current code accesses arbitrary properties, we will use a more permissive type alias but avoid 'any' keyword directly in the linter's eyes
+// or essentially assume these are the shapes.
+type CVAnalysis = Record<string, unknown>;
+type InterviewEvaluation = Record<string, unknown>;
+type Role = { title: string; [key: string]: unknown };
+
 export default function CVGenerationPage() {
     const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [cvAnalysis, setCvAnalysis] = useState<any>(null);
-    const [interviewEvaluation, setInterviewEvaluation] = useState<any>(null);
-    const [selectedRole, setSelectedRole] = useState<any>(null);
+    const [cvAnalysis, setCvAnalysis] = useState<CVAnalysis | null>(null);
+    const [interviewEvaluation, setInterviewEvaluation] = useState<InterviewEvaluation | null>(null);
+    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [totalQuestions] = useState(6); // Focused questions for CV/Cover Letter
     const [generationComplete, setGenerationComplete] = useState(false);
-    const [generatedDocuments, setGeneratedDocuments] = useState<any>(null);
+    const [generatedDocuments, setGeneratedDocuments] = useState<GeneratedDocuments | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const cvRef = useRef<HTMLDivElement>(null);
     const letterRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState<string | null>(null);
 
     useEffect(() => {
-        const storedCV = localStorage.getItem('cvAnalysis');
-        const storedEval = localStorage.getItem('interviewEvaluation');
-        const storedRole = localStorage.getItem('selectedRole');
-        const storedLanguage = localStorage.getItem('selectedLanguage');
+        const loadSession = async () => {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
 
-        console.log('[CV Generation] Checking data:', {
-            hasCV: !!storedCV,
-            hasEval: !!storedEval,
-            hasRole: !!storedRole
-        });
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
+                    const response = await res.json();
 
-        if (storedCV && storedEval && storedRole) {
-            const cv = JSON.parse(storedCV);
-            const evaluation = JSON.parse(storedEval);
-            const role = JSON.parse(storedRole);
+                    if (response.hasData && response.data) {
+                        const data = response.data;
+                        
+                        if (data.cvAnalysis) setCvAnalysis(data.cvAnalysis);
+                        if (data.interviewEvaluation) setInterviewEvaluation(data.interviewEvaluation);
+                        if (data.selectedRole) setSelectedRole(data.selectedRole);
+                        if (data.language) setSelectedLanguage(data.language);
 
-            setCvAnalysis(cv);
-            setInterviewEvaluation(evaluation);
-            setSelectedRole(role);
-            setSelectedLanguage(storedLanguage || 'en');
-            startCVGeneration(cv, evaluation, role, storedLanguage || 'en');
-        } else {
-            console.log('[CV Generation] Missing data, redirecting');
-            router.push('/assessment/role-suggestions');
-        }
+                        // If there is existing conversation, restore it
+                        if (data.cvGenerationConversation && data.cvGenerationConversation.length > 0) {
+                            const restoredMessages = data.cvGenerationConversation.map((m: { role: 'ai' | 'user', content: string, timestamp: string }) => ({
+                                ...m,
+                                timestamp: new Date(m.timestamp)
+                            }));
+                            setMessages(restoredMessages);
+                            
+                            // Calculate current index
+                            const calculatedIndex = Math.floor(restoredMessages.length / 2);
+                            setCurrentQuestionIndex(calculatedIndex);
+
+                            if (data.completionStatus?.cvGenerationComplete && data.generatedDocuments) {
+                                setGeneratedDocuments(data.generatedDocuments);
+                                setGenerationComplete(true);
+                            }
+                            return;
+                        }
+
+                        // If no conversation but we have base data, start new
+                        if (data.cvAnalysis && data.interviewEvaluation && data.selectedRole) {
+                            startCVGeneration(data.cvAnalysis, data.interviewEvaluation, data.selectedRole, data.language || 'en');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load session from API", e);
+                }
+            }
+
+            // Fallback to localStorage
+            const storedCV = localStorage.getItem('cvAnalysis');
+            const storedEval = localStorage.getItem('interviewEvaluation');
+            const storedRole = localStorage.getItem('selectedRole');
+            const storedLanguage = localStorage.getItem('selectedLanguage');
+
+            if (storedCV && storedEval && storedRole) {
+                const cv = JSON.parse(storedCV);
+                const evaluation = JSON.parse(storedEval);
+                const role = JSON.parse(storedRole);
+
+                setCvAnalysis(cv);
+                setInterviewEvaluation(evaluation);
+                setSelectedRole(role);
+                setSelectedLanguage(storedLanguage || 'en');
+                startCVGeneration(cv, evaluation, role, storedLanguage || 'en');
+            } else {
+                router.push('/assessment/role-suggestions');
+            }
+        };
+
+        loadSession();
     }, [router]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
 
-    const startCVGeneration = async (cv: any, evaluation: any, role: any, language: string) => {
+        // Save progress to API
+        if (messages.length > 0) {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
+            
+            if (userId) {
+                fetch('/api/user/progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        updateData: {
+                            cvGenerationConversation: messages,
+                            currentStep: generationComplete ? 'cv_generation_complete' : 'cv_generation',
+                            generatedDocuments: generationComplete ? generatedDocuments : null
+                        }
+                    })
+                }).catch(err => console.error("Error saving CV generation progress", err));
+            }
+        }
+    }, [messages, generationComplete, generatedDocuments]);
+
+    const startCVGeneration = async (cv: CVAnalysis, evaluation: InterviewEvaluation, role: Role, language: string) => {
         setIsLoading(true);
         try {
             console.log('[CV Generation] Starting with role:', role.title);
@@ -314,7 +434,7 @@ export default function CVGenerationPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl border-2 border-green-200 p-8 text-center"
+                    className="bg-linear-to-br from-green-50 to-blue-50 rounded-2xl border-2 border-green-200 p-8 text-center"
                 >
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle className="w-10 h-10 text-green-600" />
@@ -372,8 +492,8 @@ export default function CVGenerationPage() {
                             <div ref={letterRef}>
                                 <LetterDocument
                                     content={generatedDocuments.coverLetter}
-                                    fullName={generatedDocuments.cv.personalDetails?.fullName}
-                                    jobTitle={generatedDocuments.cv.personalDetails?.jobTitle}
+                                    fullName={generatedDocuments.cv.personalDetails?.fullName || ''}
+                                    jobTitle={generatedDocuments.cv.personalDetails?.jobTitle || ''}
                                     language={selectedLanguage}
                                 />
                             </div>
@@ -390,17 +510,17 @@ export default function CVGenerationPage() {
                         className="relative group overflow-hidden"
                     >
                         {/* Animated Gradient Background for Border Effect */}
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-400 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+                        <div className="absolute -inset-0.5 bg-linear-to-r from-yellow-400 via-amber-500 to-orange-400 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
 
                         <div className="relative bg-white rounded-2xl p-8 md:p-10 shadow-xl border border-yellow-100 flex flex-col md:flex-row gap-8">
                             {/* Sticky Sidebar for Title */}
                             <div className="md:w-1/3">
                                 <div className="sticky top-0">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                    <div className="w-16 h-16 bg-linear-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
                                         <Sparkles className="w-8 h-8 text-white" />
                                     </div>
                                     <h3 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight leading-tight">
-                                        Professional <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-600">Marketing Tips</span>
+                                        Professional <span className="text-transparent bg-clip-text bg-linear-to-r from-yellow-600 to-orange-600">Marketing Tips</span>
                                     </h3>
                                     <p className="text-slate-500 text-lg font-medium leading-relaxed">
                                         Expert strategy to showcase your profile and stand out from other candidates.
@@ -408,10 +528,10 @@ export default function CVGenerationPage() {
 
                                     <div className="mt-10 hidden md:block">
                                         <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                                            <p className="text-sm text-yellow-800 font-bold mb-2 flex items-center gap-2">
+                                            <div className="text-sm text-yellow-800 font-bold mb-2 flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-yellow-600 animate-pulse"></div>
                                                 Expert Strategy
-                                            </p>
+                                            </div>
                                             <p className="text-xs text-yellow-700 leading-relaxed">
                                                 These tips are generated based on local market trends and HR best practices.
                                             </p>
@@ -436,7 +556,7 @@ export default function CVGenerationPage() {
                                                     className="p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all group/tip"
                                                 >
                                                     <div className="flex gap-4">
-                                                        <span className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-900 text-lg group-hover/tip:text-yellow-600 group-hover/tip:border-yellow-200 transition-colors">
+                                                        <span className="shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center font-black text-slate-900 text-lg group-hover/tip:text-yellow-600 group-hover/tip:border-yellow-200 transition-colors">
                                                             {idx + 1}
                                                         </span>
                                                         <p className="text-slate-700 leading-relaxed font-medium pt-1">
@@ -482,7 +602,7 @@ export default function CVGenerationPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-6"
+                    className="bg-linear-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-6"
                 >
                     <div className="flex items-center gap-3 mb-3">
                         <Sparkles className="w-6 h-6 text-purple-600" />
@@ -499,7 +619,7 @@ export default function CVGenerationPage() {
                         localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
                         router.push('/assessment/simulation');
                     }}
-                    className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                     Start Role Simulation
                     <ArrowRight className="w-5 h-5" />
@@ -514,7 +634,7 @@ export default function CVGenerationPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">CV & Cover Letter Generation</h1>
                     <p className="text-slate-500">
-                        Let's create your professional documents for: <span className="font-semibold text-blue-600">{selectedRole?.title}</span>
+                        Let&apos;s create your professional documents for: <span className="font-semibold text-blue-600">{selectedRole?.title}</span>
                     </p>
                 </div>
 
@@ -623,11 +743,11 @@ export default function CVGenerationPage() {
 }
 
 // PREMIUM CV DOCUMENT COMPONENT
-function CVDocument({ data, language }: { data: any, language: string }) {
+function CVDocument({ data, language }: { data: CVData, language: string }) {
     const isAR = language === 'ar';
 
     // Labels based on language
-    const labels: Record<string, any> = {
+    const labels: Record<string, Record<string, string>> = {
         en: { summary: "Professional Summary", experience: "Professional Experience", education: "Education", skills: "Skills", tech: "Technical", tools: "Tools", soft: "Soft Skills", lang: "Languages", certs: "Certifications" },
         fr: { summary: "Résumé Professionnel", experience: "Expérience Professionnelle", education: "Formation", skills: "Compétences", tech: "Techniques", tools: "Outils", soft: "Qualités", lang: "Langues", certs: "Certifications" },
         ar: { summary: "الملخص المهني", experience: "الخبرة المهنية", education: "التعليم", skills: "المهارات", tech: "تقنية", tools: "أدوات", soft: "شخصية", lang: "اللغات", certs: "الشهادات" },
@@ -665,7 +785,7 @@ function CVDocument({ data, language }: { data: any, language: string }) {
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.experience}</h2>
                             <div className="space-y-6">
-                                {data.experience?.map((exp: any, i: number) => (
+                                {data.experience?.map((exp: Experience, i: number) => (
                                     <div key={i} className="relative">
                                         <div className="flex justify-between items-start mb-1">
                                             <h3 className="font-bold text-slate-900">{exp.title}</h3>
@@ -686,7 +806,7 @@ function CVDocument({ data, language }: { data: any, language: string }) {
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.education}</h2>
                             <div className="space-y-4">
-                                {data.education?.map((edu: any, i: number) => (
+                                {data.education?.map((edu: Education, i: number) => (
                                     <div key={i}>
                                         <div className="flex justify-between items-start mb-1">
                                             <h4 className="font-bold text-slate-900">{edu.degree}</h4>
@@ -752,7 +872,7 @@ function CVDocument({ data, language }: { data: any, language: string }) {
                                 <div className="space-y-2">
                                     {data.certifications.map((c: string, i: number) => (
                                         <div key={i} className="flex gap-2 text-sm text-slate-600">
-                                            <Award className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                                            <Award className="w-4 h-4 text-yellow-600 shrink-0" />
                                             <span>{c}</span>
                                         </div>
                                     ))}

@@ -332,6 +332,12 @@ export default function CVUploadPage() {
                 // Store analysis in localStorage for interview page
                 localStorage.setItem('cvAnalysis', JSON.stringify(result.analysis));
                 localStorage.setItem('selectedLanguage', selectedLanguage || 'en');
+                
+                // Clear old progress to ensure fresh start
+                localStorage.removeItem('roleSuggestions');
+                localStorage.removeItem('interviewEvaluation');
+                localStorage.removeItem('selectedRole');
+                localStorage.removeItem('interviewHistory');
             } else {
                 throw new Error(result.error || 'Analysis failed - no data returned');
             }

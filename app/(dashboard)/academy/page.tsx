@@ -3,21 +3,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    BookOpen,
     Sparkles,
-    ChevronRight,
     Loader2,
     ArrowLeft,
     PlayCircle,
     FileText,
-    Download,
     Eye,
     Monitor,
-    Layout,
     ArrowRight,
     Trophy,
-    Target,
-    Award
+    Award,
+    Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -49,14 +45,28 @@ interface SlideDeck {
     summary: string;
 }
 
+interface ManualSession {
+    _id: string;
+    title: string;
+    videoUrl: string;
+}
+
+interface ManualTheme {
+    _id: string;
+    title: string;
+    instructor: string;
+    status: string;
+}
+
+type SelectedTheme = (Theme | ManualTheme) & { isManual: boolean; sessions?: Session[] };
+
 export default function AcademyPage() {
-    const { t, dir } = useLanguage();
+    const { dir } = useLanguage();
     const [loading, setLoading] = useState(true);
-    const [generating, setGenerating] = useState(false);
     const [structure, setStructure] = useState<{ themes: Theme[] } | null>(null);
-    const [manualThemes, setManualThemes] = useState<any[]>([]);
-    const [selectedTheme, setSelectedTheme] = useState<any | null>(null);
-    const [manualSessions, setManualSessions] = useState<any[]>([]);
+    const [manualThemes, setManualThemes] = useState<ManualTheme[]>([]);
+    const [selectedTheme, setSelectedTheme] = useState<SelectedTheme | null>(null);
+    const [manualSessions, setManualSessions] = useState<ManualSession[]>([]);
     const [isLoadingManualSessions, setIsLoadingManualSessions] = useState(false);
     const [currentSlides, setCurrentSlides] = useState<SlideDeck | null>(null);
     const [generatingSlides, setGeneratingSlides] = useState<string | null>(null);
@@ -84,7 +94,7 @@ export default function AcademyPage() {
             const manualRes = await fetch('/api/admin/courses');
             const manualData = await manualRes.json();
             if (Array.isArray(manualData)) {
-                setManualThemes(manualData.filter((c: any) => c.status === "Published"));
+                setManualThemes(manualData.filter((c: ManualTheme) => c.status === "Published"));
             }
         } catch (error) {
             console.error(error);
@@ -106,10 +116,10 @@ export default function AcademyPage() {
         }
     };
 
-    const handleSelectTheme = (theme: any, isManual: boolean) => {
+    const handleSelectTheme = (theme: Theme | ManualTheme, isManual: boolean) => {
         setSelectedTheme({ ...theme, isManual });
         if (isManual) {
-            fetchManualSessions(theme._id);
+            fetchManualSessions((theme as ManualTheme)._id);
         }
     };
 
@@ -159,12 +169,21 @@ export default function AcademyPage() {
                             Consulting Support
                         </div>
                         <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-none uppercase">
-                            Strategic <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Resources</span>
+                            Strategic <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">Resources</span>
                         </h1>
                         <p className="text-slate-500 font-medium max-w-xl text-lg">
                             Structured consulting frameworks generated specifically to bridge your diagnostic gaps.
                         </p>
                     </div>
+
+                    <button
+                        onClick={fetchStructure}
+                        disabled={loading}
+                        className="bg-slate-900 shadow-xl text-white px-8 py-4 rounded-2xl font-black hover:bg-blue-600 transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50"
+                    >
+                        <Zap size={18} />
+                        Regenerate Resources
+                    </button>
                 </header>
 
                 <AnimatePresence mode="wait">
@@ -177,7 +196,7 @@ export default function AcademyPage() {
                             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
                         >
                             {/* AI Generated Themes */}
-                            {structure?.themes.map((theme, i) => (
+                            {structure?.themes.map((theme) => (
                                 <div
                                     key={`ai-${theme.id}`}
                                     className="group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden"
@@ -203,7 +222,7 @@ export default function AcademyPage() {
                             ))}
 
                             {/* Manual Admin Themes */}
-                            {manualThemes.map((theme, i) => (
+                            {manualThemes.map((theme) => (
                                 <div
                                     key={`manual-${theme._id}`}
                                     className="group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-indigo-300 transition-all cursor-pointer relative overflow-hidden"
@@ -258,10 +277,10 @@ export default function AcademyPage() {
                                     {selectedTheme.isManual ? (
                                         isLoadingManualSessions ? (
                                             <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-indigo-600" /></div>
-                                        ) : manualSessions.map((session: any, idx: number) => (
+                                        ) : manualSessions.map((session: ManualSession, idx: number) => (
                                             <div
                                                 key={session._id}
-                                                className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-indigo-200 hover:shadow-xl transition-all"
+                                                className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-indigo-200 hover:shadow-xl transition-all"
                                             >
                                                 <div className="flex items-center gap-6">
                                                     <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
@@ -288,10 +307,10 @@ export default function AcademyPage() {
                                             </div>
                                         ))
                                     ) : (
-                                        selectedTheme.sessions.map((session: any, idx: number) => (
+                                        selectedTheme.sessions && (selectedTheme as Theme).sessions.map((session: Session, idx: number) => (
                                             <div
                                                 key={session.id}
-                                                className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all"
+                                                className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all"
                                             >
                                                 <div className="flex items-center gap-6">
                                                     <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
@@ -342,7 +361,7 @@ export default function AcademyPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
+                        className="fixed inset-0 z-100 bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
                     >
                         <button
                             onClick={() => setCurrentSlides(null)}
@@ -389,7 +408,7 @@ export default function AcademyPage() {
                                                             Expert Interpretation
                                                         </h4>
                                                         <p className="text-blue-800 text-lg font-bold leading-relaxed italic">
-                                                            "{currentSlides.slides[activeSlide].expertInsight}"
+                                                            &quot;{currentSlides.slides[activeSlide].expertInsight}&quot;
                                                         </p>
                                                     </div>
                                                     <div className="absolute bottom-10 right-10 opacity-10 group-hover:scale-110 transition-transform">

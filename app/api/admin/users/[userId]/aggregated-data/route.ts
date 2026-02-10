@@ -47,14 +47,38 @@ export async function GET(
         // 4. Determine the identifier used in other collections
         const identifier = user.email || user.fullName;
 
-        // Fetch related data using the identifier
-        // We run these in parallel for speed
+        // Fetch related data using the identifier (Case-insensitive)
         const [diagnosis, interviewResult, certificates, simulations, profile] = await Promise.all([
-            Diagnosis.findOne({ userId: identifier }),
-            InterviewResult.findOne({ userId: identifier }).sort({ createdAt: -1 }),
-            Certificate.find({ userId: identifier }),
-            Simulation.find({ userId: identifier }),
-            PerformanceProfile.findOne({ userId: identifier })
+            Diagnosis.findOne({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                    { userId: identifier.toString() }
+                ]
+            }).sort({ updatedAt: -1 }),
+            InterviewResult.findOne({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                    { userId: identifier.toString() }
+                ]
+            }).sort({ createdAt: -1 }),
+            Certificate.find({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                    { userId: identifier.toString() }
+                ]
+            }),
+            Simulation.find({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                    { userId: identifier.toString() }
+                ]
+            }),
+            PerformanceProfile.findOne({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                    { userId: identifier.toString() }
+                ]
+            })
         ]);
 
         return NextResponse.json({
@@ -67,11 +91,12 @@ export async function GET(
             profile
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Aggregated Data API Error:", error);
+        const err = error as Error;
         return NextResponse.json({
-            error: error.message || "Internal Server Error",
-            stack: error.stack
+            error: err.message || "Internal Server Error",
+            stack: err.stack
         }, { status: 500 });
     }
 }

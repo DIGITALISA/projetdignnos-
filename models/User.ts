@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const UserSchema = new Schema({
     fullName: {
@@ -49,6 +49,10 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    canAccessRecommendations: {
+        type: Boolean,
+        default: false,
+    },
     isDiagnosisComplete: {
         type: Boolean,
         default: false,
@@ -61,6 +65,23 @@ const UserSchema = new Schema({
     },
     rawPassword: {
         type: String,
+    },
+    // Executive Mandate Fields
+    mandateDuration: {
+        type: Number, // In months
+    },
+    mandateCurrency: {
+        type: String,
+    },
+    mandateAmount: {
+        type: Number,
+    },
+    plannedPaymentDate: {
+        type: Date,
+    },
+    mandateAgreed: {
+        type: Boolean,
+        default: false,
     }
 }, {
     timestamps: true,

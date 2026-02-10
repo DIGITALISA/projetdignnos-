@@ -5,7 +5,48 @@ const deepseek = new OpenAI({
     baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1',
 });
 
-export async function startRoleDiscoveryInterview(cvAnalysis: any, interviewEvaluation: any, language: string = 'en') {
+interface CVAnalysisResult {
+    overallScore: number;
+    verdict: string;
+    overview: string;
+    strengths: string[];
+    weaknesses: string[];
+    skills: {
+        technical: string[];
+        soft: string[];
+        gaps: string[];
+    };
+    experience: {
+        years: number;
+        quality: string;
+        progression: string;
+    };
+    education: {
+        level: string;
+        relevance: string;
+        notes: string;
+    };
+    immediateActions: string[];
+    careerPaths: string[];
+}
+
+interface InterviewEvaluation {
+    accuracyScore: number;
+    overallRating: number;
+    summary: string;
+    cvVsReality: {
+        confirmedStrengths: string[];
+        exaggerations: string[];
+        hiddenStrengths: string[];
+    };
+    cvImprovements: string[];
+    skillDevelopmentPriorities: string[];
+    verdict: string;
+    seniorityLevel: string;
+    suggestedRoles: string[];
+}
+
+export async function startRoleDiscoveryInterview(cvAnalysis: CVAnalysisResult, interviewEvaluation: InterviewEvaluation, language: string = 'en') {
     try {
         const languageInstructions: Record<string, string> = {
             'en': 'Respond in English.',
@@ -120,9 +161,9 @@ Respond in JSON format:
 }
 
 export async function generateRoleDiscoveryQuestion(
-    cvAnalysis: any,
-    interviewEvaluation: any,
-    conversationHistory: any[],
+    cvAnalysis: CVAnalysisResult,
+    interviewEvaluation: InterviewEvaluation,
+    conversationHistory: { role: string, content: string }[],
     language: string = 'en',
     questionNumber: number,
     totalQuestions: number
@@ -221,9 +262,9 @@ Respond with just the question text, no JSON.`
 }
 
 export async function completeRoleDiscovery(
-    cvAnalysis: any,
-    interviewEvaluation: any,
-    conversationHistory: any[],
+    cvAnalysis: CVAnalysisResult,
+    interviewEvaluation: InterviewEvaluation,
+    conversationHistory: { role: string, content: string }[],
     language: string = 'en'
 ) {
     try {
@@ -312,7 +353,7 @@ Calculate match percentage based on:
     {
       "title": "string (specific job title)",
       "matchPercentage": number (40-100, realistic),
-      "category": "ready" | "future",
+      "category": "ready" | "future", (STRICTLY USE THESE TWO VALUES IN ENGLISH)
       "description": "string (why this fits, reference their data)",
       "strengths": ["specific skill they have", "..."],
       "weaknesses": ["specific gap to fill", "..."],
@@ -332,6 +373,7 @@ Career Discovery Conversation: ${JSON.stringify(conversationHistory)}
 
 IMPORTANT: You MUST respond with VALID JSON only. The structure must be exactly as specified in the OUTPUT FORMAT above.
 All text content INSIDE the JSON (titles, descriptions, strengths, weaknesses, etc.) must be in ${language}.
+The "category" field MUST remain "ready" or "future" in English.
 Do NOT add any text before or after the JSON. Do NOT wrap it in markdown code blocks.`
                 }
             ],

@@ -3,13 +3,15 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         await connectDB();
         const users = await User.find({}).sort({ createdAt: -1 });
         return NextResponse.json(users);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -45,8 +47,8 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json(user, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -60,7 +62,7 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
         }
 
-        const updateData: any = {
+        const updateData: Record<string, unknown> = {
             fullName,
             email,
             role,
@@ -75,15 +77,15 @@ export async function PUT(req: NextRequest) {
             updateData.password = await bcrypt.hash(password, 10);
         }
 
-        const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
 
         if (!updatedUser) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
         return NextResponse.json(updatedUser);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -100,7 +102,7 @@ export async function DELETE(req: NextRequest) {
         await User.findByIdAndDelete(id);
 
         return NextResponse.json({ message: "User deleted successfully" });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

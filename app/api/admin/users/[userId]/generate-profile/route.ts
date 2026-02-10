@@ -27,7 +27,7 @@ export async function POST(
         const identifier = user.email || user.fullName;
 
         // 2. Fetch Data Context
-        const diagnosis = await Diagnosis.findOne({ userId: identifier, currentStep: 'completed' });
+        const diagnosis = await Diagnosis.findOne({ userId: identifier });
         const certificates = await Certificate.find({ userId: identifier });
         const simulations = await Simulation.find({ userId: identifier, status: 'completed' });
 
@@ -106,8 +106,8 @@ export async function POST(
 
         return NextResponse.json({ success: true });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Profile Gen Error:", error);
-        return NextResponse.json({ error: error.message || "Server Error" }, { status: 500 });
+        return NextResponse.json({ error: (error as Error).message || "Server Error" }, { status: 500 });
     }
 }

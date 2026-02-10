@@ -29,7 +29,12 @@ export async function POST(request: NextRequest) {
                 await connectDB();
                 // ✅ استخدام findOneAndUpdate لتحديث السجل الموجود أو إنشاء جديد
                 await Diagnosis.findOneAndUpdate(
-                    { userId }, // البحث عن السجل بواسطة userId
+                    { 
+                        $or: [
+                            { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                            { userId: userId.toString() }
+                        ]
+                    }, // البحث عن السجل بواسطة userId (غير حساس للحالة)
                     {
                         userId,
                         userName,
@@ -37,13 +42,26 @@ export async function POST(request: NextRequest) {
                         analysis: result.analysis,
                         language,
                         currentStep: 'analysis_complete',
+                        // Reset progress for new analysis
+                        interviewEvaluation: null,
+                        roleSuggestions: [],
+                        selectedRole: null,
+                        conversationHistory: [],
+                        roleDiscoveryConversation: [],
+                        simulationConversation: [],
+                        simulationResults: [],
                         'completionStatus.cvAnalysisComplete': true,
+                        'completionStatus.interviewComplete': false,
+                        'completionStatus.roleDiscoveryComplete': false,
+                        'completionStatus.roleSelected': false,
+                        'completionStatus.simulationComplete': false,
                         updatedAt: new Date()
                     },
                     { 
                         upsert: true, // إنشاء سجل جديد إذا لم يكن موجود
                         new: true, // إرجاع السجل المحدث
-                        setDefaultsOnInsert: true // تطبيق القيم الافتراضية عند الإنشاء
+                        setDefaultsOnInsert: true, // تطبيق القيم الافتراضية عند الإنشاء
+                        sort: { updatedAt: -1 } // التحديث على الأحدث
                     }
                 );
                 console.log('✅ CV Analysis saved to MongoDB for user:', userId);

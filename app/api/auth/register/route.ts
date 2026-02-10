@@ -6,7 +6,18 @@ import bcrypt from "bcryptjs";
 export async function POST(req: NextRequest) {
     try {
         await connectDB();
-        const { firstName, lastName, email, whatsapp, password } = await req.json();
+        const { 
+            firstName, 
+            lastName, 
+            email, 
+            whatsapp, 
+            password,
+            mandateDuration,
+            mandateCurrency,
+            mandateAmount,
+            plannedPaymentDate,
+            mandateAgreed
+        } = await req.json();
 
         if (!firstName || !lastName || !email || !whatsapp || !password) {
             return NextResponse.json({ error: "All fields are required" }, { status: 400 });
@@ -29,7 +40,13 @@ export async function POST(req: NextRequest) {
             role: "Trial User",
             status: "Pending",
             isTrial: true,
-            rawPassword: password // Store the plain text code for admin visibility
+            rawPassword: password, // Store the plain text code for admin visibility
+            plan: "Elite Full Pack", // As per the admin UI logic
+            mandateDuration,
+            mandateCurrency,
+            mandateAmount,
+            plannedPaymentDate,
+            mandateAgreed
         });
 
         return NextResponse.json({ success: true, message: "Registration request submitted" });

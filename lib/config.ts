@@ -32,3 +32,21 @@ export async function getAIConfig() {
         activeProvider
     };
 }
+
+export async function getSMTPConfig() {
+    const host = await getConfig("SMTP_HOST", process.env.SMTP_HOST || "");
+    const port = await getConfig("SMTP_PORT", process.env.SMTP_PORT || "587");
+    const user = await getConfig("SMTP_USER", process.env.SMTP_USER || "");
+    const pass = await getConfig("SMTP_PASS", process.env.SMTP_PASS || "");
+    const secure = await getConfig("SMTP_SECURE", process.env.SMTP_SECURE || "false");
+
+    return {
+        host,
+        port: parseInt(port),
+        secure: secure === "true",
+        auth: {
+            user,
+            pass
+        }
+    };
+}

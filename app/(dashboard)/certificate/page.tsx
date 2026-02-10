@@ -1,22 +1,43 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, ShieldCheck, CheckCircle2, QrCode, BookmarkCheck, ChevronRight, Loader2, Award, Briefcase, Sparkles, Target, Zap } from "lucide-react";
+import { Download, ShieldCheck, CheckCircle2, QrCode, Loader2, Award, Sparkles, Target, Zap } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 import { AssetLocked } from "@/components/layout/AssetLocked";
-import { cn } from "@/lib/utils";
+
+interface Competency {
+    label: string;
+    status: string;
+    score: number;
+}
+
+interface ReadinessStatus {
+    isReady: boolean;
+    hasDiagnosis: boolean;
+    hasSimulation: boolean;
+    certReady: boolean;
+    recReady: boolean;
+}
+
+interface PerformanceProfile {
+    referenceId: string;
+    userName: string;
+    summary: string;
+    verdict: string;
+    competencies: Competency[];
+    createdAt: string;
+}
 
 export default function CertificatePage() {
     const certificateRef = useRef<HTMLDivElement>(null);
-    const [studentName, setStudentName] = useState("User");
-    const [profile, setProfile] = useState<any>(null);
+    const [profile, setProfile] = useState<PerformanceProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const [readiness, setReadiness] = useState({ isReady: false, hasDiagnosis: false, hasSimulation: false });
+    const [readiness, setReadiness] = useState<ReadinessStatus>({ isReady: false, hasDiagnosis: false, hasSimulation: false, certReady: false, recReady: false });
 
     const checkReadiness = async (userId: string) => {
         try {
@@ -24,7 +45,7 @@ export default function CertificatePage() {
             const data = await res.json();
             if (data.success) {
                 setReadiness(data);
-                return data.isReady;
+                return data.certReady;
             }
         } catch (err) {
             console.error("Readiness check error:", err);
@@ -87,7 +108,6 @@ export default function CertificatePage() {
                     const { fullName, email } = JSON.parse(savedProfile);
                     const identifier = email || fullName;
                     if (identifier) {
-                        setStudentName(fullName || "User");
                         fetchProfile(identifier);
                     }
                 } else {
@@ -102,6 +122,7 @@ export default function CertificatePage() {
         loadProfile();
         window.addEventListener("profileUpdated", loadProfile);
         return () => window.removeEventListener("profileUpdated", loadProfile);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleDownload = async () => {
@@ -147,9 +168,10 @@ export default function CertificatePage() {
 
             pdf.addImage(imgData, 'PNG', x, y, w, h);
             pdf.save(`Executive-Performance-Profile-${profile.referenceId}.pdf`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("PDF generation failed:", error);
-            alert(`Failed to generate PDF: ${error.message || "Unknown error"}`);
+            const err = error as Error;
+            alert(`Failed to generate PDF: ${err.message || "Unknown error"}`);
         } finally {
             setIsDownloading(false);
         }
@@ -164,7 +186,7 @@ export default function CertificatePage() {
         );
     }
 
-    if (!readiness.isReady) {
+    if (!readiness.certReady) {
         return (
             <AssetLocked
                 title="Executive Performance Profile"
@@ -312,7 +334,7 @@ export default function CertificatePage() {
                                             <div className="col-span-4 bg-slate-50/80 border border-slate-100 rounded-[3rem] p-10 space-y-10">
                                                 <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900 border-b border-slate-200 pb-5">Core Competencies</h4>
                                                 <div className="space-y-8">
-                                                    {profile.competencies?.map((item: any, i: number) => (
+                                                    {profile.competencies?.map((item: Competency, i: number) => (
                                                         <div key={i} className="space-y-3">
                                                             <div className="flex justify-between items-end">
                                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>

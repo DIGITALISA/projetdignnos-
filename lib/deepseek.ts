@@ -80,6 +80,12 @@ ${languageInstruction}
   },
   "immediateActions": ["string"],
   "careerPaths": ["string"],
+  "expertAdvice": {
+    "suggestedWorkshops": ["string"],
+    "suggestedTrainings": ["string"],
+    "strategicBrief": "string (Internal high-level summary for career experts)",
+    "evolutionNote": "string (Specific goal for the candidate's next development phase)"
+  },
   "overallScore": number (0-100),
   "verdict": "string (one-line honest summary)"
 }`
@@ -430,7 +436,12 @@ Analyze the entire interview conversation and provide:
   "verdict": "string (one-line summary)",
   "seniorityLevel": "string (Junior | Mid | Senior | Expert)",
   "suggestedRoles": ["string"],
-  "expertCaseSummary": "string (A technical 300-word synthesis specifically for a human career coach. This must include: 1. Assessment of technical depth vs claims. 2. Behavioral red flags/green flags. 3. Immediate coaching priorities. 4. Strategic potential of this candidate.)"
+  "expertCaseSummary": "string (A technical 300-word synthesis specifically for a human career coach. This must include: 1. Assessment of technical depth vs claims. 2. Behavioral red flags/green flags. 3. Immediate coaching priorities. 4. Strategic potential of this candidate.)",
+  "expertAdvice": {
+    "suggestedWorkshops": ["string (2-3 very specific advanced titles)"],
+    "suggestedTrainings": ["string (2-3 curriculum themes)"],
+    "strategicBrief": "string (Strategic alignment score and reasoning)"
+  }
 }`
                 },
                 {
@@ -691,7 +702,8 @@ ${languageInstruction}
 - **Strict Limit**: Return exactly 2 modules.
 - **Interactive**: The Practical Exercise must be 1 sentence.
 - **Short Simulation**: Limit to 3 challenges max.
-- **No Truncation**: Keep answers concise to ensure valid JSON.`
+- **No Truncation**: Keep answers concise to ensure valid JSON.
+- **NOVELTY DIRECTIVE**: Every regeneration MUST provide unique module titles, different practical scenarios, and fresh expert advice. Never repeat the same examples.`
                 },
                 {
                     role: 'user',
@@ -701,7 +713,7 @@ Diagnostic Results: ${JSON.stringify(diagnosticResults)}
 Generate the FULL ELITE ACADEMY in ${language}. Ensure each module is massive and technical.`
                 }
             ],
-            temperature: 0.7,
+            temperature: 0.8,
             max_tokens: 4096,
         });
 
@@ -780,6 +792,7 @@ export async function generateAcademyStructure(
 
 - Themes must feel like "Class Subjects" in a high-end university.
 - Use the User Profile (Experience) and Diagnostic (Performance) to balance difficulty.
+- **DIVERSITY REQUIREMENT**: If this is a repeat request, ensure the themes and session titles are different from previous interpretations to provide continuous learning value.
 ${languageInstruction}`
                 },
                 {
@@ -790,7 +803,7 @@ Diagnostic Results: ${JSON.stringify(diagnosticResults)}
 Generate the Academy Structure in ${language}.`
                 }
             ],
-            temperature: 0.7,
+            temperature: 0.8,
         });
 
         const result = response.choices[0]?.message?.content;
@@ -840,6 +853,7 @@ export async function generateSessionSlides(
 
 - Generate exactly 6 slides.
 - Content must be high-yield and professional.
+- **VARIANT DIRECTIVE**: If this topic is revisited, ensure the specific points, expert insights, and technical frameworks provided are different from standard responses to ensure ongoing learning value.
 ${languageInstruction}`
                 },
                 {
@@ -848,7 +862,7 @@ ${languageInstruction}`
 Language: ${language}`
                 }
             ],
-            temperature: 0.7,
+            temperature: 0.8,
         });
 
         const result = response.choices[0]?.message?.content;
@@ -1115,5 +1129,301 @@ Generate the Unified Executive Performance Profile in ${language}.`
     } catch (error) {
         console.error('Performance Profile AI Error:', error);
         return { success: false, error: 'Failed to generate performance profile' };
+    }
+}
+
+export async function generateCareerRoadmap(
+    userProfile: unknown,
+    diagnosticResults: unknown,
+    language: string = 'en'
+) {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.',
+        };
+
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
+            response_format: { type: 'json_object' },
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a World-Class Career Architect and Strategic Growth Consultant. Your mission is to transform a participant's diagnostic results and profile into a precise, step-by-step "Strategic Execution Roadmap".
+
+**THE ROADMAP CONCEPT:**
+You will build a sequential journey of exactly 5 milestones. Each milestone represents a critical phase in the user's professional transformation.
+
+**OUTPUT STRUCTURE (JSON):**
+{
+  "roadmapTitle": "string (e.g., 'Executive Leadership Transformation')",
+  "milestones": [
+    {
+      "id": number (1 to 5),
+      "label": "string (The phase name, e.g., 'Phase 1: Foundation')",
+      "title": "string (Specific goal)",
+      "description": "string (Concise action-oriented advice)",
+      "tasks": ["string (High-precision action item)", "string"],
+      "expectedOutcome": "string",
+      "icon": "string (Choose one: 'Target', 'Zap', 'BrainCircuit', 'Trophy', 'Award', 'Rocket', 'ShieldCheck', 'TrendingUp')"
+    }
+  ],
+  "personalizedWorkshop": {
+    "title": "string (Highly specific workshop title)",
+    "description": "string (Arabic text explaining why this specific individual workshop is needed based on diagnosis)",
+    "durationHours": number,
+    "focusAreas": ["string", "string"]
+  }
+}
+
+**PEDAGOGICAL DIRECTIVES:**
+- **Analytical Precision**: The roadmap MUST bridge the gaps identified in the diagnosis.
+- **Sequential Growth**: Milestones MUST be logical (e.g., Foundation -> Strategy -> Execution -> Optimization -> Mastery).
+- **High Impact**: Tasks must feel elite, high-stakes, and professional.
+- **Language**: ${languageInstruction}`
+                },
+                {
+                    role: 'user',
+                    content: `User Profile: ${JSON.stringify(userProfile)}
+Diagnostic Results: ${JSON.stringify(diagnosticResults)}
+
+Generate the FULL STRATEGIC ROADMAP in ${language}.`
+                }
+            ],
+            temperature: 0.8,
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+
+        const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        return {
+            success: true,
+            roadmap: JSON.parse(cleanedResult),
+        };
+    } catch (error) {
+        console.error('Roadmap AI Error:', error);
+        return { success: false, error: 'Failed to generate career roadmap' };
+    }
+}
+
+/**
+ * Generates a Strategic Career Intelligence (SCI) Report
+ * Synthesizes diagnosis, simulations, and expert notes into a professional advisory document.
+ */
+export async function generateSCIReport(
+    userName: string,
+    diagnosisData: Record<string, unknown>,
+    simulations: unknown[],
+    expertNotes: string,
+    language: string = 'en'
+) {
+    const { client, model } = await getAI();
+    const prompt = `
+You are a World-Class Executive Career Strategist. Generate a "Strategic Career Intelligence Report" for ${userName}.
+This report is an internal-grade executive advisory document.
+
+**INPUT DATA:**
+1. CV Diagnosis Results: ${JSON.stringify(diagnosisData)}
+2. Simulation Performance: ${JSON.stringify(simulations)}
+3. Confidential Expert Notes: ${expertNotes}
+
+**OUTPUT STRUCTURE (JSON ONLY):**
+{
+  "header": {
+    "title": "Strategic Career Intelligence Report",
+    "subtitle": "Career Diagnosis • Simulation Insights • Strategic Roadmap",
+    "referenceId": "SCI-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}"
+  },
+  "executiveSummary": {
+    "objective": "string",
+    "currentPositioning": "string",
+    "riskLevel": "Low | Medium | High",
+    "priorityFocus": "string",
+    "strategicRecommendation": "string"
+  },
+  "careerDiagnosis": {
+    "industry": "string",
+    "experienceLevel": "string",
+    "roleScope": "string",
+    "competencies": [
+      { "dimension": "Leadership Readiness", "score": "number%", "interpretation": "string" },
+      { "dimension": "Strategic Thinking", "score": "number%", "interpretation": "string" },
+      { "dimension": "Market Positioning", "score": "number%", "interpretation": "string" }
+    ],
+    "riskIndicators": {
+      "stagnation": "Low | Moderate | High",
+      "obsolescence": "Low | Moderate | High",
+      "misalignment": "Low | Moderate | High"
+    }
+  },
+  "simulationInsights": {
+    "decisionProfile": {
+      "speed": "string",
+      "riskManagement": "string",
+      "stakeholderAwareness": "string"
+    },
+    "behavioralObservations": {
+      "strengths": ["string"],
+      "blindSpots": ["string"]
+    }
+  },
+  "humanInsights": {
+    "included": true,
+    "style": "string",
+    "engagement": "string",
+    "developmentAreas": ["string"]
+  },
+  "positioningAnalysis": {
+    "internalGrowth": "string",
+    "externalMobility": "string",
+    "scenarios": [
+      { "label": "Scenario A", "description": "string" },
+      { "label": "Scenario B", "description": "string" },
+      { "label": "Scenario C", "description": "string" }
+    ]
+  },
+  "roadmap": {
+    "shortTerm": { "objective": "string", "actions": ["string"], "kpis": ["string"] },
+    "midTerm": { "objective": "string", "actions": ["string"], "kpis": ["string"] },
+    "longTerm": { "objective": "string", "actions": ["string"], "kpis": ["string"] }
+  },
+  "advisoryNotes": "string",
+  "disclaimer": "This document is a strategic advisory career assessment report. It does not constitute a certification..."
+}
+
+Language: Return ALL text content in ${language}.
+`;
+
+    try {
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: 'system', content: 'You are an elite career strategist. Output raw JSON only.' },
+                { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        const content = response.choices[0].message.content;
+        if (!content) throw new Error("Empty AI response");
+        return JSON.parse(content);
+    } catch (error) {
+        console.error("SCI Report Generation Error:", error);
+        throw error;
+    }
+}
+
+interface UserProfile {
+    fullName: string;
+    userId: string;
+}
+
+/**
+ * Generates 5 high-stakes strategic questions based on a Job Description
+ */
+export async function generateJobAlignmentQuestions(
+    userProfile: UserProfile,
+    diagnosis: Record<string, unknown>,
+    jobDescription: string,
+    type: string,
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const prompt = `
+You are a Lead Executive Recruiter. A candidate (Profile: ${JSON.stringify(userProfile)}) is applying for a ${type} (Job Description: ${jobDescription}).
+Base your analysis on their previous diagnosis: ${JSON.stringify(diagnosis)}.
+
+**MISSION:**
+Analyze the complexity of the provided Job Description and determine the necessary number of validation points.
+Generate at least 10 (or more if the role is highly complex) advanced, situational Multiple Choice Questions (MCQs) that verify if this candidate has the EXACT competencies required for THIS specific job. 
+The questions must be "Operational Scenarios" where the candidate has to make a strategic decision relevant to the job description.
+Do not exceed 15 questions to maintain candidate engagement.
+
+**OUTPUT FORMAT (JSON ONLY):**
+{
+  "questions": [
+    {
+      "question": "string (The situational scenario)",
+      "options": ["string", "string", "string", "string"],
+      "correctAnswer": 0 (index of the best strategic move),
+      "explanation": "string (Why this choice is the most executive-aligned)"
+    }
+  ]
+}
+
+**LANGUAGE:** ${language === 'fr' ? 'French' : language === 'ar' ? 'Arabic' : 'English'}
+`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: 'system', content: 'You are an elite recruitment AI. Output raw JSON only.' },
+                { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        const content = response.choices[0].message.content;
+        if (!content) throw new Error("Empty AI response");
+        return JSON.parse(content);
+    } catch (error) {
+        console.error("Job Alignment Questions Generation Error:", error);
+        throw error;
+    }
+}
+
+/**
+ * Evaluates the answers and generates a final Strategic Alignment Report/Certificate
+ */
+export async function evaluateJobAlignment(
+    jobDescription: string,
+    questions: Record<string, unknown>[],
+    answers: number[],
+    userProfile: UserProfile,
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const prompt = `
+A candidate completed a Strategic Alignment Audit for this Job Description: ${jobDescription}.
+Questions & Answers: ${JSON.stringify(questions.map((q, i) => ({ q: q.question, selectedIndex: answers[i], correctIndex: q.correctAnswer })))}
+
+**MISSION:**
+Draft a "Strategic Job Alignment Audit Certificate". This is a formal advisory document.
+
+**OUTPUT FORMAT (JSON ONLY):**
+{
+  "verdict": "string (A powerful 1-sentence executive verdict)",
+  "analysis": "string (3-4 paragraphs of deep strategic analysis for this role)",
+  "strengths": ["string", "string", "string"],
+  "gaps": ["string", "string", "string"],
+  "roadmap": ["string", "string", "string (Specific implementation tasks to succeed in the first 90 days)"],
+  "score": number (0-100 calculated based on correct answers and depth)
+}
+
+**LANGUAGE:** ${language === 'fr' ? 'French' : language === 'ar' ? 'Arabic' : 'English'}
+`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: 'system', content: 'You are an elite career consultant. Output raw JSON only. Be professional and authoritative.' },
+                { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        const content = response.choices[0].message.content;
+        if (!content) throw new Error("Empty AI response");
+        return JSON.parse(content);
+    } catch (error) {
+        console.error("Job Alignment Evaluation Error:", error);
+        throw error;
     }
 }

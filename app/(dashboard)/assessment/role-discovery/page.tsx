@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Sparkles, Target, ArrowRight, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Send, Loader2, Target, ArrowRight, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -11,13 +11,54 @@ interface Message {
     timestamp: Date;
 }
 
+interface CVAnalysisResult {
+    overallScore: number;
+    verdict: string;
+    overview: string;
+    strengths: string[];
+    weaknesses: string[];
+    skills: {
+        technical: string[];
+        soft: string[];
+        gaps: string[];
+    };
+    experience: {
+        years: number;
+        quality: string;
+        progression: string;
+    };
+    education: {
+        level: string;
+        relevance: string;
+        notes: string;
+    };
+    immediateActions: string[];
+    careerPaths: string[];
+}
+
+interface InterviewEvaluation {
+    accuracyScore: number;
+    overallRating: number;
+    summary: string;
+    cvVsReality: {
+        confirmedStrengths: string[];
+        exaggerations: string[];
+        hiddenStrengths: string[];
+    };
+    cvImprovements: string[];
+    skillDevelopmentPriorities: string[];
+    verdict: string;
+    seniorityLevel: string;
+    suggestedRoles: string[];
+}
+
 export default function RoleDiscoveryPage() {
     const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [cvAnalysis, setCvAnalysis] = useState<any>(null);
-    const [interviewEvaluation, setInterviewEvaluation] = useState<any>(null);
+    const [cvAnalysis, setCvAnalysis] = useState<CVAnalysisResult | null>(null);
+    const [interviewEvaluation, setInterviewEvaluation] = useState<InterviewEvaluation | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [totalQuestions] = useState(8); // Shorter interview focused on career goals
@@ -25,25 +66,96 @@ export default function RoleDiscoveryPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const storedCV = localStorage.getItem('cvAnalysis');
-        const storedEval = localStorage.getItem('interviewEvaluation');
-        const storedLanguage = localStorage.getItem('selectedLanguage');
+        const loadSession = async () => {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
 
-        if (storedCV && storedEval) {
-            setCvAnalysis(JSON.parse(storedCV));
-            setInterviewEvaluation(JSON.parse(storedEval));
-            setSelectedLanguage(storedLanguage || 'en');
-            startRoleDiscovery(JSON.parse(storedCV), JSON.parse(storedEval), storedLanguage || 'en');
-        } else {
-            router.push('/assessment/cv-upload');
-        }
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
+                    const response = await res.json();
+
+                    if (response.hasData && response.data) {
+                        const data = response.data;
+                        
+                        if (data.cvAnalysis) setCvAnalysis(data.cvAnalysis);
+                        if (data.interviewEvaluation) setInterviewEvaluation(data.interviewEvaluation);
+                        if (data.language) setSelectedLanguage(data.language);
+
+                        // If there is existing conversation, restore it
+                        if (data.roleDiscoveryConversation && data.roleDiscoveryConversation.length > 0) {
+                            const restoredMessages = data.roleDiscoveryConversation.map((m: { role: 'ai' | 'user', content: string, timestamp: string }) => ({
+                                ...m,
+                                timestamp: new Date(m.timestamp)
+                            }));
+                            setMessages(restoredMessages);
+                            
+                            // Calculate current index
+                            const calculatedIndex = Math.floor(restoredMessages.length / 2);
+                            setCurrentQuestionIndex(calculatedIndex);
+
+                            if (data.completionStatus?.roleDiscoveryComplete) {
+                                setDiscoveryComplete(true);
+                            }
+                            return;
+                        }
+
+                        // If no conversation but we have base data, start new
+                        if (data.cvAnalysis && data.interviewEvaluation) {
+                            startRoleDiscovery(data.cvAnalysis, data.interviewEvaluation, data.language || 'en');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load session from API", e);
+                }
+            }
+
+            // Fallback to localStorage
+            const storedCV = localStorage.getItem('cvAnalysis');
+            const storedEval = localStorage.getItem('interviewEvaluation');
+            const storedLanguage = localStorage.getItem('selectedLanguage');
+
+            if (storedCV && storedEval) {
+                const cv = JSON.parse(storedCV);
+                const evalData = JSON.parse(storedEval);
+                setCvAnalysis(cv);
+                setInterviewEvaluation(evalData);
+                setSelectedLanguage(storedLanguage || 'en');
+                startRoleDiscovery(cv, evalData, storedLanguage || 'en');
+            } else {
+                router.push('/assessment/cv-upload');
+            }
+        };
+
+        loadSession();
     }, [router]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
 
-    const startRoleDiscovery = async (cv: any, evaluation: any, language: string) => {
+        // Save progress to API
+        if (messages.length > 0) {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
+            
+            if (userId) {
+                fetch('/api/user/progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        updateData: {
+                            roleDiscoveryConversation: messages,
+                            currentStep: discoveryComplete ? 'role_discovery_complete' : 'role_discovery'
+                        }
+                    })
+                }).catch(err => console.error("Error saving role discovery progress", err));
+            }
+        }
+    }, [messages, discoveryComplete]);
+
+    const startRoleDiscovery = async (cv: CVAnalysisResult, evaluation: InterviewEvaluation, language: string) => {
         setIsLoading(true);
         try {
             const response = await fetch('/api/role-discovery/start', {
@@ -59,18 +171,20 @@ export default function RoleDiscoveryPage() {
             const result = await response.json();
 
             if (result.success) {
-                setMessages([{
+                const welcomeMsg: Message = {
                     role: 'ai',
                     content: result.welcomeMessage,
                     timestamp: new Date(),
-                }]);
+                };
+                setMessages([welcomeMsg]);
 
                 setTimeout(() => {
-                    setMessages(prev => [...prev, {
+                    const firstQuestion: Message = {
                         role: 'ai',
                         content: result.firstQuestion,
                         timestamp: new Date(),
-                    }]);
+                    };
+                    setMessages(prev => [...prev, firstQuestion]);
                     setCurrentQuestionIndex(1);
                 }, 1000);
             }
@@ -96,6 +210,10 @@ export default function RoleDiscoveryPage() {
 
         try {
             if (currentQuestionIndex >= totalQuestions) {
+                // Get userId
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName;
+
                 // Finish discovery and generate role suggestions
                 const response = await fetch('/api/role-discovery/complete', {
                     method: 'POST',
@@ -105,6 +223,7 @@ export default function RoleDiscoveryPage() {
                         interviewEvaluation,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
+                        userId
                     }),
                 });
 
@@ -179,6 +298,10 @@ export default function RoleDiscoveryPage() {
 
         try {
             if (currentQuestionIndex >= totalQuestions) {
+                // Get userId
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName;
+
                 const response = await fetch('/api/role-discovery/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -187,6 +310,7 @@ export default function RoleDiscoveryPage() {
                         interviewEvaluation,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
+                        userId
                     }),
                 });
 
@@ -245,12 +369,12 @@ export default function RoleDiscoveryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-6"
                 >
-                    <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl border border-green-200 p-8 text-center">
+                    <div className="bg-linear-to-br from-green-50 to-blue-50 rounded-2xl border border-green-200 p-8 text-center">
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <CheckCircle className="w-10 h-10 text-green-600" />
                         </div>
                         <h1 className="text-3xl font-bold text-slate-900 mb-2">Career Discovery Complete!</h1>
-                        <p className="text-slate-600">Based on our conversation, I've identified the best career paths for you.</p>
+                        <p className="text-slate-600">Based on our conversation, I&apos;ve identified the best career paths for you.</p>
                     </div>
 
                     <button
@@ -271,7 +395,7 @@ export default function RoleDiscoveryPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">Career Path Discovery</h1>
                     <p className="text-slate-500">
-                        Let's explore your career goals and find the perfect roles for you
+                        Let&apos;s explore your career goals and find the perfect roles for you
                     </p>
                 </div>
 

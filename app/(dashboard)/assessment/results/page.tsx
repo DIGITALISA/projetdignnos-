@@ -7,33 +7,68 @@ import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+interface InterviewEvaluation {
+    accuracyScore: number;
+    overallRating: number;
+    summary: string;
+    cvVsReality: {
+        confirmedStrengths: string[];
+        exaggerations: string[];
+        hiddenStrengths: string[];
+    };
+    cvImprovements: string[];
+    skillDevelopmentPriorities: string[];
+    verdict: string;
+    seniorityLevel: string;
+    suggestedRoles: string[];
+}
+
 export default function ResultsPage() {
     const router = useRouter();
     const resultsRef = useRef<HTMLDivElement>(null);
-    const [evaluation, setEvaluation] = useState<any>(null);
+    const [evaluation, setEvaluation] = useState<InterviewEvaluation | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
     useEffect(() => {
-        const stored = localStorage.getItem('interviewEvaluation');
-        if (stored) {
-            const parsedEvaluation = JSON.parse(stored);
-            setEvaluation(parsedEvaluation);
+        const loadResults = async () => {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
 
-            // Backup check: Ensure profile reflects completion
-            const savedProfile = localStorage.getItem("userProfile");
-            if (savedProfile) {
-                const profile = JSON.parse(savedProfile);
-                if (!profile.isDiagnosisComplete) {
-                    profile.isDiagnosisComplete = true;
-                    profile.diagnosisData = parsedEvaluation;
-                    localStorage.setItem("userProfile", JSON.stringify(profile));
-                    window.dispatchEvent(new Event("profileUpdated"));
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
+                    const response = await res.json();
+
+                    if (response.hasData && response.data?.interviewEvaluation) {
+                        const evalData = response.data.interviewEvaluation;
+                        setEvaluation(evalData);
+                        localStorage.setItem('interviewEvaluation', JSON.stringify(evalData));
+                        
+                        // Update profile status
+                        if (userProfile && !userProfile.isDiagnosisComplete) {
+                            userProfile.isDiagnosisComplete = true;
+                            userProfile.diagnosisData = evalData;
+                            localStorage.setItem("userProfile", JSON.stringify(userProfile));
+                            window.dispatchEvent(new Event("profileUpdated"));
+                        }
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error loading results from API:", e);
                 }
             }
-        } else {
-            // Redirect if no evaluation found
-            router.push('/assessment/cv-upload');
-        }
+
+            // Fallback
+            const stored = localStorage.getItem('interviewEvaluation');
+            if (stored) {
+                const parsedEvaluation = JSON.parse(stored);
+                setEvaluation(parsedEvaluation);
+            } else {
+                router.push('/assessment/cv-upload');
+            }
+        };
+
+        loadResults();
     }, [router]);
 
     const handleDownloadReport = async () => {

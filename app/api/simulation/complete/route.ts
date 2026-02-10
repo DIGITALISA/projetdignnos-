@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { completeSimulation } from '@/lib/simulation';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
 
 export async function POST(request: NextRequest) {
     try {
         const {
+            email,
             selectedRole,
             cvAnalysis,
             scenarioResults,
@@ -17,6 +20,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // 1. Generate the Report via AI
         const result = await completeSimulation(
             selectedRole,
             cvAnalysis,
@@ -29,6 +33,35 @@ export async function POST(request: NextRequest) {
                 { error: result.error },
                 { status: 500 }
             );
+        }
+
+        // 2. Save to Database if email is provided
+        if (email) {
+            await connectDB();
+            
+            // Update the user's profile
+            // Mark diagnosis as complete and store the full report
+            const user = await User.findOneAndUpdate(
+                { email },
+                { 
+                    $set: { 
+                        isDiagnosisComplete: true,
+                        diagnosisData: {
+                            report: result.report,
+                            selectedRole,
+                            completedAt: new Date()
+                        }
+                    } 
+                },
+                { new: true }
+            );
+
+            if (!user) {
+                console.warn(`[Simulation Complete] User with email ${email} not found.`);
+                // We don't fail the request here, as the user still gets their report on screen
+            } else {
+                console.log(`[Simulation Complete] User ${email} diagnosis marked as complete.`);
+            }
         }
 
         return NextResponse.json({

@@ -32,76 +32,25 @@ export default function DashboardLayout({
                 
                 // 1. Diagnosis & Plan Access Control
                 const isDiagnosisComplete = profile.isDiagnosisComplete === true;
-                const userPlan = profile.plan;
-                const isPro = userPlan === "Pro Essential" || userPlan === "Elite Full Pack";
                 const isAdmin = profile.role === "Admin" || profile.role === "Moderator";
 
                 if (!isAdmin) {
-                    const assessmentPaths = [
-                        "/assessment/cv-upload",
-                        "/assessment/interview",
-                        "/assessment/results",
-                        "/assessment/role-discovery",
-                        "/assessment/role-suggestions",
-                        "/assessment/role-matching"
+                     const restrictedPaths = [
+                        "/simulation",
+                        "/training",
+                        "/mentor",
+                        "/academy",
+                        "/library",
+                        "/expert",
+                        "/roadmap"
                     ];
-                    
-                    const alwaysOpen = ["/dashboard", "/subscription", "/settings"];
-                    
-                    const isAlwaysOpen = alwaysOpen.some(p => pathname.startsWith(p));
-                    const isAssessmentPath = assessmentPaths.some(p => pathname.startsWith(p));
-                    const isSimulationPath = pathname.startsWith("/simulation");
-                    const isTrainingPath = pathname.startsWith("/training");
 
-                    // Check Time Limit (3 Hours from account creation)
-                    let isTimeUp = false;
-                    if (!isPro && profile.createdAt) {
-                        const created = new Date(profile.createdAt).getTime();
-                        const now = new Date().getTime();
-                        // 3 hours in milliseconds
-                        if (now - created > (3 * 60 * 60 * 1000)) {
-                            isTimeUp = true;
-                        }
-                    }
+                    const isRestrictedPath = restrictedPaths.some(p => pathname.startsWith(p));
 
-                    // Logic for Free Users (Non-Pro)
-                    if (!isPro) {
-                        // CASE 1: Diagnosis Complete OR Time is Up
-                        // Result: Diagnosis Locked, Simulations & Workshops Open
-                        if (isDiagnosisComplete || isTimeUp) {
-                            // 1. Assessment: LOCKED
-                            if (isAssessmentPath) {
-                                console.log("🔒 Access Denied (Complete/Expired) - Redirecting to Simulation");
-                                router.replace("/simulation");
-                                return;
-                            }
-
-                            // 2. Simulations & Workshops: OPEN
-                            if (isSimulationPath || isTrainingPath) {
-                                return;
-                            }
-
-                            // 3. Others: LOCKED (Redirect to Simulation)
-                            if (!isAlwaysOpen) {
-                                console.log("🔒 Feature Locked - Redirecting to Simulation");
-                                router.replace("/simulation");
-                                return;
-                            }
-                        }
-                        
-                        // CASE 2: Diagnosis Incomplete AND Time Remaining
-                        // Result: Only Assessment Open
-                        else {
-                            if (!isAlwaysOpen && !isAssessmentPath) {
-                                console.log("🔒 Diagnosis Incomplete - Redirecting to CV Upload");
-                                router.replace("/assessment/cv-upload");
-                                return;
-                            }
-                        }
-                    }
-                    // Logic for Pro Users
-                    else {
-                        // Pro: Access everything
+                    // STRICT FLOW: If Diagnosis is NOT complete, LOCK sections 2-7
+                    if (!isDiagnosisComplete && isRestrictedPath) {
+                        console.log("🔒 Restricted Area - Diagnosis Incomplete. Redirecting to Assessment.");
+                        router.replace("/assessment/cv-upload");
                         return;
                     }
                 }

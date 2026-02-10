@@ -4,19 +4,43 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    ArrowRight, Sparkles, Building2, Lightbulb, Search,
+    ArrowRight, Sparkles, Lightbulb,
     BarChart3, Globe, Users, CheckCircle, DollarSign,
-    Zap, TrendingUp, ShieldCheck, Target, Shield
+    Zap, TrendingUp, ShieldCheck, Target
 } from "lucide-react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
+import DiagnosisModal from "./DiagnosisModal";
+
+// Define interfaces for the data structures
+interface MetricItem {
+    value: string;
+    label: string;
+    icon: string;
+}
+
+interface BlueprintItem {
+    id: string;
+    title: string;
+    strategy: string;
+    desc: string;
+    demoTitle: string;
+}
+
+interface ToolItem {
+    title: string;
+    desc: string;
+}
+
+interface PillarItem {
+    title: string;
+    desc: string;
+}
 
 export default function DigitalizationPage() {
-    const { t, dir } = useLanguage();
-    const [diagnosticStep, setDiagnosticStep] = useState<'selection' | 'questions' | 'analyzing' | 'result'>('selection');
-    const [selection, setSelection] = useState<'existing' | 'idea' | 'none' | null>(null);
-    const [answers, setAnswers] = useState<Record<string, string>>({});
+    const { t } = useLanguage();
     const [activeBlueprint, setActiveBlueprint] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -33,17 +57,6 @@ export default function DigitalizationPage() {
         visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
     };
 
-    const handleSelection = (type: 'existing' | 'idea' | 'none') => {
-        setSelection(type);
-        setDiagnosticStep('questions');
-    };
-
-    const handleAnalysis = (e: React.FormEvent) => {
-        e.preventDefault();
-        setDiagnosticStep('analyzing');
-        setTimeout(() => setDiagnosticStep('result'), 3000);
-    };
-
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
@@ -53,6 +66,8 @@ export default function DigitalizationPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 overflow-x-hidden">
+            <DiagnosisModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            
             {/* Hero Section */}
             <section className="relative pt-32 pb-24 px-4 overflow-hidden bg-slate-50 dark:bg-slate-950">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
@@ -77,7 +92,7 @@ export default function DigitalizationPage() {
                         className="text-6xl md:text-8xl font-serif font-medium text-slate-900 dark:text-white mb-8 tracking-tight leading-[0.95]"
                     >
                         {t.digitalization.hero.title} <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 italic">
+                        <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-indigo-500 to-purple-600 italic">
                             {t.digitalization.hero.titleHighlight}
                         </span>
                     </motion.h1>
@@ -98,7 +113,7 @@ export default function DigitalizationPage() {
                         className="flex flex-col sm:flex-row items-center justify-center gap-4"
                     >
                         <button
-                            onClick={() => scrollToSection('diagnostic-section')}
+                            onClick={() => setIsModalOpen(true)}
                             className="px-8 py-4 bg-slate-950 dark:bg-white dark:text-slate-900 text-white rounded-full font-bold text-xs uppercase tracking-[0.2em] hover:scale-105 transition-transform shadow-xl shadow-blue-500/10"
                         >
                             {t.digitalization.hero.ctaStart}
@@ -147,7 +162,7 @@ export default function DigitalizationPage() {
                         <h2 className="text-white font-serif font-medium text-4xl italic opacity-80 mb-4">{t.digitalization.metrics.title}</h2>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-                        {t.digitalization.metrics.items.map((item: any, idx: number) => (
+                        {t.digitalization.metrics.items.map((item: MetricItem, idx: number) => (
                             <motion.div
                                 key={idx}
                                 initial={{ opacity: 0, scale: 0.5 }}
@@ -172,208 +187,8 @@ export default function DigitalizationPage() {
                 </div>
             </section>
 
-            {/* Diagnostic Interactive Interface */}
-            <section id="diagnostic-section" className="container mx-auto px-4 py-24">
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="max-w-6xl mx-auto bg-white dark:bg-slate-900 rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)] border border-slate-100 dark:border-white/5 overflow-hidden relative"
-                >
-                    <div className="bg-slate-900 dark:bg-black/40 p-10 flex items-center justify-between border-b border-white/5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <Sparkles className="w-7 h-7 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-serif font-medium text-3xl tracking-tight">{t.digitalization.diagnostic.title}</h3>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{t.digitalization.diagnostic.subtitle}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 p-8 md:p-12 relative">
-                        <AnimatePresence mode="wait">
-                            {diagnosticStep === 'selection' && (
-                                <motion.div
-                                    key="selection"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="h-full flex flex-col justify-center"
-                                >
-                                    <h2 className="text-4xl font-serif font-medium text-slate-900 dark:text-white mb-2">{t.digitalization.process.title}</h2>
-                                    <p className="text-slate-600 dark:text-slate-400 font-sans font-light tracking-wide mb-10">{t.digitalization.process.subtitle}</p>
-
-                                    <div className="grid md:grid-cols-3 gap-6">
-                                        {(['existing', 'idea', 'none'] as const).map((type) => (
-                                            <button
-                                                key={type}
-                                                onClick={() => handleSelection(type)}
-                                                className="group p-6 rounded-2xl border-2 border-slate-100 dark:border-white/5 hover:border-blue-600 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all text-left"
-                                            >
-                                                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                                    {type === 'existing' && <Building2 className="w-6 h-6" />}
-                                                    {type === 'idea' && <Lightbulb className="w-6 h-6" />}
-                                                    {type === 'none' && <Search className="w-6 h-6" />}
-                                                </div>
-                                                <h3 className="font-bold text-slate-900 dark:text-white mb-2">{t.digitalization.process.options[type].title}</h3>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400">{t.digitalization.process.options[type].desc}</p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {diagnosticStep === 'questions' && selection && (
-                                <motion.div
-                                    key="questions"
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="h-full flex flex-col justify-center max-w-2xl mx-auto w-full"
-                                >
-                                    <div className="text-center mb-8">
-                                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 mb-4">
-                                            <Sparkles className="w-6 h-6" />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{t.digitalization.diagnostic.title}</h3>
-                                        <p className="text-slate-600 dark:text-slate-400">Please provide details for the AI to analyze.</p>
-                                    </div>
-
-                                    <form onSubmit={handleAnalysis} className="space-y-6">
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            {t.digitalization.questions[selection].map((q: any) => (
-                                                <div key={q.id}>
-                                                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                                                        {q.label}
-                                                    </label>
-                                                    <input
-                                                        required
-                                                        type="text"
-                                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm dark:text-white"
-                                                        placeholder={q.placeholder}
-                                                        onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                                                {t.digitalization.questions.freeTextLabel}
-                                            </label>
-                                            <textarea
-                                                required
-                                                rows={4}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none dark:text-white"
-                                                placeholder={t.digitalization.questions.freeTextPlaceholder}
-                                                onChange={(e) => setAnswers(prev => ({ ...prev, description: e.target.value }))}
-                                            />
-                                        </div>
-
-                                        <button
-                                            type="submit"
-                                            className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-bold rounded-xl shadow-lg hover:shadow-slate-900/30 dark:hover:shadow-white/20 transition-all flex items-center justify-center gap-2 text-lg"
-                                        >
-                                            <Sparkles className="w-5 h-5 text-blue-400 dark:text-blue-600" />
-                                            {t.digitalization.questions.submit}
-                                        </button>
-                                    </form>
-                                </motion.div>
-                            )}
-
-                            {diagnosticStep === 'analyzing' && (
-                                <motion.div
-                                    key="analyzing"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="h-full flex flex-col items-center justify-center text-center py-10"
-                                >
-                                    <div className="relative w-20 h-20 mb-6">
-                                        <div className="absolute inset-0 border-4 border-slate-200 dark:border-white/10 rounded-full"></div>
-                                        <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t.digitalization.diagnostic.analyzing}</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                                        Scanning market trends, competitor analysis, and strategic opportunities...
-                                    </p>
-                                </motion.div>
-                            )}
-
-                            {diagnosticStep === 'result' && (
-                                <motion.div
-                                    key="result"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full overflow-y-auto"
-                                >
-                                    {/* SWOT Analysis Card */}
-                                    <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                                        <h3 className="font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                                            <BarChart3 className="w-5 h-5 text-blue-600" />
-                                            SWOT Analysis
-                                        </h3>
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                            {[
-                                                { label: t.digitalization.diagnostic.swot.strengths, color: 'green', items: ['High Market Potential', 'Scalable Tech Stack'] },
-                                                { label: t.digitalization.diagnostic.swot.weaknesses, color: 'red', items: ['Initial Brand Awareness', 'Resource Allocation'] },
-                                                { label: t.digitalization.diagnostic.swot.opportunities, color: 'blue', items: ['Digital Expansion', 'B2B Partnerships'] },
-                                                { label: t.digitalization.diagnostic.swot.threats, color: 'orange', items: ['Market Saturation', 'Rapid Tech Changes'] }
-                                            ].map((s) => (
-                                                <div key={s.label} className="p-3 bg-white dark:bg-white/5 rounded-lg border-l-4 border-blue-500 shadow-sm" style={{ borderLeftColor: s.color }}>
-                                                    <div className="font-bold mb-1" style={{ color: s.color }}>{s.label}</div>
-                                                    <ul className="text-slate-600 dark:text-slate-400 space-y-1 text-xs">
-                                                        {s.items.map(i => <li key={i}>• {i}</li>)}
-                                                    </ul>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Action Plan Card (Consultant Roadmap) */}
-                                    <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between h-full border border-slate-700">
-                                        <div>
-                                            <h3 className="font-bold text-xl mb-6 flex items-center gap-2 text-white">
-                                                <Sparkles className="w-5 h-5 text-blue-400" />
-                                                {t.digitalization.diagnostic.plan}
-                                            </h3>
-
-                                            <div className="space-y-6 relative">
-                                                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-700 z-0"></div>
-                                                {[
-                                                    { q: 'Q1', title: 'Foundation & Audit', desc: 'Deep architectural review, KPI definition, and "Quick Win" implementation.' },
-                                                    { q: 'Q2', title: 'Digital Expansion', desc: 'Deploying the new tech stack and launching automated marketing.' },
-                                                    { q: 'Q3', title: 'Scale & Automate', desc: 'Staff training on CRM systems and full operational handover.' }
-                                                ].map((step, idx) => (
-                                                    <div key={idx} className="relative z-10 flex gap-4">
-                                                        <div className="w-9 h-9 rounded-full bg-blue-600 border-4 border-slate-900 flex items-center justify-center font-bold text-xs shrink-0">{step.q}</div>
-                                                        <div>
-                                                            <div className="font-bold text-blue-200 text-lg">{step.title}</div>
-                                                            <div className="text-sm text-slate-400 mt-1">{step.desc}</div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <button className="w-full mt-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2">
-                                            <span>Download Executive Report (PDF)</span>
-                                            <ArrowRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </motion.div>
-            </section>
-
             {/* Blueprints Section */}
-            <section className="container mx-auto px-4 mb-24">
+            <section className="container mx-auto px-4 mb-24 mt-24">
                 <div className="text-center mb-16">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -390,7 +205,7 @@ export default function DigitalizationPage() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
-                    {t.digitalization.blueprints.items.map((item: any) => (
+                    {t.digitalization.blueprints.items.map((item: BlueprintItem) => (
                         <motion.div
                             key={item.id}
                             layout
@@ -495,7 +310,7 @@ export default function DigitalizationPage() {
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-8">
-                            {t.digitalization.tools.items.map((tool: any, index: number) => (
+                            {t.digitalization.tools.items.map((tool: ToolItem, index: number) => (
                                 <motion.div
                                     key={index}
                                     initial={{ opacity: 0, y: 20 }}
@@ -534,7 +349,7 @@ export default function DigitalizationPage() {
                             {t.digitalization.methodology.subtitle}
                         </p>
                         <div className="space-y-4">
-                            {t.digitalization.methodology.pillars.map((pillar: any, idx: number) => (
+                            {t.digitalization.methodology.pillars.map((pillar: PillarItem, idx: number) => (
                                 <motion.div key={idx} className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-start gap-4 hover:shadow-xl transition-all">
                                     <div className="w-10 h-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-black shrink-0">0{idx + 1}</div>
                                     <div>
@@ -579,7 +394,7 @@ export default function DigitalizationPage() {
                                 </div>
                                 <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4">{item.title}</h3>
                                 <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">{item.desc}</p>
-                                <div className="aspect-[4/3] rounded-3xl overflow-hidden relative border border-slate-100 dark:border-white/5">
+                                <div className="aspect-4/3 rounded-3xl overflow-hidden relative border border-slate-100 dark:border-white/5">
                                     <Image src={`/images/digitalization/${item.img}`} alt={item.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                                 </div>
                             </div>
@@ -590,7 +405,7 @@ export default function DigitalizationPage() {
 
             {/* Final CTA */}
             <section className="container mx-auto px-4 py-24">
-                <div className="relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-900 p-12 md:p-24 text-center">
+                <div className="relative rounded-[3rem] overflow-hidden bg-linear-to-br from-blue-600 to-indigo-900 p-12 md:p-24 text-center">
                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="relative z-10">
                         <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter uppercase font-outline">READY TO DOMINATE?</h2>

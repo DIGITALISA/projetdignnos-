@@ -16,11 +16,30 @@ export async function GET(request: NextRequest) {
         }
 
         await connectDB();
+        console.log(`[PROGRESS-FETCH] Searching for userId: "${userId}"`);
 
-        // جلب آخر سجل تشخيص للمستخدم
-        const diagnosis = await Diagnosis.findOne({ userId })
-            .sort({ updatedAt: -1 }) // الأحدث أولاً
-            .lean(); // استخدام lean() للأداء الأفضل
+        // جلب جميع سجلات التشخيص للمستخدم للمفاضلة بينهم
+        const docs = await Diagnosis.find({ 
+            $or: [
+                { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                { userId: userId.toString() }
+            ]
+        })
+            .sort({ updatedAt: -1 })
+            .lean();
+
+        if (docs.length === 0) {
+            console.log(`[PROGRESS-FETCH] No documents found for userId: "${userId}"`);
+            return NextResponse.json({
+                hasData: false,
+                message: 'No diagnosis data found for this user'
+            });
+        }
+
+        // إعطاء الأولوية للسجل الذي يحتوي على التقرير الاستراتيجي
+        const diagnosis = docs.find(d => !!d.analysis?.sciReport) || docs[0];
+
+        console.log(`[PROGRESS-FETCH] Picked document: ${diagnosis._id}, handledUserId: ${diagnosis.userId}, hasSCI: ${!!diagnosis.analysis?.sciReport}`);
 
         if (!diagnosis) {
             return NextResponse.json({
@@ -87,15 +106,20 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        // تحديث البيانات
+        // تحديث البيانات (بحث غير حساس لحالة الأحرف لضمان تحديث السجل الصحيح)
         const updated = await Diagnosis.findOneAndUpdate(
-            { userId },
+            { 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                    { userId: userId.toString() }
+                ]
+            },
             {
                 ...updateData,
                 updatedAt: new Date()
             },
             { new: true, upsert: false }
-        );
+        ).sort({ updatedAt: -1 });
 
         if (!updated) {
             return NextResponse.json(

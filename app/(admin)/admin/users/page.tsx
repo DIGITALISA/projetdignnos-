@@ -44,7 +44,7 @@ export default function ParticipantsManagement() {
 
     const fetchParticipants = async () => {
         try {
-            const res = await fetch("/api/admin/users");
+            const res = await fetch("/api/admin/users", { cache: "no-store" });
             const data = await res.json();
             if (Array.isArray(data)) {
                 setParticipants(data);
@@ -149,7 +149,7 @@ export default function ParticipantsManagement() {
                 plan: formData.plan,
                 canAccessCertificates: formData.canAccessCertificates,
                 canAccessRecommendations: formData.canAccessRecommendations,
-                rawPassword: formData.rawPassword
+                rawPassword: formData.password || formData.rawPassword
             };
 
             const res = await fetch("/api/admin/users", {
@@ -376,6 +376,10 @@ export default function ParticipantsManagement() {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email</label>
                                             <input required type="email" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password {editingUserId && "(Leave blank to keep)"}</label>
+                                            <input required={!editingUserId} type="password" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                                        </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">WhatsApp</label>
@@ -396,6 +400,7 @@ export default function ParticipantsManagement() {
                                             <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
                                                 <option>Free Trial</option>
                                                 <option>Pro Essential</option>
+                                                <option>Elite Full Pack</option>
                                             </select>
                                         </div>
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Target, CheckCircle, AlertCircle, TrendingUp, Lightbulb, ArrowRight, Award, Clock, Brain, Download } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
+import { Send, Loader2, CheckCircle, AlertCircle, Lightbulb, ArrowRight, Award, Clock, Brain, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -35,20 +35,38 @@ interface ScenarioResult {
     };
 }
 
+interface Role {
+    title: string;
+    [key: string]: unknown;
+}
+
+interface CVAnalysis {
+    [key: string]: unknown;
+}
+
+interface FinalReport {
+    overallScore: number;
+    readinessLevel: number;
+    rank: string;
+    skillScores: Record<string, number>;
+    keyStrengths: string[];
+    areasToImprove: string[];
+    recommendations: string;
+}
+
 export default function SimulationPage() {
     const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedRole, setSelectedRole] = useState<any>(null);
-    const [cvAnalysis, setCvAnalysis] = useState<any>(null);
-    const [generatedCV, setGeneratedCV] = useState<any>(null);
+    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+    const [cvAnalysis, setCvAnalysis] = useState<CVAnalysis | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [currentScenario, setCurrentScenario] = useState(1);
     const [totalScenarios] = useState(4); // 2 major + 2 minor scenarios
     const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
     const [simulationComplete, setSimulationComplete] = useState(false);
-    const [finalReport, setFinalReport] = useState<any>(null);
+    const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
     const [timeLeft, setTimeLeft] = useState(20 * 60); // 20 minutes in seconds
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -82,7 +100,7 @@ export default function SimulationPage() {
                                 const props = ['color', 'backgroundColor', 'borderColor', 'outlineColor', 'fill', 'stroke', 'backgroundImage', 'background'];
 
                                 props.forEach(prop => {
-                                    const value = (computed as any)[prop];
+                                    const value = (computed as unknown as Record<string, string>)[prop];
                                     if (value && (
                                         value.includes('lab(') ||
                                         value.includes('oklch(') ||
@@ -100,7 +118,7 @@ export default function SimulationPage() {
                                             else if (element.classList.contains('from-blue-600')) style.backgroundColor = '#2563eb';
                                             else style.backgroundColor = '#ffffff';
                                         } else {
-                                            (style as any)[prop] = 'transparent';
+                                            (style as unknown as Record<string, string>)[prop] = 'transparent';
                                         }
                                     }
                                 });
@@ -150,71 +168,7 @@ export default function SimulationPage() {
         }
     };
 
-    useEffect(() => {
-        const storedRole = localStorage.getItem('selectedRole');
-        const storedCV = localStorage.getItem('cvAnalysis');
-        const storedGeneratedDocs = localStorage.getItem('generatedDocuments');
-        const storedLanguage = localStorage.getItem('selectedLanguage');
-
-        console.log('[Simulation] Checking data:', {
-            hasRole: !!storedRole,
-            hasCV: !!storedCV,
-            hasDocs: !!storedGeneratedDocs
-        });
-
-        if (storedRole && storedCV) {
-            const role = JSON.parse(storedRole);
-            const cv = JSON.parse(storedCV);
-            const docs = storedGeneratedDocs ? JSON.parse(storedGeneratedDocs) : null;
-
-            setSelectedRole(role);
-            setCvAnalysis(cv);
-            setGeneratedCV(docs);
-            setSelectedLanguage(storedLanguage || 'en');
-            startSimulation(role, cv, docs, storedLanguage || 'en');
-        } else {
-            console.log('[Simulation] Missing data, redirecting');
-            router.push('/assessment/role-suggestions');
-        }
-    }, [router]);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
-    // Timer Effect
-    useEffect(() => {
-        if (simulationComplete || isLoading) return;
-
-        timerRef.current = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timerRef.current!);
-                    handleTimeout();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-        };
-    }, [currentScenario, simulationComplete, isLoading]);
-
-    const handleTimeout = () => {
-        const timeoutMessage = selectedLanguage === 'ar' ? "انتهى الوقت. سأنتقل للسيناريو التالي." :
-            selectedLanguage === 'fr' ? "Temps écoulé. Passage au scénario suivant." : "Time expired. Moving to next scenario.";
-        handleSendMessage(timeoutMessage);
-    };
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const startSimulation = async (role: any, cv: any, docs: any, language: string) => {
+    const startSimulation = useCallback(async (role: Role, cv: CVAnalysis, language: string) => {
         setIsLoading(true);
         setTimeLeft(20 * 60); // Reset timer
         try {
@@ -226,7 +180,6 @@ export default function SimulationPage() {
                 body: JSON.stringify({
                     selectedRole: role,
                     cvAnalysis: cv,
-                    generatedCV: docs,
                     language,
                     scenarioNumber: 1
                 }),
@@ -254,9 +207,115 @@ export default function SimulationPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const handleSendMessage = async (forceMessage?: string) => {
+    const saveProgress = useCallback(async (currentMessages: Message[], currentResults: ScenarioResult[], scenarioIndex: number) => {
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const userId = userProfile.email || userProfile.fullName;
+        
+        if (!userId) return;
+
+        try {
+            await fetch('/api/simulation/progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId,
+                    messages: currentMessages,
+                    results: currentResults,
+                    currentScenario: scenarioIndex,
+                    totalScenarios
+                }),
+            });
+        } catch (error) {
+            console.error('Error saving progress:', error);
+        }
+    }, [totalScenarios]);
+
+    useEffect(() => {
+        const loadInitialData = async () => {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
+            
+            let storedRole = localStorage.getItem('selectedRole');
+            let storedCV = localStorage.getItem('cvAnalysis');
+            let storedLanguage = localStorage.getItem('selectedLanguage');
+
+            // Try to load progress from server first
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
+                    const response = await res.json();
+
+                    if (response.hasData && response.data) {
+                        const data = response.data;
+                        
+                        // Restore base data if missing in storage but present in DB
+                        if (!storedRole && data.selectedRole) {
+                            storedRole = JSON.stringify(data.selectedRole);
+                            localStorage.setItem('selectedRole', storedRole);
+                        }
+                        if (!storedCV && data.cvAnalysis) {
+                            storedCV = JSON.stringify(data.cvAnalysis);
+                            localStorage.setItem('cvAnalysis', storedCV);
+                        }
+                        if (data.language) {
+                            storedLanguage = data.language;
+                            localStorage.setItem('selectedLanguage', data.language);
+                        }
+
+                        // If there is existing conversation, restore it
+                        if (data.simulationConversation && data.simulationConversation.length > 0) {
+                            const restoredMessages = data.simulationConversation.map((m: { 
+                                role: 'ai' | 'user', 
+                                content: string, 
+                                timestamp: string, 
+                                feedback?: { score: number, strengths: string[], improvements: string[] } 
+                            }) => ({
+                                ...m,
+                                timestamp: new Date(m.timestamp)
+                            }));
+                            setMessages(restoredMessages);
+                            setScenarioResults(data.simulationResults || []);
+                            setSelectedRole(data.selectedRole);
+                            setCvAnalysis(data.cvAnalysis);
+                            setSelectedLanguage(data.language || 'en');
+                            
+                            if (data.completionStatus?.simulationComplete) {
+                                setSimulationComplete(true);
+                            }
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load session from API", e);
+                }
+            }
+
+            // If we still don't have the base data, redirect
+            if (!storedRole || !storedCV) {
+                router.push('/assessment/role-suggestions');
+                return;
+            }
+
+            const role = JSON.parse(storedRole);
+            const cv = JSON.parse(storedCV);
+            setSelectedRole(role);
+            setCvAnalysis(cv);
+            setSelectedLanguage(storedLanguage || 'en');
+
+            // If no conversation restored from API, start fresh
+            startSimulation(role, cv, storedLanguage || 'en');
+        };
+
+        loadInitialData();
+    }, [router, startSimulation]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const handleSendMessage = useCallback(async (forceMessage?: string) => {
         const messageContent = forceMessage || inputValue;
         if (!messageContent.trim() || isLoading) return;
 
@@ -267,9 +326,14 @@ export default function SimulationPage() {
         };
 
         if (timerRef.current) clearInterval(timerRef.current);
-        setMessages(prev => [...prev, userMessage]);
+        
+        const initialMessages = [...messages, userMessage];
+        setMessages(initialMessages);
         setInputValue("");
         setIsLoading(true);
+        
+        // Save user message progress
+        saveProgress(initialMessages, scenarioResults, currentScenario);
 
         try {
             // Evaluate the response
@@ -297,7 +361,8 @@ export default function SimulationPage() {
                     feedback: result.evaluation
                 };
 
-                setMessages(prev => [...prev, feedbackMessage]);
+                const updatedMessages = [...initialMessages, feedbackMessage];
+                setMessages(updatedMessages);
 
                 // Store scenario result
                 const scenarioResult: ScenarioResult = {
@@ -307,7 +372,11 @@ export default function SimulationPage() {
                     aiEvaluation: result.evaluation
                 };
 
-                setScenarioResults(prev => [...prev, scenarioResult]);
+                const updatedResults = [...scenarioResults, scenarioResult];
+                setScenarioResults(updatedResults);
+                
+                // Save progress to DB
+                saveProgress(updatedMessages, updatedResults, currentScenario);
 
                 // Check if we should move to next scenario or finish
                 if (currentScenario < totalScenarios) {
@@ -324,7 +393,7 @@ export default function SimulationPage() {
                                 selectedRole,
                                 cvAnalysis,
                                 scenarioNumber: nextScenario,
-                                previousResults: [...scenarioResults, scenarioResult],
+                                previousResults: updatedResults,
                                 language: selectedLanguage,
                             }),
                         });
@@ -332,23 +401,29 @@ export default function SimulationPage() {
                         const nextResult = await nextResponse.json();
 
                         if (nextResult.success) {
-                            setMessages(prev => [...prev, {
-                                role: 'ai',
+                            const finalMessages = [...updatedMessages, {
+                                role: 'ai' as const,
                                 content: nextResult.scenario,
                                 timestamp: new Date(),
-                            }]);
+                            }];
+                            setMessages(finalMessages);
+                            saveProgress(finalMessages, updatedResults, nextScenario);
                         }
                     }, 2000);
                 } else {
                     // Complete simulation
                     setTimeout(async () => {
+                        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                        
+                        // Persist diagnosis to MongoDB
                         const completeResponse = await fetch('/api/simulation/complete', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
+                                email: userProfile.email,
                                 selectedRole,
                                 cvAnalysis,
-                                scenarioResults: [...scenarioResults, scenarioResult],
+                                scenarioResults: updatedResults,
                                 language: selectedLanguage,
                             }),
                         });
@@ -356,14 +431,21 @@ export default function SimulationPage() {
                         const completeResult = await completeResponse.json();
 
                         if (completeResult.success) {
+                            // Update local storage to unlock sections immediately
+                            const currentProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                            currentProfile.isDiagnosisComplete = true;
+                            localStorage.setItem('userProfile', JSON.stringify(currentProfile));
+
                             setFinalReport(completeResult.report);
                             setSimulationComplete(true);
 
-                            setMessages(prev => [...prev, {
-                                role: 'ai',
+                            const finalMsgs = [...updatedMessages, {
+                                role: 'ai' as const,
                                 content: completeResult.completionMessage,
                                 timestamp: new Date(),
-                            }]);
+                            }];
+                            setMessages(finalMsgs);
+                            saveProgress(finalMsgs, updatedResults, currentScenario + 1);
                         }
                     }, 2000);
                 }
@@ -373,6 +455,38 @@ export default function SimulationPage() {
         } finally {
             setIsLoading(false);
         }
+    }, [inputValue, isLoading, selectedRole, cvAnalysis, currentScenario, messages, selectedLanguage, totalScenarios, scenarioResults, saveProgress]);
+
+    const handleTimeout = useCallback(() => {
+        const timeoutMessage = selectedLanguage === 'ar' ? "انتهى الوقت. سأنتقل للسيناريو التالي." :
+            selectedLanguage === 'fr' ? "Temps écoulé. Passage au scénario suivant." : "Time expired. Moving to next scenario.";
+        handleSendMessage(timeoutMessage);
+    }, [selectedLanguage, handleSendMessage]);
+
+    // Timer Effect
+    useEffect(() => {
+        if (simulationComplete || isLoading) return;
+
+        timerRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current!);
+                    handleTimeout();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [currentScenario, simulationComplete, isLoading, handleTimeout]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
     // Simulation Complete Screen
@@ -383,11 +497,11 @@ export default function SimulationPage() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-8"
+                        className="bg-linear-to-br from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-8"
                     >
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-6">
-                                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
                                     <Award className="w-10 h-10 text-purple-600" />
                                 </div>
                                 <div className="text-left">
@@ -423,15 +537,15 @@ export default function SimulationPage() {
                         <h2 className="text-2xl font-bold text-slate-900 mb-6">Overall Performance</h2>
 
                         <div className="grid md:grid-cols-3 gap-6 mb-8">
-                            <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                            <div className="text-center p-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
                                 <div className="text-5xl font-black text-blue-600 mb-2">{finalReport.overallScore}</div>
                                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overall Score</div>
                             </div>
-                            <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
+                            <div className="text-center p-6 bg-linear-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
                                 <div className="text-5xl font-black text-green-600 mb-2">{finalReport.readinessLevel}%</div>
                                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Role Readiness</div>
                             </div>
-                            <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
+                            <div className="text-center p-6 bg-linear-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
                                 <div className="text-5xl font-black text-purple-600 mb-2">{finalReport.rank}</div>
                                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Performance Rank</div>
                             </div>
@@ -441,7 +555,7 @@ export default function SimulationPage() {
                         <div className="space-y-6">
                             <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Skill Breakdown</h3>
                             <div className="grid md:grid-cols-2 gap-x-12 gap-y-6">
-                                {Object.entries(finalReport.skillScores || {}).map(([skill, score]: [string, any]) => (
+                                {Object.entries(finalReport.skillScores || {}).map(([skill, score]: [string, number]) => (
                                     <div key={skill} className="space-y-3">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm font-bold text-slate-700 capitalize">{skill.replace(/([A-Z])/g, ' $1').trim()}</span>
@@ -451,7 +565,7 @@ export default function SimulationPage() {
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${(score / 10) * 100}%` }}
-                                                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-1000"
+                                                className="bg-linear-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-1000"
                                             />
                                         </div>
                                     </div>
@@ -475,7 +589,7 @@ export default function SimulationPage() {
                             <ul className="space-y-3">
                                 {finalReport.keyStrengths?.map((strength: string, i: number) => (
                                     <li key={i} className="flex items-start gap-3 p-3 bg-green-50 rounded-xl text-slate-700 text-sm font-medium">
-                                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                                         <span>{strength}</span>
                                     </li>
                                 ))}
@@ -495,7 +609,7 @@ export default function SimulationPage() {
                             <ul className="space-y-3">
                                 {finalReport.areasToImprove?.map((area: string, i: number) => (
                                     <li key={i} className="flex items-start gap-3 p-3 bg-orange-50 rounded-xl text-slate-700 text-sm font-medium">
-                                        <AlertCircle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                                        <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                                         <span>{area}</span>
                                     </li>
                                 ))}
@@ -508,7 +622,7 @@ export default function SimulationPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-0.5"
+                        className="bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl p-0.5"
                     >
                         <div className="bg-white rounded-[calc(1rem-2px)] p-8">
                             <div className="flex items-center gap-3 mb-6">

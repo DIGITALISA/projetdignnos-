@@ -4,26 +4,14 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Sparkles,
-    BookOpen,
     Target,
     Zap,
-    MessageSquare,
     CheckCircle2,
-    ChevronRight,
     Loader2,
     BrainCircuit,
-    Lightbulb,
-    FileQuestion,
     ArrowRight,
-    Award,
-    ShieldAlert,
-    Gamepad2,
-    Flag,
-    Trophy,
-    TrendingUp,
     ScrollText,
-    Play,
-    ChevronDown
+    Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -69,7 +57,7 @@ interface MentorContent {
 }
 
 export default function MentorPage() {
-    const { t, dir } = useLanguage();
+    const { dir } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [content, setContent] = useState<MentorContent | null>(null);
@@ -108,10 +96,18 @@ export default function MentorPage() {
 
             if (data.success) {
                 setContent(data.guidance);
+                // Reset interactive states for the new content
+                setCurrentChallenge(0);
+                setSimChoices([]);
+                setShowCons(false);
+                setActiveModule(0);
+                setQuizAnswers({});
+                setShowQuizResults({});
+                setActiveSection("modules");
             } else {
                 setError(data.error || "Failed to generate guidance.");
             }
-        } catch (err) {
+        } catch {
             setError("An error occurred.");
         } finally {
             setGenerating(false);
@@ -149,13 +145,13 @@ export default function MentorPage() {
                         </p>
                     </div>
 
-                    {!content && !generating && (
+                    {!generating && (
                         <button
                             onClick={generateMentorContent}
                             className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black hover:bg-blue-600 transition-all flex items-center gap-3 shadow-lg active:scale-95"
                         >
-                            <Play size={18} fill="white" />
-                            Start Path
+                            {content ? <Zap size={18} /> : <Play size={18} fill="white" />}
+                            {content ? "Regenerate Path" : "Start Path"}
                         </button>
                     )}
                 </div>
@@ -262,7 +258,7 @@ export default function MentorPage() {
                                                 Practical Drill
                                             </h4>
                                             <p className="text-slate-600 font-bold italic">
-                                                "{content.modules[activeModule].practicalExercise}"
+                                                &quot;{content.modules[activeModule].practicalExercise}&quot;
                                             </p>
                                         </div>
 
@@ -325,7 +321,7 @@ export default function MentorPage() {
                                 </div>
 
                                 <div className="space-y-8">
-                                    <div className="p-10 rounded-[2rem] bg-slate-900 text-white shadow-2xl relative overflow-hidden">
+                                    <div className="p-10 rounded-4xl bg-slate-900 text-white shadow-2xl relative overflow-hidden">
                                         <div className="relative z-10 space-y-8">
                                             <p className="text-2xl font-bold leading-tight">{content.gamifiedSimulation.challenges[currentChallenge].situation}</p>
                                             <div className="grid gap-3">
@@ -360,7 +356,7 @@ export default function MentorPage() {
                                                             : "bg-red-500/20 text-red-100 border-red-500/20"
                                                     )}
                                                 >
-                                                    <p className="italic">"{content.gamifiedSimulation.challenges[currentChallenge].consequence}"</p>
+                                                    <p className="italic">&quot;{content.gamifiedSimulation.challenges[currentChallenge].consequence}&quot;</p>
                                                     <button
                                                         onClick={() => {
                                                             if (currentChallenge < content.gamifiedSimulation.challenges.length - 1) {
@@ -384,7 +380,7 @@ export default function MentorPage() {
                                 <div className="p-12 border border-slate-100 rounded-[2.5rem] bg-white space-y-8">
                                     <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{content.globalCaseStudy.title}</h4>
                                     <div className="p-8 bg-blue-50/50 rounded-2xl border-l-4 border-blue-600 text-slate-700 font-medium italic">
-                                        "{content.globalCaseStudy.scenario}"
+                                        &quot;{content.globalCaseStudy.scenario}&quot;
                                     </div>
                                     <div className="space-y-4">
                                         <p className="font-bold text-slate-900 uppercase text-xs tracking-widest">The Dilemma</p>
@@ -447,7 +443,7 @@ export default function MentorPage() {
                                     {content.advice.map((adv, i) => (
                                         <div key={i} className="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 space-y-4 hover:border-blue-200 transition-colors">
                                             <Sparkles className="text-blue-600" size={24} />
-                                            <p className="text-xl font-black text-slate-900 leading-tight">"{adv}"</p>
+                                            <p className="text-xl font-black text-slate-900 leading-tight">&quot;{adv}&quot;</p>
                                         </div>
                                     ))}
                                 </div>

@@ -23,8 +23,10 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        let evaluation = null;
-        if (latestDiagnosis.currentStep === 'interview_complete' || latestDiagnosis.currentStep === 'completed') {
+        let evaluation = latestDiagnosis.interviewEvaluation || null;
+        
+        // If not in Diagnosis, try InterviewResult (legacy compatibility)
+        if (!evaluation && (latestDiagnosis.currentStep === 'interview_complete' || latestDiagnosis.currentStep === 'completed')) {
             const latestResult = await InterviewResult.findOne({ userId }).sort({ createdAt: -1 });
             if (latestResult) {
                 evaluation = latestResult.evaluation;
@@ -38,7 +40,11 @@ export async function GET(request: NextRequest) {
             analysis: latestDiagnosis.analysis,
             language: latestDiagnosis.language,
             conversationHistory: latestDiagnosis.conversationHistory,
+            simulationConversation: latestDiagnosis.simulationConversation,
+            simulationResults: latestDiagnosis.simulationResults,
+            roleSuggestions: latestDiagnosis.roleSuggestions,
             totalQuestions: latestDiagnosis.totalQuestions,
+            completionStatus: latestDiagnosis.completionStatus,
             evaluation
         });
 

@@ -1,72 +1,126 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Zap, Crown, Shield, ArrowRight, Star, Clock, Globe } from "lucide-react";
+import { Check, Zap, Crown, Shield, ArrowRight, Star, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const plans = [
     {
-        name: "Pack Initial",
+        name: "Explorer",
         badge: "Découverte",
         price: "Gratuit",
-        duration: "Accès 3 heures",
-        description: "Idéal pour tester l'interface et découvrir la puissance du protocole.",
+        duration: "Accès permanent",
+        description: "Idéal pour découvrir la plateforme et explorer vos premières opportunités.",
         features: [
-            "Accès complet pendant 3 heures",
-            "Audit initial IA (CV & Profil)",
-            "Accès aux Simulations (Limité)",
-            "Accès aux Workshops (Limité)",
-            "Assistance communautaire"
+            "1 Analyse CV complète (AI-powered)",
+            "3 questions/jour au Conseiller IA",
+            "Accès à 3 modèles professionnels",
+            "5 articles du Centre de Connaissance",
+            "Roadmap de carrière basique",
+            "Badge Explorer sur votre profil"
         ],
-        type: "Free Trial",
+        type: "Explorer",
         color: "slate",
-        icon: Clock
+        icon: Globe
     },
     {
-        name: "Pack Pro Essential",
-        badge: "Sélection Executive",
-        price: "30€",
-        duration: "/ par an",
-        description: "Pour les cadres souhaitant garder leurs outils IA à portée de main toute l'année.",
+        name: "Professional",
+        badge: "Pour les Professionnels",
+        price: "39€",
+        duration: "/ mois",
+        priceYearly: "399€/an",
+        savings: "Économisez 69€",
+        description: "Pour les professionnels ambitieux qui veulent un développement continu.",
         features: [
-            "Outils Audit IA (Utilisation illimitée)",
-            "Accès aux outils AI Advisor & Mentor",
-            "Simulations (Payantes à l'unité)",
-            "Workshops (Payants à l'unité)",
-            "Mise à jour régulière des contenus"
+            "Analyse CV illimitée",
+            "Conseiller IA illimité 24/7",
+            "Bibliothèque complète d'outils",
+            "1 Job Alignment gratuit/mois",
+            "Simulations (149€/unité)",
+            "Workshops (49€-99€/unité)",
+            "Support email (48h)",
+            "Badge Professional"
         ],
-        type: "Pro Essential",
+        type: "Professional",
         color: "blue",
         icon: Zap,
+        popular: false
+    },
+    {
+        name: "Executive",
+        badge: "Best Value 🔥",
+        price: "79€",
+        duration: "/ mois",
+        priceYearly: "799€/an",
+        savings: "Économisez 149€",
+        description: "Le choix idéal pour les leaders ambitieux qui visent l'excellence.",
+        features: [
+            "Tout de Professional +",
+            "Job Alignment illimité",
+            "2 Simulations gratuites/mois",
+            "1 Workshop gratuit/mois",
+            "Lettre de Recommandation officielle",
+            "Rapport SCI (Strategic Career Intelligence)",
+            "1 Session de conseil/mois (30min)",
+            "Support prioritaire (24h)",
+            "Badge Executive doré",
+            "Accès anticipé aux nouvelles fonctionnalités"
+        ],
+        type: "Executive",
+        color: "indigo",
+        icon: Star,
         popular: true
     },
     {
-        name: "Elite Full Pack",
-        badge: "Immersion Totale",
-        price: "65€",
-        duration: "/ par mois",
-        description: "L'accompagnement haut de gamme pour une transformation de carrière radicale.",
+        name: "Elite",
+        badge: "VIP Total Immersion",
+        price: "199€",
+        duration: "/ mois",
+        priceYearly: "1,999€/an",
+        savings: "Économisez 389€",
+        description: "L'accompagnement VIP complet pour les dirigeants et cadres supérieurs.",
         features: [
-            "Simulation & Coaching Illimité",
-            "Tous les Workshops Exécutifs inclus",
-            "Accompagnement Expert Dédié (1-on-1)",
-            "Lettre de Recommandation Elite",
-            "Conseil Stratégique Hebdomadaire",
-            "Engagement de 12 mois requis"
+            "Tout de Executive +",
+            "Simulations illimitées",
+            "Workshops illimités",
+            "4 Sessions de conseil/mois (1h chacune)",
+            "Expert dédié personnel",
+            "Support VIP (6h + WhatsApp)",
+            "Rapports mensuels personnalisés",
+            "Révision LinkedIn Profile",
+            "Coaching négociation salariale",
+            "Badge Elite platine",
+            "Invitations événements exclusifs",
+            "Accès à vie au contenu (même après annulation)"
         ],
-        type: "Elite Full Pack",
+        type: "Elite",
         color: "amber",
         icon: Crown
     }
 ];
 
+interface UserProfile {
+    role: string;
+    [key: string]: unknown;
+}
+
 export default function SubscriptionPage() {
-    const [userProfile, setUserProfile] = useState<any>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     useEffect(() => {
-        const saved = localStorage.getItem("userProfile");
-        if (saved) setUserProfile(JSON.parse(saved));
+        // Use Promise to move state update out of synchronous effect execution
+        // to avoid "cascading renders" lint error
+        Promise.resolve().then(() => {
+            const saved = localStorage.getItem("userProfile");
+            if (saved) {
+                try {
+                    setUserProfile(JSON.parse(saved));
+                } catch (e) {
+                    console.error("Error parsing user profile", e);
+                }
+            }
+        });
     }, []);
 
     return (
@@ -86,7 +140,7 @@ export default function SubscriptionPage() {
                         Propulsez votre <span className="text-blue-600">Carrière</span>
                     </h1>
                     <p className="text-slate-500 font-medium max-w-2xl mx-auto text-lg leading-relaxed">
-                        Chaque pack est conçu pour répondre à un niveau d'exigence spécifique. Choisissez le protocole qui correspond à vos ambitions.
+                        Chaque pack est conçu pour répondre à un niveau d&apos;exigence spécifique. Choisissez le protocole qui correspond à vos ambitions.
                     </p>
                 </div>
 
@@ -103,13 +157,13 @@ export default function SubscriptionPage() {
                                 transition={{ delay: idx * 0.1 }}
                                 className={cn(
                                     "relative bg-white rounded-[2.5rem] p-10 flex flex-col border transition-all duration-500 hover:shadow-2xl",
-                                    plan.popular ? "border-blue-500 shadow-xl shadow-blue-500/10 ring-4 ring-blue-50" : "border-slate-100 shadow-lg shadow-slate-200/50",
+                                    plan.popular ? "border-indigo-500 shadow-xl shadow-indigo-500/10 ring-4 ring-indigo-50" : "border-slate-100 shadow-lg shadow-slate-200/50",
                                     isCurrent && "border-slate-900 ring-4 ring-slate-100"
                                 )}
                             >
                                 {plan.popular && (
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
-                                        Recommandé
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                                        Best Value 🔥
                                     </div>
                                 )}
 
@@ -124,8 +178,9 @@ export default function SubscriptionPage() {
                                     <div className={cn(
                                         "w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-inner transition-transform group-hover:scale-110",
                                         plan.color === 'blue' ? "bg-blue-50 text-blue-600" :
-                                            plan.color === 'amber' ? "bg-amber-50 text-amber-600" :
-                                                "bg-slate-50 text-slate-600"
+                                            plan.color === 'indigo' ? "bg-indigo-50 text-indigo-600" :
+                                                plan.color === 'amber' ? "bg-amber-50 text-amber-600" :
+                                                    "bg-slate-50 text-slate-600"
                                     )}>
                                         <plan.icon size={28} />
                                     </div>
@@ -149,8 +204,9 @@ export default function SubscriptionPage() {
                                             <div className={cn(
                                                 "w-5 h-5 rounded-full flex items-center justify-center mt-0.5 shrink-0",
                                                 plan.color === 'blue' ? "bg-blue-100 text-blue-600" :
-                                                    plan.color === 'amber' ? "bg-amber-100 text-amber-600" :
-                                                        "bg-slate-100 text-slate-600"
+                                                    plan.color === 'indigo' ? "bg-indigo-100 text-indigo-600" :
+                                                        plan.color === 'amber' ? "bg-amber-100 text-amber-600" :
+                                                            "bg-slate-100 text-slate-600"
                                             )}>
                                                 <Check size={12} strokeWidth={3} />
                                             </div>
@@ -165,8 +221,9 @@ export default function SubscriptionPage() {
                                         "w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl",
                                         isCurrent ? "bg-slate-100 text-slate-400 cursor-not-allowed" :
                                             plan.color === 'blue' ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20" :
-                                                plan.color === 'amber' ? "bg-slate-900 hover:bg-black text-white shadow-slate-900/20" :
-                                                    "bg-white border-2 border-slate-100 text-slate-900 hover:bg-slate-50"
+                                                plan.color === 'indigo' ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20" :
+                                                    plan.color === 'amber' ? "bg-slate-900 hover:bg-black text-white shadow-slate-900/20" :
+                                                        "bg-white border-2 border-slate-100 text-slate-900 hover:bg-slate-50"
                                     )}
                                 >
                                     {isCurrent ? "Mandat Actif" : "S'inscrire Maintenant"}

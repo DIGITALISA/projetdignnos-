@@ -4,9 +4,11 @@ import { useLanguage } from "@/components/providers/LanguageProvider";
 import { X, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export function SaleBanner() {
     const { t, dir } = useLanguage();
+    const pathname = usePathname();
     const [isVisible, setIsVisible] = useState(false);
 
     // Show after a short delay
@@ -16,6 +18,9 @@ export function SaleBanner() {
         }, 1000);
         return () => clearTimeout(timer);
     }, []);
+
+    // Don't show on roadmap page
+    if (pathname === '/roadmap') return null;
 
     if (!isVisible) return null;
 

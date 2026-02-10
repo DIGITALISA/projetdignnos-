@@ -35,6 +35,16 @@ const DiagnosisSchema = new Schema({
         },
         immediateActions: [String],
         careerPaths: [String],
+        expertAdvice: {
+            suggestedWorkshops: [String],
+            suggestedTrainings: [String],
+            strategicBrief: String,
+            evolutionNote: String
+        },
+        sciReport: {
+            type: Object, // Stores the 8-section structured report
+            default: null
+        },
         overallScore: Number,
         verdict: String
     },
@@ -61,9 +71,15 @@ const DiagnosisSchema = new Schema({
         title: String,
         description: String,
         matchScore: Number,
+        matchPercentage: Number,
+        category: String,
+        strengths: [String],
+        weaknesses: [String],
+        requiredCompetencies: [String],
         requiredSkills: [String],
         salaryRange: String,
-        growthPotential: String
+        growthPotential: String,
+        timeToReady: String
     }],
     selectedRole: {
         type: Schema.Types.Mixed, // يحفظ كائن الدور المختار كامل
@@ -86,16 +102,27 @@ const DiagnosisSchema = new Schema({
         content: String,
         timestamp: Date
     }],
+    simulationConversation: [{
+        role: String,
+        content: String,
+        timestamp: Date,
+        feedback: Schema.Types.Mixed
+    }],
+    simulationResults: [Schema.Types.Mixed],
     // حالة الإكمال لكل مرحلة
     completionStatus: {
         cvAnalysisComplete: { type: Boolean, default: false },
         interviewComplete: { type: Boolean, default: false },
         roleDiscoveryComplete: { type: Boolean, default: false },
         roleSelected: { type: Boolean, default: false },
+        simulationComplete: { type: Boolean, default: false },
         cvGenerationComplete: { type: Boolean, default: false },
+        strategicReportComplete: { type: Boolean, default: false },
     }
 }, {
     timestamps: true,
+    strict: false, // Ensure we can save extra fields if needed
+    versionKey: false, // Disable versioning to avoid VersionError
 });
 
 const Diagnosis = models.Diagnosis || model("Diagnosis", DiagnosisSchema);

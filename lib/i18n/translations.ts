@@ -91,26 +91,98 @@ By signing below, you agree to start the consulting process.
                 }
             }
         },
+        system: {
+            title: "The Executive Operating System",
+            subtitle: "A complete ecosystem designed to transform potential into confirmed executive power.",
+            stages: [
+                { id: "01", title: "Audit", desc: "AI-driven skill gap analysis" },
+                { id: "02", title: "Strategy", desc: "Personalized roadmap generation" },
+                { id: "03", title: "Execution", desc: "Real-world mission simulations" },
+                { id: "04", title: "Authority", desc: "Official certification & placement" }
+            ]
+        },
+        audit: {
+            badge: "Phase 1: Diagnosis",
+            title: "The Forensic Career Audit",
+            desc: "Stop guessing. Our AI deep-scans your profile against 50+ executive parameters to identify exactly where you stand versus where you want to be.",
+            stat: "98% Accuracy",
+            statDesc: "in skill gap identification",
+            features: [
+                "Analyzes your CV against global executive benchmarks.",
+                "Identifies hidden skill gaps blocking your promotion.",
+                "Generates a personalized 90-day execution roadmap."
+            ],
+            forensicsLabel: "AI Forensics Active",
+            scanningLabel: "Scanning 50+ Parameters"
+        },
+        missions: {
+            badge: "Phase 2: Simulation",
+            title: "Corporate War Games",
+            desc: "Theory is for students. You will execute real-world corporate missions—handling crises, managing P&L, and leading teams—under expert observation.",
+            stat: "Risk-Free",
+            statDesc: "Failure here saves you millions later",
+            crisisLabel: "Live Crisis Scenario",
+            features: [
+                "Navigate high-pressure boardroom scenarios.",
+                "Make critical financial & operational decisions.",
+                "Receive instant feedback from AI & human experts."
+            ]
+        },
+        assets: {
+            badge: "Phase 3: Authority",
+            title: "Bankable Career Proof",
+            desc: "Don't just say you're good. Prove it. Graduate with a 'Strategic Performance Profile' that validates your capability to recruiters and boards.",
+            stat: "Verified",
+            statDesc: "Blockchain-ready credentials",
+            p1_title: "Verified Performance History",
+            p1_desc: "Every decision you make in simulations is recorded in a secure ledger, proving your competence to recruiters.",
+            p2_title: "Boardroom-Ready Portfolio",
+            p2_desc: "Export a comprehensive portfolio of your strategic work, not just a generic resume."
+        },
         cert: {
-            badge: "EXECUTIVE ACCREDITATION",
-            title: "Professional Accreditation & Endorsement",
-            desc: "Receive an official professional endorsement and accreditation that validates your strategic capabilities and executive readiness.",
-            check1: "Professional Executive Accreditation",
-            check2: "Strategic Endorsement",
-            check3: "Validated by Global Standards",
-            cta: "Get Accredited",
-            cardTitle: "Executive Accreditation",
+            badge: "STRATEGIC WARRANT",
+            title: "Official Accreditation",
+            desc: "This is not a certificate of completion. It is a Warrant of Competence, verifying that you have successfully executed executive-level mandates.",
+            cardTitle: "EXECUTIVE WARRANT",
+            check1: "Internationally Recognized Standards",
+            check2: "Verifiable Digital Ledger",
+            check3: "Endorsed by Industry Leaders",
+            cta: "Get Certified",
             cardSubtitle: "STRATEGIC ENDORSEMENT",
-            cardFooter: "\"Accredited for demonstrating exceptional strategic capabilities and executive readiness.\""
+            cardFooter: "\"Accredited for demonstrating exceptional strategic capabilities and executive readiness.\"",
+            warrant_text: "This warrant certifies that the holder has successfully demonstrated executive-level strategic competence.",
+            authorized: "Authorized by System",
+            ledger: "Secure Ledger ID"
+        },
+        mandate: {
+            title: "SERVICE MANDATE",
+            ref: "Ref",
+            intro: "This document constitutes the legal agreement governing your access to the {plan} plan. By accepting it, you engage a service mandate with DIGITALISA - MA-TRAINING-CONSULTING.",
+            section1_title: "1. Subject of the Mandate",
+            section1_desc: "The present mandate is entrusted to DIGITALISA for the strategic support of the CLIENT within the framework of the {plan} plan. This service specifically includes:",
+            section2_title: "2. Financial Conditions",
+            section2_desc: "Access to this mandate is conditioned by the payment of the sum of {price}. Payment is due at the time of subscription and guarantees immediate access to the services described in Article 1.",
+            section3_title: "3. Intellectual Property & Confidentiality",
+            section3_desc: "All reports, diagnostics, and methodologies (including AI algorithms) remain the exclusive property of DIGITALISA. The CLIENT benefits from a personal use license. The CLIENT agrees to maintain the confidentiality of the provided strategic documents.",
+            section4_title: "4. Data Protection (GDPR)",
+            section4_desc: "Your professional data is processed in accordance with our Privacy Policy. It is used exclusively for the personalization of your support and is never shared with third parties.",
+            signature_clause_title: "Electronic Signature Clause",
+            signature_clause_desc: "By clicking the acceptance button below, you acknowledge having read the General Terms of Use and having accepted the terms of this mandate. This action is equivalent to a handwritten electronic signature according to Article 1367 of the Civil Code.",
+            ready_for_auth: "Document ready for digital authentication",
+            scroll_to_sign: "Scroll to sign the mandate ↓",
+            footer_title: "Acceptance of the Mandate",
+            footer_desc: "A PDF copy of this contract will be sent to your email after confirmation.",
+            print: "Print",
+            accept: "I accept the mandate"
         },
         footer: {
             rights: "© 2026 MA-TRAINING-CONSULTING.",
             tagline: "Global Consulting & Training Excellence."
         },
         saleBanner: {
-            title: "Licensed Operations Partner",
-            desc: "We provide a complete, ready-to-sell system combining learning, consulting, and practical application.\n\nWe Handle:\n• Full Content & Tech Stack\n• Structured Methodology\n• Operational System\n\nYour Role:\n• Get Full Partner Access\n• Sell at Fixed Price\n• Keep 100% of Revenue\n\n🔒 Limited to 5 Partners Only.\nThis is not a course. It is a business-in-a-box.",
-            cta: "Apply for Partnership",
+            title: "Join Our Expert Team",
+            desc: "We are constantly looking for independent consultants, experts, and trainers in all fields with extensive experience. We also need independent animators who excel in the art of public speaking, explanation, and presentation.",
+            cta: "Apply as an Expert",
             close: "Close"
         },
         demoDisclaimer: {
@@ -145,7 +217,7 @@ By signing below, you agree to start the consulting process.
             ctaVideo: "Explore Our Approach",
             essence: {
                 title: "Why Choose MA-TRAINING-CONSULTING",
-                desc: "MA-TRAINING-CONSULTING is your Global Partner. We combine expert consulting wih practical training.",
+                desc: "MA-TRAINING-CONSULTING is your Global Partner. We combine expert consulting with practical workshops.",
                 precision: "Data-driven assessment of your leadership potential and development needs.",
                 recognition: "Internationally recognized certifications valued by global employers.",
                 speed: "Accelerated career growth through targeted, personalized development.",
@@ -196,7 +268,7 @@ By signing below, you agree to start the consulting process.
                 }
             },
             ctaFinal: {
-                title: "Stop Training. Start Dominating.",
+                title: "Stop Learning. Start Dominating.",
                 desc: "Join the elite professionals who have redefined their career trajectory using the Success Protocol.",
                 btnStart: "Begin My Mandate",
                 btnPlans: "View Access Plans"
@@ -207,44 +279,78 @@ By signing below, you agree to start the consulting process.
             title: "Propel Your Leadership Journey",
             subtitle: "Select the mandate that centers on your professional growth and specific strategic requirements.",
             tiers: {
-                initial: {
-                    name: "Initial Pack",
+                explorer: {
+                    name: "Explorer",
                     badge: "Discovery",
                     price: "Free",
-                    duration: "3-Hour Access",
+                    duration: "Forever",
                     features: [
-                        "3-Hour Protocol Access",
-                        "AI Initial Audit (CV & Profile)",
-                        "Limited Simulations Pool",
-                        "Limited Workshops Access",
-                        "Community Assistance"
+                        "1 Complete CV Analysis (AI-powered)",
+                        "3 questions/day to AI Advisor",
+                        "Access to 3 professional templates",
+                        "5 Knowledge Base articles",
+                        "Basic career roadmap",
+                        "Explorer badge on profile"
                     ]
                 },
-                pro: {
-                    name: "Pro Essential",
-                    badge: "Executive Selection",
-                    price: "30€",
-                    duration: "/ year",
+                professional: {
+                    name: "Professional",
+                    badge: "For Professionals",
+                    price: "39€",
+                    duration: "/ month",
+                    priceYearly: "399€/year",
+                    savings: "Save 69€",
                     features: [
-                        "Unlimited AI Audit Tools",
-                        "Full AI Advisor Access",
-                        "Pay-per-item Simulations",
-                        "Pay-per-item Workshops",
-                        "Strategic Content Updates"
+                        "Unlimited CV Analysis",
+                        "Unlimited AI Advisor 24/7",
+                        "Complete tools library",
+                        "1 Free Job Alignment/month",
+                        "Simulations (149€/unit)",
+                        "Workshops (49€-99€/unit)",
+                        "Email support (48h)",
+                        "Professional badge"
+                    ]
+                },
+                executive: {
+                    name: "Executive",
+                    badge: "Best Value 🔥",
+                    price: "79€",
+                    duration: "/ month",
+                    priceYearly: "799€/year",
+                    savings: "Save 149€",
+                    features: [
+                        "Everything in Professional +",
+                        "Unlimited Job Alignment",
+                        "2 Free Simulations/month",
+                        "1 Free Workshop/month",
+                        "Official Recommendation Letter",
+                        "SCI Report (Strategic Career Intelligence)",
+                        "1 Consultation session/month (30min)",
+                        "Priority support (24h)",
+                        "Golden Executive badge",
+                        "Early access to new features"
                     ]
                 },
                 elite: {
-                    name: "Elite Full Pack",
-                    badge: "Total Immersion",
-                    price: "65€",
+                    name: "Elite",
+                    badge: "VIP Total Immersion",
+                    price: "199€",
                     duration: "/ month",
+                    priceYearly: "1,999€/year",
+                    savings: "Save 389€",
                     features: [
-                        "Unlimited Simulations & Coaching",
-                        "All Executive Workshops Included",
-                        "Dedicated Expert Support (1-on-1)",
-                        "Elite Recommendation Letter",
-                        "Weekly Strategic Advisory",
-                        "12-Month Mandate Required"
+                        "Everything in Executive +",
+                        "Unlimited Simulations",
+                        "Unlimited Workshops",
+                        "4 Consultation sessions/month (1h each)",
+                        "Dedicated personal expert",
+                        "VIP support (6h + WhatsApp)",
+                        "Monthly personalized reports",
+                        "LinkedIn Profile review",
+                        "Salary negotiation coaching",
+                        "Platinum Elite badge",
+                        "Exclusive events invitations",
+                        "Lifetime content access (even after cancellation)"
                     ]
                 }
             },
@@ -281,7 +387,7 @@ By signing below, you agree to start the consulting process.
             topLearner: "Top 5% Talent",
             stats: {
                 skillsGained: "Skills Verified",
-                hoursLearned: "Training Hours",
+                hoursLearned: "Workshop Hours",
                 certificates: "Certificates"
             },
             currentFocus: {
@@ -298,12 +404,14 @@ By signing below, you agree to start the consulting process.
                     diagnosisDesc: "Professional profile analysis and gap identification.",
                     simulation: "Leadership Simulations",
                     simulationDesc: "Crisis management and decision-making evaluation.",
-                    training: "Development Programs",
-                    trainingDesc: "Customized leadership development and coaching.",
+                    training: "Executive Workshops",
+                    trainingDesc: "Tailored individual workshops and high-stakes coaching.",
                     library: "Resources & Tools",
                     libraryDesc: "Access to premium frameworks and toolkits.",
                     expert: "Executive Network",
-                    expertDesc: "Connect with global leaders and mentors."
+                    expertDesc: "Connect with global leaders and mentors.",
+                    strategicReport: "Strategic Audit",
+                    strategicReportDesc: "Executive-grade career intelligence report."
                 }
             },
             recommended: {
@@ -328,12 +436,21 @@ By signing below, you agree to start the consulting process.
                 library: "Tools & Resources",
                 expert: "Executive Network",
                 certificates: "Executive Performance Profile",
+                strategicReport: "Strategic Career Intelligence",
                 recommendation: "Get Recommendation",
+                jobAlignment: "Strategic Role Alignment",
                 settings: "Settings",
                 signOut: "Sign Out"
             },
             premium: "Elite Member",
-            loading: "Decrypting workspace..."
+            loading: "Decrypting workspace...",
+            sciReport: {
+                loading: "Analyzing Strategic Intelligence...",
+                pendingTitle: "Strategic Report Pending",
+                pendingDesc: "Your Strategic Career Intelligence Report is being finalized by our executive board. It will appear here once the final validation is complete.",
+                export: "Export Intelligence",
+                exportDesc: "Download full 8-section advisory PDF for your next career review."
+            }
         },
         digitalization: {
             hero: {
@@ -473,8 +590,37 @@ By signing below, you agree to start the consulting process.
                     { title: "Execution & Training", desc: "We help you implement the strategy and train your team." }
                 ]
             }
-        }
-    },
+        },
+        jobAlignment: {
+                title: "Strategic Role Alignment",
+                subtitle: "Verify your executive readiness for a specific new role or promotion.",
+                form: {
+                    type: "Audit Type",
+                    newJob: "New Opportunity",
+                    promotion: "Internal Promotion",
+                    descriptionLabel: "Job Description / Internal Vacancy Text",
+                    placeholder: "Paste the complete JD or responsibilities here...",
+                    submit: "Start Strategic Audit"
+                },
+                analysis: {
+                    loading: "Architecting Deep Skill Evaluation...",
+                    subtitle: "Our AI is analyzing the requirements against global executive standards."
+                },
+                questions: {
+                    title: "Executive Competency Validation",
+                    subtitle: "Please respond to these strategic scenarios to verify your alignment.",
+                    submit: "Generate Final Alignment Report"
+                },
+                result: {
+                    scoreLabel: "Strategic Alignment Score",
+                    verdict: "Executive Verdict",
+                    download: "Export Alignment Certificate",
+                    strength: "Operational Strengths",
+                    gap: "Strategic Gaps",
+                    recommendation: "Implementation Roadmap"
+                }
+            }
+        },
     fr: {
         nav: {
             home: "Accueil",
@@ -565,26 +711,98 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 }
             }
         },
+        system: {
+            title: "Le Système d'Exploitation Exécutif",
+            subtitle: "Un écosystème complet conçu pour transformer le potentiel en pouvoir exécutif confirmé.",
+            stages: [
+                { id: "01", title: "Audit", desc: "Analyse des écarts de compétences par IA" },
+                { id: "02", title: "Stratégie", desc: "Génération de feuille de route personnalisée" },
+                { id: "03", title: "Exécution", desc: "Simulations de missions réelles" },
+                { id: "04", title: "Autorité", desc: "Certification officielle & placement" }
+            ]
+        },
+        audit: {
+            badge: "Phase 1: Diagnostic",
+            title: "L'Audit de Carrière Forensique",
+            desc: "Arrêtez de deviner. Notre IA scanne votre profil contre plus de 50 paramètres exécutifs pour identifier exactement où vous vous situez.",
+            stat: "Précision 98%",
+            statDesc: "dans l'identification des lacunes",
+            features: [
+                "Analyse votre CV par rapport aux références exécutives mondiales.",
+                "Identifie les lacunes de compétences cachées bloquant votre promotion.",
+                "Génère une feuille de route d'exécution personnalisée de 90 jours."
+            ],
+            forensicsLabel: "Audit Forensique IA Actif",
+            scanningLabel: "Scan de 50+ Paramètres"
+        },
+        missions: {
+            badge: "Phase 2: Simulation",
+            title: "Jeux de Guerre Corporatifs",
+            desc: "La théorie est pour les étudiants. Vous exécuterez de vraies missions d'entreprise—gestion de crise, P&L, leadership—sous observation experte.",
+            stat: "Sans Risque",
+            statDesc: "L'échec ici vous sauve des millions plus tard",
+            crisisLabel: "Scénario de Crise en Direct",
+            features: [
+                "Naviguez dans des scénarios de boardroom à haute pression.",
+                "Prenez des décisions financières et opérationnelles critiques.",
+                "Recevez un feedback instantané de l'IA et d'experts humains."
+            ]
+        },
+        assets: {
+            badge: "Phase 3: Autorité",
+            title: "Preuve de Carrière Bancable",
+            desc: "Ne dites pas juste que vous êtes bon. Prouvez-le. Obtenez un 'Profil de Performance Stratégique' qui valide votre capacité auprès des recruteurs.",
+            stat: "Vérifié",
+            statDesc: "Accréditations prêtes pour la blockchain",
+            p1_title: "Historique de Performance Vérifié",
+            p1_desc: "Chaque décision prise en simulation est enregistrée dans un registre sécurisé, prouvant votre compétence aux recruteurs.",
+            p2_title: "Portfolio Prêt pour la Boardroom",
+            p2_desc: "Exportez un portfolio complet de votre travail stratégique, pas seulement un CV générique."
+        },
         cert: {
-            badge: "ACCRÉDITATION EXÉCUTIVE",
-            title: "Accréditation & Endossement Professionnel",
-            desc: "Recevez un endossement professionnel officiel et une accréditation qui valide vos capacités stratégiques et votre préparation exécutive.",
-            check1: "Accréditation Exécutive Professionnelle",
-            check2: "Endossement Stratégique",
-            check3: "Validé par les Standards Mondiaux",
-            cta: "Obtenir l'Accréditation",
-            cardTitle: "Accréditation Exécutive",
+            badge: "MANDAT STRATÉGIQUE",
+            title: "Accréditation Officielle",
+            desc: "Ce n'est pas un certificat de complétion. C'est un Mandat de Compétence, vérifiant que vous avez exécuté avec succès des mandats de niveau exécutif.",
+            cardTitle: "MANDAT EXÉCUTIF",
+            check1: "Normes Internationalement Reconnues",
+            check2: "Registre Numérique Vérifiable",
+            check3: "Approuvé par les Leaders de l'Industrie",
+            cta: "Obtenir la Certification",
             cardSubtitle: "ENDOSSEMENT STRATÉGIQUE",
-            cardFooter: "\"Accrédité pour avoir démontré des capacités stratégiques exceptionnelles et une préparation exécutive.\""
+            cardFooter: "\"Accrédité pour avoir démontré des capacités stratégiques exceptionnelles et une préparation exécutive.\"",
+            warrant_text: "Ce mandat certifie que le titulaire a démontré avec succès une compétence stratégique de niveau exécutif.",
+            authorized: "Autorisé par le Système",
+            ledger: "ID Registre Sécurisé"
+        },
+        mandate: {
+            title: "MANDAT DE SERVICE",
+            ref: "Réf",
+            intro: "Ce document constitue l'accord juridique régissant votre accès à la formule {plan}. En l'acceptant, vous engagez un mandat de service avec DIGITALISA - MA-TRAINING-CONSULTING.",
+            section1_title: "1. Objet du Mandat",
+            section1_desc: "Le présent mandat est confié à DIGITALISA pour l'accompagnement stratégique du CLIENT dans le cadre de la formule {plan}. Ce service inclut spécifiquement :",
+            section2_title: "2. Conditions Financières",
+            section2_desc: "L'accès à ce mandat est conditionné par le règlement de la somme de {price}. Le paiement est dû au moment de la souscription et garantit l'accès immédiat aux services décrits à l'article 1.",
+            section3_title: "3. Propriété Intellectuelle & Confidentialité",
+            section3_desc: "Tous les rapports, diagnostics et méthodologies (incluant les algorithmes IA) restent la propriété exclusive de DIGITALISA. Le CLIENT bénéficie d'une licence d'usage personnel. Le CLIENT s'engage à maintenir la confidentialité des documents stratégiques fournis.",
+            section4_title: "4. Protection des Données (RGPD)",
+            section4_desc: "Vos données professionnelles sont traitées conformément à notre Politique de Confidentialité. Elles sont utilisées exclusivement pour la personnalisation de votre accompagnement et ne sont jamais cédées à des tiers.",
+            signature_clause_title: "Clause de Signature Électronique",
+            signature_clause_desc: "En cliquant sur le bouton d'acceptation ci-dessous, vous reconnaissez avoir pris connaissance des Conditions Générales d'Utilisation et avoir accepté les termes du présent mandat. Cette action vaut signature électronique manuscrite selon l'article 1367 du Code Civil.",
+            ready_for_auth: "Document prêt pour authentification digitale",
+            scroll_to_sign: "Scrollez pour signer le mandat ↓",
+            footer_title: "Acceptation du Mandat",
+            footer_desc: "Une copie PDF de ce contrat sera envoyée à votre email après confirmation.",
+            print: "Imprimer",
+            accept: "J'accepte le mandat"
         },
         footer: {
             rights: "© 2026 MA-TRAINING-CONSULTING.",
-            tagline: "L'excellence en Conseil & Formation."
+            tagline: "L'excellence en Conseil & Workshop."
         },
         saleBanner: {
-            title: "Partenaire d'Opérations Licencié",
-            desc: "Nous offrons un système complet prêt à la vente combinant apprentissage, conseil et pratique.\n\nNous Gérons :\n• Contenu Complet & Tech\n• Méthodologie Structurée\n• Système Opérationnel\n\nVotre Rôle :\n• Accès Partenaire Complet\n• Vendez à Prix Fixe\n• Gardez 100% des Revenus\n\n🔒 Limité à 5 Partenaires.\nCe n'est pas un cours. C'est un business clé en main.",
-            cta: "Postuler au Partenariat",
+            title: "Rejoignez notre équipe d'experts",
+            desc: "Nous sommes constamment à la recherche de consultants, d'experts et de formateurs indépendants dans tous les domaines, dotés d'une grande expérience. Nous recherchons également des animateurs indépendants excellant dans l'art de la parole, de l'explication et de la présentation.",
+            cta: "Postuler en tant qu'expert",
             close: "Fermer"
         },
         demoDisclaimer: {
@@ -619,7 +837,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             ctaVideo: "Regarder le Protocole",
             essence: {
                 title: "Pourquoi choisir MA-TRAINING-CONSULTING",
-                desc: "MA-TRAINING-CONSULTING est votre partenaire mondial. Nous combinons conseil expert et formation pratique.",
+                desc: "MA-TRAINING-CONSULTING est votre partenaire mondial. Nous combinons conseil expert et workshops individuels.",
                 precision: "Diagnostics de précision qui cartographient votre ADN professionnel.",
                 recognition: "Garanties reconnues par les cadres institutionnels mondiaux.",
                 speed: "Vitesse de carrière accélérée avec comblement d'écarts par IA.",
@@ -670,7 +888,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 }
             },
             ctaFinal: {
-                title: "Arrêtez de Former. Commencez à Dominer.",
+                title: "Arrêtez d'Apprendre. Commencez à Dominer.",
                 desc: "Rejoignez l'élite des professionnels qui ont redéfini leur trajectoire avec le Protocole Success.",
                 btnStart: "Commencer Mon Mandat",
                 btnPlans: "Voir les Plans d'Accès"
@@ -681,44 +899,78 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             title: "Propulsez votre Leadership",
             subtitle: "Sélectionnez le mandat qui correspond à votre croissance professionnelle et à vos exigences stratégiques.",
             tiers: {
-                initial: {
-                    name: "Pack Initial",
+                explorer: {
+                    name: "Explorer",
                     badge: "Découverte",
                     price: "Gratuit",
-                    duration: "Accès 3 heures",
+                    duration: "Toujours",
                     features: [
-                        "Accès complet pendant 3 heures",
-                        "Audit initial IA (CV & Profil)",
-                        "Simulations (Limité)",
-                        "Workshops (Limité)",
-                        "Assistance communautaire"
+                        "1 Analyse CV Complète (IA)",
+                        "3 questions/jour au Conseiller IA",
+                        "Accès à 3 modèles professionnels",
+                        "5 articles de la Base de Connaissances",
+                        "Feuille de route carrière basique",
+                        "Badge Explorer sur le profil"
                     ]
                 },
-                pro: {
-                    name: "Pack Pro Essential",
-                    badge: "Sélection Exécutive",
-                    price: "30€",
-                    duration: "/ an",
+                professional: {
+                    name: "Professionnel",
+                    badge: "Pour Professionnels",
+                    price: "39€",
+                    duration: "/ mois",
+                    priceYearly: "399€/an",
+                    savings: "Économisez 69€",
                     features: [
-                        "Outils Audit IA (Illimité)",
-                        "Accès complet AI Advisor",
-                        "Simulations (Payantes par item)",
-                        "Workshops (Payants par item)",
-                        "Mises à jour stratégiques"
+                        "Analyse CV Illimitée",
+                        "Conseiller IA Illimité 24/7",
+                        "Bibliothèque d'outils complète",
+                        "1 Alignement de Poste/mois",
+                        "Simulations (149€/unité)",
+                        "Workshops (49€-99€/unité)",
+                        "Support Email (48h)",
+                        "Badge Professionnel"
+                    ]
+                },
+                executive: {
+                    name: "Executive",
+                    badge: "Meilleure Valeur 🔥",
+                    price: "79€",
+                    duration: "/ mois",
+                    priceYearly: "799€/an",
+                    savings: "Économisez 149€",
+                    features: [
+                        "Tout dans Professionnel +",
+                        "Alignement de Poste Illimité",
+                        "2 Simulations Gratuites/mois",
+                        "1 Workshop Gratuit/mois",
+                        "Lettre de Recommandation Officielle",
+                        "Rapport SCI (Intelligence de Carrière Stratégique)",
+                        "1 Session de Consultation/mois (30min)",
+                        "Support Prioritaire (24h)",
+                        "Badge Executive Doré",
+                        "Accès anticipé aux nouvelles fonctionnalités"
                     ]
                 },
                 elite: {
-                    name: "Elite Full Pack",
-                    badge: "Immersion Totale",
-                    price: "65€",
+                    name: "Elite",
+                    badge: "Immersion Totale VIP",
+                    price: "199€",
                     duration: "/ mois",
+                    priceYearly: "1,999€/an",
+                    savings: "Économisez 389€",
                     features: [
-                        "Simulations & Coaching Illimités",
-                        "Tous les Workshops Inclus",
-                        "Accompagnement Expert (1-on-1)",
-                        "Lettre de Recommandation Elite",
-                        "Conseil Stratégique Hebdomadaire",
-                        "Engagement de 12 mois requis"
+                        "Tout dans Executive +",
+                        "Simulations Illimitées",
+                        "Workshops Illimités",
+                        "4 Sessions de Consultation/mois (1h chacune)",
+                        "Expert personnel dédié",
+                        "Support VIP (6h + WhatsApp)",
+                        "Rapports personnalisés mensuels",
+                        "Revue de Profil LinkedIn",
+                        "Coaching négociation salaire",
+                        "Badge Elite Platine",
+                        "Invitations événements exclusifs",
+                        "Accès contenu à vie (même après annulation)"
                     ]
                 }
             },
@@ -755,7 +1007,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             topLearner: "Top 5% Talent",
             stats: {
                 skillsGained: "Compétences Vérifiées",
-                hoursLearned: "Heures de Formation",
+                hoursLearned: "Heures de Workshop",
                 certificates: "Certificats"
             },
             currentFocus: {
@@ -772,12 +1024,14 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                     diagnosisDesc: "Analyse du profil professionnel et identification des lacunes.",
                     simulation: "Simulations de Leadership",
                     simulationDesc: "Évaluation de la gestion de crise et de la prise de décision.",
-                    training: "Programmes de Développement",
-                    trainingDesc: "Développement du leadership et coaching personnalisé.",
+                    training: "Workshops Individuels",
+                    trainingDesc: "Workshops de leadership et coaching individuel sur-mesure.",
                     library: "Ressources & Outils",
                     libraryDesc: "Accès aux cadres et outils premium.",
                     expert: "Réseau Exécutif",
-                    expertDesc: "Connexion avec des leaders mondiaux et mentors."
+                    expertDesc: "Connexion avec des leaders mondiaux et mentors.",
+                    strategicReport: "Audit Stratégique",
+                    strategicReportDesc: "Rapport d'intelligence de carrière de niveau exécutif."
                 }
             },
             recommended: {
@@ -802,12 +1056,21 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 library: "Outils & Ressources",
                 expert: "Réseau Exécutif",
                 certificates: "Profil de Performance Exécutive",
+                strategicReport: "Intelligence Stratégique",
                 recommendation: "Obtenir Recommandation",
+                jobAlignment: "Alignment Stratégique de Rôle",
                 settings: "Paramètres",
                 signOut: "Déconnexion"
             },
             premium: "Membre Élite",
-            loading: "Décryptage de l'espace..."
+            loading: "Décryptage de l'espace...",
+            sciReport: {
+                loading: "Analyse de l'Intelligence Stratégique...",
+                pendingTitle: "Rapport Stratégique En Attente",
+                pendingDesc: "Votre rapport d'intelligence stratégique de carrière est en cours de finalisation par notre conseil exécutif. Il apparaîtra ici une fois la validation finale terminée.",
+                export: "Exporter l'Intelligence",
+                exportDesc: "Téléchargez le PDF complet de 8 sections pour votre prochain bilan de carrière."
+            }
         },
         digitalization: {
             hero: {
@@ -944,11 +1207,40 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 pillars: [
                     { title: "Audit d'Entreprise", desc: "Nous analysons votre modèle commercial, vos revenus et vos défis." },
                     { title: "Plan d'Action", desc: "Nous créons une feuille de route étape par étape pour atteindre vos objectifs." },
-                    { title: "Exécution & Formation", desc: "Nous vous aidons à mettre en œuvre la stratégie et formons votre équipe." }
+                    { title: "Exécution & Workshop", desc: "Nous vous aidons à mettre en œuvre la stratégie et coachons votre équipe." }
                 ]
             }
-        }
-    },
+        },
+        jobAlignment: {
+                title: "Alignment Stratégique de Rôle",
+                subtitle: "Vérifiez votre préparation exécutive pour un nouveau rôle ou une promotion.",
+                form: {
+                    type: "Type d'Audit",
+                    newJob: "Nouvelle Opportunité",
+                    promotion: "Promotion Interne",
+                    descriptionLabel: "Description du Poste / Texte de l'Offre",
+                    placeholder: "Collez la description complète du poste ici...",
+                    submit: "Démarrer l'Audit Stratégique"
+                },
+                analysis: {
+                    loading: "Architecture de l'Évaluation des Compétences...",
+                    subtitle: "Notre IA analyse les exigences par rapport aux standards mondiaux."
+                },
+                questions: {
+                    title: "Validation des Compétences Exécutives",
+                    subtitle: "Répondez à ces scénarios stratégiques pour vérifier votre alignement.",
+                    submit: "Générer le Rapport d'Alignement Final"
+                },
+                result: {
+                    scoreLabel: "Score d'Alignement Stratégique",
+                    verdict: "Verdict Exécutif",
+                    download: "Exporter le Certificat d'Alignement",
+                    strength: "Forces Opérationnelles",
+                    gap: "Lacunes Stratégiques",
+                    recommendation: "Feuille de Route d'Implémentation"
+                }
+            }
+        },
     ar: {
         nav: {
             home: "الرئيسية",
@@ -1039,26 +1331,98 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 }
             }
         },
+        system: {
+            title: "نظام التشغيل التنفيذي",
+            subtitle: "نظام بيئي متكامل مصمم لتحويل الكفاءة الكامنة إلى قوة تنفيذية مؤكدة.",
+            stages: [
+                { id: "01", title: "التدقيق", desc: "تحليل فجوات المهارات بالذكاء الاصطناعي" },
+                { id: "02", title: "الاستراتيجية", desc: "توليد خارطة طريق مخصصة" },
+                { id: "03", title: "التنفيذ", desc: "محاكاة مهام وتحديات واقعية" },
+                { id: "04", title: "السلطة", desc: "اعتماد رسمي وشهادات موثقة" }
+            ]
+        },
+        audit: {
+            badge: "المرحلة 1: التشخيص",
+            title: "التدقيق المهني الجنائي",
+            desc: "توقف عن التخمين. يقوم الذكاء الاصطناعي لدينا بمسح ملفك الشخصي مقابل أكثر من 50 معياراً تنفيذياً لتحديد مكانك بدقة.",
+            stat: "دقة 98%",
+            statDesc: "في تحديد الفجوات المهارية",
+            features: [
+                "تحليل سيرتك الذاتية مقابل معايير القيادة العالمية.",
+                "تحديد فجوات المهارات الخفية التي تعيق ترقيتك.",
+                "إنشاء خارطة طريق تنفيذية مخصصة لمدة 90 يوماً."
+            ],
+            forensicsLabel: "التحليل الجنائي للذكاء الاصطناعي نشط",
+            scanningLabel: "مسح أكثر من 50 معياراً"
+        },
+        missions: {
+            badge: "المرحلة 2: المحاكاة",
+            title: "مناورات الشركات الكبرى",
+            desc: "النظرية للطلاب. هنا ستقوم بتنفيذ مهام شركات حقيقية—إدارة الأزمات، الربح والخسارة، وقيادة الفرق—تحت ملاحظة الخبراء.",
+            stat: "خالي من المخاطر",
+            statDesc: "الفشل هنا ينقذ الملايين لاحقاً",
+            crisisLabel: "سيناريو أزمة حية",
+            features: [
+                "خوض سيناريوهات غرف الاجتماعات عالية الضغط.",
+                "اتخاذ قرارات مالية وعملياتية حاسمة.",
+                "تلقي تعليقات فورية من خبراء الذكاء الاصطناعي والبشر."
+            ]
+        },
+        assets: {
+            badge: "المرحلة 3: السلطة",
+            title: "إثبات مهني مصرفي",
+            desc: "لا تكتفِ بالقول أنك جيد. أثبت ذلك. تخرج بـ 'ملف الأداء الاستراتيجي' الذي يثبت قدرتك للموظفين ومجالس الإدارة.",
+            stat: "مؤكد",
+            statDesc: "اعتمادات جاهزة للبلوكشين",
+            p1_title: "سجل أداء تم التحقق منه",
+            p1_desc: "يتم تسجيل كل قرار تتخذه في المحاكاة في سجل آمن، مما يثبت كفاءتك للموظفين.",
+            p2_title: "محفظة جاهزة لمجالس الإدارة",
+            p2_desc: "تصدير محفظة شاملة لعملك الاستراتيجي، وليس مجرد سيرة ذاتية عادية."
+        },
         cert: {
-            badge: "الاعتماد التنفيذي",
-            title: "الاعتماد والتزكية المهنية",
-            desc: "احصل على تزكية مهنية رسمية واعتماد يثبت قدراتك الاستراتيجية وجاهزيتك للمناصب التنفيذية.",
-            check1: "اعتماد تنفيذي محترف",
-            check2: "تزكية استراتيجية",
-            check3: "مصدق وفق المعايير العالمية",
+            badge: "التفويض الاستراتيجي",
+            title: "الاعتماد الرسمي",
+            desc: "هذه ليست شهادة إتمام دورة. إنه تفويض بالكفاءة، يثبت أنك قمت بتنفيذ مهام على مستوى تنفيذي بنجاح.",
+            cardTitle: "تفويض تنفيذي",
+            check1: "معايير معترف بها دولياً",
+            check2: "سجل رقمي قابل للتحقق",
+            check3: "معتمد من قادة الصناعة",
             cta: "احصل على الاعتماد",
-            cardTitle: "الاعتماد التنفيذي",
             cardSubtitle: "تزكية استراتيجية",
-            cardFooter: "\"معتمد لإظهار قدرات استراتيجية استثنائية وجاهزية تنفيذية.\""
+            cardFooter: "\"معتمد لإظهار قدرات استراتيجية استثنائية وجاهزية تنفيذية.\"",
+            warrant_text: "تشهد هذه المذكرة أن حاملها قد أظهر بنجاح كفاءة استراتيجية على المستوى التنفيذي.",
+            authorized: "معتمد من النظام",
+            ledger: "معرف السجل الآمن"
+        },
+        mandate: {
+            title: "تفويض الخدمة",
+            ref: "مرجع",
+            intro: "تشكل هذه الوثيقة الاتفاق القانوني الذي يحكم وصولك إلى خطة {plan}. بقبولها، فإنك تلتزم بتفويض خدمة مع DIGITALISA - MA-TRAINING-CONSULTING.",
+            section1_title: "1. موضوع التفويض",
+            section1_desc: "يتم إسناد هذا التفويض إلى DIGITALISA للدعم الاستراتيجي للعميل في إطار خطة {plan}. تتضمن هذه الخدمة على وجه التحديد:",
+            section2_title: "2. الشروط المالية",
+            section2_desc: "يرتبط الوصول إلى هذه الخدمة بسداد مبلغ {price}. يستحق الدفع عند الاشتراك ويضمن الوصول الفوري إلى الخدمات الموضحة في المادة 1.",
+            section3_title: "3. الملكية الفكرية والسرية",
+            section3_desc: "تظل جميع التقارير والتشخيصات والمنهجيات (بما في ذلك خوارزميات الذكاء الاصطناعي) ملكية حصرية لشركة DIGITALISA. يستفيد العميل من ترخيص استخدام شخصي. يوافق العميل على الحفاظ على سرية الوثائق الاستراتيجية المقدمة.",
+            section4_title: "4. حماية البيانات (RGPD)",
+            section4_desc: "يتم معالجة بياناتك المهنية وفقاً لسياسة الخصوصية الخاصة بنا. يتم استخدامها حصرياً لتخصيص دعمك ولا يتم مشاركتها أبداً مع أطراف ثالثة.",
+            signature_clause_title: "بند التوقيع الإلكتروني",
+            signature_clause_desc: "بالنقر على زر القبول أدناه، فإنك تقر بأنك قد قرأت شروط الاستخدام العامة وقبلت شروط هذا التفويض. هذا الإجراء يعادل التوقيع الإلكتروني بخط اليد وفقاً للمادة 1367 من القانون المدني.",
+            ready_for_auth: "المستند جاهز للمصادقة الرقمية",
+            scroll_to_sign: "قم بالتمرير لتوقيع التفويض ↓",
+            footer_title: "قبول التفويض",
+            footer_desc: "سيتم إرسال نسخة PDF من هذا العقد إلى بريدك الإلكتروني بعد التأكيد.",
+            print: "طباعة",
+            accept: "أقبل التفويض"
         },
         footer: {
             rights: "© 2026 MA-TRAINING-CONSULTING.",
-            tagline: "التميز في الاستشارات والتدريب."
+            tagline: "التميز في الاستشارات والورش العملية."
         },
         saleBanner: {
-            title: "شريك تشغيلي مرخّص",
-            desc: "نقدّم نظامًا متكاملًا وجاهزًا للبيع، يجمع بين التعلّم، الاستشارة، والتطبيق العملي.\n\nنحن نتكفّل بـ:\n• المحتوى الكامل والتقنية\n• الهيكلة والمنهجية التشغيلية\n\nدورك كشريك:\n• تحصل على وصول كامل للنظام\n• تبيع بالسعر المحدَّد\n• تحتفظ بـ 100% من العائدات\n\n🔒 متاح لـ 5 شركاء فقط.\nهذا ليس كورس. هذا نظام جاهز للأعمال.",
-            cta: "قدم طلب شراكة",
+            title: "انضم إلى فريق خبرائنا",
+            desc: "نحن في بحث مستمر عن مستشارين، خبراء، ومدربين مستقلين في كافة المجالات وذوي خبرة كبيرة جداً. كما نبحث أيضاً عن مقدمين ومنشطين مستقلين يمتازون بفن المخاطبة والتفسير والتعريف.",
+            cta: "سجل الآن كخبير",
             close: "إغلاق"
         },
         demoDisclaimer: {
@@ -1093,7 +1457,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             ctaVideo: "شاهد البروتوكول",
             essence: {
                 title: "لماذا تختار MA-TRAINING-CONSULTING",
-                desc: "MA-TRAINING-CONSULTING هي شريكك العالمي. نجمع بين الاستشارات الخبيرة والتدريب العملي. قدرتك على إدارة الضغوط.",
+                desc: "MA-TRAINING-CONSULTING هي شريكك العالمي. نجمع بين الاستشارات الخبيرة والورش العملية الفردية. قدرتك على إدارة الضغوط.",
                 precision: "تشخيصات دقيقة ترسم خريطة حمضك النووي المهني.",
                 recognition: "ضمانات معترف بها من قبل الأطر المؤسسية العالمية.",
                 speed: "تسريع المسار المهني مع سد الفجوات بالذكاء الاصطناعي.",
@@ -1144,7 +1508,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 }
             },
             ctaFinal: {
-                title: "توقف عن التدرب. ابدأ بالسيطرة.",
+                title: "توقف عن التلقين. ابدأ بالسيطرة.",
                 desc: "انضم إلى نخبة المحترفين الذين أعادوا رسم مسارهم باستخدام بروتوكول النجاح.",
                 btnStart: "ابدأ تفويضي",
                 btnPlans: "عرض خطط الوصول"
@@ -1155,44 +1519,78 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             title: "ادفع مسيرتك القيادية للأمام",
             subtitle: "اختر التفويض الذي يتماشى مع أهدافك الاستراتيجية ومتطلباتك المهنية.",
             tiers: {
-                initial: {
-                    name: "الباقة الأولية",
+                explorer: {
+                    name: "المستكشف",
                     badge: "اكتشاف",
                     price: "مجاني",
-                    duration: "وصول لمدة 3 ساعات",
+                    duration: "مدى الحياة",
                     features: [
-                        "وصول كامل للبروتوكول لمدة 3 ساعات",
-                        "تدقيق الأصول الأولي بالذكاء الاصطناعي",
-                        "وصول محدود للمحاكاة",
-                        "وصول محدود لورش العمل",
-                        "دعم مجتمعي"
+                        "1 تحليل سيرة ذاتية كامل (ذكاء اصطناعي)",
+                        "3 أسئلة/يوم للمستشار الذكي",
+                        "وصول لـ 3 نماذج احترافية",
+                        "5 مقالات من قاعدة المعرفة",
+                        "خارطة طريق مهنية أساسية",
+                        "شارة المستكشف في الملف الشخصي"
                     ]
                 },
-                pro: {
-                    name: "برو الأساسي",
-                    badge: "الاختيار التنفيذي",
-                    price: "30€",
-                    duration: "/ سنوياً",
+                professional: {
+                    name: "محترف",
+                    badge: "للمحترفين",
+                    price: "39€",
+                    duration: "/ شهرياً",
+                    priceYearly: "399€/سنوياً",
+                    savings: "وفر 69€",
                     features: [
-                        "أدوات تدقيق غير محدودة",
-                        "وصول كامل للمستشار الذكي",
-                        "دفع لكل محاكاة بشكل فردي",
-                        "دفع لكل ورشة عمل بشكل فردي",
-                        "تحديثات استراتيجية دورية"
+                        "تحليل سيرة ذاتية غير محدود",
+                        "مستشار ذكي غير محدود 24/7",
+                        "مكتبة الأدوات الكاملة",
+                        "1 توافق وظيفي مجاني/شهر",
+                        "محاكاة (149€/وحدة)",
+                        "ورش عمل (49€-99€/وحدة)",
+                        "دعم عبر البريد (48 ساعة)",
+                        "شارة محترف"
+                    ]
+                },
+                executive: {
+                    name: "تنفيذي",
+                    badge: "أفضل قيمة 🔥",
+                    price: "79€",
+                    duration: "/ شهرياً",
+                    priceYearly: "799€/سنوياً",
+                    savings: "وفر 149€",
+                    features: [
+                        "كل شيء في باقة محترف +",
+                        "توافق وظيفي غير محدود",
+                        "2 محاكاة مجانية/شهر",
+                        "1 ورشة عمل مجانية/شهر",
+                        "خطاب توصية رسمي",
+                        "تقرير SCI (ذكاء المسار الاستراتيجي)",
+                        "1 جلسة استشارية/شهر (30 دقيقة)",
+                        "دعم أولوية (24 ساعة)",
+                        "شارة تنفيذي ذهبية",
+                        "وصول مبكر للميزات الجديدة"
                     ]
                 },
                 elite: {
-                    name: "باقة النخبة الكاملة",
-                    badge: "غمر كامل",
-                    price: "65€",
+                    name: "النخبة",
+                    badge: "غمر كامل VIP",
+                    price: "199€",
                     duration: "/ شهرياً",
+                    priceYearly: "1,999€/سنوياً",
+                    savings: "وفر 389€",
                     features: [
-                        "محاكاة وكوتشينغ غير محدود",
-                        "جميع ورش العمل التنفيذية مشمولة",
-                        "دعم خبير مخصص (1-on-1)",
-                        "خطاب توصية للنخبة",
-                        "استشارات استراتيجية أسبوعية",
-                        "مطلوب التزام لمدة 12 شهراً"
+                        "كل شيء في باقة تنفيذي +",
+                        "محاكاة غير محدودة",
+                        "ورش عمل غير محدودة",
+                        "4 جلسات استشارية/شهر (1 ساعة لكل منها)",
+                        "خبير شخصي مخصص",
+                        "دعم VIP (6 ساعات + واتساب)",
+                        "تقارير شهرية مخصصة",
+                        "مراجعة ملف LinkedIn",
+                        "كوتشينغ تفاوض الراتب",
+                        "شارة النخبة البلاتينية",
+                        "دعوات لفعاليات حصرية",
+                        "وصول للمحتوى مدى الحياة (حتى بعد الإلغاء)"
                     ]
                 }
             },
@@ -1229,7 +1627,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             topLearner: "ضمن أفضل 5% من المواهب",
             stats: {
                 skillsGained: "مهارات تم التحقق منها",
-                hoursLearned: "ساعات التدريب",
+                hoursLearned: "ساعات الورش العملية",
                 certificates: "الشهادات"
             },
             currentFocus: {
@@ -1246,12 +1644,14 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                     diagnosisDesc: "تحليل الملف المهني وتحديد الفجوات.",
                     simulation: "محاكاة القيادة",
                     simulationDesc: "تقييم إدارة الأزمات واتخاذ القرارات.",
-                    training: "برامج التطوير",
-                    trainingDesc: "تطوير قيادي وكوتشينغ مخصص.",
+                    training: "الورش العملية الفردية",
+                    trainingDesc: "ورش قيادية وكوتشينغ فردي مخصص على مقاسك.",
                     library: "الموارد والأدوات",
                     libraryDesc: "الوصول لأطر العمل والأدوات المتميزة.",
                     expert: "شبكة القيادات",
-                    expertDesc: "التواصل مع قادة عالميين وموجهين."
+                    expertDesc: "التواصل مع قادة عالميين وموجهين.",
+                    strategicReport: "التدقيق الاستراتيجي",
+                    strategicReportDesc: "تقرير ذكاء المسار المهني من مستوى تنفيذي."
                 }
             },
             recommended: {
@@ -1276,12 +1676,21 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 library: "الأدوات والموارد",
                 expert: "شبكة القيادات",
                 certificates: "ملف الأداء التنفيذي الاستراتيجي",
+                strategicReport: "ذكاء المسار الاستراتيجي",
                 recommendation: "احصل على توصية",
+                jobAlignment: "تقييم التوافق الاستراتيجي",
                 settings: "الإعدادات",
                 signOut: "تسجيل الخروج"
             },
             premium: "عضو نخبوِي",
-            loading: "جاري فك تشفير مساحة العمل..."
+            loading: "جاري فك تشفير مساحة العمل...",
+            sciReport: {
+                loading: "جاري تحليل الذكاء الاستراتيجي...",
+                pendingTitle: "التقرير الاستراتيجي قيد الانتظار",
+                pendingDesc: "يتم حالياً وضع اللمسات الأخيرة على تقرير ذكاء المسار الاستراتيجي الخاص بك من قبل المجلس التنفيذي. سيظهر هنا بمجرد اكتمال الاعتماد النهائي.",
+                export: "تصدير التقرير",
+                exportDesc: "قم بتحميل التقرير الاستشاري الكامل المكون من 8 أقسام لمراجعته في مسارك المهني."
+            }
         },
         digitalization: {
             hero: {
@@ -1418,8 +1827,37 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 pillars: [
                     { title: "تدقيق المشروع", desc: "نحلل نموذج عملك الحالي، إيراداتك، والتحديات التي تواجهها." },
                     { title: "خطة العمل", desc: "نضع لك خارطة طريق خطوة بخطوة لتحقيق أهداف نموك." },
-                    { title: "التنفيذ والتدريب", desc: "نساعدك في تنفيذ الاستراتيجية وتدريب فريق عملك." }
+                    { title: "التنفيذ والورش العملية", desc: "نساعدك في تنفيذ الاستراتيجية ونرافق فريق عملك خطوة بخطوة." }
                 ]
+            }
+        },
+        jobAlignment: {
+            title: "تقييم التوافق الاستراتيجي",
+            subtitle: "تحقق من جاهزيتك التنفيذية لمنصب جديد أو ترقية داخلية.",
+            form: {
+                type: "نوع التدقيق",
+                newJob: "فرصة عمل جديدة",
+                promotion: "ترقية داخلية",
+                descriptionLabel: "وصف الوظيفة / نص الإعلان الوظيفي",
+                placeholder: "ضع نص الوصف الوظيفي الكامل هنا...",
+                submit: "بدء التدقيق الاستراتيجي"
+            },
+            analysis: {
+                loading: "هندسة تقييم المهارات العميقة...",
+                subtitle: "يقوم الذكاء الاصطناعي بتحليل المتطلبات مقابل المعايير التنفيذية العالمية."
+            },
+            questions: {
+                title: "التحقق من الكفاءات التنفيذية",
+                subtitle: "يرجى الإجابة على هذه السيناريوهات الاستراتيجية للتحقق من توافقك.",
+                submit: "إصدار تقرير التوافق النهائي"
+            },
+            result: {
+                scoreLabel: "درجة التوافق الاستراتيجي",
+                verdict: "الحكم التنفيذي",
+                download: "تصدير شهادة التوافق",
+                strength: "نقاط القوة العملياتية",
+                gap: "الفجوات الاستراتيجية",
+                recommendation: "خارطة طريق التنفيذ"
             }
         }
     }

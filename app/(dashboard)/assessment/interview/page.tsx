@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, TrendingUp, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -24,11 +24,11 @@ export default function InterviewPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [cvAnalysis, setCvAnalysis] = useState<any>(null);
+    const [cvAnalysis, setCvAnalysis] = useState<Record<string, unknown> | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [totalQuestions, setTotalQuestions] = useState(15); // Default 15 questions
     const [interviewComplete, setInterviewComplete] = useState(false);
-    const [finalEvaluation, setFinalEvaluation] = useState<any>(null);
+    const [finalEvaluation, setFinalEvaluation] = useState<Record<string, unknown> | null>(null);
     const [diagnosisId, setDiagnosisId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isEvaluatingRef = useRef(false);
@@ -50,21 +50,36 @@ export default function InterviewPage() {
                         if (data.language) setSelectedLanguage(data.language);
                         if (data.totalQuestions) setTotalQuestions(data.totalQuestions);
 
-                        if (data.currentStep === 'interview_complete' || data.currentStep === 'completed') {
-                            if (data.evaluation) setFinalEvaluation(data.evaluation);
+                        if (data.evaluation) {
+                            setFinalEvaluation(data.evaluation);
                             setInterviewComplete(true);
-                            if (data.conversationHistory) {
-                                setMessages(data.conversationHistory.map((m: any) => ({
-                                    ...m,
-                                    timestamp: new Date(m.timestamp)
-                                })));
+                            
+                            // Restore to localStorage for other components
+                            localStorage.setItem('interviewEvaluation', JSON.stringify(data.evaluation));
+                            
+                            // Update user profile status if needed
+                            const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                            if (!profile.isDiagnosisComplete) {
+                                profile.isDiagnosisComplete = true;
+                                profile.diagnosisData = data.evaluation;
+                                localStorage.setItem("userProfile", JSON.stringify(profile));
                             }
-                            return;
+                        }
+
+                        if (data.currentStep === 'interview_complete' || data.currentStep === 'completed') {
+                            // If we have messages, we might want to stay on page to show summary
+                            // but if evaluate API already set currentStep, we should be in interviewComplete state
+                            if (data.evaluation) {
+                                setInterviewComplete(true);
+                            } else {
+                                router.push('/assessment/results');
+                                return;
+                            }
                         }
 
                         if (data.conversationHistory && data.conversationHistory.length > 0) {
                             // Resume existing chat
-                            const restoredMessages = data.conversationHistory.map((m: any) => ({
+                            const restoredMessages = data.conversationHistory.map((m: { role: 'ai' | 'user', content: string, timestamp: string }) => ({
                                 ...m,
                                 timestamp: new Date(m.timestamp)
                             }));
@@ -72,7 +87,15 @@ export default function InterviewPage() {
 
                             // Calculate current index accurately, capped by total
                             const calculatedIndex = Math.floor(restoredMessages.length / 2);
-                            setCurrentQuestionIndex(Math.min(calculatedIndex, data.totalQuestions || 15));
+                            const finalIndex = Math.min(calculatedIndex, data.totalQuestions || 15);
+                            setCurrentQuestionIndex(finalIndex);
+
+                            // Auto-complete if at the end and we have no evaluation yet but messages are done
+                            if (finalIndex >= (data.totalQuestions || 15) && !data.evaluation) {
+                                // Potentially we are at the very last step but evaluation didn't run or save
+                                console.log("At final step but no evaluation - user can still click send/skip to retry or it will auto-evaluate if they send a last message");
+                            }
+
                             return;
                         }
                     }
@@ -96,7 +119,48 @@ export default function InterviewPage() {
         };
 
         loadSession();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array intentionally to run only on mount
+
+    const startInterview = useCallback(async () => {
+        if (messages.length > 0) return;
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/interview/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cvAnalysis, language: selectedLanguage }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setTotalQuestions(result.totalQuestions || 15);
+                const welcomeMsg = {
+                    role: 'ai' as const,
+                    content: result.welcomeMessage,
+                    timestamp: new Date(),
+                };
+
+                setMessages([welcomeMsg]);
+
+                // Add first question
+                setTimeout(() => {
+                    const q1 = {
+                        role: 'ai' as const,
+                        content: result.firstQuestion,
+                        timestamp: new Date(),
+                    };
+                    setMessages(prev => [...prev, q1]);
+                    setCurrentQuestionIndex(1);
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('Error starting interview:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cvAnalysis, messages.length, selectedLanguage]);
 
     useEffect(() => {
         // Start interview ONLY if we have analysis + language AND NO messages yet
@@ -104,7 +168,7 @@ export default function InterviewPage() {
         if (shouldStart) {
             startInterview();
         }
-    }, [selectedLanguage, cvAnalysis, messages.length, isLoading]);
+    }, [selectedLanguage, cvAnalysis, messages.length, isLoading, startInterview]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -130,7 +194,7 @@ export default function InterviewPage() {
                 })
             }).catch(err => console.error("Error saving chat", err));
         }
-    }, [messages, diagnosisId]);
+    }, [messages, diagnosisId, isLoading, interviewComplete, currentQuestionIndex, totalQuestions]);
 
     // Safety valve: Ensure interviewComplete matches actual progress
     useEffect(() => {
@@ -139,89 +203,15 @@ export default function InterviewPage() {
         }
     }, [currentQuestionIndex, totalQuestions, interviewComplete]);
 
-    const forceUnlock = () => {
+    const forceUnlock = useCallback(() => {
         setIsLoading(false);
         setInterviewComplete(false);
         // Re-calculate progress
         const calculatedIndex = Math.floor(messages.length / 2);
         setCurrentQuestionIndex(Math.min(calculatedIndex, totalQuestions));
-    };
+    }, [messages.length, totalQuestions]);
 
-    const startInterview = async () => {
-        if (messages.length > 0) return;
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/interview/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cvAnalysis, language: selectedLanguage }),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                setTotalQuestions(result.totalQuestions || 15);
-                const welcomeMsg = {
-                    role: 'ai',
-                    content: result.welcomeMessage,
-                    timestamp: new Date(),
-                };
-
-                setMessages([welcomeMsg as Message]);
-
-                // Add first question
-                setTimeout(() => {
-                    const q1 = {
-                        role: 'ai',
-                        content: result.firstQuestion,
-                        timestamp: new Date(),
-                    };
-                    setMessages(prev => [...prev, q1 as Message]);
-                    setCurrentQuestionIndex(1);
-                }, 1000);
-            }
-        } catch (error) {
-            console.error('Error starting interview:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleSendMessage = async (e?: React.FormEvent | React.KeyboardEvent) => {
-        if (e && 'preventDefault' in e) e.preventDefault();
-        if (!inputValue.trim() || isLoading || interviewComplete) return;
-
-        const currentInput = inputValue;
-        const userMessage: Message = {
-            role: 'user',
-            content: currentInput,
-            timestamp: new Date(),
-        };
-
-        await processStep(userMessage, currentInput);
-    };
-
-    const handleSkipQuestion = async () => {
-        if (isLoading || interviewComplete) return;
-
-        const skipMessages: Record<string, string> = {
-            'en': "I don't have enough information for this question, please move on to the next one.",
-            'fr': "Je n'ai pas assez d'informations pour cette question, veuillez passer à la suivante.",
-            'ar': "ليس لدي معلومات كافية لهذا السؤال، يرجى الانتقال إلى السؤال التالي.",
-            'es': "No tengo suficiente información para esta pregunta, por favor pase a la siguiente.",
-        };
-
-        const skipMessage = skipMessages[selectedLanguage || 'en'] || skipMessages['en'];
-        const userMessage: Message = {
-            role: 'user',
-            content: skipMessage,
-            timestamp: new Date(),
-        };
-
-        await processStep(userMessage);
-    };
-
-    const processStep = async (userMessage: Message, originalInput?: string) => {
+    const processStep = useCallback(async (userMessage: Message, originalInput?: string) => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue("");
         setIsLoading(true);
@@ -318,13 +308,41 @@ export default function InterviewPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentQuestionIndex, totalQuestions, cvAnalysis, messages, selectedLanguage]);
 
-    const viewResults = () => {
-        // Store evaluation in localStorage
-        localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
-        router.push('/assessment/results');
-    };
+    const handleSendMessage = useCallback(async (e?: React.FormEvent | React.KeyboardEvent) => {
+        if (e && 'preventDefault' in e) e.preventDefault();
+        if (!inputValue.trim() || isLoading || interviewComplete) return;
+
+        const currentInput = inputValue;
+        const userMessage: Message = {
+            role: 'user',
+            content: currentInput,
+            timestamp: new Date(),
+        };
+
+        await processStep(userMessage, currentInput);
+    }, [inputValue, isLoading, interviewComplete, processStep]);
+
+    const handleSkipQuestion = useCallback(async () => {
+        if (isLoading || interviewComplete) return;
+
+        const skipMessages: Record<string, string> = {
+            'en': "I don't have enough information for this question, please move on to the next one.",
+            'fr': "Je n'ai pas assez d'informations pour cette question, veuillez passer à la suivante.",
+            'ar': "ليس لدي معلومات كافية لهذا السؤال، يرجى الانتقال إلى السؤال التالي.",
+            'es': "No tengo suficiente información para esta pregunta, por favor pase a la siguiente.",
+        };
+
+        const skipMessage = skipMessages[selectedLanguage || 'en'] || skipMessages['en'];
+        const userMessage: Message = {
+            role: 'user',
+            content: skipMessage,
+            timestamp: new Date(),
+        };
+
+        await processStep(userMessage);
+    }, [isLoading, interviewComplete, selectedLanguage, processStep]);
 
     // Language Selection Screen
     if (!selectedLanguage) {
@@ -343,7 +361,7 @@ export default function InterviewPage() {
                             Choose Your Interview Language
                         </h1>
                         <p className="text-slate-500 text-lg">
-                            Select the language you're most comfortable with for the interview
+                            Select the language you&apos;re most comfortable with for the interview
                         </p>
                     </div>
 
@@ -397,7 +415,7 @@ export default function InterviewPage() {
                     <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
                             <p className="text-sm text-slate-500 mb-2">CV Accuracy</p>
-                            <p className="text-3xl font-bold text-blue-600">{finalEvaluation.accuracyScore}%</p>
+                            <p className="text-3xl font-bold text-blue-600">{Number(finalEvaluation.accuracyScore)}%</p>
                         </div>
                         <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
                             <p className="text-sm text-slate-500 mb-2">Questions Answered</p>
@@ -405,14 +423,14 @@ export default function InterviewPage() {
                         </div>
                         <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
                             <p className="text-sm text-slate-500 mb-2">Overall Rating</p>
-                            <p className="text-3xl font-bold text-green-600">{finalEvaluation.overallRating}/10</p>
+                            <p className="text-3xl font-bold text-green-600">{Number(finalEvaluation.overallRating)}/10</p>
                         </div>
                     </div>
 
                     {/* Summary */}
                     <div className="bg-white rounded-2xl border border-slate-200 p-6">
                         <h2 className="text-xl font-bold text-slate-900 mb-4">Summary</h2>
-                        <p className="text-slate-700 leading-relaxed">{finalEvaluation.summary}</p>
+                        <p className="text-slate-700 leading-relaxed">{String(finalEvaluation.summary)}</p>
                     </div>
 
                     {/* Action Button */}

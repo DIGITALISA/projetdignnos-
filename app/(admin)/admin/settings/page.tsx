@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Bell, Globe, Cloud, Palette, HardDrive, Save, Check, Loader2, Mail, LayoutGrid, Key, Eye, EyeOff, Camera, Github, Cpu, Sparkles } from "lucide-react";
+import { Shield, Lock, Bell, Globe, Cloud, Palette, HardDrive, Save, Check, Loader2, Mail, LayoutGrid, Key, Camera, Github, Cpu, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,13 @@ export default function AdminSettings() {
         DEEPSEEK_API_KEY: "",
         DEEPSEEK_BASE_URL: "https://api.deepseek.com/v1",
         OPENAI_API_KEY: "",
-        ACTIVE_AI_PROVIDER: "deepseek"
+        ACTIVE_AI_PROVIDER: "deepseek",
+        // SMTP Settings
+        SMTP_HOST: "",
+        SMTP_PORT: "587",
+        SMTP_USER: "",
+        SMTP_PASS: "",
+        SMTP_SECURE: "false"
     });
 
     const fetchConfig = async () => {
@@ -240,6 +246,58 @@ export default function AdminSettings() {
                                         <p className="text-xs text-slate-400">Send system-wide announcements to all participants via email.</p>
                                     </div>
                                     <div className="space-y-6 pt-8 border-t border-slate-50">
+                                        <SectionHeader icon={Mail} title="SMTP Server Credentials" color="indigo" />
+                                        <div className="p-6 rounded-4xl bg-slate-50 border border-slate-100 space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <InputField 
+                                                    label="SMTP Host" 
+                                                    value={settings.SMTP_HOST} 
+                                                    placeholder="smtp.example.com"
+                                                    onChange={(v) => setSettings({ ...settings, SMTP_HOST: v })} 
+                                                />
+                                                <InputField 
+                                                    label="SMTP Port" 
+                                                    value={settings.SMTP_PORT} 
+                                                    type="number"
+                                                    placeholder="587"
+                                                    onChange={(v) => setSettings({ ...settings, SMTP_PORT: v })} 
+                                                />
+                                            </div>
+                                            <InputField 
+                                                label="SMTP User / Email" 
+                                                value={settings.SMTP_USER} 
+                                                placeholder="user@example.com"
+                                                onChange={(v) => setSettings({ ...settings, SMTP_USER: v })} 
+                                            />
+                                            <InputField 
+                                                label="SMTP Password" 
+                                                value={settings.SMTP_PASS} 
+                                                type="password"
+                                                placeholder="••••••••"
+                                                onChange={(v) => setSettings({ ...settings, SMTP_PASS: v })} 
+                                            />
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-400 uppercase">Secure (SSL/TLS)</label>
+                                                <select
+                                                    className="w-full px-5 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold outline-none"
+                                                    value={settings.SMTP_SECURE}
+                                                    onChange={(e) => setSettings({ ...settings, SMTP_SECURE: e.target.value })}
+                                                >
+                                                    <option value="false">No (STARTTLS)</option>
+                                                    <option value="true">Yes (SSL)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                                            <p className="text-xs font-semibold text-blue-800 flex items-center gap-2">
+                                                <Sparkles size={14} />
+                                                Ces paramètres permettent d&apos;envoyer des rappels par email aux candidats directement depuis le tableau de bord des mandats.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6 pt-8 border-t border-slate-50">
                                         <SectionHeader icon={Github} title="Slack Integration" color="indigo" />
                                         <Toggle
                                             label="Real-time Admin Monitoring"
@@ -314,7 +372,7 @@ export default function AdminSettings() {
                                     <div className="space-y-6 pt-8 border-t border-slate-50">
                                         <SectionHeader icon={Cpu} title="Provider Credentials" color="indigo" />
                                         <div className="space-y-6">
-                                            <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-4">
+                                            <div className="p-6 rounded-4xl bg-slate-50 border border-slate-100 space-y-4">
                                                 <h4 className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                                                     <div className="w-2 h-2 rounded-full bg-blue-500" />
                                                     DeepSeek Configuration
@@ -332,7 +390,7 @@ export default function AdminSettings() {
                                                 />
                                             </div>
 
-                                            <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-4">
+                                            <div className="p-6 rounded-4xl bg-slate-50 border border-slate-100 space-y-4">
                                                 <h4 className="flex items-center gap-2 font-bold text-slate-800 text-sm">
                                                     <div className="w-2 h-2 rounded-full bg-green-500" />
                                                     OpenAI Configuration
@@ -364,7 +422,7 @@ export default function AdminSettings() {
     );
 }
 
-function SectionHeader({ icon: Icon, title, color }: { icon: any, title: string, color: string }) {
+function SectionHeader({ icon: Icon, title, color }: { icon: React.ElementType, title: string, color: string }) {
     const colors = {
         blue: "bg-blue-50 text-blue-600",
         indigo: "bg-indigo-50 text-indigo-600",
@@ -382,13 +440,14 @@ function SectionHeader({ icon: Icon, title, color }: { icon: any, title: string,
     );
 }
 
-function InputField({ label, value, onChange, type = "text" }: { label: string, value: string, onChange: (v: string) => void, type?: string }) {
+function InputField({ label, value, onChange, type = "text", placeholder = "" }: { label: string, value: string, onChange: (v: string) => void, type?: string, placeholder?: string }) {
     return (
         <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{label}</label>
             <input
                 type={type}
                 value={value}
+                placeholder={placeholder}
                 onChange={(e) => onChange(e.target.value)}
                 className="w-full px-5 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none transition-all"
             />

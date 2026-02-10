@@ -18,7 +18,8 @@ import {
     ShieldCheck,
     BookOpen,
     Lock,
-    CreditCard
+    CreditCard,
+    TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -58,6 +59,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 { name: "5. Knowledge Base", icon: BookOpen, href: "/academy" },
                 { name: "6. Resource Center", icon: Library, href: "/library" },
                 { name: "7. Expert Consultation", icon: MessageSquare, href: "/expert" },
+                { name: "8. Career Roadmap", icon: TrendingUp, href: "/roadmap" },
             ]
         },
         {
@@ -65,6 +67,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             items: [
                 { name: t.sidebar.items.certificates, icon: Award, href: "/certificate" },
                 { name: t.sidebar.items.recommendation, icon: ShieldCheck, href: "/recommendation" },
+                { name: t.sidebar.items.jobAlignment, icon: Sparkles, href: "/job-alignment" },
+                { name: t.sidebar.items.strategicReport, icon: Sparkles, href: "/strategic-report" },
             ]
         },
         {
@@ -77,7 +81,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     ];
 
     useEffect(() => {
-        const loadProfile = () => {
+        let intervalId: NodeJS.Timeout | null = null;
+
+        const loadProfile = async () => {
+            if (intervalId) clearInterval(intervalId);
             try {
                 const savedProfile = localStorage.getItem("userProfile");
                 if (savedProfile) {
@@ -85,9 +92,34 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     if (profile.fullName) setUserName(profile.fullName);
                     if (profile.role) setUserRole(profile.role);
                     if (profile.plan) setUserPlan(profile.plan);
+                    
+                    // Initial load from localStorage
                     setCanAccessCerts(!!profile.canAccessCertificates);
                     setCanAccessRecs(!!profile.canAccessRecommendations);
                     setIsDiagnosisComplete(!!profile.isDiagnosisComplete);
+
+                    // FETCH LATEST FROM API to sync if admin changed something
+                    const userId = profile.email || profile.fullName;
+                    if (userId) {
+                        try {
+                            const res = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
+                            const data = await res.json();
+                            if (data.success) {
+                                setCanAccessCerts(data.certReady);
+                                setCanAccessRecs(data.recReady);
+                                
+                                // Update localStorage to stay in sync
+                                const updatedProfile = { 
+                                    ...profile, 
+                                    canAccessCertificates: data.certReady, 
+                                    canAccessRecommendations: data.recReady 
+                                };
+                                localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+                            }
+                        } catch (err) {
+                            console.error("Failed to sync access flags", err);
+                        }
+                    }
 
                     if (profile.role === "Trial User" && profile.trialExpiry) {
                         const expiry = new Date(profile.trialExpiry).getTime();
@@ -105,8 +137,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             }
                         };
                         updateTimer();
-                        const intervalId = setInterval(updateTimer, 60000);
-                        return () => clearInterval(intervalId);
+                        intervalId = setInterval(updateTimer, 60000);
                     }
                 }
             } catch (e) {
@@ -114,15 +145,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             }
         };
 
-        const cleanup = loadProfile();
+        loadProfile();
         window.addEventListener("profileUpdated", loadProfile);
         return () => {
             window.removeEventListener("profileUpdated", loadProfile);
-            if (cleanup) cleanup();
+            if (intervalId) clearInterval(intervalId);
         };
     }, []);
 
-    // Check if an item should be locked based on diagnosis status, trial status, and admin override
+    // Check if an item should be locked based on diagnosis status
     const isLocked = (href: string) => {
         // High security paths: certificates and recommendations
         if (href === "/certificate" && !canAccessCerts) return true;
@@ -131,63 +162,26 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         const alwaysOpen = ["/dashboard", "/subscription", "/settings"];
         if (alwaysOpen.includes(href)) return false;
 
-        const assessmentPaths = [
-            "/assessment/cv-upload",
-            "/assessment/interview",
-            "/assessment/results",
-            "/assessment/role-discovery",
-            "/assessment/role-suggestions",
-            "/assessment/role-matching"
+        // Diagnosis & Audit (1) is always open (so users can complete it)
+        if (href.startsWith("/assessment")) return false;
+
+        const restrictedPaths = [
+            "/simulation", // 2. Real-world Simulations
+            "/training",   // 3. Executive Workshops
+            "/mentor",     // 4. AI Advisor
+            "/academy",    // 5. Knowledge Base
+            "/library",    // 6. Resource Center
+            "/expert",     // 7. Expert Consultation
+            "/roadmap"     // 8. Career Roadmap
         ];
-        const isAssessment = assessmentPaths.some(p => href.startsWith(p));
-        
-        // Determine Plan & Time Status
-        const isPro = userPlan === "Pro Essential" || userPlan === "Elite Full Pack";
-        let isTimeUp = false;
-        
-        // Get createdAt from profile if available
-        try {
-            const savedProfile = localStorage.getItem("userProfile");
-            if (savedProfile) {
-                const p = JSON.parse(savedProfile);
-                if (p.createdAt) {
-                    const created = new Date(p.createdAt).getTime();
-                    const now = new Date().getTime();
-                    if (now - created > (3 * 60 * 60 * 1000)) {
-                        isTimeUp = true;
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Error reading profile time", e);
-        }
 
-        if (isPro) {
-            // Pro: All Open
-            return false;
-        }
-
-        // Free User Logic
-        
-        // Condition 1: Time Up OR Diagnosis Complete
-        // -> Assessment Locked
-        // -> Simulations & Workshops Open
-        if (isTimeUp || isDiagnosisComplete) {
-            if (isAssessment) return true; // Locked (cannot redo)
-            
-            if (href.startsWith("/simulation")) return false; // Open
-            if (href.startsWith("/training")) return false;   // Open
-            
-            return true; // Others locked
-        }
-        
-        // Condition 2: Time Remaining AND Diagnosis Incomplete
-        // -> Assessment Open
-        // -> Rest Locked
-        else {
-            if (isAssessment) return false;
+        // STRICT FLOW: If (1) Diagnosis is NOT complete, LOCK (2-7)
+        // This ensures the AI analysis is ready before accessing other tools
+        if (restrictedPaths.some(p => href.startsWith(p)) && !isDiagnosisComplete) {
             return true;
         }
+        
+        return false;
     };
 
     return (

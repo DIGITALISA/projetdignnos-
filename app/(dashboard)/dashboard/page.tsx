@@ -12,7 +12,8 @@ import {
     Clock,
     ArrowRight,
     CheckCircle2,
-    ChevronRight
+    ChevronRight,
+    Shield
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -30,27 +31,70 @@ export default function DashboardPage() {
     const [hasStarted, setHasStarted] = useState(false);
 
     useEffect(() => {
-        // Function to load profile and real data
-        const loadDashboardData = () => {
+        const loadDashboardData = async () => {
             try {
                 const savedProfile = localStorage.getItem("userProfile");
-                if (savedProfile) {
-                    const { fullName } = JSON.parse(savedProfile);
-                    if (fullName) {
-                        setUserName(fullName.split(' ')[0] || fullName);
-                    }
+                const profile = savedProfile ? JSON.parse(savedProfile) : null;
+                const userId = profile?.email || profile?.fullName;
+
+                if (profile?.fullName) {
+                    setUserName(profile.fullName.split(' ')[0] || profile.fullName);
                 }
 
-                // Check if user has started any activity (e.g. uploaded CV)
-                const cvAnalysis = localStorage.getItem('cvAnalysis');
-                if (cvAnalysis) {
-                    setHasStarted(true);
-                    // In a real app, calculate these from DB
-                    setStats([
-                        { label: t.dashboard.stats.skillsGained, value: "3", icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" }, // Demo: found 3 skills
-                        { label: t.dashboard.stats.hoursLearned, value: "0.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
-                        { label: t.dashboard.stats.certificates, value: "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
-                    ]);
+                if (userId) {
+                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
+                    const response = await res.json();
+
+                    if (response.hasData && response.data) {
+                        const data = response.data;
+                        setHasStarted(true);
+
+                        // Calculate stats or other info if needed
+                        if (data.cvAnalysis) {
+                            const hasSCI = !!data.cvAnalysis.sciReport;
+                            setStats([
+                                { label: t.dashboard.stats.skillsGained, value: String(data.cvAnalysis.skills?.technical?.length || 0), icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
+                                { label: t.dashboard.stats.hoursLearned, value: "0.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
+                                { label: t.dashboard.stats.certificates, value: hasSCI ? "1" : "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
+                            ]);
+
+                            // Sync back to localStorage for other pages
+                            localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
+                            if (data.interviewEvaluation) localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
+                            if (data.roleSuggestions) localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
+                            if (data.selectedRole) localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
+                            if (data.language) localStorage.setItem('selectedLanguage', data.language);
+
+                            // ALSO SYNC ACCESS FLAGS
+                            try {
+                                const readyRes = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
+                                const readyData = await readyRes.json();
+                                if (readyData.success) {
+                                    // Only update and trigger event if there's an actual change to prevent infinite loops
+                                    if (profile.canAccessCertificates !== readyData.certReady || 
+                                        profile.canAccessRecommendations !== readyData.recReady) {
+                                        
+                                        const updatedProfile = {
+                                            ...profile,
+                                            canAccessCertificates: readyData.certReady,
+                                            canAccessRecommendations: readyData.recReady
+                                        };
+                                        localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+                                        // Trigger event for Sidebar and other components to refresh
+                                        window.dispatchEvent(new Event("profileUpdated"));
+                                    }
+                                }
+                            } catch (err) {
+                                console.error("Failed to sync access flags in dashboard", err);
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback to localStorage if no userId (not logged in or first visit)
+                    const cvAnalysis = localStorage.getItem('cvAnalysis');
+                    if (cvAnalysis) {
+                        setHasStarted(true);
+                    }
                 }
 
             } catch (e) {
@@ -108,6 +152,17 @@ export default function DashboardPage() {
             href: "/expert",
             color: "bg-pink-50 text-pink-600",
             borderColor: "border-slate-100"
+        },
+        {
+            title: t.dashboard.journey.stages.strategicReport,
+            description: t.dashboard.journey.stages.strategicReportDesc,
+            status: hasStarted 
+                ? (stats[2].value === "1" ? "completed" : "in-progress") 
+                : "locked",
+            icon: Shield,
+            href: "/strategic-report",
+            color: "bg-slate-900 text-white",
+            borderColor: "border-slate-800"
         }
     ];
 

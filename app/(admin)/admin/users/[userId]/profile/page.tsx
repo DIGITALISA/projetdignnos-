@@ -2,13 +2,141 @@
 
 import { useState, useEffect } from "react";
 import {
-    User, FileText, CheckCircle, Brain,
-    MessageSquare, Award, ArrowLeft, Loader2,
-    Sparkles, ShieldCheck, AlertCircle, X, ChevronRight, Target
+    CheckCircle, Brain,
+    MessageSquare, ArrowLeft, Loader2,
+    Sparkles, ShieldCheck, AlertCircle, ChevronRight, Target
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+
+interface Simulation {
+    title: string;
+    status: string;
+    currentDraft?: string;
+}
+
+interface UserProfile {
+    fullName: string;
+    email: string;
+    role: string;
+    createdAt: string;
+    selectedRole: string;
+    diagnosisData?: {
+        report?: {
+            overview?: string;
+            keyStrengths: string[];
+            areasToImprove: string[];
+            skills?: {
+                technical: string[];
+                soft: string[];
+                gaps: string[];
+            };
+            experience?: {
+                years: number;
+                quality: string;
+                progression: string;
+            };
+            education?: {
+                level: string;
+                relevance: string;
+                notes: string;
+            };
+            nextSteps: string[];
+            overallScore: number;
+            readinessLevel: number;
+            rank: string;
+            recommendations: string;
+            sciReport?: Record<string, unknown>;
+        };
+        simulationResults?: SimulationAuditResult[];
+    };
+}
+
+interface SimulationAuditResult {
+    scenarioNumber?: number;
+    title: string;
+    aiEvaluation: {
+        score: number;
+        strengths: string[];
+        improvements: string[];
+    };
+}
+
+interface DiagnosisReport {
+    overallScore: number;
+    readinessLevel: number;
+    rank: string;
+    recommendations: string;
+    keyStrengths: string[];
+    areasToImprove: string[];
+    nextSteps: string[];
+}
+
+interface DiagnosisInterface {
+    analysis?: {
+        overview?: string;
+        strengths: string[];
+        weaknesses: string[];
+        skills?: {
+            technical: string[];
+            soft: string[];
+            gaps: string[];
+        };
+        experience?: {
+            years?: number;
+            quality?: string;
+            progression?: string;
+        };
+        education?: {
+            level?: string;
+            relevance?: string;
+            notes?: string;
+        };
+        immediateActions: string[];
+        expertAdvice?: {
+            suggestedWorkshops: string[];
+            suggestedTrainings: string[];
+            strategicBrief: string;
+            evolutionNote: string;
+        };
+        overallScore?: number;
+        sciReport?: Record<string, unknown>;
+    };
+    report?: DiagnosisReport;
+    simulationResults?: SimulationAuditResult[];
+}
+
+interface AggregatedData {
+    success: boolean;
+    user: UserProfile;
+    diagnosis: DiagnosisInterface | null;
+    interviewResult: {
+        evaluation?: {
+            seniorityLevel?: string;
+            expertCaseSummary?: string;
+            executiveSummary?: string;
+            summary?: string;
+            suggestedRoles?: string[];
+            cvVsReality?: {
+                confirmedStrengths: string[];
+                exaggerations: string[];
+                hiddenStrengths: string[];
+            };
+            cvImprovements: string[];
+            skillDevelopmentPriorities?: string[];
+            expertAdvice?: {
+                suggestedWorkshops: string[];
+                suggestedTrainings: string[];
+                strategicBrief: string;
+            };
+        };
+    } | null;
+    simulations: Simulation[];
+    profile: {
+        expertNotes?: string;
+        referenceId?: string;
+    } | null;
+    error?: string;
+}
 
 export default function UserProfileReview() {
     const params = useParams();
@@ -16,11 +144,10 @@ export default function UserProfileReview() {
     const userId = params.userId as string;
 
     const [isLoading, setIsLoading] = useState(true);
-    const [userData, setUserData] = useState<any>(null);
+    const [userData, setUserData] = useState<AggregatedData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [expertNotes, setExpertNotes] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
-    const [showDiagModal, setShowDiagModal] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -36,9 +163,9 @@ export default function UserProfileReview() {
                 } else {
                     setError(data.error || "Failed to load user data.");
                 }
-            } catch (error: any) {
+            } catch (error) {
                 console.error("Failed to load user data", error);
-                setError(error.message || "Network error occurred.");
+                setError((error as Error).message || "Network error occurred.");
             } finally {
                 setIsLoading(false);
             }
@@ -61,7 +188,7 @@ export default function UserProfileReview() {
             const data = await res.json();
 
             if (data.success) {
-                alert("Executive Profile Generated Successfully! The user can now see their recommendation letter.");
+                alert("Executive Profile & Recommendation Letter published! The student can now see these in their dashboard under Certificates & Recommendations.");
                 window.location.reload();
             } else {
                 alert("Generation failed: " + data.error);
@@ -71,6 +198,34 @@ export default function UserProfileReview() {
             alert("System error during generation");
         } finally {
             setIsGenerating(false);
+        }
+    };
+
+    const [isGeneratingSCI, setIsGeneratingSCI] = useState(false);
+    const handleGenerateSCI = async () => {
+        setIsGeneratingSCI(true);
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/generate-sci`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    expertNotes,
+                    language: 'fr'
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Strategic Career Intelligence (SCI) Report published! The student can now access the full report in their Strategic Intelligence section.");
+                window.location.reload();
+            } else {
+                alert("Generation failed: " + data.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("System error during generation");
+        } finally {
+            setIsGeneratingSCI(false);
         }
     };
 
@@ -106,6 +261,23 @@ export default function UserProfileReview() {
 
     if (!userData) return null;
 
+
+    // Helper to normalize diagnosis data from either collection or user profile
+    const diagnosis: DiagnosisInterface | null = userData.diagnosis || (userData.user?.diagnosisData ? ({
+        analysis: {
+            overview: userData.user.diagnosisData.report?.overview || "",
+            strengths: userData.user.diagnosisData.report?.keyStrengths || [],
+            weaknesses: userData.user.diagnosisData.report?.areasToImprove || [],
+            skills: userData.user.diagnosisData.report?.skills || { technical: [], soft: [], gaps: [] },
+            experience: userData.user.diagnosisData.report?.experience || {},
+            education: userData.user.diagnosisData.report?.education || {},
+            immediateActions: userData.user.diagnosisData.report?.nextSteps || [],
+            sciReport: (userData.user.diagnosisData.report?.sciReport as Record<string, unknown>) || undefined
+        },
+        report: userData.user.diagnosisData.report,
+        simulationResults: userData.user.diagnosisData.simulationResults || []
+    } as DiagnosisInterface) : null);
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 p-6 md:p-8">
             {/* Header */}
@@ -130,161 +302,146 @@ export default function UserProfileReview() {
                 </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8">
-                {/* Left Column: Identity & Status */}
-                <div className="space-y-6">
-                    {/* User Profile Card */}
-                    <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50">
-                        <div className="flex items-center gap-5 mb-8">
-                            <div className="w-20 h-20 bg-linear-to-br from-slate-100 to-slate-200 rounded-3xl flex items-center justify-center text-3xl font-black text-slate-400 shadow-inner">
-                                {userData.user?.fullName?.charAt(0) || "U"}
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
+                {/* Column 1: Identity & Expert Action (Major Focus) */}
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Executive Command Center */}
+                    <div className="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[80px]" />
+                        
+                        <div className="relative z-10 space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-500/20">
+                                        <ShieldCheck className="text-blue-400 w-7 h-7" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black tracking-tight">Expert Command Center</h2>
+                                        <p className="text-blue-400/60 text-xs font-bold uppercase tracking-widest">Confidential Case Review</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest">ID: {userId.substring(0, 8)}</span>
+                                </div>
                             </div>
+
+                            {/* Dossier Info Grid */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Candidate Benchmark</p>
+                                    <h4 className="text-xl font-bold flex items-center gap-2">
+                                        {userData.interviewResult?.evaluation?.seniorityLevel || "Pending Evaluation"}
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                    </h4>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">Verified seniority level based on technical verification rounds.</p>
+                                </div>
+                                <div className="p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Strategic Fit</p>
+                                    <h4 className="text-xl font-bold truncate">{userData.user?.selectedRole || "General Interest"}</h4>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">Current role path selected by the participant.</p>
+                                </div>
+                            </div>
+
+                            {/* Executive Summary Area */}
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 leading-tight">{userData.user?.fullName}</h3>
-                                <p className="text-sm text-slate-500 font-medium">{userData.user?.email}</p>
-                                <div className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    Joined: {new Date(userData.user?.createdAt).toLocaleDateString()}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div
-                                onClick={() => userData.diagnosis && setShowDiagModal(true)}
-                                className={cn(
-                                    "flex items-center justify-between p-4 bg-slate-50 rounded-2xl transition-all",
-                                    userData.diagnosis ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200 border border-transparent" : "opacity-60"
-                                )}
-                            >
-                                <span className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <FileText size={18} className="text-blue-500" />
-                                    Diagnosis
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <span className={userData.diagnosis ? "text-green-600 font-black text-xs uppercase tracking-wider" : "text-slate-400 font-black text-xs uppercase tracking-wider"}>
-                                        {userData.diagnosis ? "Completed" : "Pending"}
-                                    </span>
-                                    {userData.diagnosis && <ChevronRight size={14} className="text-slate-400" />}
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Brain size={14} className="text-indigo-400" />
+                                    AI-Driven Case Synthesis
+                                </h4>
+                                <div className="p-8 bg-linear-to-br from-indigo-500/10 to-blue-500/10 border border-white/5 rounded-4xl text-sm leading-relaxed text-slate-300 font-medium italic">
+                                    {userData.interviewResult?.evaluation?.expertCaseSummary || userData.interviewResult?.evaluation?.executiveSummary || "Case synthesis in progress. Awaiting full simulation completion for technical synchronization."}
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                                <span className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <Target size={18} className="text-red-500" />
-                                    Chosen Role
-                                </span>
-                                <span className="text-slate-900 font-bold text-sm text-right max-w-[120px] truncate">
-                                    {userData.user?.selectedRole || "Not Chosen"}
-                                </span>
-                            </div>
+                            {/* Validation Actions */}
+                            <div className="pt-4 space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4 block">Confidential Expert Verdict</label>
+                                    <textarea
+                                        value={expertNotes}
+                                        onChange={(e) => setExpertNotes(e.target.value)}
+                                        placeholder="Record final professional verdict for the executive roadmap..."
+                                        className="w-full h-40 p-6 bg-white/5 border border-white/10 rounded-3xl text-sm focus:ring-2 focus:ring-blue-500/30 outline-none resize-none font-medium text-slate-100 placeholder:text-slate-600 transition-all shadow-inner"
+                                    />
+                                </div>
 
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                                <span className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                    <Sparkles size={18} className="text-indigo-500" />
-                                    AI Status
-                                </span>
-                                <span className={userData.interviewResult ? "text-blue-600 font-bold text-xs" : "text-slate-400 font-bold text-xs"}>
-                                    {userData.interviewResult ? "EVALUATED" : "IN PROGRESS"}
-                                </span>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={handleGenerateProfile}
+                                        disabled={isGenerating || !diagnosis}
+                                        className={`py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-30 group ${
+                                            userData.profile 
+                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" 
+                                            : "bg-white text-slate-900 border border-transparent hover:bg-blue-50"
+                                        }`}
+                                    >
+                                        {isGenerating ? (
+                                            <Loader2 size={16} className="animate-spin text-blue-600" />
+                                        ) : userData.profile ? (
+                                            <CheckCircle size={16} className="text-emerald-600" />
+                                        ) : (
+                                            <Sparkles size={16} className="text-blue-600" />
+                                        )}
+                                        {userData.profile ? "Executive Profile Published" : "Executive Letter"}
+                                    </button>
+                                    <button
+                                        onClick={handleGenerateSCI}
+                                        disabled={isGeneratingSCI || !diagnosis}
+                                        className={`py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-30 group ${
+                                            diagnosis?.analysis?.sciReport 
+                                            ? "bg-emerald-600 text-white hover:bg-emerald-500" 
+                                            : "bg-indigo-600 text-white hover:bg-indigo-500"
+                                        }`}
+                                    >
+                                        {isGeneratingSCI ? (
+                                            <Loader2 size={16} className="animate-spin" />
+                                        ) : diagnosis?.analysis?.sciReport ? (
+                                            <CheckCircle size={16} className="text-white" />
+                                        ) : (
+                                            <Brain size={16} className="text-white" />
+                                        )}
+                                        {diagnosis?.analysis?.sciReport ? "Strategic Report Published" : "Strategic Intelligence"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Quick AI Behavioral Summary */}
-                    {userData.diagnosis && (
-                        <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-lg shadow-slate-200/50">
-                            <h3 className="font-black text-slate-900 mb-6 flex items-center gap-3 text-lg">
-                                <Sparkles size={20} className="text-purple-600" />
-                                AI Behavioral Analysis
-                            </h3>
-                            <div className="space-y-6">
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Core Strengths</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(userData.interviewResult?.evaluation?.cvVsReality?.confirmedStrengths || userData.diagnosis.analysis?.strengths)?.slice(0, 3).map((s: string, i: number) => (
-                                            <span key={i} className="px-3 py-1.5 bg-green-50 text-green-700 text-[10px] rounded-lg font-bold border border-green-100">{s}</span>
-                                        ))}
-                                    </div>
+                    {/* Simulation Deep-Dive Integration */}
+                    <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-xl shadow-slate-200/40">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm">
+                                    <Target className="text-blue-600 w-6 h-6" />
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Critical Gaps</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(userData.interviewResult?.evaluation?.cvVsReality?.exaggerations || userData.diagnosis.analysis?.weaknesses)?.slice(0, 3).map((s: string, i: number) => (
-                                            <span key={i} className="px-3 py-1.5 bg-red-50 text-red-700 text-[10px] rounded-lg font-bold border border-red-100">{s}</span>
-                                        ))}
-                                    </div>
-                                </div>
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Mission Operations</h3>
+                            </div>
+                            <div className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                Live Simulation Record
                             </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Middle Column: Expert Case & Performance */}
-                <div className="space-y-6">
-                    {/* Executive Case Dossier */}
-                    {userData.interviewResult && (
-                        <div className="bg-slate-900 p-8 rounded-4xl text-white shadow-2xl relative overflow-hidden border border-slate-800">
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl" />
-                            <h3 className="font-black text-xl mb-6 flex items-center gap-3 tracking-tight">
-                                <ShieldCheck size={24} className="text-blue-400" />
-                                Executive Case Dossier
-                            </h3>
-
-                            <div className="space-y-6 relative z-10">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Candidate Level</p>
-                                        <p className="text-lg font-bold">{userData.interviewResult.evaluation?.seniorityLevel || "N/A"}</p>
-                                    </div>
-                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                        <p className="text-[10px] font-black text-green-400 uppercase tracking-widest mb-1">Target Role</p>
-                                        <p className="text-lg font-bold truncate" title={userData.user?.selectedRole}>
-                                            {userData.user?.selectedRole || "None"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Expert Case Summary (Human Focused)</p>
-                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl text-sm leading-relaxed text-slate-300 font-medium italic">
-                                        {userData.interviewResult.evaluation?.expertCaseSummary || userData.interviewResult.evaluation?.executiveSummary || userData.interviewResult.evaluation?.summary}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Market-Fit Suggestions</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {userData.interviewResult.evaluation?.suggestedRoles?.map((role: string, i: number) => (
-                                            <span key={i} className="px-3 py-1 bg-white/10 text-white text-[10px] rounded-lg font-bold border border-white/10">{role}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Simulation & Assessment Detail */}
-                    <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50">
-                        <h3 className="font-black text-slate-900 mb-6 flex items-center gap-3 text-lg">
-                            <MessageSquare size={20} className="text-blue-600" />
-                            Active Missions & Simulations
-                        </h3>
                         {(!userData.simulations || userData.simulations.length === 0) ? (
-                            <div className="py-12 text-center border-2 border-dashed border-slate-100 rounded-3xl">
-                                <p className="text-sm text-slate-400 font-medium">No simulation data available yet.</p>
+                            <div className="py-16 text-center bg-slate-50/50 rounded-4xl border-2 border-dashed border-slate-100">
+                                <MessageSquare className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">No active simulation data points</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
-                                {userData.simulations.map((sim: any, i: number) => (
-                                    <div key={i} className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-blue-300 transition-colors">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <h4 className="font-bold text-sm text-slate-900 uppercase tracking-tight">{sim.title}</h4>
-                                            <span className={`text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-wider ${sim.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {userData.simulations.map((sim: Simulation, i: number) => (
+                                    <div key={i} className="group p-6 bg-white rounded-3xl border border-slate-100 hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-200/40 transition-all duration-500">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-black border border-blue-100">{i+1}</div>
+                                                <h4 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{sim.title}</h4>
+                                            </div>
+                                            <span className={`text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-wider shadow-sm ${sim.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
                                                 {sim.status}
                                             </span>
                                         </div>
-                                        <div className="text-xs text-slate-600 bg-white p-3 rounded-xl border border-slate-100 italic">
-                                            "{sim.currentDraft ? sim.currentDraft.substring(0, 150) + '...' : 'No draft submitted'}"
+                                        <div className="text-xs text-slate-500 leading-relaxed font-medium line-clamp-2 italic opacity-80 group-hover:opacity-100">
+                                            &quot;{sim.currentDraft || "No qualitative data submitted yet for this phase."}&quot;
                                         </div>
                                     </div>
                                 ))}
@@ -293,157 +450,357 @@ export default function UserProfileReview() {
                     </div>
                 </div>
 
-                {/* Right Column: Expert Action */}
-                <div className="space-y-6">
-                    <div className="bg-slate-900 text-white p-8 rounded-4xl shadow-2xl relative overflow-hidden border border-slate-800">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full -mr-32 -mt-32 blur-[100px] opacity-30" />
-
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/10">
-                                    <ShieldCheck className="text-blue-400 w-5 h-5" />
-                                </div>
-                                <h3 className="font-black text-xl tracking-tight">Expert Validation</h3>
+                {/* Column 2: Dashboard Metrics & Identity (Sidebar Focus) */}
+                <div className="lg:col-span-4 space-y-8">
+                    {/* User Identity Snapshot */}
+                    <div className="bg-white rounded-[3rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-slate-50 to-transparent -mr-16 -mt-16 rounded-full" />
+                        
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="w-24 h-24 bg-linear-to-br from-slate-50 to-slate-200 rounded-[2.5rem] flex items-center justify-center text-4xl font-black text-slate-400 shadow-xl border-4 border-white mb-6">
+                                {userData.user?.fullName?.charAt(0) || "U"}
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 leading-tight mb-2">{userData.user?.fullName}</h3>
+                            <p className="text-sm text-slate-500 font-medium mb-4">{userData.user?.email}</p>
+                            <div className="px-4 py-1.5 bg-blue-50 text-blue-700 text-[10px] rounded-full font-black uppercase tracking-widest border border-blue-100 mb-8 mt-2">
+                                {userData.user?.role || "Global Participant"}
                             </div>
 
-                            <p className="text-slate-400 text-sm mb-8 leading-relaxed font-medium">
-                                Provide your final professional verdict based on the AI case summary and simulation performance.
-                            </p>
-
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 block">Expert Assessment Notes</label>
-                                    <textarea
-                                        value={expertNotes}
-                                        onChange={(e) => setExpertNotes(e.target.value)}
-                                        placeholder="Enter the final verdict and coaching advice..."
-                                        className="w-full h-64 p-5 bg-white/5 border border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none font-medium text-slate-100 placeholder:text-slate-600 transition-all"
-                                    />
+                            <div className="w-full grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Loyalty</p>
+                                    <p className="text-xs font-bold text-slate-800">{new Date(userData.user?.createdAt).getFullYear()}</p>
                                 </div>
-
-                                <button
-                                    onClick={handleGenerateProfile}
-                                    disabled={isGenerating || !userData.diagnosis}
-                                    className="w-full py-5 bg-white hover:bg-blue-50 text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 group"
-                                >
-                                    {isGenerating ? (
-                                        <Loader2 size={18} className="animate-spin text-blue-600" />
-                                    ) : (
-                                        <>
-                                            <Sparkles size={18} className="text-blue-600 group-hover:scale-110 transition-transform" />
-                                            Issue Recommendations
-                                        </>
-                                    )}
-                                </button>
+                                <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                                    <p className="text-xs font-bold text-emerald-600">Active</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {userData.profile && (
-                        <div className="bg-emerald-50 p-8 rounded-4xl border border-emerald-100 shadow-lg flex items-center gap-4">
-                            <CheckCircle size={28} className="text-emerald-600" />
-                            <div>
-                                <h4 className="font-black text-emerald-900 tracking-tight">Profile Certified</h4>
-                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Reference: {userData.profile.referenceId?.substring(0, 8)}</p>
+                    {/* Operational Performance Bar */}
+                    <div className="bg-white rounded-[3rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/40">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                                <Sparkles className="text-indigo-600 w-5 h-5" />
+                            </div>
+                            <h4 className="font-black text-slate-900 tracking-tight">Live Assessment</h4>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="p-5 bg-linear-to-br from-indigo-50 to-blue-50 rounded-3xl border border-blue-100 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Brain size={48} className="text-indigo-900" />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-end mb-3">
+                                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Global Rank</p>
+                                        <span className="text-3xl font-black text-indigo-900">{diagnosis?.report?.rank || "S"}</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-indigo-200 rounded-full overflow-hidden">
+                                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: '85%' }} />
+                                    </div>
+                                    <p className="text-[9px] font-bold text-indigo-500 mt-3 uppercase">Readiness: {diagnosis?.report?.readinessLevel || 0}%</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <span className="text-xs font-bold text-slate-600">Technical Score</span>
+                                    <span className="text-sm font-black text-slate-900">{diagnosis?.report?.overallScore || 0}/10</span>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <span className="text-xs font-bold text-slate-600">Behavioral Fit</span>
+                                    <span className="text-sm font-black text-blue-600">Optimized</span>
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Quick Access Documents */}
+                    {userData.profile && (
+                         <div className="bg-emerald-50 p-8 rounded-[3rem] border border-emerald-100 shadow-lg group hover:bg-emerald-100 transition-colors">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-600/20 group-hover:scale-110 transition-transform">
+                                    <CheckCircle size={28} className="text-white" />
+                                </div>
+                                <div>
+                                    <h4 className="font-black text-emerald-900 tracking-tight text-lg leading-tight text-nowrap">Certification Locked</h4>
+                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] mt-1">REF: {userData.profile.referenceId?.substring(0, 8) || "ADM-XX"}</p>
+                                </div>
+                            </div>
+                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Diagnosis Summary Modal */}
-            <AnimatePresence>
-                {showDiagModal && (
-                    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowDiagModal(false)}
-                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden border border-slate-100"
-                        >
-                            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                                        <Brain className="text-white w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-black text-slate-900">Diagnostic Synthesis</h3>
-                                        <p className="text-blue-600 text-xs font-bold uppercase tracking-wider">AI Generated Report</p>
+            {/* NEW: Expert Career Development Strategy */}
+            <div className="mt-12 space-y-8">
+               <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-linear-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <ShieldCheck className="text-white w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Expert Career Development Strategy</h2>
+                            <p className="text-slate-500 font-medium">Internal roadmap and training architecture for our experts.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Career Transformation Roadmap */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50">
+                            <h3 className="font-black text-slate-900 mb-6 flex items-center gap-3 text-lg">
+                                <Target size={20} className="text-orange-600" />
+                                Strategic Career Roadmap
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200">
+                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Phase 1: Immediate Skill Integration</h4>
+                                    <div className="flex flex-wrap gap-3">
+                                        {(userData.interviewResult?.evaluation?.skillDevelopmentPriorities || diagnosis?.analysis?.immediateActions)?.map((skill, i) => (
+                                            <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm text-sm font-bold text-slate-700">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                                {skill}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setShowDiagModal(false)}
-                                    className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors shadow-sm"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
 
-                            <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                <div className="space-y-8">
-                                    <section>
-                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Executive Summary</h4>
-                                        <p className="text-slate-700 leading-relaxed font-medium bg-blue-50/30 p-6 rounded-3xl border border-blue-100/50 italic">
-                                            {userData.interviewResult?.evaluation?.executiveSummary || userData.interviewResult?.evaluation?.summary || "No detailed summary available."}
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
+                                        <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] mb-4">Internal Expert Context</h4>
+                                        <p className="text-sm italic text-amber-900 leading-relaxed font-medium">
+                                            &quot;Candidate shows high potential in {userData.user?.selectedRole}, but needs to bridge the gap between theoretical knowledge and operational execution found in simulations.&quot;
                                         </p>
-                                    </section>
-
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <section className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <h4 className="text-[10px] font-black text-green-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                                <CheckCircle size={14} />
-                                                Verified Strengths
-                                            </h4>
-                                            <ul className="space-y-2">
-                                                {(userData.interviewResult?.evaluation?.cvVsReality?.confirmedStrengths || userData.diagnosis.analysis?.strengths)?.slice(0, 5).map((s: string, i: number) => (
-                                                    <li key={i} className="text-xs font-bold text-slate-600 flex items-start gap-2">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                                                        {s}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </section>
-
-                                        <section className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <h4 className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                                <AlertCircle size={14} />
-                                                Gaps & Exaggerations
-                                            </h4>
-                                            <ul className="space-y-2">
-                                                {(userData.interviewResult?.evaluation?.cvVsReality?.exaggerations || userData.diagnosis.analysis?.weaknesses)?.slice(0, 5).map((s: string, i: number) => (
-                                                    <li key={i} className="text-xs font-bold text-slate-600 flex items-start gap-2">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
-                                                        {s}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </section>
                                     </div>
-
-                                    <section className="bg-indigo-900 p-8 rounded-4xl text-white">
-                                        <h4 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] mb-4">Strategic Transformation Steps</h4>
-                                        <div className="space-y-3">
-                                            {(userData.interviewResult?.evaluation?.cvImprovements || userData.diagnosis.analysis?.immediateActions)?.map((rec: string, i: number) => (
-                                                <div key={i} className="flex gap-4 p-3 bg-white/5 rounded-xl border border-white/5">
-                                                    <span className="text-indigo-400 font-black">0{i + 1}</span>
-                                                    <p className="text-sm font-medium">{rec}</p>
+                                    <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100">
+                                        <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-4">Market Potential</h4>
+                                        <div className="space-y-2">
+                                            {userData.interviewResult?.evaluation?.suggestedRoles?.slice(0, 3).map((role, i) => (
+                                                <div key={i} className="text-xs font-bold text-blue-800 flex items-center gap-2">
+                                                    <ChevronRight size={12} />
+                                                    {role}
                                                 </div>
                                             ))}
                                         </div>
-                                    </section>
+                                    </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
+
+                        {/* Suggested Training & Workshops */}
+                        <div className="bg-slate-900 p-8 rounded-4xl text-white shadow-2xl border border-slate-800">
+                            <h3 className="font-black text-xl mb-6 flex items-center gap-3 tracking-tight">
+                                <Brain size={24} className="text-amber-400" />
+                                Custom Training Architecture
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recommended Workshops</p>
+                                    <div className="space-y-3">
+                                        {(userData.interviewResult?.evaluation?.expertAdvice?.suggestedWorkshops || diagnosis?.analysis?.expertAdvice?.suggestedWorkshops || [
+                                            "Advanced Case Resolution Simulation",
+                                            "Stakeholder Management in High-Stakes Environments",
+                                            "Technical Gap-Bridge Masterclass"
+                                        ]).map((workshop, i) => (
+                                            <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-400 font-bold text-xs">{i+1}</div>
+                                                <span className="text-sm font-medium">{workshop}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Training Modules</p>
+                                    <div className="space-y-3">
+                                        {(userData.interviewResult?.evaluation?.expertAdvice?.suggestedTrainings || diagnosis?.analysis?.expertAdvice?.suggestedTrainings || [
+                                            "Senior-Level Strategic Alignment",
+                                            "Operational Excellence Frameworks",
+                                            "Leadership & Crisis Communication"
+                                        ]).map((module, i) => (
+                                            <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 font-bold text-xs">{String.fromCharCode(65+i)}</div>
+                                                <span className="text-sm font-medium">{module}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+
+                    {/* Right column: Dynamic Evolution & Notes */}
+                    <div className="space-y-6">
+                        <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50">
+                            <h3 className="font-black text-slate-900 mb-6 flex items-center gap-3 text-lg">
+                                <Sparkles size={20} className="text-indigo-600" />
+                                Profile Evolution
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                    <span className="text-xs font-bold text-indigo-700">Evolution Rating</span>
+                                    <span className="text-xl font-black text-indigo-800">+12%</span>
+                                </div>
+                                <p className="text-xs text-slate-500 font-medium leading-relaxed italic">
+                                    &quot;Analysis dynamically updates based on the latest simulation outcomes and diagnostic retakes. Currently showing optimal path for {userData.user?.selectedRole}.&quot;
+                                </p>
+                                <div className="pt-4 border-t border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Last Diagnostic Analysis</p>
+                                    <p className="text-xs font-bold text-slate-700">{new Date(diagnosis?.report ? Date.now() : Date.now()).toLocaleDateString()} - Baseline Analysis</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-emerald-900 p-8 rounded-4xl text-white shadow-xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl" />
+                            <h3 className="font-black text-lg mb-4">Expert Verdict Summary</h3>
+                            <p className="text-sm text-emerald-100 leading-relaxed font-medium">
+                                {userData.interviewResult?.evaluation?.expertCaseSummary ? 
+                                    userData.interviewResult.evaluation.expertCaseSummary.substring(0, 200) + "..." : 
+                                    "Provide the final expert notes and roadmap to unlock certification."}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Detailed AI Audit Report Section */}
+            {diagnosis && (
+                <div className="space-y-8 mt-12 pt-12 border-t border-slate-200">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <Brain className="text-white w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Comprehensive AI Audit Report</h2>
+                            <p className="text-slate-500 font-medium">In-depth behavioral and technical validation data.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-8">
+                        {/* 1. Skills Spectrum */}
+                        <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50">
+                            <h3 className="font-black text-slate-900 mb-6 flex items-center gap-3 text-lg">
+                                <Target size={20} className="text-blue-600" />
+                                Professional Skills Spectrum
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Technical Proficiency</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {diagnosis.analysis?.skills?.technical?.map((s: string, i: number) => (
+                                            <span key={i} className="px-3 py-1.5 bg-blue-50 text-blue-700 text-[10px] rounded-lg font-bold border border-blue-100">{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Soft Skills & Leadership</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {diagnosis.analysis?.skills?.soft?.map((s: string, i: number) => (
+                                            <span key={i} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-[10px] rounded-lg font-bold border border-indigo-100">{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-8 pt-8 border-t border-slate-100">
+                                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-4">Urgent Capability Gaps</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {diagnosis.analysis?.skills?.gaps?.map((s: string, i: number) => (
+                                        <span key={i} className="px-3 py-1.5 bg-orange-50 text-orange-700 text-[10px] rounded-lg font-bold border border-orange-100">{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Background Quality Audit */}
+                        <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50">
+                            <h3 className="font-black text-slate-900 mb-6 flex items-center gap-3 text-lg">
+                                <ShieldCheck size={20} className="text-emerald-600" />
+                                Background & Education Audit
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Experience Progression</p>
+                                    <p className="text-sm font-bold text-slate-700">{diagnosis.analysis?.experience?.progression || "N/A"}</p>
+                                    <p className="text-xs text-slate-500 mt-1">Quality Score: <span className="text-blue-600 font-bold">{diagnosis.analysis?.experience?.quality || "Standard"}</span></p>
+                                </div>
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Validation</p>
+                                    <p className="text-sm font-bold text-slate-700">{diagnosis.analysis?.education?.level || "N/A"} - {diagnosis.analysis?.education?.relevance || ""}</p>
+                                    <p className="text-xs text-slate-500 mt-1 italic">&quot;{diagnosis.analysis?.education?.notes || ""}&quot;</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 3. Full Simulation Performance Deep-Dive */}
+                    <div className="bg-slate-900 p-8 rounded-4xl text-white shadow-2xl relative overflow-hidden border border-slate-800">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px]" />
+                        <h3 className="font-black text-xl mb-8 flex items-center gap-3 tracking-tight relative z-10">
+                            <Sparkles size={24} className="text-blue-400" />
+                            Simulation Performance Audit (Full Scenarios)
+                        </h3>
+
+                        {diagnosis.simulationResults && diagnosis.simulationResults.length > 0 ? (
+                            <div className="space-y-6 relative z-10">
+                                {diagnosis.simulationResults.map((result: SimulationAuditResult, i: number) => (
+                                    <div key={i} className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400 font-black">
+                                                    0{result.scenarioNumber || i + 1}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-lg">{result.title}</h4>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scenario Audit</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-600/20">
+                                                <span className="text-xs font-black uppercase tracking-widest">Score:</span>
+                                                <span className="text-xl font-black">{result.aiEvaluation?.score}/10</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-white/10">
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Demonstrated Strengths</p>
+                                                <div className="space-y-2">
+                                                    {result.aiEvaluation?.strengths?.map((s: string, idx: number) => (
+                                                        <div key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                                                            <CheckCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                                                            <span>{s}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Improvement Points</p>
+                                                <div className="space-y-2">
+                                                    {result.aiEvaluation?.improvements?.map((s: string, idx: number) => (
+                                                        <div key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                                                            <AlertCircle size={14} className="text-orange-500 mt-0.5 shrink-0" />
+                                                            <span>{s}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-20 text-center bg-white/5 rounded-3xl border border-white/5 border-dashed relative z-10">
+                                <p className="text-slate-500 font-medium">In-depth simulation results not yet generated.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

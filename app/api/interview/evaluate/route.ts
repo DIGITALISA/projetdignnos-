@@ -41,7 +41,11 @@ export async function POST(request: NextRequest) {
                         'completionStatus.interviewComplete': true,
                         updatedAt: new Date()
                     },
-                    { upsert: false, new: true } // لا نريد إنشاء سجل جديد، فقط تحديث الموجود
+                    { 
+                        upsert: false, 
+                        new: true,
+                        sort: { createdAt: -1 } // Update the most recent diagnosis
+                    }
                 );
                 
                 // حفظ في InterviewResult أيضاً (للتوافق مع الكود القديم)

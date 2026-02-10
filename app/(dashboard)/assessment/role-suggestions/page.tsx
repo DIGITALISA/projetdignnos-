@@ -28,19 +28,57 @@ export default function RoleSuggestionsPage() {
     const [isDownloading, setIsDownloading] = useState(false);
 
     useEffect(() => {
-        const stored = localStorage.getItem('cvAnalysis');
-        const storedLanguage = localStorage.getItem('selectedLanguage');
-        const storedRoles = localStorage.getItem('roleSuggestions');
+        const loadProgress = async () => {
+            const storedCV = localStorage.getItem('cvAnalysis');
+            const storedLanguage = localStorage.getItem('selectedLanguage');
+            const storedRoles = localStorage.getItem('roleSuggestions');
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
 
-        if (stored && storedRoles) {
-            const roles = JSON.parse(storedRoles);
+            if (storedCV && storedRoles) {
+                setRoleSuggestions(JSON.parse(storedRoles));
+                setSelectedLanguage(storedLanguage || 'en');
+                setLoading(false);
+                return;
+            }
 
-            setSelectedLanguage(storedLanguage || 'en');
-            setRoleSuggestions(roles);
-            setLoading(false);
-        } else {
-            router.push('/assessment/cv-upload');
-        }
+            // If not found in localStorage, check API
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
+                    const response = await res.json();
+
+                    if (response.hasData && response.data) {
+                        const data = response.data;
+                        
+                        if (data.roleSuggestions && data.roleSuggestions.length > 0) {
+                            // Restore to state
+                            setRoleSuggestions(data.roleSuggestions);
+                            setSelectedLanguage(data.language || 'en');
+                            
+                            // Restore to localStorage for other parts of the app
+                            if (data.cvAnalysis) localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
+                            localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
+                            localStorage.setItem('selectedLanguage', data.language || 'en');
+                            
+                            setLoading(false);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error loading progress:", e);
+                }
+            }
+
+            // If we reach here, no data found anywhere
+            if (!storedCV) {
+                router.push('/assessment/cv-upload');
+            } else {
+                setLoading(false);
+            }
+        };
+
+        loadProgress();
     }, [router]);
 
     const handleDownloadReport = async () => {
@@ -219,11 +257,11 @@ export default function RoleSuggestionsPage() {
     }
 
     const readyRoles = roleSuggestions
-        .filter(r => r.category === 'ready')
+        .filter(r => r.category?.toLowerCase() === 'ready')
         .sort((a, b) => b.matchPercentage - a.matchPercentage);
 
     const futureRoles = roleSuggestions
-        .filter(r => r.category === 'future')
+        .filter(r => r.category?.toLowerCase() === 'future')
         .sort((a, b) => b.matchPercentage - a.matchPercentage);
 
     return (
@@ -296,64 +334,87 @@ export default function RoleSuggestionsPage() {
                 </motion.div>
 
                 {/* Ready Now Roles */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <div className="flex items-center gap-3 mb-6">
+                {readyRoles.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                    >
+                        <div className="flex items-center gap-3 mb-6">
                             <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
+                                <CheckCircle className="w-6 h-6 text-green-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-900">Ready Now - Short Term</h2>
+                                <p className="text-slate-600">Roles you can pursue immediately with your current skills</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900">Ready Now - Short Term</h2>
-                            <p className="text-slate-600">Roles you can pursue immediately with your current skills</p>
-                        </div>
-                    </div>
 
-                    <div className="grid gap-4">
-                        {readyRoles.map((role, index) => (
-                            <RoleCard
-                                key={index}
-                                role={role}
-                                isExpanded={expandedRole === role.title}
-                                onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
-                                onSelect={() => selectRole(role)}
-                                color="green"
-                            />
-                        ))}
-                    </div>
-                </motion.div>
+                        <div className="grid gap-4">
+                            {readyRoles.map((role, index) => (
+                                <RoleCard
+                                    key={index}
+                                    role={role}
+                                    isExpanded={expandedRole === role.title}
+                                    onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
+                                    onSelect={() => selectRole(role)}
+                                    color="green"
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Future Roles */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                >
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                            <Clock className="w-6 h-6 text-orange-600" />
+                {futureRoles.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                <Clock className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-900">Future Goals - Long Term</h2>
+                                <p className="text-slate-600">Roles to work towards with skill development</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900">Future Goals - Long Term</h2>
-                            <p className="text-slate-600">Roles to work towards with skill development</p>
-                        </div>
-                    </div>
 
-                    <div className="grid gap-4">
-                        {futureRoles.map((role, index) => (
-                            <RoleCard
-                                key={index}
-                                role={role}
-                                isExpanded={expandedRole === role.title}
-                                onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
-                                onSelect={() => selectRole(role)}
-                                color="orange"
-                            />
-                        ))}
-                    </div>
-                </motion.div>
+                        <div className="grid gap-4">
+                            {futureRoles.map((role, index) => (
+                                <RoleCard
+                                    key={index}
+                                    role={role}
+                                    isExpanded={expandedRole === role.title}
+                                    onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
+                                    onSelect={() => selectRole(role)}
+                                    color="orange"
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Fallback if no roles found */}
+                {readyRoles.length === 0 && futureRoles.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200"
+                    >
+                        <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">No recommendations found</h3>
+                        <p className="text-slate-600 mb-6">We couldn&apos;t identify specific roles based on current data. Please try the discovery interview again.</p>
+                        <button
+                            onClick={() => router.push('/assessment/role-discovery')}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all"
+                        >
+                            Restart Career Discovery
+                        </button>
+                    </motion.div>
+                )}
 
             </div>
 

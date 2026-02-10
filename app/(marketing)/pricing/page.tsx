@@ -13,17 +13,23 @@ export default function PricingPage() {
 
     const tiers = [
         {
-            key: 'initial',
+            key: 'explorer',
             icon: Clock,
             color: "slate",
-            data: p.tiers.initial
+            data: p.tiers.explorer
         },
         {
-            key: 'pro',
+            key: 'professional',
+            icon: Shield,
+            color: "slate",
+            data: p.tiers.professional
+        },
+        {
+            key: 'executive',
             icon: Zap,
             color: "blue",
             popular: true,
-            data: p.tiers.pro
+            data: p.tiers.executive
         },
         {
             key: 'elite',
@@ -67,7 +73,7 @@ export default function PricingPage() {
                     </motion.div>
 
                     {/* Plans Grid */}
-                    <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto items-stretch">
                         {tiers.map((tier, idx) => (
                             <motion.div
                                 key={tier.key}

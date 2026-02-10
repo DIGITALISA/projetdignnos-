@@ -18,16 +18,26 @@ import {
     ShieldAlert,
     Loader2,
     ArrowRight,
-    Briefcase
+    Briefcase,
+    FileText
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
+interface AdminNotification {
+    _id: string;
+    title: string;
+    message: string;
+    read: boolean;
+    createdAt: string;
+}
+
 const adminSidebarItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+    { name: "Mandats", icon: FileText, href: "/admin/registrations" },
     { name: "Participants", icon: Users, href: "/admin/users" },
     { name: "Missions & Audits", icon: Briefcase, href: "/admin/simulations" },
     { name: "Tools AI", icon: Wrench, href: "/admin/tools" },
@@ -109,44 +119,47 @@ export default function AdminLayout({
             } else {
                 setError(data.message || "Mot de passe incorrect");
             }
-        } catch (err) {
+        } catch {
             setError("Une erreur est survenue");
         } finally {
             setIsVerifying(false);
         }
     };
 
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<AdminNotification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [activeToast, setActiveToast] = useState<any>(null);
+    const [activeToast, setActiveToast] = useState<AdminNotification | null>(null);
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         try {
             const res = await fetch('/api/admin/notifications');
             const data = await res.json();
             if (data.notifications) {
                 // Check if we have a new unread notification to show as toast
-                if (data.unreadCount > unreadCount && data.notifications.length > 0) {
-                    const latest = data.notifications[0];
-                    if (!latest.read) {
-                        setActiveToast(latest);
-                        setTimeout(() => setActiveToast(null), 6000); // Auto-hide after 6s
+                setUnreadCount(prev => {
+                    const newCount = data.unreadCount || 0;
+                    if (newCount > prev && data.notifications.length > 0) {
+                        const latest = data.notifications[0];
+                        if (!latest.read) {
+                            setActiveToast(latest);
+                            setTimeout(() => setActiveToast(null), 6000); // Auto-hide after 6s
+                        }
                     }
-                }
+                    return newCount;
+                });
                 setNotifications(data.notifications);
-                setUnreadCount(data.unreadCount || 0);
             }
         } catch (error) {
             console.error("Error fetching notifications", error);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 5000); // Poll every 5s for more "live" feel
         return () => clearInterval(interval);
-    }, [unreadCount]); // Re-run if unreadCount changes to track diff
+    }, [fetchNotifications]); // Re-run if unreadCount changes to track diff
 
     const markAsRead = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -287,7 +300,7 @@ export default function AdminLayout({
                                                 {notifications.length === 0 ? (
                                                     <div className="p-8 text-center text-slate-400 text-xs font-medium">No details</div>
                                                 ) : (
-                                                    notifications.map((notif: any) => (
+                                                    notifications.map((notif: AdminNotification) => (
                                                         <div
                                                             key={notif._id}
                                                             onClick={(e) => !notif.read && markAsRead(notif._id, e)}
@@ -324,7 +337,7 @@ export default function AdminLayout({
                                 <p className="text-sm font-bold text-slate-900">{userName}</p>
                                 <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">{userRole}</p>
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-200 to-slate-300 border border-slate-300 flex items-center justify-center font-bold text-slate-600">
+                            <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-slate-200 to-slate-300 border border-slate-300 flex items-center justify-center font-bold text-slate-600">
                                 {userName.charAt(0)}
                             </div>
                         </div>
@@ -399,7 +412,7 @@ export default function AdminLayout({
             </div>
 
             {/* Toast Notification Container */}
-            <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none">
+            <div className="fixed bottom-8 right-8 z-100 flex flex-col gap-3 pointer-events-none">
                 <AnimatePresence>
                     {activeToast && (
                         <motion.div

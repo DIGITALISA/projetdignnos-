@@ -16,15 +16,31 @@ import {
     AlertCircle,
     Zap
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { AssetLocked } from "@/components/layout/AssetLocked";
 
+interface RecommendationData {
+    referenceId?: string;
+    _id?: string;
+    createdAt: string;
+    subject: string;
+    content: string;
+    keyEndorsements?: string[];
+}
+
+interface ReadinessStatus {
+    isReady: boolean;
+    hasDiagnosis: boolean;
+    hasSimulation: boolean;
+    certReady: boolean;
+    recReady: boolean;
+}
+
 export default function RecommendationPage() {
-    const [recommendation, setRecommendation] = useState<any>(null);
+    const [recommendation, setRecommendation] = useState<RecommendationData | null>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [readiness, setReadiness] = useState({ isReady: false, hasDiagnosis: false, hasSimulation: false });
+    const [readiness, setReadiness] = useState<ReadinessStatus>({ isReady: false, hasDiagnosis: false, hasSimulation: false, certReady: false, recReady: false });
 
     const checkReadiness = async (userId: string) => {
         try {
@@ -32,7 +48,7 @@ export default function RecommendationPage() {
             const data = await res.json();
             if (data.success) {
                 setReadiness(data);
-                return data.isReady;
+                return data.recReady;
             }
         } catch (err) {
             console.error("Readiness check error:", err);
@@ -110,6 +126,7 @@ export default function RecommendationPage() {
 
     useEffect(() => {
         fetchRecommendation();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handlePrint = () => {
@@ -134,7 +151,7 @@ export default function RecommendationPage() {
         );
     }
 
-    if (!readiness.isReady) {
+    if (!readiness.recReady) {
         return (
             <AssetLocked
                 title="Letter of Recommendation"
@@ -157,7 +174,7 @@ export default function RecommendationPage() {
                         Certification de Carrière Officielle
                     </motion.div>
                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-                        Lettre de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600">Recommandation</span>
+                        Lettre de <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-700 via-indigo-600 to-blue-600">Recommandation</span>
                     </h1>
                     <p className="text-slate-500 text-lg max-w-2xl font-medium leading-relaxed font-arabic" dir="rtl">
                         يتم إنشاء هذه الرسالة بناءً على كامل مسارك (التشخيص، التدريب، والمحاكاة).
@@ -215,14 +232,14 @@ export default function RecommendationPage() {
                         key="empty"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="relative overflow-hidden bg-white rounded-[2.5rem] border border-slate-200 p-10 md:p-20 text-center shadow-2xl"
+                        className="relative overflow-hidden bg-white rounded-4xl border border-slate-200 p-10 md:p-20 text-center shadow-2xl"
                     >
                         {/* Decorative Background Elements */}
                         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-100/50 rounded-full blur-[100px]" />
                         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-indigo-100/50 rounded-full blur-[100px]" />
 
                         <div className="relative max-w-3xl mx-auto space-y-8">
-                            <div className="w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-blue-500/30 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <div className="w-28 h-28 bg-linear-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-blue-500/30 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
                                 <Sparkles className="w-14 h-14 text-white" />
                             </div>
 
@@ -241,7 +258,7 @@ export default function RecommendationPage() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="p-5 bg-red-50 border-2 border-red-100 rounded-2xl text-red-600 text-sm font-bold flex items-center gap-4 justify-center"
                                 >
-                                    <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                                    <AlertCircle className="w-6 h-6 shrink-0" />
                                     {error}
                                 </motion.div>
                             )}
@@ -251,7 +268,7 @@ export default function RecommendationPage() {
                                     onClick={generateRecommendation}
                                     className="group relative px-12 py-6 bg-slate-900 text-white rounded-3xl font-black text-2xl shadow-2xl shadow-slate-900/30 hover:shadow-slate-900/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 overflow-hidden"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <span className="relative flex items-center gap-4">
                                         Générer ma Recommandation
                                         <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
@@ -273,7 +290,7 @@ export default function RecommendationPage() {
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="relative bg-white rounded-[2rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden print:shadow-none print:border-none p-[2px] bg-gradient-to-b from-slate-200 to-white"
+                                className="relative bg-white rounded-4xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden print:shadow-none print:border-none p-[2px] bg-linear-to-b from-slate-200 to-white"
                             >
                                 <div className="bg-white rounded-[1.95rem] p-10 md:p-20 relative overflow-hidden print:p-0">
                                     {/* Subtle Paper Texture/Pattern */}
@@ -301,7 +318,7 @@ export default function RecommendationPage() {
                                             </div>
 
                                             <div className="text-right">
-                                                <div className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Date d'émission</div>
+                                                <div className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Date d&apos;émission</div>
                                                 <div className="text-slate-900 font-bold text-lg">
                                                     {new Date(recommendation.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
                                                 </div>
@@ -346,7 +363,7 @@ export default function RecommendationPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-slate-900 text-lg uppercase tracking-tight">CareerUpgrade AI System</p>
-                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Validé par l'algorithme DeepSeek Expert v2</p>
+                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Validé par l&apos;algorithme DeepSeek Expert v2</p>
                                                 </div>
                                             </div>
 
@@ -368,7 +385,7 @@ export default function RecommendationPage() {
                                 initial={{ x: 30, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
                                 transition={{ delay: 0.4 }}
-                                className="bg-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/5"
+                                className="bg-slate-950 rounded-4xl p-8 text-white shadow-2xl relative overflow-hidden group border border-white/5"
                             >
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-[100px]" />
                                 <div className="relative space-y-8">
@@ -388,7 +405,7 @@ export default function RecommendationPage() {
                                                 transition={{ delay: i * 0.15 + 0.5 }}
                                                 className="flex items-start gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group/item"
                                             >
-                                                <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover/item:bg-blue-500/40 transition-colors">
+                                                <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5 group-hover/item:bg-blue-500/40 transition-colors">
                                                     <CheckCircle2 className="w-4 h-4 text-blue-400" />
                                                 </div>
                                                 <span className="text-slate-300 text-sm font-bold leading-relaxed">{item}</span>
@@ -402,9 +419,9 @@ export default function RecommendationPage() {
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.6 }}
-                                className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-xl overflow-hidden relative group"
+                                className="bg-white rounded-4xl p-8 border border-slate-200 shadow-xl overflow-hidden relative group"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-700 ease-in-out" />
+                                <div className="absolute inset-0 bg-linear-to-br from-blue-600 to-indigo-700 translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-in-out" />
                                 <div className="relative group-hover:text-white transition-colors duration-500">
                                     <h4 className="font-black text-2xl mb-3 tracking-tight">Exporter le Prestige</h4>
                                     <p className="text-sm text-slate-500 group-hover:text-blue-100 mb-8 font-medium leading-relaxed">
