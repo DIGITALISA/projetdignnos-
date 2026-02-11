@@ -8,17 +8,17 @@ import { cn } from "@/lib/utils";
 const plans = [
     {
         name: "Explorer",
-        badge: "Découverte",
-        price: "Gratuit",
-        duration: "Accès permanent",
-        description: "Idéal pour découvrir la plateforme et explorer vos premières opportunités.",
+        badge: "Discovery",
+        price: "Free",
+        duration: "Forever",
+        description: "Explore the platform's core capabilities and start your executive journey.",
         features: [
-            "1 Analyse CV complète (AI-powered)",
-            "3 questions/jour au Conseiller IA",
-            "Accès à 3 modèles professionnels",
-            "5 articles du Centre de Connaissance",
-            "Roadmap de carrière basique",
-            "Badge Explorer sur votre profil"
+            "1 Complete CV Analysis (AI-powered)",
+            "3 questions/day to AI Advisor",
+            "Access to 3 professional templates",
+            "5 Knowledge Base articles",
+            "Basic career roadmap",
+            "Explorer badge on profile"
         ],
         type: "Explorer",
         color: "slate",
@@ -145,7 +145,7 @@ export default function SubscriptionPage() {
                 </div>
 
                 {/* Plans Grid */}
-                <div className="grid lg:grid-cols-3 gap-8 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
                     {plans.map((plan, idx) => {
                         const isCurrent = userProfile?.role === plan.type || (plan.type === 'Free Trial' && userProfile?.role === 'Trial User');
 

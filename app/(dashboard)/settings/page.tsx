@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Lock, User, Save, CheckCircle2 } from "lucide-react";
+import { Bell, User, Save, CheckCircle2 } from "lucide-react";
 
 export default function SettingsPage() {
     const [profile, setProfile] = useState({
@@ -16,7 +16,9 @@ export default function SettingsPage() {
         // Load saved profile on mount
         const savedProfile = localStorage.getItem("userProfile");
         if (savedProfile) {
-            setProfile(JSON.parse(savedProfile));
+            Promise.resolve().then(() => {
+                setProfile(JSON.parse(savedProfile));
+            });
         }
     }, []);
 
@@ -30,7 +32,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="flex-1 max-w-4xl">
+        <div className="flex-1 max-w-4xl p-4 md:p-8 mx-auto">
             <div className="mb-12">
                 <h1 className="text-3xl font-bold mb-2 text-slate-900">Settings</h1>
                 <p className="text-slate-500">Manage your account and preferences.</p>

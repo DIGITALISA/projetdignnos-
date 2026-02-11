@@ -127,7 +127,7 @@ export default function PricingPage() {
                                 </div>
 
                                 <Link
-                                    href="/auth/register"
+                                    href="/register"
                                     className={cn(
                                         "w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl",
                                         tier.color === 'blue' ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20" :

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
     LayoutDashboard,
     Users,
@@ -19,13 +19,14 @@ import {
     Loader2,
     ArrowRight,
     Briefcase,
-    FileText
+    FileText,
+    Video
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+
 
 interface AdminNotification {
     _id: string;
@@ -42,6 +43,7 @@ const adminSidebarItems = [
     { name: "Missions & Audits", icon: Briefcase, href: "/admin/simulations" },
     { name: "Tools AI", icon: Wrench, href: "/admin/tools" },
     { name: "Workshop Manager", icon: PlayCircle, href: "/admin/training" },
+    { name: "Live Briefings", icon: Video, href: "/admin/sessions" },
     { name: "Library", icon: Library, href: "/admin/library" },
     { name: "System Settings", icon: Settings, href: "/admin/settings" },
 ];
@@ -52,52 +54,38 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    // Initialize as authorized by default to prevent infinite loading spinners
     const [isSectionUnlocked, setIsSectionUnlocked] = useState(false);
     const [passwordInput, setPasswordInput] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);
     const [error, setError] = useState("");
 
-    const [userName, setUserName] = useState("Admin");
+    const [userName, setUserName] = useState("Dev Admin");
     const [userRole, setUserRole] = useState("Super Admin");
 
     const pathname = usePathname();
-    const router = useRouter();
 
-    const protectedPaths = ["/admin/tools", "/admin/training", "/admin/library", "/admin/settings"];
+    const protectedPaths = ["/admin/tools", "/admin/training", "/admin/library", "/admin/settings", "/admin/sessions"];
     const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
     useEffect(() => {
         const unlocked = sessionStorage.getItem("admin_section_unlocked") === "true";
         setIsSectionUnlocked(unlocked);
+        
+        // Background check to update user info if profile exists
+        const savedProfile = localStorage.getItem("userProfile");
+        if (savedProfile) {
+            try {
+                const user = JSON.parse(savedProfile);
+                if (user.role === "Admin" || user.role === "Moderator") {
+                    setUserName(user.fullName || "Admin");
+                    setUserRole(user.role === "Admin" ? "Super Admin" : "Moderator Access");
+                }
+            } catch (e) {
+                console.error("Auth check failed", e);
+            }
+        }
     }, []);
-
-    useEffect(() => {
-        const checkAuth = () => {
-            const savedProfile = localStorage.getItem("userProfile");
-            if (!savedProfile) {
-                // For dev/demo, allow access even if not logged in
-                // router.push("/login?callback=/admin");
-                // return;
-            }
-            // For dev/demo, bypass role check
-            /*
-            const user = JSON.parse(savedProfile);
-            if (user.role !== "Admin" && user.role !== "Moderator") {
-                router.push("/dashboard");
-                return;
-            }
-            setUserName(user.fullName);
-            setUserRole(user.role === "Admin" ? "Super Admin" : "Moderator Access");
-            */
-
-            // Mock Admin Access
-            setUserName("Dev Admin");
-            setUserRole("Super Admin");
-            setIsAuthorized(true);
-        };
-        checkAuth();
-    }, [router]);
 
     const handleVerifyPassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -157,9 +145,9 @@ export default function AdminLayout({
 
     useEffect(() => {
         fetchNotifications();
-        const interval = setInterval(fetchNotifications, 5000); // Poll every 5s for more "live" feel
+        const interval = setInterval(fetchNotifications, 30000); // Polling every 30s instead of 5s
         return () => clearInterval(interval);
-    }, [fetchNotifications]); // Re-run if unreadCount changes to track diff
+    }, [fetchNotifications]);
 
     const markAsRead = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -175,14 +163,7 @@ export default function AdminLayout({
         }
     };
 
-    if (!isAuthorized) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
-
+    // No longer blocking with isAuthorized to prevent loading hangs
     return (
         <div className="min-h-screen bg-slate-50 flex">
             {/* Admin Sidebar */}
@@ -191,7 +172,7 @@ export default function AdminLayout({
                 isSidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 {/* Brand */}
-                <div className="h-20 flex items-center justify-between px-8 border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl">
+                <div className="h-20 flex items-center justify-between px-8 border-b border-slate-800 bg-slate-900">
                     <Link href="/admin" className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
                             <span className="font-black text-white text-xl">A</span>
@@ -236,9 +217,17 @@ export default function AdminLayout({
                 <div className="absolute bottom-0 w-full p-6 border-t border-slate-800">
                     <button
                         onClick={() => {
-                            localStorage.removeItem("userProfile");
-                            sessionStorage.removeItem("admin_section_unlocked");
-                            window.location.href = '/';
+                            // Clear all storage
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            // Clear cookies
+                            document.cookie.split(";").forEach((c) => {
+                                document.cookie = c
+                                    .replace(/^ +/, "")
+                                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                            });
+                            // Redirect to login
+                            window.location.replace('/login');
                         }}
                         className="flex items-center gap-4 px-4 py-3.5 w-full rounded-xl text-sm font-semibold text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all group"
                     >
@@ -282,54 +271,49 @@ export default function AdminLayout({
                             </button>
 
                             {/* Notifications Dropdown */}
-                            <AnimatePresence>
-                                {isNotificationOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-40" onClick={() => setIsNotificationOpen(false)} />
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 flex flex-col"
-                                        >
-                                            <div className="p-4 border-b border-slate-50 flex justify-between items-center">
-                                                <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
-                                                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>
-                                            </div>
-                                            <div className="max-h-80 overflow-y-auto">
-                                                {notifications.length === 0 ? (
-                                                    <div className="p-8 text-center text-slate-400 text-xs font-medium">No details</div>
-                                                ) : (
-                                                    notifications.map((notif: AdminNotification) => (
-                                                        <div
-                                                            key={notif._id}
-                                                            onClick={(e) => !notif.read && markAsRead(notif._id, e)}
-                                                            className={cn(
-                                                                "p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer relative group",
-                                                                !notif.read ? "bg-blue-50/30" : ""
-                                                            )}
-                                                        >
-                                                            <div className="flex items-start gap-3">
-                                                                <div className={cn(
-                                                                    "w-2 h-2 rounded-full mt-1.5 shrink-0",
-                                                                    notif.read ? "bg-slate-200" : "bg-blue-500"
-                                                                )} />
-                                                                <div>
-                                                                    <p className="text-xs font-bold text-slate-900">{notif.title}</p>
-                                                                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{notif.message}</p>
-                                                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                                                                        {new Date(notif.createdAt).toLocaleString()}
-                                                                    </p>
-                                                                </div>
+                            {isNotificationOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsNotificationOpen(false)} />
+                                    <div
+                                        className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 flex flex-col"
+                                    >
+                                        <div className="p-4 border-b border-slate-50 flex justify-between items-center">
+                                            <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
+                                            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>
+                                        </div>
+                                        <div className="max-h-80 overflow-y-auto">
+                                            {notifications.length === 0 ? (
+                                                <div className="p-8 text-center text-slate-400 text-xs font-medium">No details</div>
+                                            ) : (
+                                                notifications.map((notif: AdminNotification) => (
+                                                    <div
+                                                        key={notif._id}
+                                                        onClick={(e) => !notif.read && markAsRead(notif._id, e)}
+                                                        className={cn(
+                                                            "p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer relative group",
+                                                            !notif.read ? "bg-blue-50/30" : ""
+                                                        )}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={cn(
+                                                                "w-2 h-2 rounded-full mt-1.5 shrink-0",
+                                                                notif.read ? "bg-slate-200" : "bg-blue-500"
+                                                            )} />
+                                                            <div>
+                                                                <p className="text-xs font-bold text-slate-900">{notif.title}</p>
+                                                                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{notif.message}</p>
+                                                                <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                                                                    {new Date(notif.createdAt).toLocaleString()}
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    </>
-                                )}
-                            </AnimatePresence>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         <div className="h-8 w-px bg-slate-200 mx-2" />
                         <div className="flex items-center gap-3 pl-2">
@@ -348,9 +332,7 @@ export default function AdminLayout({
                 <main className="flex-1 p-8">
                     {isProtectedPath && !isSectionUnlocked ? (
                         <div className="h-full flex items-center justify-center min-h-[60vh]">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
+                            <div
                                 className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200 border border-slate-100 text-center space-y-8"
                             >
                                 <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto text-amber-500 shadow-inner">
@@ -403,7 +385,7 @@ export default function AdminLayout({
                                         Si vous avez oublié le mot de passe, contactez un modérateur pour le réinitialiser.
                                     </p>
                                 </div>
-                            </motion.div>
+                            </div>
                         </div>
                     ) : (
                         children
@@ -413,37 +395,32 @@ export default function AdminLayout({
 
             {/* Toast Notification Container */}
             <div className="fixed bottom-8 right-8 z-100 flex flex-col gap-3 pointer-events-none">
-                <AnimatePresence>
-                    {activeToast && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 50, scale: 0.9 }}
-                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                            className="pointer-events-auto bg-slate-900 text-white p-5 rounded-3xl shadow-2xl border border-slate-700/50 flex items-start gap-4 max-w-sm"
-                        >
-                            <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-                                <Bell size={20} className="text-white" />
+                {activeToast && (
+                    <div
+                        className="pointer-events-auto bg-slate-900 text-white p-5 rounded-3xl shadow-2xl border border-slate-700/50 flex items-start gap-4 max-w-sm"
+                    >
+                        <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+                            <Bell size={20} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-4 mb-1">
+                                <h4 className="font-bold text-sm truncate">{activeToast.title}</h4>
+                                <button
+                                    onClick={() => setActiveToast(null)}
+                                    className="text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <X size={14} />
+                                </button>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-4 mb-1">
-                                    <h4 className="font-bold text-sm truncate">{activeToast.title}</h4>
-                                    <button
-                                        onClick={() => setActiveToast(null)}
-                                        className="text-slate-400 hover:text-white transition-colors"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
-                                <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">{activeToast.message}</p>
-                                <div className="mt-3 flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">New Update</span>
-                                    <div className="w-1 h-1 rounded-full bg-slate-700" />
-                                    <span className="text-[10px] text-slate-500">{new Date(activeToast.createdAt).toLocaleTimeString()}</span>
-                                </div>
+                            <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">{activeToast.message}</p>
+                            <div className="mt-3 flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">New Update</span>
+                                <div className="w-1 h-1 rounded-full bg-slate-700" />
+                                <span className="text-[10px] text-slate-500">{new Date(activeToast.createdAt).toLocaleTimeString()}</span>
                             </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

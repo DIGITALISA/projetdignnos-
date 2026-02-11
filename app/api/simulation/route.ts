@@ -15,15 +15,20 @@ export async function GET(req: Request) {
 
         await connectDB();
 
-        const activeMission = await Simulation.findOne({ userId, status: 'active' }).sort({ createdAt: -1 });
-        const proposals = await Simulation.find({ userId, status: 'proposed' }).sort({ createdAt: -1 });
-        const requested = await Simulation.findOne({ userId, status: 'requested' });
+        const isObjectId = userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId);
+        const userQuery = isObjectId ? { $or: [{ _id: userId }, { userId: userId }, { email: userId }] } : { userId: userId };
+
+        const activeMission = await Simulation.findOne({ ...userQuery, status: 'active' }).sort({ createdAt: -1 });
+        const proposals = await Simulation.find({ ...userQuery, status: 'proposed' }).sort({ createdAt: -1 });
+        const requested = await Simulation.findOne({ ...userQuery, status: 'requested' });
+        const completed = await Simulation.findOne({ ...userQuery, status: 'completed' }).sort({ createdAt: -1 });
 
         return NextResponse.json({
             hasActiveMission: !!activeMission,
-            mission: activeMission,
+            mission: activeMission || completed, // Return completed if no active one for scorecard
             proposals: proposals || [],
-            hasPendingRequest: !!requested
+            hasPendingRequest: !!requested,
+            hasCompletedMission: !!completed
         });
 
     } catch (error) {
@@ -70,9 +75,9 @@ export async function POST(req: Request) {
                 role: missionData.role || "Executive",
                 company: missionData.company || "Leading Corporation",
                 briefing: missionData.briefing || "No briefing provided.",
-                objectives: (missionData.objectives || []).map((obj: any) => ({
+                objectives: (missionData.objectives || []).map((obj: { title: string; status?: string } | string) => ({
                     title: typeof obj === 'string' ? obj : (obj.title || String(obj)),
-                    status: obj.status || 'locked'
+                    status: obj && typeof obj === 'object' && 'status' in obj ? obj.status : 'locked'
                 })),
                 price: missionData.price || 199,
                 missionType: missionData.missionType || 'Executive Coaching',
@@ -141,12 +146,13 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Invalid action type" }, { status: 400 });
 
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Simulation API POST Error:", error);
+        const message = error instanceof Error ? error.message : String(error);
         return NextResponse.json({
             error: "Internal Server Error",
-            details: error.message || String(error),
-            stack: error.stack
+            details: message,
+            stack: error instanceof Error ? error.stack : undefined
         }, { status: 500 });
     }
 }

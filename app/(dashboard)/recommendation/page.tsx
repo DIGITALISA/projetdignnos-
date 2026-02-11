@@ -56,11 +56,14 @@ export default function RecommendationPage() {
         return false;
     };
 
+    const [userPlan, setUserPlan] = useState("None");
+
     const fetchRecommendation = async () => {
         setLoading(true);
         try {
             const savedProfile = localStorage.getItem('userProfile');
             const userProfile = JSON.parse(savedProfile || '{}');
+            setUserPlan(userProfile.plan || "None");
             const userId = userProfile.email || userProfile.fullName;
 
             if (!userId) {
@@ -151,12 +154,13 @@ export default function RecommendationPage() {
         );
     }
 
-    if (!readiness.recReady) {
+    if (!readiness.recReady || userPlan === "Free Trial" || userPlan === "None") {
         return (
             <AssetLocked
                 title="Letter of Recommendation"
                 description="Your Official Executive Endorsement is currently locked. This asset is synthesized based on your full platform history."
                 readiness={readiness}
+                isPremiumRequired={userPlan === "Free Trial" || userPlan === "None"}
             />
         );
     }

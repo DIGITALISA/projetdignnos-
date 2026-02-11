@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+
 import { Users, Clock, ShieldCheck, AlertCircle, Zap, Brain } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,13 @@ interface AdminStats {
 }
 
 export default function AdminDashboard() {
-    const [stats, setStats] = useState<AdminStats | null>(null);
+    const [stats, setStats] = useState<AdminStats>({
+        totalUsers: 0,
+        pendingUsers: 0,
+        activeTrials: 0,
+        completedDiagnoses: 0,
+        totalSimulations: 0
+    });
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -55,7 +61,7 @@ export default function AdminDashboard() {
         {
             name: "Active Trials",
             value: stats?.activeTrials || "0",
-            change: "3h Limit",
+            change: "1h Limit",
             icon: Zap,
             color: "orange",
             link: "/admin/users"
@@ -81,12 +87,9 @@ export default function AdminDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {statCards.map((stat, idx) => (
+                {statCards.map((stat) => (
                     <Link href={stat.link} key={stat.name}>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
+                        <div
                             className="bg-white p-6 rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-1 transition-all group cursor-pointer"
                         >
                             <div className="flex items-start justify-between mb-4">
@@ -102,7 +105,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <span className={cn(
                                     "flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                                    stat.color === "red" ? "bg-red-100 text-red-700 animate-pulse" : "bg-slate-100 text-slate-600"
+                                    stat.color === "red" && (stats?.pendingUsers || 0) > 0 ? "bg-red-100 text-red-700 animate-pulse" : "bg-slate-100 text-slate-600"
                                 )}>
                                     {stat.change}
                                 </span>
@@ -111,7 +114,7 @@ export default function AdminDashboard() {
                             <p className="text-4xl font-black text-slate-900 mt-2 tracking-tight">
                                 {isLoading ? "..." : stat.value}
                             </p>
-                        </motion.div>
+                        </div>
                     </Link>
                 ))}
             </div>
@@ -158,9 +161,8 @@ export default function AdminDashboard() {
                                         <span className="text-white">{s.value}</span>
                                     </div>
                                     <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `70%` }}
+                                        <div
+                                            style={{ width: '70%' }}
                                             className={cn("h-full rounded-full transition-all duration-1000", s.color)}
                                         />
                                     </div>

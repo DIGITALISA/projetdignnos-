@@ -118,7 +118,14 @@ const DiagnosisSchema = new Schema({
         simulationComplete: { type: Boolean, default: false },
         cvGenerationComplete: { type: Boolean, default: false },
         strategicReportComplete: { type: Boolean, default: false },
-    }
+    },
+    liveSessions: [{
+        title: { type: String, default: "Strategic Brief" },
+        date: { type: Date },
+        time: { type: String },
+        expertName: { type: String, default: "Executive Expert" },
+        meetingLink: { type: String }
+    }]
 }, {
     timestamps: true,
     strict: false, // Ensure we can save extra fields if needed

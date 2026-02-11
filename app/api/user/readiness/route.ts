@@ -47,6 +47,7 @@ export async function GET(req: Request) {
         // Specific overrides
         const manualCert = user?.canAccessCertificates === true;
         const manualRec = user?.canAccessRecommendations === true;
+        const manualScorecard = (user as unknown as { canAccessScorecard: boolean })?.canAccessScorecard === true;
 
         // Global isReady for backward compatibility (if either is specifically allowed or both steps done)
         const isReady = isElite || (manualCert && manualRec) || (hasDiagnosis && hasSimulation);
@@ -54,12 +55,14 @@ export async function GET(req: Request) {
         // Individual readiness
         const certReady = isElite || manualCert || (hasDiagnosis && hasSimulation);
         const recReady = isElite || manualRec || (hasDiagnosis && hasSimulation);
+        const scorecardReady = isElite || manualScorecard || hasSimulation;
 
         return NextResponse.json({
             success: true,
             isReady, // Keep for legacy
             certReady,
             recReady,
+            scorecardReady,
             details: {
                 hasDiagnosis: hasDiagnosis,
                 hasSimulation: hasSimulation,
@@ -67,7 +70,8 @@ export async function GET(req: Request) {
                 simulationStatus: (hasSimulation) ? 'Completed' : 'Pending',
                 isElite: isElite,
                 manualCert,
-                manualRec
+                manualRec,
+                manualScorecard
             }
         });
         

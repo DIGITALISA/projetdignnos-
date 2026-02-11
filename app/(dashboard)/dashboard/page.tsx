@@ -13,12 +13,22 @@ import {
     ArrowRight,
     CheckCircle2,
     ChevronRight,
-    Shield
+    Shield,
+    Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
 import { useLanguage } from "@/components/providers/LanguageProvider";
+
+interface LiveSession {
+    _id: string;
+    title: string;
+    date: string;
+    time: string;
+    expertName: string;
+    meetingLink: string;
+}
 
 export default function DashboardPage() {
     const { t, dir } = useLanguage();
@@ -29,6 +39,7 @@ export default function DashboardPage() {
         { label: t.dashboard.stats.certificates, value: "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
     ]);
     const [hasStarted, setHasStarted] = useState(false);
+    const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -42,51 +53,76 @@ export default function DashboardPage() {
                 }
 
                 if (userId) {
-                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
-                    const response = await res.json();
+                    // Add timeout protection to prevent infinite loading
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-                    if (response.hasData && response.data) {
-                        const data = response.data;
-                        setHasStarted(true);
+                    try {
+                        const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`, {
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        
+                        const response = await res.json();
 
-                        // Calculate stats or other info if needed
-                        if (data.cvAnalysis) {
-                            const hasSCI = !!data.cvAnalysis.sciReport;
-                            setStats([
-                                { label: t.dashboard.stats.skillsGained, value: String(data.cvAnalysis.skills?.technical?.length || 0), icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
-                                { label: t.dashboard.stats.hoursLearned, value: "0.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
-                                { label: t.dashboard.stats.certificates, value: hasSCI ? "1" : "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
-                            ]);
+                        if (response.hasData && response.data) {
+                            const data = response.data;
+                            setHasStarted(true);
+                            if (data.liveSessions) setLiveSessions(data.liveSessions);
 
-                            // Sync back to localStorage for other pages
-                            localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
-                            if (data.interviewEvaluation) localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
-                            if (data.roleSuggestions) localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
-                            if (data.selectedRole) localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
-                            if (data.language) localStorage.setItem('selectedLanguage', data.language);
+                            // Calculate stats or other info if needed
+                            if (data.cvAnalysis) {
+                                const hasSCI = !!data.cvAnalysis.sciReport;
+                                setStats([
+                                    { label: t.dashboard.stats.skillsGained, value: String(data.cvAnalysis.skills?.technical?.length || 0), icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
+                                    { label: t.dashboard.stats.hoursLearned, value: "0.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
+                                    { label: t.dashboard.stats.certificates, value: hasSCI ? "1" : "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
+                                ]);
 
-                            // ALSO SYNC ACCESS FLAGS
-                            try {
-                                const readyRes = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
-                                const readyData = await readyRes.json();
-                                if (readyData.success) {
-                                    // Only update and trigger event if there's an actual change to prevent infinite loops
-                                    if (profile.canAccessCertificates !== readyData.certReady || 
-                                        profile.canAccessRecommendations !== readyData.recReady) {
-                                        
-                                        const updatedProfile = {
-                                            ...profile,
-                                            canAccessCertificates: readyData.certReady,
-                                            canAccessRecommendations: readyData.recReady
-                                        };
-                                        localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
-                                        // Trigger event for Sidebar and other components to refresh
-                                        window.dispatchEvent(new Event("profileUpdated"));
-                                    }
-                                }
-                            } catch (err) {
-                                console.error("Failed to sync access flags in dashboard", err);
+                                // Sync back to localStorage for other pages
+                                localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
+                                if (data.interviewEvaluation) localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
+                                if (data.roleSuggestions) localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
+                                if (data.selectedRole) localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
+                                if (data.language) localStorage.setItem('selectedLanguage', data.language);
+
+                                // ALSO SYNC ACCESS FLAGS (non-blocking)
+                                fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`)
+                                    .then(readyRes => readyRes.json())
+                                    .then(readyData => {
+                                        if (readyData.success) {
+                                            // Only update and trigger event if there's an actual change to prevent infinite loops
+                                            if (profile.canAccessCertificates !== readyData.certReady || 
+                                                profile.canAccessRecommendations !== readyData.recReady) {
+                                                
+                                                const updatedProfile = {
+                                                    ...profile,
+                                                    canAccessCertificates: readyData.certReady,
+                                                    canAccessRecommendations: readyData.recReady
+                                                };
+                                                localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+                                                // Trigger event for Sidebar and other components to refresh
+                                                window.dispatchEvent(new Event("profileUpdated"));
+                                            }
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error("Failed to sync access flags in dashboard", err);
+                                    });
                             }
+                        }
+                    } catch (fetchError: unknown) {
+                        clearTimeout(timeoutId);
+                        const isAbort = fetchError instanceof Error && fetchError.name === 'AbortError';
+                        if (isAbort) {
+                            console.warn('Dashboard data fetch timed out');
+                        } else {
+                            console.error("Failed to fetch progress data", fetchError);
+                        }
+                        // Fallback to localStorage even on error
+                        const cvAnalysis = localStorage.getItem('cvAnalysis');
+                        if (cvAnalysis) {
+                            setHasStarted(true);
                         }
                     }
                 } else {
@@ -97,7 +133,7 @@ export default function DashboardPage() {
                     }
                 }
 
-            } catch (e) {
+            } catch (e: unknown) {
                 console.error("Failed to load dashboard data", e);
             }
         };
@@ -181,10 +217,10 @@ export default function DashboardPage() {
                 className={`flex flex-col md:flex-row md:items-end justify-between gap-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}
             >
                 <div className={dir === 'rtl' ? 'flex-1' : ''}>
-                    <h1 className="text-2xl md:text-4xl font-bold text-slate-900 mb-1 md:mb-2">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                         {t.dashboard.welcome}, {userName} {dir === 'rtl' ? '👋' : '👋'}
                     </h1>
-                    <p className="text-slate-500 text-sm md:text-lg">
+                    <p className="text-slate-500 text-sm sm:text-base md:text-lg max-w-2xl">
                         {t.dashboard.subtitle}
                     </p>
                 </div>
@@ -198,21 +234,21 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Stats Grid - Mobile Optimized */}
-            <div className={`grid grid-cols-3 gap-3 md:gap-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                 {stats.map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`bg-white p-3 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-4 ${dir === 'rtl' ? 'md:flex-row-reverse md:text-right' : ''}`}
+                        className={`bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex sm:flex-col lg:flex-row items-center sm:items-start sm:text-left text-center gap-4 ${dir === 'rtl' ? 'sm:text-right flex-row-reverse' : ''}`}
                     >
-                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${stat.bg} ${stat.text}`}>
-                            <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.bg} ${stat.text}`}>
+                            <stat.icon className="w-6 h-6" />
                         </div>
-                        <div>
-                            <p className="text-lg md:text-2xl font-bold text-slate-900">{stat.value}</p>
-                            <p className="text-[10px] md:text-sm text-slate-500 font-medium leading-tight">{stat.label}</p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-2xl font-bold text-slate-900 truncate">{stat.value}</p>
+                            <p className="text-xs md:text-sm text-slate-500 font-medium leading-tight truncate">{stat.label}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -242,7 +278,7 @@ export default function DashboardPage() {
                                 </Link>
                             </div>
 
-                            <div className={`flex-1 bg-linear-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 border border-purple-100/50 relative ${dir === 'rtl' ? 'md:flex-row-reverse text-right' : ''}`}>
+                            <div className={`flex-1 bg-linear-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 md:gap-8 border border-purple-100/50 relative ${dir === 'rtl' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
                                 <div className="relative z-10 flex-1 space-y-3 md:space-y-4 w-full">
                                     <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider">
                                         {dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress'}
@@ -252,8 +288,8 @@ export default function DashboardPage() {
                                         {dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!'}
                                     </p>
                                 </div>
-                                <div className="relative z-10 w-full md:w-auto mt-2 md:mt-0">
-                                    <Link href="/simulation" className="w-full md:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base inline-block text-center">
+                                <div className="relative z-10 w-full sm:w-auto mt-2 sm:mt-0 shrink-0">
+                                    <Link href="/simulation" className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base inline-block text-center whitespace-nowrap">
                                         {t.dashboard.currentFocus.continue}
                                     </Link>
                                 </div>
@@ -323,6 +359,69 @@ export default function DashboardPage() {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Live Sessions Section - New */}
+            {liveSessions.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    className="bg-linear-to-br from-slate-900 to-slate-800 rounded-[2.5rem] p-6 md:p-10 shadow-2xl relative overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-[120px] -mr-48 -mt-48" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 blur-[100px] -ml-32 -mb-32" />
+                    
+                    <div className={`relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <div className="space-y-4">
+                            <div className={`flex items-center gap-3 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                <div className="px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/30">
+                                    {t.dashboard.liveSessions.upcoming}
+                                </div>
+                                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                            </div>
+                            <h2 className={`text-2xl md:text-3xl font-black text-white ${dir === 'rtl' ? 'text-right' : ''}`}>
+                                {t.dashboard.liveSessions.title}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 relative z-10">
+                        {liveSessions.map((session, idx) => (
+                            <div key={idx} className={`bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-3xl hover:bg-white/10 transition-all group ${dir === 'rtl' ? 'text-right' : ''}`}>
+                                <div className={`flex items-center gap-4 mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+                                        <Clock size={24} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-white font-bold text-lg">{session.title}</h4>
+                                        <p className="text-slate-400 text-xs font-medium">{t.dashboard.liveSessions.expert}: {session.expertName}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3 mb-8">
+                                    <div className={`flex items-center gap-3 text-slate-300 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                        <Calendar size={16} className="text-blue-400" />
+                                        <span>{new Date(session.date).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}</span>
+                                    </div>
+                                    <div className={`flex items-center gap-3 text-slate-300 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                        <Clock size={16} className="text-blue-400" />
+                                        <span>{session.time}</span>
+                                    </div>
+                                </div>
+                                {session.meetingLink && (
+                                    <a 
+                                        href={session.meetingLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full flex items-center justify-center gap-2 py-4 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl active:scale-95"
+                                    >
+                                        {t.dashboard.liveSessions.join}
+                                    </a>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
 
             {/* Recommended Section - Horizontal Scroll on Mobile */}
             <motion.div

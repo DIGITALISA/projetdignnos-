@@ -377,42 +377,42 @@ export default function AcademyPage() {
                                     initial={{ opacity: 0, x: 50, scale: 0.98 }}
                                     animate={{ opacity: 1, x: 0, scale: 1 }}
                                     exit={{ opacity: 0, x: -50, scale: 0.98 }}
-                                    className="bg-white w-full aspect-video rounded-[4rem] shadow-2xl overflow-hidden flex flex-col"
+                                    className="bg-white w-full min-h-[60vh] md:aspect-video rounded-4xl md:rounded-[4rem] shadow-2xl overflow-hidden flex flex-col"
                                 >
                                     {/* Slide Content */}
-                                    <div className="p-16 flex-1 flex flex-col justify-center space-y-12">
+                                    <div className="p-6 md:p-16 flex-1 flex flex-col justify-center space-y-8 md:space-y-12">
                                         <header className="space-y-4">
                                             <div className="text-blue-600 font-black text-xs uppercase tracking-[0.3em]">
                                                 Slide {currentSlides.slides[activeSlide].slideNumber} / {currentSlides.slides.length}
                                             </div>
-                                            <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                                            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
                                                 {currentSlides.slides[activeSlide].heading}
                                             </h2>
                                         </header>
 
-                                        <div className="grid md:grid-cols-2 gap-16">
-                                            <div className="space-y-6">
+                                        <div className="grid md:grid-cols-2 gap-8 md:gap-16">
+                                            <div className="space-y-4 md:space-y-6">
                                                 {currentSlides.slides[activeSlide].bullets.map((bullet, i) => (
                                                     <div key={i} className="flex gap-4">
                                                         <div className="w-2 h-2 rounded-full bg-blue-600 mt-2.5 shrink-0" />
-                                                        <p className="text-xl md:text-2xl text-slate-700 font-medium leading-relaxed">{bullet}</p>
+                                                        <p className="text-lg md:text-2xl text-slate-700 font-medium leading-relaxed">{bullet}</p>
                                                     </div>
                                                 ))}
                                             </div>
 
                                             <div className="space-y-8">
-                                                <div className="p-10 bg-blue-50 rounded-[3rem] border border-blue-100 flex flex-col justify-between h-full relative group">
+                                                <div className="p-6 md:p-10 bg-blue-50 rounded-4xl md:rounded-[3rem] border border-blue-100 flex flex-col justify-between h-full relative group">
                                                     <div className="space-y-4">
                                                         <h4 className="flex items-center gap-2 font-black text-blue-900 text-xs uppercase tracking-widest">
                                                             <Sparkles size={16} className="text-blue-600" />
                                                             Expert Interpretation
                                                         </h4>
-                                                        <p className="text-blue-800 text-lg font-bold leading-relaxed italic">
+                                                        <p className="text-blue-800 text-base md:text-lg font-bold leading-relaxed italic">
                                                             &quot;{currentSlides.slides[activeSlide].expertInsight}&quot;
                                                         </p>
                                                     </div>
                                                     <div className="absolute bottom-10 right-10 opacity-10 group-hover:scale-110 transition-transform">
-                                                        <Award size={80} />
+                                                        <Award size={60} className="md:w-20 md:h-20" />
                                                     </div>
                                                 </div>
                                             </div>

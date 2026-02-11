@@ -100,12 +100,16 @@ export default function CertificatePage() {
         }
     };
 
+    const [userPlan, setUserPlan] = useState("None");
+
     useEffect(() => {
         const loadProfile = () => {
             try {
                 const savedProfile = localStorage.getItem("userProfile");
                 if (savedProfile) {
-                    const { fullName, email } = JSON.parse(savedProfile);
+                    const parsed = JSON.parse(savedProfile);
+                    setUserPlan(parsed.plan || "None");
+                    const { fullName, email } = parsed;
                     const identifier = email || fullName;
                     if (identifier) {
                         fetchProfile(identifier);
@@ -186,12 +190,13 @@ export default function CertificatePage() {
         );
     }
 
-    if (!readiness.certReady) {
+    if (!readiness.certReady || userPlan === "Free Trial" || userPlan === "None") {
         return (
             <AssetLocked
                 title="Executive Performance Profile"
                 description="Your Official Capability Profile is synthesized from your entire platform journey."
                 readiness={readiness}
+                isPremiumRequired={userPlan === "Free Trial" || userPlan === "None"}
             />
         );
     }
@@ -272,116 +277,116 @@ export default function CertificatePage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="relative p-1 bg-slate-200 rounded-[3.5rem] shadow-2xl"
-                            >
-                                <div
-                                    ref={certificateRef}
-                                    className="relative w-full aspect-[1.414/1] bg-white rounded-[3.4rem] flex flex-col p-16 md:p-20 overflow-hidden"
-                                    style={{
-                                        backgroundImage: "radial-gradient(circle at center, #ffffff 40%, #fcfcfc 100%)"
-                                    }}
-                                >
-                                    {/* Security & Design Elements */}
-                                    <div className="absolute inset-8 border-[0.5px] border-slate-200 pointer-events-none" />
-                                    <div className="absolute inset-10 border-[3px] border-double border-slate-900/10 pointer-events-none" />
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none">
-                                        <ShieldCheck size={600} />
-                                    </div>
-
-                                    <div className="relative z-10 h-full flex flex-col justify-between">
-                                        {/* Header */}
-                                        <div className="flex justify-between items-start border-b-[0.5px] border-slate-200 pb-12">
-                                            <div className="space-y-4">
-                                                <div className="flex items-center gap-2 text-slate-900/40 font-black text-[9px] uppercase tracking-[0.6em]">
-                                                    Executive Certification Board
-                                                </div>
-                                                <h2 className="text-5xl font-serif font-black tracking-tighter text-slate-900 uppercase leading-none">
-                                                    Performance Dossier
-                                                </h2>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="px-3 py-1 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
-                                                        Ref: {profile.referenceId}
-                                                    </div>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                                    <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verification Active</div>
-                                                </div>
-                                            </div>
-                                            <div className="w-24 h-24 bg-slate-900 flex items-center justify-center text-white rounded-[2.5rem] shadow-2xl">
-                                                <Award size={48} />
-                                            </div>
+                                                            >
+                                    <div
+                                        ref={certificateRef}
+                                        className="relative w-full md:aspect-[1.414/1] bg-white rounded-4xl md:rounded-[3.4rem] flex flex-col p-8 md:p-20 overflow-hidden"
+                                        style={{
+                                            backgroundImage: "radial-gradient(circle at center, #ffffff 40%, #fcfcfc 100%)"
+                                        }}
+                                    >
+                                        {/* Security & Design Elements */}
+                                        <div className="absolute inset-4 md:inset-8 border-[0.5px] border-slate-200 pointer-events-none" />
+                                        <div className="absolute inset-6 md:inset-10 border-[3px] border-double border-slate-900/10 pointer-events-none" />
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none">
+                                            <ShieldCheck size={300} className="md:w-[600px] md:h-[600px]" />
                                         </div>
 
-                                        {/* Content */}
-                                        <div className="grid grid-cols-12 gap-16 py-12">
-                                            <div className="col-span-8 space-y-10">
+                                        <div className="relative z-10 h-full flex flex-col justify-between gap-8 md:gap-0">
+                                            {/* Header */}
+                                            <div className="flex flex-col md:flex-row justify-between items-start border-b-[0.5px] border-slate-200 pb-8 md:pb-12 gap-6 md:gap-0">
                                                 <div className="space-y-4">
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Institutional Capability Analysis for</p>
-                                                    <h1 className="text-7xl font-serif font-black text-slate-900 tracking-tight leading-none italic">
-                                                        {profile.userName}
-                                                    </h1>
-                                                </div>
-
-                                                <p className="text-xl font-serif text-slate-700 leading-relaxed max-w-2xl font-medium border-l-4 border-blue-600 pl-8">
-                                                    {profile.summary}
-                                                </p>
-
-                                                <div className="flex gap-4">
-                                                    <div className="px-8 py-3.5 bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-xl">
-                                                        Classification: {profile.verdict}
+                                                    <div className="flex items-center gap-2 text-slate-900/40 font-black text-[9px] uppercase tracking-[0.6em]">
+                                                        Executive Certification Board
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="col-span-4 bg-slate-50/80 border border-slate-100 rounded-[3rem] p-10 space-y-10">
-                                                <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900 border-b border-slate-200 pb-5">Core Competencies</h4>
-                                                <div className="space-y-8">
-                                                    {profile.competencies?.map((item: Competency, i: number) => (
-                                                        <div key={i} className="space-y-3">
-                                                            <div className="flex justify-between items-end">
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
-                                                                <span className="text-xs font-black text-blue-700 uppercase tracking-tighter">{item.status}</span>
-                                                            </div>
-                                                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                                                <div className="h-full bg-slate-900 transition-all duration-1000" style={{ width: `${item.score}%` }} />
-                                                            </div>
+                                                    <h2 className="text-3xl md:text-5xl font-serif font-black tracking-tighter text-slate-900 uppercase leading-none">
+                                                        Performance Dossier
+                                                    </h2>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="px-3 py-1 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
+                                                            Ref: {profile.referenceId}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                                <div className="pt-8 border-t border-slate-200">
-                                                    <div className="flex items-center gap-3 text-emerald-700">
-                                                        <CheckCircle2 size={18} />
-                                                        <span className="text-[11px] font-black uppercase tracking-[0.2em]">Verified Readiness</span>
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                                        <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verification Active</div>
                                                     </div>
                                                 </div>
+                                                <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-900 flex items-center justify-center text-white rounded-2xl md:rounded-[2.5rem] shadow-2xl shrink-0">
+                                                    <Award size={32} className="md:w-12 md:h-12" />
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* Footer */}
-                                        <div className="flex items-end justify-between border-t-[0.5px] border-slate-200 pt-12">
-                                            <div className="flex gap-20">
-                                                <div className="space-y-2">
-                                                    <p className="text-2xl font-serif font-black text-slate-900 border-b-2 border-slate-900 pb-2 mb-2 w-48">
-                                                        {new Date(profile.createdAt).toLocaleDateString()}
+                                            {/* Content */}
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 py-8 md:py-12">
+                                                <div className="col-span-1 md:col-span-8 space-y-6 md:space-y-10">
+                                                    <div className="space-y-4">
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Institutional Capability Analysis for</p>
+                                                        <h1 className="text-4xl md:text-7xl font-serif font-black text-slate-900 tracking-tight leading-none italic break-all">
+                                                            {profile.userName}
+                                                        </h1>
+                                                    </div>
+
+                                                    <p className="text-lg md:text-xl font-serif text-slate-700 leading-relaxed max-w-2xl font-medium border-l-4 border-blue-600 pl-6 md:pl-8">
+                                                        {profile.summary}
                                                     </p>
-                                                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Date of Attestation</p>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <div className="w-24 h-12 bg-slate-50 rounded-lg flex items-center justify-center mb-2 border border-slate-100">
-                                                        <QrCode size={32} className="opacity-20" />
+
+                                                    <div className="flex gap-4">
+                                                        <div className="px-6 md:px-8 py-3.5 bg-slate-900 text-white text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] rounded-xl self-start">
+                                                            Classification: {profile.verdict}
+                                                        </div>
                                                     </div>
-                                                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Digital Seal</p>
+                                                </div>
+
+                                                <div className="col-span-1 md:col-span-4 bg-slate-50/80 border border-slate-100 rounded-3xl md:rounded-[3rem] p-6 md:p-10 space-y-8 md:space-y-10">
+                                                    <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900 border-b border-slate-200 pb-5">Core Competencies</h4>
+                                                    <div className="space-y-6 md:space-y-8">
+                                                        {profile.competencies?.map((item: Competency, i: number) => (
+                                                            <div key={i} className="space-y-3">
+                                                                <div className="flex justify-between items-end">
+                                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                                                    <span className="text-[10px] md:text-xs font-black text-blue-700 uppercase tracking-tighter">{item.status}</span>
+                                                                </div>
+                                                                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                                    <div className="h-full bg-slate-900 transition-all duration-1000" style={{ width: `${item.score}%` }} />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="pt-8 border-t border-slate-200">
+                                                        <div className="flex items-center gap-3 text-emerald-700">
+                                                            <CheckCircle2 size={18} />
+                                                            <span className="text-[11px] font-black uppercase tracking-[0.2em]">Verified Readiness</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="text-right">
-                                                <p className="text-[8px] font-bold text-slate-300 uppercase tracking-[0.35em] leading-relaxed">
-                                                    THIS DOCUMENT IS GENERATED BY AI<br />
-                                                    BASED ON MULTI-STAGE SIMULATION DATA<br />
-                                                    AND VERIFIED TRAINING PERFORMANCE.
-                                                </p>
+                                            {/* Footer */}
+                                            <div className="flex flex-col md:flex-row md:items-end justify-between border-t-[0.5px] border-slate-200 pt-8 md:pt-12 gap-8 md:gap-0">
+                                                <div className="flex gap-12 md:gap-20">
+                                                    <div className="space-y-2">
+                                                        <p className="text-xl md:text-2xl font-serif font-black text-slate-900 border-b-2 border-slate-900 pb-2 mb-2 w-48">
+                                                            {new Date(profile.createdAt).toLocaleDateString()}
+                                                        </p>
+                                                        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Date of Attestation</p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <div className="w-24 h-12 bg-slate-50 rounded-lg flex items-center justify-center mb-2 border border-slate-100">
+                                                            <QrCode size={32} className="opacity-20" />
+                                                        </div>
+                                                        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Digital Seal</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-left md:text-right">
+                                                    <p className="text-[8px] font-bold text-slate-300 uppercase tracking-[0.35em] leading-relaxed">
+                                                        THIS DOCUMENT IS GENERATED BY AI<br />
+                                                        BASED ON MULTI-STAGE SIMULATION DATA<br />
+                                                        AND VERIFIED TRAINING PERFORMANCE.
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                             </motion.div>
                         </AnimatePresence>
                     </div>

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, rawPassword } = body;
+        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, rawPassword } = body;
 
         if (!fullName || !email || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
             plan: plan || "Free Trial",
             canAccessCertificates: !!canAccessCertificates,
             canAccessRecommendations: !!canAccessRecommendations,
+            canAccessScorecard: !!canAccessScorecard,
             rawPassword: rawPassword || password
         });
 
@@ -56,7 +57,7 @@ export async function PUT(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, rawPassword } = body;
+        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, rawPassword } = body;
 
         if (!id) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -71,6 +72,7 @@ export async function PUT(req: NextRequest) {
             plan,
             canAccessCertificates: !!canAccessCertificates,
             canAccessRecommendations: !!canAccessRecommendations,
+            canAccessScorecard: !!canAccessScorecard,
             rawPassword: rawPassword
         };
         if (password && password.trim() !== "") {

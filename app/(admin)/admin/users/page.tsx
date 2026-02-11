@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Lock, Zap, Phone, Star, Crown, Clock } from "lucide-react";
+import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Lock, Zap, Phone, Star, Crown, Clock, Award, CheckSquare } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +25,18 @@ export default function ParticipantsManagement() {
         plan?: string;
         canAccessCertificates?: boolean;
         canAccessRecommendations?: boolean;
+        canAccessScorecard?: boolean;
         rawPassword?: string;
         isDiagnosisComplete?: boolean;
+        workshopAttestationRequested?: boolean;
+        workshopAttestationStatus?: string;
+        grantedWorkshopTitle?: string;
+        workshopAccessRequests?: string[];
+    }
+
+    interface Workshop {
+        _id: string;
+        title: string;
     }
 
     // Form State
@@ -39,8 +50,11 @@ export default function ParticipantsManagement() {
         plan: "Free Trial",
         canAccessCertificates: false,
         canAccessRecommendations: false,
+        canAccessScorecard: false,
         rawPassword: ""
     });
+
+    const [workshops, setWorkshops] = useState<Workshop[]>([]);
 
     const fetchParticipants = async () => {
         try {
@@ -49,9 +63,59 @@ export default function ParticipantsManagement() {
             if (Array.isArray(data)) {
                 setParticipants(data);
             }
+
+            // Also fetch workshops to map names
+            const wRes = await fetch("/api/admin/courses", { cache: "no-store" });
+            const wData = await wRes.json();
+            if (Array.isArray(wData)) {
+                setWorkshops(wData);
+            }
         } catch (error) {
             console.error("Error fetching participants:", error);
         } finally {
+        }
+    };
+
+    const handleApproveWorkshop = async (userId: string, courseId: string, courseTitle: string) => {
+        if (!confirm(`Grant access to workshop: ${courseTitle}?`)) return;
+
+        try {
+            const res = await fetch("/api/admin/workshop-access/approve", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, courseId })
+            });
+
+            if (res.ok) {
+                alert("Access granted successfully");
+                fetchParticipants();
+            } else {
+                alert("Failed to grant access");
+            }
+        } catch (error) {
+            console.error("Error approving workshop:", error);
+        }
+    };
+
+    const handleGrantAttestation = async (user: Participant) => {
+        if (!confirm(`Grant Workshop Attestation for ${user.fullName}?`)) return;
+
+        try {
+            const res = await fetch("/api/admin/workshop-attestation/grant", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: user._id, workshopTitle: user.grantedWorkshopTitle })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("Attestation granted successfully");
+                fetchParticipants();
+            } else {
+                alert(data.error || "Failed to grant attestation");
+            }
+        } catch (error) {
+            console.error("Error granting attestation:", error);
         }
     };
 
@@ -90,13 +154,14 @@ export default function ParticipantsManagement() {
             plan: user.plan || "Free Trial",
             canAccessCertificates: !!user.canAccessCertificates,
             canAccessRecommendations: !!user.canAccessRecommendations,
+            canAccessScorecard: !!user.canAccessScorecard,
             rawPassword: user.rawPassword || ""
         });
         setIsAddModalOpen(true);
     };
 
     const handleActivateTrial = async (user: Participant) => {
-        if (!confirm(`Activate 3h Trial Mandate for ${user.fullName}?`)) return;
+        if (!confirm(`Activate Trial Mandate for ${user.fullName}?`)) return;
 
         try {
             const res = await fetch("/api/admin/users/activate-trial", {
@@ -105,11 +170,12 @@ export default function ParticipantsManagement() {
                 body: JSON.stringify({ userId: user._id })
             });
 
+            const data = await res.json();
             if (res.ok) {
-                alert("Trial activated for 3 hours!");
+                alert(data.message || "Trial activated!");
                 fetchParticipants();
             } else {
-                alert("Failed to activate trial");
+                alert(data.error || "Failed to activate trial");
             }
         } catch (error) {
             console.error("Error activating trial:", error);
@@ -128,6 +194,7 @@ export default function ParticipantsManagement() {
             plan: "Free Trial",
             canAccessCertificates: false,
             canAccessRecommendations: false,
+            canAccessScorecard: false,
             rawPassword: ""
         });
         setIsAddModalOpen(true);
@@ -149,6 +216,7 @@ export default function ParticipantsManagement() {
                 plan: formData.plan,
                 canAccessCertificates: formData.canAccessCertificates,
                 canAccessRecommendations: formData.canAccessRecommendations,
+                canAccessScorecard: formData.canAccessScorecard,
                 rawPassword: formData.password || formData.rawPassword
             };
 
@@ -256,13 +324,10 @@ export default function ParticipantsManagement() {
                                     p.email?.toLowerCase().includes(searchTerm.toLowerCase());
                                 const matchesStatus = filterStatus === "All" || p.status === filterStatus;
                                 return isParticipant && matchesSearch && matchesStatus;
-                            }).map((user, idx) => (
-                                <motion.tr
+                            }).map((user) => (
+                                <tr
                                     key={user._id || user.id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    className="hover:bg-slate-50/50 transition-colors group"
+                                    className="hover:bg-slate-50/50 transition-colors group border-b border-slate-50"
                                 >
                                     <td className="px-8 py-5 text-sm">
                                         <div className="flex items-center gap-4">
@@ -331,22 +396,61 @@ export default function ParticipantsManagement() {
                                                     className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20"
                                                 >
                                                     <Zap size={14} className="fill-current" />
-                                                    Activate 3h
+                                                    Activate Trial
                                                 </button>
                                             )}
                                             <button onClick={() => handleEdit(user)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit Asset">
                                                 <Edit2 size={16} />
                                             </button>
+                                            {/* Workshop Approval Action */}
+                                            {user.workshopAccessRequests && user.workshopAccessRequests.length > 0 && (
+                                                <div className="flex flex-col gap-1 border-r border-slate-100 pr-2 mr-1">
+                                                    {user.workshopAccessRequests.map(courseId => {
+                                                        const workshop = workshops.find(w => w._id === courseId);
+                                                        const title = workshop?.title || "Unknown Workshop";
+                                                        return (
+                                                            <button
+                                                                key={courseId}
+                                                                onClick={() => handleApproveWorkshop(user._id, courseId, title)}
+                                                                className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all shadow-sm"
+                                                                title={`Approve Access for: ${title}`}
+                                                            >
+                                                                <CheckSquare size={12} />
+                                                                Approve {title.substring(0, 15)}...
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
                                             <a href={`/admin/users/${user._id}/profile`} className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-purple-200" title="Review Performance">
                                                 <ShieldCheck size={14} />
                                                 Review
                                             </a>
+                                            {user.workshopAttestationStatus === "Requested" && (
+                                                <button
+                                                    onClick={() => handleGrantAttestation(user)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 text-white hover:bg-amber-700 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-md"
+                                                    title={`Grant for: ${user.grantedWorkshopTitle}`}
+                                                >
+                                                    <Award size={14} />
+                                                    Grant Attestation
+                                                </button>
+                                            )}
+                                            <Link
+                                                href={`/workshop-attestation?userId=${user._id}`}
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-amber-200"
+                                                title={user.workshopAttestationStatus === "Granted" ? `Granted: ${user.grantedWorkshopTitle}` : "View Template"}
+                                            >
+                                                <ShieldCheck size={14} />
+                                                View
+                                            </Link>
                                             <button onClick={() => handleDelete(user._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Eliminate Asset">
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>
-                                </motion.tr>
+                                </tr>
                             ))}
                         </tbody>
                     </table>
@@ -419,6 +523,13 @@ export default function ParticipantsManagement() {
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-bold text-slate-700">Allow Recommendation Letter</span>
                                                         <span className="text-[10px] text-slate-500 italic">Unlocks Strategic Recs</span>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                                    <input type="checkbox" className="w-5 h-5 rounded border-slate-200 text-blue-600" checked={formData.canAccessScorecard} onChange={(e) => setFormData({ ...formData, canAccessScorecard: e.target.checked })} />
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-slate-700">Allow Executive Scorecard</span>
+                                                        <span className="text-[10px] text-slate-500 italic">Unlocks Performance Analytics</span>
                                                     </div>
                                                 </label>
                                             </div>

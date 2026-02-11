@@ -1,19 +1,56 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useLanguage } from "@/components/providers/LanguageProvider";
+
+interface Session {
+    _id: string;
+    title: string;
+    videoUrl: string;
+    duration: string;
+}
+
+interface Course {
+    _id: string;
+    title: string;
+    instructor: string;
+    sessions?: number;
+    status: string;
+    location: string;
+    maxParticipants?: number;
+    enrolled?: number;
+    price?: number;
+    date?: string;
+    isAccessOpen?: boolean;
+    allowedUsers?: string[];
+}
 
 export default function TrainingPage() {
-    const { t } = useLanguage();
-    const [courses, setCourses] = useState<any[]>([]);
-    const [sessions, setSessions] = useState<any[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [sessions, setSessions] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
-    const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [numParticipants, setNumParticipants] = useState<Record<string, number>>({});
     const [lockedParticipants, setLockedParticipants] = useState<Record<string, boolean>>({});
+    const [pendingRequests, setPendingRequests] = useState<string[]>([]);
+
+    const fetchUserRequests = async () => {
+        const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+        const identifier = profile.email || profile.fullName;
+        if (!identifier) return;
+
+        try {
+            const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(identifier)}`);
+            const data = await res.json();
+            if (data.success && data.profile.workshopAccessRequests) {
+                setPendingRequests(data.profile.workshopAccessRequests);
+            }
+        } catch (error) {
+            console.error("Error fetching user requests:", error);
+        }
+    };
 
     const fetchCourses = async () => {
         setIsLoading(true);
@@ -46,9 +83,10 @@ export default function TrainingPage() {
 
     useEffect(() => {
         fetchCourses();
+        fetchUserRequests();
     }, []);
 
-    const handleSelectCourse = (course: any) => {
+    const handleSelectCourse = (course: Course) => {
         setSelectedCourse(course);
         fetchSessions(course._id);
     };
@@ -123,24 +161,26 @@ export default function TrainingPage() {
                             <div className="mt-12 p-8 bg-slate-900 rounded-3xl text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-slate-900/20">
                                 <div>
                                     <h2 className="text-2xl font-bold mb-2 text-white">Workshop Accreditation</h2>
-                                    <p className="text-slate-400">Completed all session replays? Generate your workshop participation certificate.</p>
+                                    <p className="text-slate-400">Completed all session replays? Claim your workshop participation certificate. Our consultant will review and grant access.</p>
                                 </div>
                                 <button
                                     onClick={async () => {
                                         const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
-                                        const name = profile.fullName || "Ahmed User";
-                                        const res = await fetch('/api/user/certificates', {
+                                        const userId = profile.email || profile.fullName;
+                                        
+                                        const res = await fetch('/api/user/workshop-attestation/request', {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({
-                                                userId: name, // Using name as ID for demo
-                                                userName: name,
-                                                courseId: selectedCourse._id,
-                                                courseTitle: selectedCourse.title
+                                                userId: userId,
+                                                workshopTitle: selectedCourse.title
                                             })
                                         });
-                                        if (res.ok) {
-                                            alert("Certificate generated successfully! Visit 'My Certificates' to view it.");
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            alert("Request sent! Our consultant will grant your attestation shortly.");
+                                        } else {
+                                            alert(data.error || "Failed to send request.");
                                         }
                                     }}
                                     className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg hover:bg-blue-500 transition-all"
@@ -241,7 +281,7 @@ export default function TrainingPage() {
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Format</p>
-                                            <p className="text-sm font-bold">Live + Recording</p>
+                                            <p className="text-sm font-bold">{course.location || "Online"}</p>
                                         </div>
                                     </div>
 
@@ -285,22 +325,41 @@ export default function TrainingPage() {
                                                 </div>
                                             </div>
 
-                                            {!lockedParticipants[course._id] ? (
+                                            {!lockedParticipants[course._id] && !pendingRequests.includes(course._id) ? (
                                                 <button
                                                     onClick={async () => {
-                                                        setLockedParticipants(prev => ({ ...prev, [course._id]: true }));
+                                                        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                                                        const userEmail = profile.email || profile.fullName;
+                                                        
+                                                        // 1. Send Request to DB
                                                         try {
-                                                            const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                                                            const res = await fetch('/api/user/workshop-access/request', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    userId: userEmail,
+                                                                    courseId: course._id
+                                                                })
+                                                            });
+                                                            const data = await res.json();
+                                                            if (data.success) {
+                                                                setPendingRequests(prev => [...prev, course._id]);
+                                                                setLockedParticipants(prev => ({ ...prev, [course._id]: true }));
+                                                            }
+                                                        } catch (err) { console.error(err); }
+
+                                                        // 2. Send Notification
+                                                        try {
                                                             const userName = profile.fullName || "Guest User";
-                                                            const userEmail = profile.email || "No Email";
+                                                            const userEmailRaw = profile.email || "No Email";
                                                             const seats = numParticipants[course._id] || 1;
 
                                                             await fetch('/api/admin/notifications', {
                                                                 method: 'POST',
                                                                 headers: { 'Content-Type': 'application/json' },
                                                                 body: JSON.stringify({
-                                                                    title: "New Seat Reservation",
-                                                                    message: `${userName} (${userEmail}) reserved ${seats} seat(s) for workshop: ${course.title}`,
+                                                                    title: "New Workshop Access Request",
+                                                                    message: `${userName} (${userEmailRaw}) requested access for: ${course.title} (${seats} seats)`,
                                                                     type: "booking"
                                                                 })
                                                             });
@@ -315,7 +374,9 @@ export default function TrainingPage() {
                                             ) : (
                                                 <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
                                                     <CheckCircle size={12} />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Reserved</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">
+                                                        {pendingRequests.includes(course._id) ? "Requested" : "Reserved"}
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>
@@ -339,8 +400,10 @@ export default function TrainingPage() {
 
                                         if (isAllowed && isOpen) {
                                             handleSelectCourse(course);
+                                        } else if (pendingRequests.includes(course._id)) {
+                                            alert("Your access request is pending. Please wait for the consultant to approve.");
                                         } else if (!isAllowed) {
-                                            alert("Access Denied. You are not enrolled in this restricted workshop.");
+                                            alert("Access Denied. You are not enrolled. Please confirm your seats first.");
                                         } else if (!isOpen) {
                                             alert("This workshop session hasn't started yet. Please wait for the admin to open access.");
                                         }
@@ -371,6 +434,8 @@ export default function TrainingPage() {
                                             ) : (
                                                 <>Session Closed / Not Started <Clock className="w-4 h-4 ml-2" /></>
                                             )
+                                        } else if (pendingRequests.includes(course._id)) {
+                                            return <>Pending Approval <Clock className="w-4 h-4 ml-2" /></>
                                         } else {
                                             return <>Access Locked <Lock className="w-4 h-4 ml-2" /></>
                                         }

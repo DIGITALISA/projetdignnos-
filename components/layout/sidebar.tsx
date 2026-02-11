@@ -19,7 +19,8 @@ import {
     BookOpen,
     Lock,
     CreditCard,
-    TrendingUp
+    TrendingUp,
+    BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -39,8 +40,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [isTrialExpired, setIsTrialExpired] = useState(false);
     const [canAccessCerts, setCanAccessCerts] = useState(false);
     const [canAccessRecs, setCanAccessRecs] = useState(false);
+    const [canAccessScorecard, setCanAccessScorecard] = useState(false);
     const [userPlan, setUserPlan] = useState("None");
     const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
+    const [attestationStatus, setAttestationStatus] = useState("None");
+    const [grantedWorkshop, setGrantedWorkshop] = useState("");
 
     const sidebarItems = [
         {
@@ -67,6 +71,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             items: [
                 { name: t.sidebar.items.certificates, icon: Award, href: "/certificate" },
                 { name: t.sidebar.items.recommendation, icon: ShieldCheck, href: "/recommendation" },
+                { name: "Executive Scorecard", icon: BarChart3, href: "/performance-scorecard" },
                 { name: t.sidebar.items.jobAlignment, icon: Sparkles, href: "/job-alignment" },
                 { name: t.sidebar.items.strategicReport, icon: Sparkles, href: "/strategic-report" },
             ]
@@ -79,6 +84,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             ]
         }
     ];
+
+    // DYNAMICALLY Add Workshop Attestation if Granted
+    if (attestationStatus === "Granted") {
+        const achievementGroup = sidebarItems.find(g => g.category === t.sidebar.categories.achievements);
+        if (achievementGroup) {
+            achievementGroup.items.push({
+                name: "Workshop Attestation",
+                icon: Award,
+                href: `/workshop-attestation?activeWorkshop=${encodeURIComponent(grantedWorkshop)}`
+            });
+        }
+    }
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
@@ -96,6 +113,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     // Initial load from localStorage
                     setCanAccessCerts(!!profile.canAccessCertificates);
                     setCanAccessRecs(!!profile.canAccessRecommendations);
+                    setCanAccessScorecard(!!profile.canAccessScorecard);
                     setIsDiagnosisComplete(!!profile.isDiagnosisComplete);
 
                     // FETCH LATEST FROM API to sync if admin changed something
@@ -107,17 +125,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             if (data.success) {
                                 setCanAccessCerts(data.certReady);
                                 setCanAccessRecs(data.recReady);
+                                setCanAccessScorecard(data.scorecardReady);
                                 
                                 // Update localStorage to stay in sync
                                 const updatedProfile = { 
                                     ...profile, 
                                     canAccessCertificates: data.certReady, 
-                                    canAccessRecommendations: data.recReady 
+                                    canAccessRecommendations: data.recReady,
+                                    canAccessScorecard: data.scorecardReady
                                 };
                                 localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
                             }
                         } catch (err) {
                             console.error("Failed to sync access flags", err);
+                        }
+
+                        // SYNC ATTESTATION STATUS
+                        try {
+                            const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId)}`);
+                            const data = await res.json();
+                            if (data.success) {
+                                setAttestationStatus(data.profile.workshopAttestationStatus || "None");
+                                setGrantedWorkshop(data.profile.grantedWorkshopTitle || "");
+                            }
+                        } catch (err) {
+                            console.error("Failed to sync attestation status", err);
                         }
                     }
 
@@ -132,12 +164,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             } else {
                                 const h = Math.floor(diff / (1000 * 60 * 60));
                                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                setTrialTimeLeft(`${h}h ${m}m`);
+                                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                                
+                                // Show seconds only if less than 1 hour for high urgency
+                                if (h === 0) {
+                                    setTrialTimeLeft(`${m}m ${s}s`);
+                                } else {
+                                    setTrialTimeLeft(`${h}h ${m}m`);
+                                }
                                 setIsTrialExpired(false);
                             }
                         };
                         updateTimer();
-                        intervalId = setInterval(updateTimer, 60000);
+                        intervalId = setInterval(updateTimer, 1000); // Update every second for premium feel
                     }
                 }
             } catch (e) {
@@ -153,33 +192,43 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         };
     }, []);
 
-    // Check if an item should be locked based on diagnosis status
+    // Check if an item should be locked based on diagnosis status and plan
     const isLocked = (href: string) => {
-        // High security paths: certificates and recommendations
-        if (href === "/certificate" && !canAccessCerts) return true;
-        if (href === "/recommendation" && !canAccessRecs) return true;
+        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+
+        // ALWAYS LOCK Achievements/Official Assets for Free Trial users
+        const achievementPaths = ["/certificate", "/recommendation", "/performance-scorecard", "/job-alignment", "/strategic-report"];
+        if (achievementPaths.includes(href) && isFreePlan) {
+            return true;
+        }
+
+        // High security paths: certificates and recommendations (for non-free users who haven't been approved yet)
+        if (href === "/certificate") return !canAccessCerts;
+        if (href === "/recommendation") return !canAccessRecs;
+        if (href === "/performance-scorecard") return !canAccessScorecard;
 
         const alwaysOpen = ["/dashboard", "/subscription", "/settings"];
         if (alwaysOpen.includes(href)) return false;
 
-        // Diagnosis & Audit (1) is always open (so users can complete it)
-        if (href.startsWith("/assessment")) return false;
+        // PERMANENT FREE ASSETS (after diagnosis): 2, 3, 6 (Simulation, Training, Library)
+        const permanentFreePaths = ["/simulation", "/training", "/library"];
+        
+        // LIMITED TRIAL ASSETS (1h only): 1 (Diagnosis), 4, 5, 7, 8
+        const limitedTrialPaths = ["/assessment", "/mentor", "/academy", "/expert", "/roadmap"];
 
-        const restrictedPaths = [
-            "/simulation", // 2. Real-world Simulations
-            "/training",   // 3. Executive Workshops
-            "/mentor",     // 4. AI Advisor
-            "/academy",    // 5. Knowledge Base
-            "/library",    // 6. Resource Center
-            "/expert",     // 7. Expert Consultation
-            "/roadmap"     // 8. Career Roadmap
-        ];
+        // 1. If Trial is Expired, LOCK the limited assets (1, 4, 5, 7, 8)
+        if (limitedTrialPaths.some(p => href.startsWith(p)) && isTrialExpired && isFreePlan) {
+            return true;
+        }
 
-        // STRICT FLOW: If (1) Diagnosis is NOT complete, LOCK (2-7)
-        // This ensures the AI analysis is ready before accessing other tools
+        // 2. If Diagnosis is NOT complete, LOCK EVERYTHING ELSE (2-8)
+        const restrictedPaths = [...permanentFreePaths, "/mentor", "/academy", "/expert", "/roadmap"];
         if (restrictedPaths.some(p => href.startsWith(p)) && !isDiagnosisComplete) {
             return true;
         }
+        
+        // Diagnosis starts unlocked but ends locked after 1h
+        if (href.startsWith("/assessment")) return false;
         
         return false;
     };
@@ -319,7 +368,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                             .replace(/^ +/, "")
                                             .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
                                     });
-                                    window.location.replace('/');
+                                    window.location.replace('/login');
                                 }}
                                 className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group"
                                 title={t.sidebar.items.signOut}

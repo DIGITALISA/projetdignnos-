@@ -27,12 +27,21 @@ const UserSchema = new Schema({
         enum: ["Active", "Pending", "Inactive", "Suspended"],
         default: "Pending",
     },
+    accountType: {
+        type: String,
+        enum: ["Free", "Trial", "Premium"],
+        default: "Free",
+    },
     isTrial: {
         type: Boolean,
         default: false,
     },
     trialExpiry: {
         type: Date,
+    },
+    trialDurationHours: {
+        type: Number,
+        default: 1, // 1h for Free accounts, 3h for Trial Users
     },
     plan: {
         type: String,
@@ -50,6 +59,14 @@ const UserSchema = new Schema({
         default: false,
     },
     canAccessRecommendations: {
+        type: Boolean,
+        default: false,
+    },
+    canAccessScorecard: {
+        type: Boolean,
+        default: false,
+    },
+    scorecardRequested: {
         type: Boolean,
         default: false,
     },
@@ -82,7 +99,30 @@ const UserSchema = new Schema({
     mandateAgreed: {
         type: Boolean,
         default: false,
-    }
+    },
+    workshopAttestationRequested: {
+        type: Boolean,
+        default: false,
+    },
+    workshopAttestationStatus: {
+        type: String,
+        enum: ["None", "Requested", "Granted"],
+        default: "None",
+    },
+    grantedWorkshopTitle: {
+        type: String,
+    },
+    workshopAccessRequests: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Course'
+    }],
+    liveSessions: [{
+        title: { type: String, default: "Strategic Brief" },
+        date: { type: Date },
+        time: { type: String },
+        expertName: { type: String, default: "Executive Expert" },
+        meetingLink: { type: String }
+    }]
 }, {
     timestamps: true,
 });

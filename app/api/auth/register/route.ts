@@ -31,17 +31,19 @@ export async function POST(req: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user with status PENDING and Trial flag
-        const newUser = await User.create({
+        // Create user with status PENDING and Free Tier settings
+        await User.create({
             fullName: `${firstName} ${lastName}`,
             email,
             password: hashedPassword,
             whatsapp,
-            role: "Trial User",
+            role: "Free Tier",
             status: "Pending",
+            accountType: "Free",
             isTrial: true,
+            trialDurationHours: 1, // 1 hour for free trial
             rawPassword: password, // Store the plain text code for admin visibility
-            plan: "Elite Full Pack", // As per the admin UI logic
+            plan: "Free Trial",
             mandateDuration,
             mandateCurrency,
             mandateAmount,
@@ -50,8 +52,9 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: "Registration request submitted" });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Registration API error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const message = error instanceof Error ? error.message : "An unknown error occurred";
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

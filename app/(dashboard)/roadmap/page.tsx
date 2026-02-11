@@ -139,7 +139,7 @@ export default function RoadmapPage() {
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
                         <Sparkles size={12} className="animate-pulse" /> AI Strategic Deployment
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black text-slate-950 tracking-tight leading-[0.9] uppercase">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-950 tracking-tight leading-[0.9] uppercase">
                         Career <span className="text-transparent bg-clip-text bg-linear-to-b from-blue-600 to-indigo-700">Roadmap</span>
                     </h1>
                     <p className="text-slate-500 font-medium max-w-xl text-xl leading-relaxed">

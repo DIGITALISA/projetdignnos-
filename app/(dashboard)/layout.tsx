@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Menu, Loader2 } from "lucide-react";
-
 import { usePathname, useRouter } from "next/navigation";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const { dir } = useLanguage();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -35,19 +36,25 @@ export default function DashboardLayout({
                 const isAdmin = profile.role === "Admin" || profile.role === "Moderator";
 
                 if (!isAdmin) {
-                     const restrictedPaths = [
-                        "/simulation",
-                        "/training",
-                        "/mentor",
-                        "/academy",
-                        "/library",
-                        "/expert",
-                        "/roadmap"
-                    ];
+                    const isFreePlan = profile.plan === "Free Trial" || profile.plan === "None" || profile.role === "Trial User";
+                    const isTrialExpired = profile.role === "Trial User" && profile.trialExpiry && new Date(profile.trialExpiry).getTime() < new Date().getTime();
 
+                    const permanentFreePaths = ["/simulation", "/training", "/library"];
+                    const limitedTrialPaths = ["/assessment", "/mentor", "/academy", "/expert", "/roadmap"];
+                    
+                    const isLimitedPath = limitedTrialPaths.some(p => pathname.startsWith(p));
+
+                    // 1. TRIAL EXPIRY REDIRECT (Only for limited assets: 1, 4, 5, 7)
+                    if (isFreePlan && isTrialExpired && isLimitedPath) {
+                        console.log("⚠️ Trial Expired - Redirecting to Subscription.");
+                        router.replace("/subscription");
+                        return;
+                    }
+
+                    // 2. DIAGNOSIS FLOW PROTECTION
+                    const restrictedPaths = [...permanentFreePaths, "/mentor", "/academy", "/expert", "/roadmap"]; // sections 2-8
                     const isRestrictedPath = restrictedPaths.some(p => pathname.startsWith(p));
 
-                    // STRICT FLOW: If Diagnosis is NOT complete, LOCK sections 2-7
                     if (!isDiagnosisComplete && isRestrictedPath) {
                         console.log("🔒 Restricted Area - Diagnosis Incomplete. Redirecting to Assessment.");
                         router.replace("/assessment/cv-upload");
@@ -77,13 +84,13 @@ export default function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+        <div className="min-h-screen bg-slate-50 text-slate-900 flex" dir={dir}>
 
             {/* Sidebar */}
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-h-screen transition-all duration-300 md:pl-80">
+            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${dir === 'rtl' ? 'md:pr-72' : 'md:pl-72'}`}>
 
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30">

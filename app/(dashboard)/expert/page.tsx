@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, User, Loader2 } from "lucide-react";
+import { Send, Sparkles, Loader2 } from "lucide-react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function ExpertPage() {
@@ -84,7 +83,7 @@ export default function ExpertPage() {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
+        <div className="flex-1 flex flex-col h-[calc(100dvh-8rem)]">
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">{t.expert.title}</h1>
                 <p className="text-slate-500">

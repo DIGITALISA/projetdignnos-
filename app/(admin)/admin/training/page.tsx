@@ -1,23 +1,49 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Play, BookOpen, Clock, Users, Edit3, Trash2, ChevronRight, X, Check, Loader2, Video, FileText, ArrowLeft, Save, Lock } from "lucide-react";
+import { Plus, Play, BookOpen, Clock, Users, Edit3, Trash2, ChevronRight, X, Check, Loader2, Video, ArrowLeft, Save, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
+interface Course {
+    _id: string;
+    title: string;
+    instructor: string;
+    status: string;
+    description: string;
+    thumbnail: string;
+    date: string;
+    location: string;
+    price: number;
+    maxParticipants: number;
+    sessions?: number;
+    enrolled?: number;
+    isAccessOpen?: boolean;
+    allowedUsers?: string[];
+}
+
+interface Session {
+    _id: string;
+    courseId: string;
+    title: string;
+    duration: string;
+    videoUrl: string;
+    supportLink?: string;
+}
+
 export default function TrainingManagement() {
-    const [courses, setCourses] = useState<any[]>([]);
-    const [sessions, setSessions] = useState<any[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [sessions, setSessions] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [view, setView] = useState<"list" | "sessions">("list");
-    const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
     const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Form States
-    const [courseForm, setCourseForm] = useState<any>({ title: "", instructor: "", status: "Published", description: "", thumbnail: "", date: "", location: "", price: 0, maxParticipants: 10 });
-    const [sessionForm, setSessionForm] = useState<any>({ title: "", duration: "", videoUrl: "", supportLink: "" });
+    const [courseForm, setCourseForm] = useState<Partial<Course & { id?: string }>>({ title: "", instructor: "", status: "Published", description: "", thumbnail: "", date: "", location: "", price: 0, maxParticipants: 10 });
+    const [sessionForm, setSessionForm] = useState<Partial<Session & { _id?: string }>>({ title: "", duration: "", videoUrl: "", supportLink: "" });
 
     const fetchCourses = async () => {
         setIsLoading(true);
@@ -52,7 +78,7 @@ export default function TrainingManagement() {
         setIsCourseModalOpen(true);
     };
 
-    const handleEditCourse = (course: any) => {
+    const handleEditCourse = (course: Course) => {
         setCourseForm({
             id: course._id,
             title: course.title,
@@ -104,7 +130,7 @@ export default function TrainingManagement() {
     };
 
     // Session Actions
-    const openSessions = (course: any) => {
+    const openSessions = (course: Course) => {
         setSelectedCourse(course);
         fetchSessions(course._id);
         setView("sessions");
@@ -143,13 +169,14 @@ export default function TrainingManagement() {
 
     const handleDeleteSession = async (id: string) => {
         if (confirm("Delete this session?")) {
-            try {
-                await fetch(`/api/admin/sessions?id=${id}`, { method: 'DELETE' });
-                fetchSessions(selectedCourse._id);
-                fetchCourses(); // refresh session count
-            } catch (error) {
-                console.error("Error deleting session:", error);
-            }
+                if (!selectedCourse?._id) return;
+                try {
+                    await fetch(`/api/admin/sessions?id=${id}`, { method: 'DELETE' });
+                    fetchSessions(selectedCourse._id);
+                    fetchCourses(); // refresh session count
+                } catch (error) {
+                    console.error("Error deleting session:", error);
+                }
         }
     };
 
@@ -189,14 +216,14 @@ export default function TrainingManagement() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-6">
-                                {courses.map((course, idx) => (
+                                {courses.map((course) => (
                                     <motion.div
                                         key={course._id}
                                         layoutId={`course-${course._id}`}
                                         className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden"
                                     >
                                         <div className="flex flex-col lg:flex-row lg:items-center">
-                                            <div className="lg:w-48 h-32 lg:h-40 bg-slate-100 flex items-center justify-center relative bg-gradient-to-br from-blue-500 to-indigo-600">
+                                            <div className="lg:w-48 h-32 lg:h-40 bg-slate-100 flex items-center justify-center relative bg-linear-to-br from-blue-500 to-indigo-600">
                                                 <span className="text-white font-black text-xs uppercase tracking-widest opacity-30">{course.thumbnail || "QHSE"}</span>
                                                 <Play className="text-white fill-white/20" size={32} />
                                             </div>
@@ -362,8 +389,8 @@ export default function TrainingManagement() {
             <AnimatePresence>
                 {isCourseModalOpen && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCourseModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white rounded-3xl shadow-2xl z-[70] overflow-hidden">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCourseModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-60" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white rounded-3xl shadow-2xl z-70 overflow-hidden">
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
                                     <h2 className="text-2xl font-bold text-slate-900">{courseForm.id ? "Edit Workshop" : "New Workshop"}</h2>
@@ -394,7 +421,7 @@ export default function TrainingManagement() {
                                                 <input type="text" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.date} onChange={e => setCourseForm({ ...courseForm, date: e.target.value })} />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Location (Online/Address)</label>
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Format (Online/Address)</label>
                                                 <input type="text" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-slate-900" value={courseForm.location} onChange={e => setCourseForm({ ...courseForm, location: e.target.value })} />
                                             </div>
                                         </div>
@@ -425,7 +452,7 @@ export default function TrainingManagement() {
                                     </div>
                                     <div className="flex gap-3 pt-4">
                                         <button type="button" onClick={() => setIsCourseModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
-                                        <button type="submit" disabled={isSubmitting} className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={isSubmitting} className="flex-2 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
                                             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> {courseForm.id ? "Update Workshop" : "Create Workshop"}</>}
                                         </button>
                                     </div>
@@ -440,8 +467,8 @@ export default function TrainingManagement() {
             <AnimatePresence>
                 {isSessionModalOpen && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSessionModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[70] overflow-hidden">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSessionModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-60" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl shadow-2xl z-70 overflow-hidden">
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
                                     <h2 className="text-2xl font-bold text-slate-900">{sessionForm._id ? "Edit Session" : "New Session"}</h2>
@@ -464,7 +491,7 @@ export default function TrainingManagement() {
                                     </div>
                                     <div className="flex gap-3 pt-4">
                                         <button type="button" onClick={() => setIsSessionModalOpen(false)} className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
-                                        <button type="submit" disabled={isSubmitting} className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={isSubmitting} className="flex-2 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2">
                                             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Check size={20} /> {sessionForm._id ? "Save Changes" : "Add Session"}</>}
                                         </button>
                                     </div>

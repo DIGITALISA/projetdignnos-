@@ -382,7 +382,7 @@ export default function JobAlignmentPage() {
                         <div className="grid lg:grid-cols-12 gap-8">
                             {/* Certificate Side */}
                             <div className="lg:col-span-8">
-                                <div className="bg-white rounded-4xl border-8 border-slate-50 p-8 md:p-16 shadow-2xl relative overflow-hidden min-h-[800px]">
+                                <div className="bg-white rounded-4xl border-8 border-slate-50 p-4 sm:p-8 md:p-16 shadow-2xl relative overflow-hidden min-h-[600px] md:min-h-[800px]">
                                     {/* Security Watermark */}
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] rotate-[-25deg]">
                                         <Target size={600} />

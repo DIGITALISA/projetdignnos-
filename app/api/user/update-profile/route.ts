@@ -11,8 +11,21 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "User identifier required" }, { status: 400 });
         }
 
+        // Create a safe search query
+        const searchQuery: Record<string, string | [{ email: string }, { _id: string }] | unknown> = {};
+        if (email) {
+            searchQuery.email = email;
+        } else if (userId) {
+            const isObjectId = userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId);
+            if (isObjectId) {
+                searchQuery.$or = [{ email: userId }, { _id: userId }];
+            } else {
+                searchQuery.email = userId;
+            }
+        }
+
         const user = await User.findOneAndUpdate(
-            { $or: [{ email }, { _id: userId }] },
+            searchQuery,
             { $set: updates },
             { new: true }
         );
@@ -26,8 +39,9 @@ export async function POST(request: NextRequest) {
             user
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Profile Update Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const message = error instanceof Error ? error.message : "An unknown error occurred";
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

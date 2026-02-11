@@ -64,13 +64,26 @@ const SimulationSchema = new Schema({
     submittedLink: {
         type: String,
         default: ""
-    }
+    },
+    performanceMetrics: {
+        leadership: { type: Number, default: 0 },
+        strategy: { type: Number, default: 0 },
+        communication: { type: Number, default: 0 },
+        problemSolving: { type: Number, default: 0 },
+        decisionSpeed: { type: Number, default: 0 },
+        overallScore: { type: Number, default: 0 }
+    },
+    badges: [{
+        name: String,
+        icon: String,
+        date: { type: Date, default: Date.now }
+    }]
 }, {
     timestamps: true,
 });
 
 if (models.Simulation) {
-    delete (mongoose as any).models.Simulation;
+    delete (mongoose.models as Record<string, unknown>).Simulation;
 }
 const Simulation = model("Simulation", SimulationSchema);
 

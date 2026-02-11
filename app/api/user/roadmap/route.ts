@@ -13,7 +13,11 @@ export async function POST(req: Request) {
         }
 
         await connectDB();
-        const user = await User.findById(userId);
+        // Search by ID if it's a valid ObjectId, otherwise search by email
+        const isObjectId = userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId);
+        const user = await User.findOne(
+            isObjectId ? { $or: [{ _id: userId }, { email: userId }] } : { email: userId }
+        );
 
         if (!user || (!user.diagnosisData && !user.diagnosis)) {
             return NextResponse.json({ success: false, error: "Diagnosis data not found" }, { status: 404 });

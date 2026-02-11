@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Briefcase, CheckCircle2, Clock, FileText, AlertCircle, Send, Target, PlayCircle, Loader2, Lock, ShieldCheck, Calendar } from "lucide-react";
+import { Briefcase, CheckCircle2, Clock, FileText, AlertCircle, Send, Target, PlayCircle, Loader2, Lock, ShieldCheck, Calendar, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface MissionObjective {
@@ -95,6 +96,25 @@ export default function SimulationPage() {
 
 
 
+    const handlePurchase = (missionId: string, price: number = 149) => {
+        if (window.confirm(`Confirm purchase of Executive Mission for ${price} TND?`)) {
+            setIsLoading(true);
+            setTimeout(() => {
+                const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const purchased = profile.purchasedItems || [];
+                if (!purchased.includes(missionId)) {
+                    purchased.push(missionId);
+                    profile.purchasedItems = purchased;
+                    localStorage.setItem('userProfile', JSON.stringify(profile));
+                    window.dispatchEvent(new Event("profileUpdated"));
+                    window.location.reload();
+                } else {
+                    setIsLoading(false);
+                }
+            }, 1000);
+        }
+    };
+
     const handleAcceptProposal = async (missionId: string) => {
         setIsLoading(true);
         try {
@@ -143,25 +163,28 @@ export default function SimulationPage() {
     if (!missionState.hasActiveMission && !missionState.proposals.length) {
         return (
             <div className="max-w-4xl mx-auto py-12 px-4 relative">
-                <div className="bg-white rounded-[2.5rem] p-8 md:p-16 text-center border border-slate-200 shadow-xl relative overflow-hidden">
+                <div className="bg-white rounded-[2.5rem] p-6 md:p-16 text-center border border-slate-200 shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-blue-600 to-purple-600" />
                     <div className="absolute inset-0 bg-linear-to-r from-slate-900/90 to-slate-900/50 z-10" />
-                    <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8">
-                        <ShieldCheck className="w-10 h-10 text-blue-600" />
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
+                        <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 mb-6 tracking-tight font-arabic" dir="rtl">لا توجد محاكاة نشطة حالياً</h1>
-                    <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto font-bold font-arabic" dir="rtl">
+                    <h1 className="text-2xl md:text-4xl font-black text-slate-900 mb-4 md:mb-6 tracking-tight font-arabic" dir="rtl">لا توجد محاكاة نشطة حالياً</h1>
+                    <p className="text-base md:text-xl text-slate-600 mb-8 md:mb-10 leading-relaxed max-w-2xl mx-auto font-bold font-arabic" dir="rtl">
                         ليس لديك أي محاكاة أو مهمة تدريبية مفعلة في الوقت الحالي. يرجى الاتصال بالمنظم (Administrator) إذا كنت ترغب في بدء حصص المحاكاة والتدريب المباشرة.
                     </p>
 
                     {isProEssential && !hasPaidForMission && (
-                        <div className="p-8 bg-amber-50 rounded-[2.5rem] border-2 border-amber-100 mb-8 max-w-lg mx-auto">
+                        <div className="p-6 md:p-8 bg-amber-50 rounded-[2.5rem] border-2 border-amber-100 mb-8 max-w-lg mx-auto">
                             <Lock className="w-8 h-8 text-amber-600 mx-auto mb-4" />
                             <h3 className="text-lg font-black text-amber-900 mb-2 uppercase tracking-tight">Investissement Stratégique Requis</h3>
                             <p className="text-amber-700 text-sm font-bold mb-6">
                                 En tant que membre <span className="underline">Pro Essential</span>, vous devez débloquer chaque session de simulation individuellement.
                             </p>
-                            <button className="w-full py-4 bg-amber-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-amber-600/20">
+                            <button 
+                                onClick={() => alert("Redirecting to secure payment gateway...")}
+                                className="w-full py-4 bg-amber-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-amber-600/20 active:scale-95 transition-transform"
+                            >
                                 Débloquer ma Simulation (Tarif Exécutif)
                             </button>
                         </div>
@@ -241,14 +264,29 @@ export default function SimulationPage() {
                                 <div className="text-3xl font-black text-slate-900">
                                     {prop.price} <span className="text-xs text-slate-400 uppercase">TND</span>
                                 </div>
+                                {isProEssential && !userPool.purchasedItems?.includes(prop._id) && (
+                                    <div className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-[10px] font-black uppercase tracking-wide flex items-center gap-1">
+                                        <Lock size={12} /> Premium Lock
+                                    </div>
+                                )}
                             </div>
 
-                            <button
-                                onClick={() => handleAcceptProposal(prop._id)}
-                                className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl hover:bg-blue-600 transition-all shadow-xl shadow-slate-900/10 active:scale-95 group-hover:bg-blue-600"
-                            >
-                                START THIS MISSION
-                            </button>
+                            {(!isProEssential || userPool.purchasedItems?.includes(prop._id)) ? (
+                                <button
+                                    onClick={() => handleAcceptProposal(prop._id)}
+                                    className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl hover:bg-blue-600 transition-all shadow-xl shadow-slate-900/10 active:scale-95 group-hover:bg-blue-600"
+                                >
+                                    START THIS MISSION
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handlePurchase(prop._id, prop.price)}
+                                    className="w-full py-5 bg-amber-600 text-white font-black rounded-2xl hover:bg-amber-700 transition-all shadow-xl shadow-amber-600/20 active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Lock size={16} />
+                                    UNLOCK MISSION
+                                </button>
+                            )}
                         </motion.div>
                     ))}
                 </div>
@@ -283,7 +321,7 @@ export default function SimulationPage() {
                     </div>
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight leading-[0.9] max-w-3xl">
+                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 tracking-tight leading-[0.9] max-w-3xl">
                                 {mission.title}
                             </h1>
                             <div className="flex flex-wrap items-center gap-8 text-sm font-bold text-slate-400">
@@ -577,15 +615,20 @@ export default function SimulationPage() {
                         <div className="space-y-3">
                             {mission.status === 'completed' ? (
                                 <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl space-y-2">
-                                    <div className="flex items-center gap-2 text-emerald-700 font-black text-xs uppercase">
+                                    <div className="flex items-center gap-2 text-emerald-700 font-black text-xs uppercase mb-2">
                                         <CheckCircle2 size={14} /> Mission Submitted
                                     </div>
                                     <p className="text-[10px] text-slate-500 font-medium">Your strategy has been sent for expert review.</p>
-                                    {mission.submittedLink && (
-                                        <a href={mission.submittedLink} target="_blank" className="block p-2 bg-white border border-emerald-100 rounded-lg text-blue-600 truncate text-[10px] font-bold hover:bg-blue-50 transition-colors">
-                                            {mission.submittedLink}
-                                        </a>
-                                    )}
+                                    <div className="pt-2 flex flex-col gap-2">
+                                        {mission.submittedLink && (
+                                            <a href={mission.submittedLink} target="_blank" className="block p-2 bg-white border border-emerald-100 rounded-lg text-blue-600 truncate text-[10px] font-bold hover:bg-blue-50 transition-colors">
+                                                {mission.submittedLink}
+                                            </a>
+                                        )}
+                                        <Link href="/performance-scorecard" className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-all">
+                                            <BarChart3 size={14} /> View Executive Scorecard
+                                        </Link>
+                                    </div>
                                 </div>
                             ) : (
                                 <button

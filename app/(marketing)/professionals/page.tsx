@@ -22,6 +22,7 @@ import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
 import ContractModal from "@/components/legal/ContractModal";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 // Interfaces
 interface PricingTier {
@@ -42,9 +43,18 @@ interface PricingCardProps {
 
 export default function ProfessionalsPage() {
     const { t, dir, language } = useLanguage();
+    const router = useRouter();
     const containerRef = useRef(null);
     const [selectedPlan, setSelectedPlan] = useState<(PricingTier & { type: string }) | null>(null);
     const { scrollYProgress } = useScroll({ target: containerRef });
+
+    const handlePlanSelect = (plan: PricingTier & { type: string }) => {
+        if (plan.type === "explorer") {
+            router.push("/register");
+        } else {
+            setSelectedPlan(plan);
+        }
+    };
 
     // Smooth scroll physics
     const springScroll = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
@@ -313,7 +323,7 @@ export default function ProfessionalsPage() {
                         tier={t.pricing.tiers.explorer} 
                         icon={<Globe className="w-8 h-8" />} 
                         type="explorer" 
-                        onSelect={(p) => setSelectedPlan(p)} 
+                        onSelect={handlePlanSelect} 
                     />
                     
                     {/* Professional */}
@@ -321,7 +331,7 @@ export default function ProfessionalsPage() {
                         tier={t.pricing.tiers.professional} 
                         icon={<Zap className="w-8 h-8" />} 
                         type="professional" 
-                        onSelect={(p) => setSelectedPlan(p)} 
+                        onSelect={handlePlanSelect} 
                     />
 
                     {/* Executive - Featured */}
@@ -330,7 +340,7 @@ export default function ProfessionalsPage() {
                         icon={<Star className="w-8 h-8" />} 
                         type="executive" 
                         featured
-                        onSelect={(p) => setSelectedPlan(p)} 
+                        onSelect={handlePlanSelect} 
                     />
 
                     {/* Elite */}
@@ -338,7 +348,7 @@ export default function ProfessionalsPage() {
                         tier={t.pricing.tiers.elite} 
                         icon={<Crown className="w-8 h-8" />} 
                         type="elite" 
-                        onSelect={(p) => setSelectedPlan(p)} 
+                        onSelect={handlePlanSelect} 
                     />
                 </div>
             </section>

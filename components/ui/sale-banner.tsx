@@ -1,10 +1,11 @@
 "use client";
 
 import { useLanguage } from "@/components/providers/LanguageProvider";
-import { X, ExternalLink } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export function SaleBanner() {
     const { t, dir } = useLanguage();
@@ -33,34 +34,42 @@ export function SaleBanner() {
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 className={`fixed bottom-6 ${dir === 'rtl' ? 'left-6' : 'right-6'} z-50 w-full max-w-sm`}
             >
-                <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-6 overflow-hidden">
+                <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800 shadow-2xl rounded-3xl p-6 overflow-hidden">
                     {/* Decorative gradient background opacity */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-600 via-purple-600 to-pink-600" />
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600" />
+                    
+                    {/* Background Glow */}
+                    <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/10 blur-[50px] rounded-full" />
 
                     <button
                         onClick={() => setIsVisible(false)}
-                        className={`absolute top-4 ${dir === 'rtl' ? 'left-4' : 'right-4'} text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors bg-slate-100 dark:bg-slate-800 rounded-full p-1`}
+                        className={`absolute top-4 ${dir === 'rtl' ? 'left-4' : 'right-4'} text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all hover:rotate-90 bg-slate-50 dark:bg-slate-800 rounded-full p-1.5 border border-slate-100 dark:border-slate-700`}
                         aria-label={t.saleBanner?.close || "Close"}
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-3.5 h-3.5" />
                     </button>
 
-                    <div className="flex flex-col gap-3">
-                        <div className="inline-flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <h3 className="font-bold text-slate-900 dark:text-white text-lg">
+                    <div className="flex flex-col gap-4 relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <span className="absolute inset-0 bg-green-500 blur-sm rounded-full animate-pulse opacity-50" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-green-500 relative ring-4 ring-green-500/10" />
+                            </div>
+                            <h3 className="font-black text-slate-900 dark:text-white text-base uppercase tracking-tight">
                                 {t.saleBanner?.title}
                             </h3>
                         </div>
 
-                        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-line">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold leading-relaxed">
                             {t.saleBanner?.desc}
                         </p>
 
-                        <button className="mt-2 w-full py-2.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 group">
-                            {t.saleBanner?.cta}
-                            <ExternalLink className={`w-3 h-3 ${dir === 'rtl' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} transition-transform`} />
-                        </button>
+                        <Link href="/experts" className="w-full pt-2">
+                            <button className="w-full py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-slate-900/10">
+                                {t.saleBanner?.cta}
+                                <ArrowRight className={`w-3.5 h-3.5 ${dir === 'rtl' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} transition-transform`} />
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </motion.div>

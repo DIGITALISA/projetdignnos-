@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutDashboard,
     Users,
@@ -8,8 +7,6 @@ import {
     Menu,
     X,
     ChevronRight,
-    Search,
-    Bell,
     ShieldCheck,
     Settings
 } from "lucide-react";
@@ -109,8 +106,17 @@ export default function ModeratorLayout({
                 <div className="absolute bottom-0 w-full p-6 border-t border-indigo-800">
                     <button
                         onClick={() => {
-                            localStorage.removeItem("userProfile");
-                            router.push("/login");
+                            // Clear all storage
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            // Clear cookies
+                            document.cookie.split(";").forEach((c) => {
+                                document.cookie = c
+                                    .replace(/^ +/, "")
+                                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                            });
+                            // Redirect to login
+                            window.location.replace('/login');
                         }}
                         className="flex items-center gap-4 px-4 py-3.5 w-full rounded-xl text-sm font-semibold text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all group"
                     >

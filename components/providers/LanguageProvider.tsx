@@ -15,32 +15,48 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    // Default to English, but check localStorage on mount
+    // Initialize with 'en' to match SSR
     const [language, setLanguageState] = useState<Language>('en');
+    const [isHydrated, setIsHydrated] = useState(false);
 
+    // Hydration effect - runs once on mount
     useEffect(() => {
-        const savedLang = localStorage.getItem('career-upgrade-lang') as Language;
-        if (savedLang && (savedLang === 'en' || savedLang === 'fr' || savedLang === 'ar')) {
-            setLanguageState(savedLang);
-        }
-    }, []);
+        // Defer execution to avoid synchronous setState warning
+        const timer = setTimeout(() => {
+            // Get saved language from localStorage
+            const savedLang = localStorage.getItem('career-upgrade-lang') as Language;
+            const initialLang = (savedLang && (savedLang === 'en' || savedLang === 'fr' || savedLang === 'ar')) ? savedLang : 'en';
+            
+            // Update state
+            if (initialLang !== 'en') {
+                setLanguageState(initialLang);
+            }
+            
+            // Update document attributes
+            document.documentElement.lang = initialLang;
+            document.documentElement.dir = initialLang === 'ar' ? 'rtl' : 'ltr';
+            
+            // Mark as hydrated
+            setIsHydrated(true);
+        }, 0);
+
+        return () => clearTimeout(timer);
+    }, []); // Intentionally empty - only run once on mount
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
         localStorage.setItem('career-upgrade-lang', lang);
-        // Update HTML dir and lang attributes for accessibility and proper rendering
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     };
 
-    // derived state
     const t = translations[language];
     const dir = language === 'ar' ? 'rtl' : 'ltr';
 
-    // Ensure initial render matches hydration to avoid mismatch, 
-    // or accept that first paint is default lang (en). 
-    // To avoid flicker we might want to just render children, 
-    // but let's stick to simple client-side switch for now.
+    // Show minimal loading screen during hydration to prevent mismatch
+    if (!isHydrated) {
+        return <div className="min-h-screen bg-slate-50" />;
+    }
 
     return (
         <LanguageContext.Provider value={{ language, setLanguage, t, dir }}>
@@ -53,7 +69,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
 export function useLanguage() {
     const context = useContext(LanguageContext);
-    if (context === undefined) {
+    if (!context) {
         throw new Error("useLanguage must be used within a LanguageProvider");
     }
     return context;

@@ -388,7 +388,16 @@ By signing below, you agree to start the consulting process.
             stats: {
                 skillsGained: "Skills Verified",
                 hoursLearned: "Workshop Hours",
-                certificates: "Certificates"
+                certificates: "Workshop Attestations"
+            },
+            liveSessions: {
+                title: "Live Strategic Sessions",
+                expert: "Expert",
+                date: "Date",
+                time: "Time",
+                noSessions: "No sessions scheduled yet.",
+                join: "Join Session",
+                upcoming: "Upcoming Briefing"
             },
             currentFocus: {
                 title: "Current Mandate",
@@ -1008,7 +1017,16 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             stats: {
                 skillsGained: "Compétences Vérifiées",
                 hoursLearned: "Heures de Workshop",
-                certificates: "Certificats"
+                certificates: "Attestations de Workshop"
+            },
+            liveSessions: {
+                title: "Sessions Stratégiques en Direct",
+                expert: "Expert",
+                date: "Date",
+                time: "Heure",
+                noSessions: "Aucune session prévue pour le moment.",
+                join: "Rejoindre la Session",
+                upcoming: "Briefing à venir"
             },
             currentFocus: {
                 title: "Mandat Actuel",
@@ -1628,7 +1646,16 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             stats: {
                 skillsGained: "مهارات تم التحقق منها",
                 hoursLearned: "ساعات الورش العملية",
-                certificates: "الشهادات"
+                certificates: "شهادات الورش"
+            },
+            liveSessions: {
+                title: "الجلسات الاستراتيجية المباشرة",
+                expert: "الخبير",
+                date: "التاريخ",
+                time: "الوقت",
+                noSessions: "لا توجد جلسات مجدولة حالياً.",
+                join: "انضم للجلسة",
+                upcoming: "إيجاز قادم"
             },
             currentFocus: {
                 title: "التفويض الحالي",

@@ -1,11 +1,34 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Simulation from "@/models/Simulation";
 import Diagnosis from "@/models/Diagnosis";
 
+// Simple in-memory cache
+interface CachedStats {
+    totalUsers: number;
+    pendingUsers: number;
+    activeTrials: number;
+    completedDiagnoses: number;
+    totalSimulations: number;
+}
+
+let cachedStats: CachedStats | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 30000; // 30 seconds
+
 export async function GET() {
     try {
+        // Check cache first
+        const now = Date.now();
+        if (cachedStats && (now - cacheTimestamp) < CACHE_DURATION) {
+            return NextResponse.json({
+                success: true,
+                stats: cachedStats,
+                cached: true
+            });
+        }
+
         await connectDB();
 
         const [
@@ -22,18 +45,25 @@ export async function GET() {
             Simulation.countDocuments({})
         ]);
 
+        const stats = {
+            totalUsers,
+            pendingUsers,
+            activeTrials,
+            completedDiagnoses,
+            totalSimulations
+        };
+
+        // Update cache
+        cachedStats = stats;
+        cacheTimestamp = now;
+
         return NextResponse.json({
             success: true,
-            stats: {
-                totalUsers,
-                pendingUsers,
-                activeTrials,
-                completedDiagnoses,
-                totalSimulations
-            }
+            stats
         });
 
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
-import Session from "@/models/Session";
+import User from "@/models/User";
+import Diagnosis from "@/models/Diagnosis";
 
 export async function GET(req: NextRequest) {
     try {
         await connectDB();
         const { searchParams } = new URL(req.url);
-        const courseId = searchParams.get("courseId");
+        const userId = searchParams.get("userId");
 
-        if (!courseId) {
-            return NextResponse.json({ error: "courseId is required" }, { status: 400 });
+        if (!userId) {
+            return NextResponse.json({ error: "User ID is required" }, { status: 400 });
         }
 
-        const sessions = await Session.find({ courseId }).sort({ createdAt: 1 });
-        return NextResponse.json(sessions);
+        // Search in Diagnosis first as it's the primary dashboard source
+        const diagnosis = await Diagnosis.findOne({ 
+            $or: [
+                { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                { userId: userId.toString() }
+            ]
+        }).sort({ updatedAt: -1 });
+
+        return NextResponse.json({ 
+            success: true, 
+            sessions: diagnosis?.liveSessions || [] 
+        });
     } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch sessions" }, { status: 500 });
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -23,22 +34,33 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const session = await Session.create(body);
-        return NextResponse.json(session, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-}
+        const { userId, session } = body;
 
-export async function PUT(req: NextRequest) {
-    try {
-        await connectDB();
-        const body = await req.json();
-        const { id, ...updateData } = body;
-        const session = await Session.findByIdAndUpdate(id, updateData, { new: true });
-        return NextResponse.json(session);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        if (!userId || !session) {
+            return NextResponse.json({ error: "User ID and session data are required" }, { status: 400 });
+        }
+
+        // Update in Diagnosis
+        const updatedDiagnosis = await Diagnosis.findOneAndUpdate(
+            { 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                    { userId: userId.toString() }
+                ]
+            },
+            { $push: { liveSessions: session } },
+            { new: true, sort: { updatedAt: -1 } }
+        );
+
+        // Also sync to User model for backup/other uses
+        await User.findOneAndUpdate(
+            { email: userId },
+            { $push: { liveSessions: session } }
+        );
+
+        return NextResponse.json({ success: true, diagnosis: updatedDiagnosis });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -46,10 +68,31 @@ export async function DELETE(req: NextRequest) {
     try {
         await connectDB();
         const { searchParams } = new URL(req.url);
-        const id = searchParams.get("id");
-        await Session.findByIdAndDelete(id);
-        return NextResponse.json({ message: "Session deleted" });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        const userId = searchParams.get("userId");
+        const sessionId = searchParams.get("sessionId");
+
+        if (!userId || !sessionId) {
+            return NextResponse.json({ error: "User ID and Session ID are required" }, { status: 400 });
+        }
+
+        await Diagnosis.findOneAndUpdate(
+            { 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                    { userId: userId.toString() }
+                ]
+            },
+            { $pull: { liveSessions: { _id: sessionId } } },
+            { sort: { updatedAt: -1 } }
+        );
+
+        await User.findOneAndUpdate(
+            { email: userId },
+            { $pull: { liveSessions: { _id: sessionId } } }
+        );
+
+        return NextResponse.json({ success: true, message: "Session removed" });
+    } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
