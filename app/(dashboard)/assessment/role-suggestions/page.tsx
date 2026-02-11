@@ -70,15 +70,25 @@ export default function RoleSuggestionsPage() {
                 }
             }
 
-            // If we reach here, no data found anywhere
-            if (!storedCV) {
-                router.push('/assessment/cv-upload');
-            } else {
+            // If we reach here, we check if we should fallback to localStorage
+            const stored = localStorage.getItem('roleSuggestions');
+            if (userId && !loading) {
+                 // If we have a userId but no API data, the local cache is likely stale
+                 console.log("Logged in user with no role data in cloud - clearing stale cache");
+                 localStorage.removeItem('cvAnalysis');
+                 localStorage.removeItem('roleSuggestions');
+                 localStorage.removeItem('selectedLanguage');
+                 router.push('/assessment/cv-upload');
+            } else if (stored) {
+                setRoleSuggestions(JSON.parse(stored));
                 setLoading(false);
+            } else {
+                router.push('/assessment/cv-upload');
             }
         };
 
         loadProgress();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     const handleDownloadReport = async () => {

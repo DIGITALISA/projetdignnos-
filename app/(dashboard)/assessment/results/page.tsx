@@ -58,9 +58,14 @@ export default function ResultsPage() {
                 }
             }
 
-            // Fallback
+            // Fallback: Only for Guests or if something went wrong
             const stored = localStorage.getItem('interviewEvaluation');
-            if (stored) {
+            if (userId && !evaluation) {
+                // If we have a userId but no API data, the local cache is stale
+                console.log("Logged in user with no evaluation in cloud - clearing stale cache");
+                localStorage.removeItem('interviewEvaluation');
+                router.push('/assessment/cv-upload');
+            } else if (stored) {
                 const parsedEvaluation = JSON.parse(stored);
                 setEvaluation(parsedEvaluation);
             } else {
@@ -69,6 +74,7 @@ export default function ResultsPage() {
         };
 
         loadResults();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     const handleDownloadReport = async () => {

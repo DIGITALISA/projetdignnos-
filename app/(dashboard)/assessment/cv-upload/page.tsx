@@ -125,12 +125,21 @@ export default function CVUploadPage() {
                     }
                 }
 
-                // 2. Fallback: LocalStorage (للضيوف أو في حالة فشل API)
+                // 2. Fallback logic: Only for Guests or specific error cases
                 if (!sessionFound) {
                     const localAnalysis = localStorage.getItem('cvAnalysis');
                     const localLanguage = localStorage.getItem('selectedLanguage');
-
-                    if (localAnalysis) {
+                    
+                    // If we have a userId but the API returned nothing, the local data is likely stale (from another user)
+                    if (userId) {
+                        console.log("Logged in user with no cloud data - clearing stale local cache");
+                        localStorage.removeItem('cvAnalysis');
+                        // Don't show results from other users
+                        setAnalysisResult(null);
+                        setUploadComplete(false);
+                        setShowResults(false);
+                    } else if (localAnalysis) {
+                        // Guest user fallback
                         try {
                             const parsedAnalysis = JSON.parse(localAnalysis);
                             if (parsedAnalysis && parsedAnalysis.overallScore) {
@@ -276,40 +285,22 @@ export default function CVUploadPage() {
                 throw new Error(`File size exceeds 500MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
             }
 
-            let cvText = '';
-
-            // Handle different file types
-            if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-                cvText = await file.text();
-            } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-                cvText = await file.text();
-            } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-                cvText = await file.text();
-            } else {
-                throw new Error('Unsupported file type. Please upload PDF, DOCX, or TXT file.');
-            }
-
-            if (!cvText || cvText.trim().length < 50) {
-                throw new Error('CV content is too short or could not be extracted. Please ensure your file contains text.');
-            }
-
-            console.log('Sending CV text to API:', cvText.substring(0, 200) + '...');
-
             // Get user info from localStorage
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName || 'anonymous';
             const userName = userProfile.fullName || 'Anonymous User';
 
-            // Call AI Analysis API with selected language
+            // Prepare FormData to send the actual file for server-side parsing
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('language', selectedLanguage || 'en');
+            formData.append('userId', userId);
+            formData.append('userName', userName);
+
+            // Call AI Analysis API
             const response = await fetch('/api/analyze-cv', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cvText,
-                    language: selectedLanguage || 'en',
-                    userId,
-                    userName
-                }),
+                body: formData, // Send FormData instead of JSON
             });
 
             const result = await response.json();

@@ -1,17 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Lock, Mail, Github, Loader2 } from "lucide-react";
+import { ArrowRight, Github, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
 function LoginContent() {
     const { t, dir } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
     const searchParams = useSearchParams();
     const callback = searchParams.get("callback");
 
@@ -34,6 +33,14 @@ function LoginContent() {
             const data = await res.json();
 
             if (data.success) {
+                // Clear any existing diagnostic data to prevent leakage from previous users
+                localStorage.removeItem("cvAnalysis");
+                localStorage.removeItem("interviewEvaluation");
+                localStorage.removeItem("roleSuggestions");
+                localStorage.removeItem("selectedLanguage");
+                localStorage.removeItem("selectedRole");
+                localStorage.removeItem("interviewProgress");
+
                 // Save user profile to local storage for persistence across the app
                 localStorage.setItem("userProfile", JSON.stringify(data.user));
 
