@@ -63,6 +63,8 @@ export async function GET(req: Request) {
             certReady,
             recReady,
             scorecardReady,
+            plan: user?.plan || 'Free Trial', // Return the current plan
+            role: user?.role || 'Trial User', // Return the current role
             details: {
                 hasDiagnosis: hasDiagnosis,
                 hasSimulation: hasSimulation,

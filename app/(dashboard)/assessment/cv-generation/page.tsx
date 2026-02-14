@@ -385,16 +385,95 @@ export default function CVGenerationPage() {
         setIsExporting(filename);
         try {
             const element = ref.current;
+            
+            // Capture with robust settings
             const canvas = await html2canvas(element, {
-                scale: 3, // Very high quality for documents
+                scale: 2, // Good balance of quality/size
                 useCORS: true,
+                logging: false,
                 backgroundColor: "#ffffff",
+                windowWidth: 800, // Force desktop width for consistent layout
                 onclone: (clonedDoc) => {
+                    // 1. Remove stubborn link tags that break html2canvas with modern CSS (lab/oklch)
+                    const links = clonedDoc.getElementsByTagName('link');
+                    while (links.length > 0) {
+                        links[0].parentNode?.removeChild(links[0]);
+                    }
+
+                    // 2. Reveal the printable element (it might be hidden in scrollbox)
                     const el = clonedDoc.getElementById('printable-doc');
                     if (el) {
                         (el as HTMLElement).style.display = 'block';
-                        (el as HTMLElement).style.padding = '0';
+                        (el as HTMLElement).style.padding = '40px'; // Add padding for "page" feel
+                        (el as HTMLElement).style.width = '100%';
+                        (el as HTMLElement).style.maxWidth = 'none';
+                        (el as HTMLElement).style.margin = '0 auto';
                     }
+
+                    // 3. Inject Safe Styles & Font
+                    const safeStyle = clonedDoc.createElement('style');
+                    safeStyle.innerHTML = `
+                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+                        * { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+                        
+                        /* Basic Reset & Tailwind Emulation for PDF */
+                        .bg-white { background-color: #ffffff !important; }
+                        .text-slate-900 { color: #0f172a !important; }
+                        .text-slate-800 { color: #1e293b !important; }
+                        .text-slate-700 { color: #334155 !important; }
+                        .text-slate-600 { color: #475569 !important; }
+                        .text-slate-500 { color: #64748b !important; }
+                        .text-blue-600 { color: #2563eb !important; }
+                        .text-blue-700 { color: #1d4ed8 !important; }
+                        .text-purple-600 { color: #9333ea !important; }
+                        .border-blue-600 { border-color: #2563eb !important; }
+                        .border-b-2 { border-bottom-width: 2px !important; }
+                        .border-b { border-bottom-width: 1px !important; }
+                        .border-slate-200 { border-color: #e2e8f0 !important; }
+                        .bg-slate-100 { background-color: #f1f5f9 !important; }
+                        
+                        .p-12 { padding: 3rem !important; }
+                        .mb-8 { margin-bottom: 2rem !important; }
+                        .mb-6 { margin-bottom: 1.5rem !important; }
+                        .mb-4 { margin-bottom: 1rem !important; }
+                        .mb-3 { margin-bottom: 0.75rem !important; }
+                        .mb-2 { margin-bottom: 0.5rem !important; }
+                        .mb-1 { margin-bottom: 0.25rem !important; }
+                        
+                        .text-4xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+                        .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+                        .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+                        .text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+                        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
+                        
+                        .font-bold { font-weight: 700 !important; }
+                        .font-extrabold { font-weight: 800 !important; }
+                        .font-semibold { font-weight: 600 !important; }
+                        .uppercase { text-transform: uppercase !important; }
+                        
+                        .flex { display: flex !important; }
+                        .flex-wrap { flex-wrap: wrap !important; }
+                        .items-center { align-items: center !important; }
+                        .justify-between { justify-content: space-between !important; }
+                        .gap-4 { gap: 1rem !important; }
+                        .gap-2 { gap: 0.5rem !important; }
+                        .gap-1 { gap: 0.25rem !important; }
+                        
+                        .grid { display: grid !important; }
+                        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+                        .col-span-2 { grid-column: span 2 / span 2 !important; }
+                        .col-span-1 { grid-column: span 1 / span 1 !important; }
+                        .space-y-8 > * + * { margin-top: 2rem !important; }
+                        .space-y-6 > * + * { margin-top: 1.5rem !important; }
+                        .space-y-4 > * + * { margin-top: 1rem !important; }
+                        .space-y-2 > * + * { margin-top: 0.5rem !important; }
+                        .space-y-1 > * + * { margin-top: 0.25rem !important; }
+                        
+                        .list-disc { list-style-type: disc !important; }
+                        .ml-4 { margin-left: 1rem !important; }
+                        .rounded { border-radius: 0.25rem !important; }
+                    `;
+                    clonedDoc.head.appendChild(safeStyle);
                 }
             });
 
@@ -629,32 +708,48 @@ export default function CVGenerationPage() {
     }
 
     return (
-        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">CV & Cover Letter Generation</h1>
-                    <p className="text-slate-500">
-                        Let&apos;s create your professional documents for: <span className="font-semibold text-blue-600">{selectedRole?.title}</span>
-                    </p>
-                </div>
+        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto w-full font-sans">
+            {/* Header Section */}
+            <div className="mb-6 flex flex-col items-center text-center gap-6 px-4 shrink-0">
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative"
+                >
+                    <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-cyan-400 rounded-2xl blur opacity-20"></div>
+                    <div className="relative bg-white/50 backdrop-blur-sm px-8 py-4 rounded-2xl border border-slate-200/60">
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
+                            Professional <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">CV Studio</span>
+                        </h1>
+                        <p className="text-slate-500 text-lg font-medium">
+                            Drafting high-impact documents for <span className="text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">{selectedRole?.title}</span>
+                        </p>
+                    </div>
+                </motion.div>
 
-                {/* Progress Indicator */}
-                <div className="flex items-center gap-4">
-                    <div className="text-right">
-                        <p className="text-sm text-slate-500">Progress</p>
-                        <p className="text-lg font-bold text-blue-600">{currentQuestionIndex}/{totalQuestions}</p>
+                {/* Progress Bar */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex items-center gap-4 bg-white px-5 py-2 rounded-full shadow-sm border border-slate-200"
+                >
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Progress</span>
+                    <div className="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div 
+                            className="h-full bg-linear-to-r from-blue-500 to-cyan-400"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(currentQuestionIndex / totalQuestions) * 100}%` }}
+                            transition={{ duration: 0.5 }}
+                        />
                     </div>
-                    <div className="w-16 h-16 rounded-full border-4 border-slate-200 flex items-center justify-center">
-                        <span className="text-lg font-bold text-slate-700">
-                            {Math.round((currentQuestionIndex / totalQuestions) * 100)}%
-                        </span>
-                    </div>
-                </div>
+                    <span className="text-sm font-black text-blue-600">{currentQuestionIndex} / {totalQuestions}</span>
+                </motion.div>
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 overflow-y-auto mb-4">
-                <div className="space-y-6">
+            <div className="flex-1 bg-white/60 backdrop-blur-md rounded-[2.5rem] shadow-xl border border-white/50 p-6 md:p-8 overflow-y-auto mb-6 mx-2 md:mx-0 custom-scrollbar relative">
+                <div className="space-y-8">
                     {messages.map((message, index) => (
                         <motion.div
                             key={index}
@@ -663,24 +758,29 @@ export default function CVGenerationPage() {
                             transition={{ delay: index * 0.1 }}
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                            <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'} group`}>
                                 {message.role === 'ai' && (
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                            <FileText className="w-4 h-4 text-blue-600" />
+                                    <div className="flex items-center gap-3 mb-3 ml-1">
+                                        <div className="w-8 h-8 rounded-xl bg-linear-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white">
+                                            <Sparkles className="w-4 h-4" />
                                         </div>
-                                        <span className="text-sm font-medium text-slate-600">HR Expert</span>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Career Architect</span>
                                     </div>
                                 )}
 
-                                <div className={`rounded-2xl p-4 ${message.role === 'user'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-50 text-slate-900'
+                                <div className={`relative p-5 md:p-6 shadow-sm border ${message.role === 'user'
+                                    ? 'bg-linear-to-br from-slate-900 to-slate-800 text-white rounded-3xl rounded-tr-none border-slate-700'
+                                    : 'bg-white text-slate-700 rounded-3xl rounded-tl-none border-slate-100'
                                     }`}>
-                                    <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                    <p className="leading-relaxed whitespace-pre-wrap text-[15px]">{message.content}</p>
+                                    
+                                    {/* Subtle shine effect for user bubbles */}
+                                    {message.role === 'user' && (
+                                        <div className="absolute inset-0 rounded-3xl rounded-tr-none bg-linear-to-t from-white/5 to-transparent pointer-events-none" />
+                                    )}
                                 </div>
 
-                                <span className="text-xs text-slate-400 mt-1 block">
+                                <span className={`text-[10px] uppercase font-bold text-slate-300 mt-2 block px-2 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
@@ -693,9 +793,9 @@ export default function CVGenerationPage() {
                             animate={{ opacity: 1 }}
                             className="flex justify-start"
                         >
-                            <div className="flex items-center gap-2 bg-slate-50 rounded-2xl p-4">
+                            <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-100 shadow-sm ml-4">
                                 <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                                <span className="text-slate-600">Analyzing your response...</span>
+                                <span className="text-slate-500 text-sm font-medium">Drafting response...</span>
                             </div>
                         </motion.div>
                     )}
@@ -705,37 +805,43 @@ export default function CVGenerationPage() {
             </div>
 
             {/* Input Area */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
-                <div className="flex gap-3">
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                        placeholder="Type your answer here..."
-                        disabled={isLoading || generationComplete}
-                        className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-900 placeholder:text-slate-400"
-                    />
-                    <button
-                        onClick={handleSkipQuestion}
-                        disabled={isLoading || generationComplete}
-                        className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <ArrowRight className="w-5 h-5" />
-                        {selectedLanguage === 'ar' ? 'تخطي' :
-                            selectedLanguage === 'fr' ? 'Passer' :
-                                selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
-                    </button>
-                    <button
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isLoading || generationComplete}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <Send className="w-5 h-5" />
-                        {selectedLanguage === 'ar' ? 'إرسال' :
-                            selectedLanguage === 'fr' ? 'Envoyer' :
-                                selectedLanguage === 'es' ? 'Enviar' : 'Send'}
-                    </button>
+            <div className="bg-white rounded-4xl shadow-2xl border border-slate-200/60 p-3 md:p-5 mx-2 md:mx-0 shrink-0">
+                <div className="flex flex-col md:flex-row gap-3">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                            placeholder="Type your answer here..."
+                            disabled={isLoading || generationComplete}
+                            className="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium"
+                        />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSkipQuestion}
+                            disabled={isLoading || generationComplete}
+                            className="px-6 py-3 bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <ArrowRight className="w-4 h-4" />
+                            <span className="hidden md:inline">Skip</span>
+                        </button>
+                        <button
+                            onClick={handleSendMessage}
+                            disabled={!inputValue.trim() || isLoading || generationComplete}
+                            className="px-8 py-3 bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <Send className="w-4 h-4" />
+                            <span className="hidden md:inline">Send Answer</span>
+                        </button>
+                    </div>
+                </div>
+                <div className="mt-3 text-center">
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
+                        AI-Powered Career Assistant • {selectedLanguage?.toUpperCase()} Mode
+                    </p>
                 </div>
             </div>
         </div>

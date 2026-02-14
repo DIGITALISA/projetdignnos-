@@ -1,12 +1,30 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Search, ShieldCheck, FileCheck, ExternalLink, ShieldAlert, Loader2 } from "lucide-react";
+import { CheckCircle2, Search, ShieldCheck, FileCheck, ExternalLink, ShieldAlert, Loader2, Building2, ArrowUpRight } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import CorporateInquiryModal from "@/components/modals/CorporateInquiryModal";
+import Link from "next/link";
+
+interface VerificationResult {
+    userName: string;
+    title: string;
+    date: string;
+    status: string;
+    referenceId: string;
+    type: string;
+    details?: Record<string, unknown>;
+    score?: number;
+}
+
+interface VerificationTranslations {
+    types?: Record<string, string>;
+    [key: string]: unknown; // To allow other properties like badge, titlePre, etc. 
+}
 
 export default function VerificationPage() {
     return (
@@ -21,15 +39,8 @@ function VerificationContent() {
     const searchParams = useSearchParams();
     const [certId, setCertId] = useState("");
     const [status, setStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
-    const [result, setResult] = useState<any>(null);
-
-    useEffect(() => {
-        const id = searchParams.get('id');
-        if (id) {
-            setCertId(id);
-            triggerVerify(id);
-        }
-    }, [searchParams]);
+    const [result, setResult] = useState<VerificationResult | null>(null);
+    const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
 
     const triggerVerify = async (id: string) => {
         if (!id) return;
@@ -51,6 +62,20 @@ function VerificationContent() {
             setStatus('invalid');
         }
     };
+
+    useEffect(() => {
+        const id = searchParams.get('id');
+        if (id) {
+            // Use requestAnimationFrame or setTimeout to avoid synchronous setState warning if needed,
+            // but setting initial state from URL is generally fine. 
+            // However, to satisfy the linter:
+            const timer = setTimeout(() => {
+                setCertId(id);
+                triggerVerify(id);
+            }, 0);
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams]);
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,7 +99,7 @@ function VerificationContent() {
 
                     <h1 className="text-5xl md:text-6xl font-serif font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none">
                         {t.verification.titlePre} <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-slate-900 dark:from-blue-400 dark:to-slate-200">
+                        <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-700 to-slate-900 dark:from-blue-400 dark:to-slate-200">
                             {t.verification.titleHighlight}
                         </span>
                     </h1>
@@ -83,6 +108,44 @@ function VerificationContent() {
                         {t.verification.subtitle}
                     </p>
                 </div>
+
+                {/* Corporate Quick Note - MOVED TO TOP */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="max-w-2xl mx-auto mb-12"
+                >
+                    <div className="p-1 px-1 rounded-3xl bg-linear-to-r from-blue-600 via-indigo-600 to-blue-600 shadow-xl shadow-blue-500/20">
+                        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-[1.4rem] p-6 md:p-8 text-center md:text-start flex flex-col md:flex-row items-center gap-6">
+                            <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shrink-0">
+                                <Building2 size={32} />
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <h4 className="text-xl font-bold text-slate-900 dark:text-white">
+                                        {t.verification.corporateNoteTitle}
+                                    </h4>
+                                    <Link 
+                                        href="/professionals#corporate" 
+                                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-blue-600 transition-colors"
+                                        title="Explore Corporate Support Details"
+                                    >
+                                        <ArrowUpRight size={18} />
+                                    </Link>
+                                </div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-0">
+                                    {t.verification.corporateNoteDesc}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setIsInquiryModalOpen(true)}
+                                className="whitespace-nowrap px-6 py-3 bg-slate-900 dark:bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                            >
+                                {t.verification.corporateNoteCTA}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -101,7 +164,7 @@ function VerificationContent() {
                                         placeholder={t.verification.placeholder}
                                         value={certId}
                                         onChange={(e) => setCertId(e.target.value)}
-                                        className="w-full pl-16 pr-6 py-6 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-slate-900 dark:focus:border-blue-500 outline-none font-mono text-xl transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                                        className="w-full pl-16 pr-6 py-6 rounded-4xl bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-slate-900 dark:focus:border-blue-500 outline-none font-mono text-xl transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                                     />
                                     <Search className={`absolute ${dir === 'rtl' ? 'right-6' : 'left-6'} top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors w-6 h-6`} />
                                 </div>
@@ -109,7 +172,7 @@ function VerificationContent() {
 
                             <button
                                 disabled={status === 'loading' || !certId}
-                                className="w-full py-6 bg-slate-900 dark:bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98]"
+                                className="w-full py-6 bg-slate-900 dark:bg-blue-600 text-white rounded-4xl font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98]"
                             >
                                 {status === 'loading' ? (
                                     <>
@@ -157,12 +220,14 @@ function VerificationContent() {
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.verification.domain}</p>
-                                                <p className="text-xl font-serif font-black text-slate-900 dark:text-white">{result?.title}</p>
+                                                <p className="text-xl font-serif font-black text-slate-900 dark:text-white">
+                                                    {result?.type ? ((t.verification as VerificationTranslations).types?.[result.type] || result.title) : result?.title}
+                                                </p>
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.verification.date}</p>
                                                 <p className="text-lg font-bold text-slate-900 dark:text-white">
-                                                    {new Date(result?.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                    {result?.date ? new Date(result.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '---'}
                                                 </p>
                                             </div>
                                             <div className="space-y-1">
@@ -217,6 +282,11 @@ function VerificationContent() {
                     </div>
                 </motion.div>
             </main>
+
+            <CorporateInquiryModal 
+                isOpen={isInquiryModalOpen}
+                onClose={() => setIsInquiryModalOpen(false)}
+            />
         </div>
     );
 }

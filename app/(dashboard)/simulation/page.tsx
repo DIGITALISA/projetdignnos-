@@ -141,6 +141,8 @@ export default function SimulationPage() {
 
     useEffect(() => {
         fetchMission();
+        window.addEventListener("profileUpdated", fetchMission);
+        return () => window.removeEventListener("profileUpdated", fetchMission);
     }, []);
 
     if (isLoading) {

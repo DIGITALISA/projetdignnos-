@@ -20,10 +20,23 @@ export function SaleBanner() {
         return () => clearTimeout(timer);
     }, []);
 
-    // Don't show on roadmap page
-    if (pathname === '/roadmap') return null;
-
-    if (!isVisible) return null;
+    // ONLY show on landing/marketing pages
+    // Hide on all dashboard and administrative routes
+    const isRestricted = !pathname || 
+                        pathname.startsWith('/dashboard') || 
+                        pathname.startsWith('/admin') || 
+                        pathname.startsWith('/assessment') ||
+                        pathname.startsWith('/simulation') ||
+                        pathname.startsWith('/training') ||
+                        pathname.startsWith('/mentor') ||
+                        pathname.startsWith('/academy') ||
+                        pathname.startsWith('/expert') ||
+                        pathname.startsWith('/roadmap') ||
+                        pathname.startsWith('/certificate') ||
+                        pathname.startsWith('/recommendation') ||
+                        pathname.startsWith('/job-alignment');
+    
+    if (isRestricted || !isVisible) return null;
 
     return (
         <AnimatePresence>
@@ -35,10 +48,7 @@ export function SaleBanner() {
                 className={`fixed bottom-6 ${dir === 'rtl' ? 'left-6' : 'right-6'} z-50 w-full max-w-sm`}
             >
                 <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800 shadow-2xl rounded-3xl p-6 overflow-hidden">
-                    {/* Decorative gradient background opacity */}
                     <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600" />
-                    
-                    {/* Background Glow */}
                     <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/10 blur-[50px] rounded-full" />
 
                     <button

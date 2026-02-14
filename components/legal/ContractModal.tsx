@@ -115,6 +115,16 @@ export default function ContractModal({
                             <p>{t.mandate.section4_desc}</p>
                         </section>
 
+                        <section>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 font-sans">{t.mandate.section5_title}</h3>
+                            <p>{t.mandate.section5_desc}</p>
+                        </section>
+
+                        <section>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 font-sans">{t.mandate.section6_title}</h3>
+                            <p>{t.mandate.section6_desc}</p>
+                        </section>
+
                         <section className="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 font-sans">{t.mandate.signature_clause_title}</h3>
                             <p className="text-xs font-sans opacity-70 mb-4">{t.mandate.signature_clause_desc}</p>

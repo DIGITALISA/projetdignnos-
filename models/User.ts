@@ -122,7 +122,12 @@ const UserSchema = new Schema({
         time: { type: String },
         expertName: { type: String, default: "Executive Expert" },
         meetingLink: { type: String }
-    }]
+    }],
+    memberId: {
+        type: String,
+        unique: true,
+        sparse: true // Allow nulls for old users until migrated
+    }
 }, {
     timestamps: true,
 });

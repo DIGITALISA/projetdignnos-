@@ -11,7 +11,8 @@ import {
     BrainCircuit,
     ArrowRight,
     ScrollText,
-    Play
+    Play,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -66,6 +67,7 @@ export default function MentorPage() {
     const [quizAnswers, setQuizAnswers] = useState<Record<number, number[]>>({});
     const [showQuizResults, setShowQuizResults] = useState<Record<number, boolean>>({});
     const [error, setError] = useState<string | null>(null);
+    const [showSolution, setShowSolution] = useState(false);
 
     // Simulation/Game state
     const [currentChallenge, setCurrentChallenge] = useState(0);
@@ -387,7 +389,7 @@ export default function MentorPage() {
                                         <p className="text-slate-600 font-medium">{content.globalCaseStudy.dilemma}</p>
                                     </div>
                                     <button
-                                        onClick={() => alert(content.globalCaseStudy.expertSolution)}
+                                        onClick={() => setShowSolution(true)}
                                         className="text-blue-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:gap-4 transition-all"
                                     >
                                         Reveal Expert Solution <ArrowRight size={16} />
@@ -450,6 +452,59 @@ export default function MentorPage() {
                             </div>
                         )}
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Expert Solution Modal */}
+            <AnimatePresence>
+                {showSolution && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            onClick={() => setShowSolution(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl overflow-hidden z-10"
+                        >
+                            <button
+                                onClick={() => setShowSolution(false)}
+                                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
+                            >
+                                <X size={24} />
+                            </button>
+
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                                        <Sparkles className="text-blue-600" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Expert Solution</h3>
+                                        <p className="text-sm text-slate-500 font-bold">Strategic Recommendation</p>
+                                    </div>
+                                </div>
+
+                                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <p className="text-lg text-slate-700 leading-relaxed font-medium">
+                                        {content?.globalCaseStudy?.expertSolution}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => setShowSolution(false)}
+                                    className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-blue-600 transition-colors shadow-lg shadow-slate-900/10"
+                                >
+                                    Close Analysis
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

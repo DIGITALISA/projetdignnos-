@@ -6,6 +6,17 @@ import { Menu, Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
+interface UserProfile {
+    email?: string;
+    fullName?: string;
+    role?: string;
+    plan?: string;
+    canAccessCertificates?: boolean;
+    canAccessRecommendations?: boolean;
+    canAccessScorecard?: boolean;
+    trialExpiry?: string;
+}
+
 export default function DashboardLayout({
     children,
 }: {
@@ -18,10 +29,40 @@ export default function DashboardLayout({
     const pathname = usePathname();
 
     useEffect(() => {
+        const syncProfile = async (profile: UserProfile) => {
+            const userId = profile?.email || profile?.fullName;
+            if (!userId) return;
+
+            try {
+                const readyRes = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
+                const readyData = await readyRes.json();
+
+                if (readyData.success) {
+                    if (
+                        profile.canAccessCertificates !== readyData.certReady ||
+                        profile.canAccessRecommendations !== readyData.recReady ||
+                        profile.plan !== readyData.plan ||
+                        profile.role !== readyData.role
+                    ) {
+                        const updatedProfile = {
+                            ...profile,
+                            canAccessCertificates: readyData.certReady,
+                            canAccessRecommendations: readyData.recReady,
+                            plan: readyData.plan,
+                            role: readyData.role
+                        };
+                        localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+                        window.dispatchEvent(new Event("profileUpdated"));
+                    }
+                }
+            } catch (err) {
+                console.error("Layout Profile Sync Error:", err);
+            }
+        };
+
         const checkAuth = () => {
             const savedProfile = localStorage.getItem("userProfile");
             if (!savedProfile) {
-                // Ensure we don't loop on login redirect
                 if (!pathname.startsWith("/login")) {
                     router.push("/login?callback=" + encodeURIComponent(pathname));
                 }
@@ -29,39 +70,22 @@ export default function DashboardLayout({
             }
 
             try {
-                const profile = JSON.parse(savedProfile);
+                const profile: UserProfile = JSON.parse(savedProfile);
+                syncProfile(profile); // Start background sync
                 
-                // 1. Diagnosis & Plan Access Control
-                const isDiagnosisComplete = profile.isDiagnosisComplete === true;
                 const isAdmin = profile.role === "Admin" || profile.role === "Moderator";
-
                 if (!isAdmin) {
                     const isFreePlan = profile.plan === "Free Trial" || profile.plan === "None" || profile.role === "Trial User";
                     const isTrialExpired = profile.role === "Trial User" && profile.trialExpiry && new Date(profile.trialExpiry).getTime() < new Date().getTime();
 
-                    const permanentFreePaths = ["/simulation", "/training", "/library"];
                     const limitedTrialPaths = ["/assessment", "/mentor", "/academy", "/expert", "/roadmap"];
-                    
                     const isLimitedPath = limitedTrialPaths.some(p => pathname.startsWith(p));
 
-                    // 1. TRIAL EXPIRY REDIRECT (Only for limited assets: 1, 4, 5, 7)
                     if (isFreePlan && isTrialExpired && isLimitedPath) {
-                        console.log("⚠️ Trial Expired - Redirecting to Subscription.");
                         router.replace("/subscription");
                         return;
                     }
-
-                    // 2. DIAGNOSIS FLOW PROTECTION
-                    const restrictedPaths = [...permanentFreePaths, "/mentor", "/academy", "/expert", "/roadmap"]; // sections 2-8
-                    const isRestrictedPath = restrictedPaths.some(p => pathname.startsWith(p));
-
-                    if (!isDiagnosisComplete && isRestrictedPath) {
-                        console.log("🔒 Restricted Area - Diagnosis Incomplete. Redirecting to Assessment.");
-                        router.replace("/assessment/cv-upload");
-                        return;
-                    }
                 }
-
             } catch (e) {
                 console.error("Auth redirect error", e);
             } finally {

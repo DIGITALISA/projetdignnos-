@@ -77,7 +77,12 @@ const SimulationSchema = new Schema({
         name: String,
         icon: String,
         date: { type: Date, default: Date.now }
-    }]
+    }],
+    referenceId: {
+        type: String,
+        unique: true,
+        sparse: true
+    }
 }, {
     timestamps: true,
 });

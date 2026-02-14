@@ -14,166 +14,242 @@ export const translations = {
             enterprises: "For Enterprises"
         },
         contract: {
-            title: "Service Agreement",
-            subtitle: "Professional Consulting Agreement",
+            title: "Service Mandate",
+            subtitle: "Strategic Advisory Partnership",
             step1: "Identity Verification",
-            step2: "Terms of Service",
-            step3: "Digital Signature",
+            step2: "Mandate Terms",
+            step3: "Digital Authorization",
             firstName: "First Name",
             lastName: "Last Name",
             phone: "Mobile Number",
             email: "Email Address",
-            readTerms: "I have read and accept the agreement terms.",
+            readTerms: "I have read and accept the mandate terms.",
             signLabel: "Digital Signature (Type Full Name)",
             signPlaceholder: "e.g. John Doe",
-            submit: "Sign Agreement",
-            successTitle: "Agreement Signed",
-            successDesc: "Your commitment has been recorded successfully.",
-            download: "Download Agreement (PDF)",
+            submit: "Authorize Mandate",
+            successTitle: "Mandate Authorized",
+            successDesc: "Your partnership commitment has been recorded successfully.",
+            download: "Download Mandate (PDF)",
             terms: `
-**PROFESSIONAL CONSULTING SERVICE AGREEMENT**
+**STRATEGIC ADVISORY SERVICE MANDATE**
 
-1. **Objective**: The client agrees to participate in the professional development program.
-2. **Confidentiality**: All assessment results and advice provided are strictly confidential.
-3. **Commitment**: Results depend on active participation in all program stages.
-4. **Certification**: The "Information Verification" is issued upon successful completion of the program.
-5. **Payment**: The client agrees to the fees as defined in the pricing plan.
+1. **Objective**: The client engages the Strategic Advisory Firm for a professional transformation mandate.
+2. **Confidentiality**: All diagnostic data, simulation results, and advisory opinions are strictly confidential between the firm and the client.
+3. **Firm Commitment**: The advisor provides high-level strategic intelligence and expert-led simulations to build the client's executive capacity.
+4. **Advisory Assets**: Official advisory dossiers and performance proofs are issued based on the successful validation of the protocol stages.
+5. **Subscription**: Fees and payment cycles (Monthly, Quarterly, or Semi-Annual) are determined based on the client's specific diagnostic results and selected support level.
 
-By signing below, you agree to start the consulting process.
+By signing below, you authorize the commencement of the strategic advisory mandate.
             `
         },
         hero: {
-            badge: "Global Career & Business Consulting",
-            titlePre: "Grow Your Career &",
-            titleHighlight: "Business Strategy",
-            subtitle: "The world's leading consulting platform for professionals and entrepreneurs. We help you advance your career and scale your business using global expertise and AI.",
-            ctaDashboard: "Start Now",
-            ctaTour: "How It Works"
+            badge: "🚀 Comprehensive Professional Development Platform",
+            titlePre: "Elevate Your",
+            titleHighlight: "Professional Level",
+            subtitle: "The leading consulting platform for professionals combining precise diagnosis, realistic simulation, and strategic planning to develop your career and ensure your success.",
+            ctaDashboard: "Start Free Diagnosis",
+            ctaTour: "See How We Work"
         },
         features: {
-            title: "Our Consulting Services",
-            subtitle: "Comprehensive leadership transformation through seven integrated consulting services designed to elevate your strategic capabilities.",
+            title: "Professional Development System",
+            subtitle: "8 integrated modules designed to analyze and accelerate your career path with clarity and efficiency.",
             cards: {
                 diagnosis: {
-                    title: "1. Strategic Career Assessment",
-                    desc: "Comprehensive analysis of your professional profile against global leadership standards to identify strategic development opportunities.",
-                    tags: ["Career Analysis", "Leadership Assessment"]
+                    title: "1. Strategic Role Audit",
+                    desc: "**Function:** Deep analysis of professional identity. \n**Action:** CV Audit vs. Target Market + Gap Diagnosis. \n**Result:** A precise maturity report identifying your immediate growth levers.",
+                    tags: ["Audit", "Gap Analysis"]
                 },
                 simulation: {
-                    title: "2. Leadership Crisis Simulations",
-                    desc: "Real-world crisis scenarios to evaluate and enhance your decision-making capabilities under pressure.",
-                    tags: ["Crisis Management", "Decision Intelligence"]
+                    title: "2. Coordinated Simulations",
+                    desc: "**Function:** Real-time skill validation. \n**Action:** Crisis scenarios and strategic meetings with collaborative tools. \n**Result:** Objective evaluation of your performance under high pressure.",
+                    tags: ["Missions", "Leadership"]
                 },
                 training: {
-                    title: "3. Executive Development Programs",
-                    desc: "Customized leadership development programs and executive coaching sessions based on global consulting methodologies.",
-                    tags: ["Executive Coaching", "Leadership Development"]
+                    title: "3. Executive Workshops",
+                    desc: "**Function:** Targeted and intensive development. \n**Action:** Mentorship sessions with international experts. \n**Result:** Mastering the tools and frameworks essential for leadership roles.",
+                    tags: ["Workshops", "Mentorship"]
                 },
                 mentor: {
-                    title: "4. AI Strategic Advisor",
-                    desc: "Your personal strategic advisor powered by AI, available 24/7 for career guidance and leadership insights.",
-                    tags: ["Strategic Guidance", "24/7 Support"]
+                    title: "4. Strategic AI Advisor",
+                    desc: "**Function:** 24/7 permanent accompaniment. \n**Action:** AI support for daily challenges + Personalized learning plan. \n**Result:** Continuous expert guidance to secure your decisions.",
+                    tags: ["24/7 Support", "AI Advisor"]
                 },
                 academy: {
-                    title: "5. Global Knowledge Center",
-                    desc: "Access to elite frameworks, case studies, and methodologies from Harvard, INSEAD, and leading consulting firms.",
-                    tags: ["Best Practices", "Global Standards"]
+                    title: "5. Knowledge Center",
+                    desc: "**Function:** Library of advanced frameworks. \n**Action:** Access to global business cases and management methodologies. \n**Result:** Theoretical and strategic solidity aligned with global standards.",
+                    tags: ["Strategy", "Case Studies"]
                 },
                 library: {
-                    title: "6. Strategic Toolkit Library",
-                    desc: "Professional tools, frameworks, and templates used by McKinsey, BCG, and Bain consultants.",
-                    tags: ["Consulting Tools", "Frameworks"]
+                    title: "6. Toolkits & Assets",
+                    desc: "**Function:** Immediate operational efficiency. \n**Action:** Ready-to-use strategy templates, reports, and action plans. \n**Result:** Production of high-quality professional deliverables in record time.",
+                    tags: ["Templates", "Productivity"]
                 },
                 expert: {
-                    title: "7. Executive Network Access",
-                    desc: "Direct connection to our global network of C-level executives and industry leaders for mentorship and opportunities.",
-                    tags: ["Executive Network", "Mentorship"]
+                    title: "7. Expert Consultation",
+                    desc: "**Function:** Strategic second look. \n**Action:** Review of your critical projects by domain experts. \n**Result:** Drastic reduction of risks and validation of your directions.",
+                    tags: ["Expert View", "Validation"]
+                },
+                roadmap: {
+                    title: "8. 90-Day Roadmap",
+                    desc: "**Function:** Execution planning. \n**Action:** Visual timeline with specific and measurable milestones. \n**Result:** Total clarity on your goals and the exact steps to reach them.",
+                    tags: ["Roadmap", "Execution"]
                 }
             }
         },
         system: {
-            title: "The Executive Operating System",
-            subtitle: "A complete ecosystem designed to transform potential into confirmed executive power.",
+            title: "The DIGNNOS- Protocol",
+            subtitle: "A complete ecosystem designed to transform potential into confirmed executive authority.",
             stages: [
-                { id: "01", title: "Audit", desc: "AI-driven skill gap analysis" },
-                { id: "02", title: "Strategy", desc: "Personalized roadmap generation" },
-                { id: "03", title: "Execution", desc: "Real-world mission simulations" },
-                { id: "04", title: "Authority", desc: "Official certification & placement" }
+                { id: "01", title: "Diagnostic & Intelligence", desc: "AI-driven skill gap audit and strategic mapping" },
+                { id: "02", title: "Execution & Simulations", desc: "Real-world missions under expert mentorship" },
+                { id: "03", title: "Advisory & Authority", desc: "Strategic advisory dossier and placement" }
             ]
         },
         audit: {
-            badge: "Phase 1: Diagnosis",
-            title: "The Forensic Career Audit",
-            desc: "Stop guessing. Our AI deep-scans your profile against 50+ executive parameters to identify exactly where you stand versus where you want to be.",
-            stat: "98% Accuracy",
-            statDesc: "in skill gap identification",
+            badge: "Strategic Audit Engine",
+            title: "Strategic Role Alignment",
+            desc: "Verify your executive readiness for a new role or internal promotion. Our AI compares your initial diagnosis with the target job description to generate a comprehensive gap analysis report.",
+            stat: "AI Analysis",
+            statDesc: "Alignment Readiness Reports",
             features: [
-                "Analyzes your CV against global executive benchmarks.",
-                "Identifies hidden skill gaps blocking your promotion.",
-                "Generates a personalized 90-day execution roadmap."
+                "Strategic Comparison: Profile vs. Specific Job Description.",
+                "Gap Identification: Clear report on what is missing for the new role.",
+                "Readiness Verdict: Data-driven evaluation of your promotion potential."
             ],
-            forensicsLabel: "AI Forensics Active",
-            scanningLabel: "Scanning 50+ Parameters"
+            forensicsLabel: "AI Audit Engine Active",
+            scanningLabel: "Generating Alignment Report"
         },
         missions: {
-            badge: "Phase 2: Simulation",
-            title: "Corporate War Games",
-            desc: "Theory is for students. You will execute real-world corporate missions—handling crises, managing P&L, and leading teams—under expert observation.",
-            stat: "Risk-Free",
-            statDesc: "Failure here saves you millions later",
-            crisisLabel: "Live Crisis Scenario",
+            badge: "Expert Accompaniment & Mentorship",
+            title: "Expert-Led Simulations",
+            desc: "Based on your initial diagnosis, our global experts mentor you through live sessions and real-world simulations. We precision-target your weaknesses and amplify your strengths to align you with the global job market.",
+            stat: "Risk-Free Execution",
+            statDesc: "Expert mentorship in safe environments",
+            crisisLabel: "Live Market Scenario",
             features: [
-                "Navigate high-pressure boardroom scenarios.",
-                "Make critical financial & operational decisions.",
-                "Receive instant feedback from AI & human experts."
+                "Live mentorship workshops and specialized expert sessions.",
+                "Tailored development based on your diagnosed skill gaps.",
+                "High-stakes simulations to boost your global market value."
+            ]
+        },
+        targetAudience: {
+            title: "Who is this Platform for?",
+            subtitle: "Our system is designed for professionals who refuse to settle for the status quo and aspire to global excellence.",
+            cards: [
+                {
+                    title: "Rising Professionals",
+                    desc: "Those seeking their next big promotion and wanting to master the skills needed for senior roles."
+                },
+                {
+                    title: "Career Switchers",
+                    desc: "Professionals moving to new industries who need a fast-track to bridge skill gaps and prove credibility."
+                },
+                {
+                    title: "Aspiring Leaders",
+                    desc: "Mid-level managers aiming for C-suite positions by developing strategic thinking and high-level EQ."
+                },
+                {
+                    title: "Global Talent",
+                    desc: "Experts wanting to align their profiles with international standards to work in top global firms."
+                },
+                {
+                    title: "Fresh Graduates",
+                    desc: "Talents just starting their journey who want to build a solid professional foundation from day one."
+                },
+                {
+                    title: "Students & Aspiring Talent",
+                    desc: "Those preparing to enter the market and wanting to understand real-world requirements before graduation."
+                }
             ]
         },
         assets: {
-            badge: "Phase 3: Authority",
-            title: "Bankable Career Proof",
-            desc: "Don't just say you're good. Prove it. Graduate with a 'Strategic Performance Profile' that validates your capability to recruiters and boards.",
-            stat: "Verified",
-            statDesc: "Blockchain-ready credentials",
-            p1_title: "Verified Performance History",
-            p1_desc: "Every decision you make in simulations is recorded in a secure ledger, proving your competence to recruiters.",
-            p2_title: "Boardroom-Ready Portfolio",
-            p2_desc: "Export a comprehensive portfolio of your strategic work, not just a generic resume."
+            badge: "Professional Authority",
+            title: "Strategic Consulting Assets",
+            desc: "Beyond training, you receive a full suite of executive-grade strategic advisory documents that prove your market value.",
+            reportsTitle: "Downloadable Consulting Reports",
+            reports: [
+                { title: "CV Analysis Results", desc: "Honest feedback and comprehensive analysis of your CV accuracy and capabilities." },
+                { title: "Interview Evaluation Results", desc: "Data-driven results from your executive-level AI simulated interviews." },
+                { title: "Career Path Recommendations", desc: "Personalized roles and sectors perfectly aligned with your diagnosis results." },
+                { title: "Strategic CV & Recommendation", desc: "A re-engineered, high-impact CV and letter of recommendation based on your audit." }
+            ],
+            officialTitle: "Advisory Portfolio & Expert Opinions",
+            official: [
+                { title: "Strategic Capability Assessment", desc: "Detailed evaluation of your professional readiness and strategic thinking." },
+                { title: "Expert Advisory Report", desc: "A formal expert opinion on your leadership potential, verifiable online." },
+                { title: "Executive Scorecard", desc: "A transparent record of your performance metrics across all simulations." },
+                { title: "Strategic Role Alignment", desc: "Proof of your compatibility with specific high-level executive positions." },
+                { title: "Strategic Career Intelligence", desc: "In-depth audit of your long-term career trajectory and growth potential." }
+            ],
+            verifiable: "All advisory assets are 100% verifiable on our global platform."
         },
         cert: {
-            badge: "STRATEGIC WARRANT",
-            title: "Official Accreditation",
-            desc: "This is not a certificate of completion. It is a Warrant of Competence, verifying that you have successfully executed executive-level mandates.",
-            cardTitle: "EXECUTIVE WARRANT",
-            check1: "Internationally Recognized Standards",
-            check2: "Verifiable Digital Ledger",
-            check3: "Endorsed by Industry Leaders",
-            cta: "Get Certified",
-            cardSubtitle: "STRATEGIC ENDORSEMENT",
-            cardFooter: "\"Accredited for demonstrating exceptional strategic capabilities and executive readiness.\"",
-            warrant_text: "This warrant certifies that the holder has successfully demonstrated executive-level strategic competence.",
-            authorized: "Authorized by System",
-            ledger: "Secure Ledger ID"
+            badge: "ADVISORY EVIDENCE",
+            title: "Your Strategic Profile",
+            desc: "Verify your leadership DNA and strategic thinking. Our protocol generates strategic advisory evidence ready for recruiters and boards.",
+            cardTitle: "Executive Readiness Profile",
+            check1: "Strategic Impact Data",
+            check2: "Digital Dossier Authentication",
+            check3: "Validated Advisory Assets",
+            cta: "Get Advisory Dossier",
+            cardSubtitle: "Professional DNA ID",
+            cardFooter: "\"Expert advisory on strategic mindset and executive readiness.\"",
+            warrant_text: "This profile confirms that the bearer has demonstrated the specific strategic impact and executive potential required for top-tier roles.",
+            authorized: "Validated via DIGNNOS- Protocol",
+            ledger: "Advisory Dossier ID"
+        },
+        corporate: {
+            badge: "CORPORATE & HR SOLUTIONS",
+            title: "Objective Decision Support",
+            desc: "We provide organizations with a free, objective Advisory Report. Based on the complete journey (Diagnosis, Simulations, Mentorship), we help you decide if a candidate is truly ready for a promotion or a new role.",
+            feature1_title: "Verdict of Readiness",
+            feature1_desc: "Clear 'Go/No-Go' recommendation for specific roles or internal promotions.",
+            feature2_title: "Objective Gap Analysis",
+            feature2_desc: "Direct mapping of strengths, weaknesses, and potential risks without bias.",
+            feature3_title: "Pre-boarding Roadmap",
+            feature3_desc: "Actionable steps to prepare the candidate or close critical gaps before they start.",
+            freeBadge: "FREE ADVISORY",
+            inquiryForm: {
+                title: "Request Corporate Advisory",
+                companyName: "Company Name",
+                companyEmail: "Official Email",
+                companyPhone: "Phone Number",
+                targetPosition: "Target Position / Role",
+                jobDesc: "Job Description / Requirements",
+                candidateId: "Candidate Reference ID",
+                candidateFirstName: "Candidate First Name",
+                candidateLastName: "Candidate Last Name",
+                reportDate: "Desired Report Date",
+                interviewDate: "Interview Date",
+                otherInfo: "Additional Requirements / Notes",
+                submit: "Submit Request",
+                success: "Request sent successfully! Our experts will contact you soon."
+            }
         },
         mandate: {
             title: "SERVICE MANDATE",
             ref: "Ref",
-            intro: "This document constitutes the legal agreement governing your access to the {plan} plan. By accepting it, you engage a service mandate with DIGITALISA - MA-TRAINING-CONSULTING.",
-            section1_title: "1. Subject of the Mandate",
-            section1_desc: "The present mandate is entrusted to DIGITALISA for the strategic support of the CLIENT within the framework of the {plan} plan. This service specifically includes:",
-            section2_title: "2. Financial Conditions",
-            section2_desc: "Access to this mandate is conditioned by the payment of the sum of {price}. Payment is due at the time of subscription and guarantees immediate access to the services described in Article 1.",
-            section3_title: "3. Intellectual Property & Confidentiality",
-            section3_desc: "All reports, diagnostics, and methodologies (including AI algorithms) remain the exclusive property of DIGITALISA. The CLIENT benefits from a personal use license. The CLIENT agrees to maintain the confidentiality of the provided strategic documents.",
-            section4_title: "4. Data Protection (GDPR)",
-            section4_desc: "Your professional data is processed in accordance with our Privacy Policy. It is used exclusively for the personalization of your support and is never shared with third parties.",
-            signature_clause_title: "Electronic Signature Clause",
-            signature_clause_desc: "By clicking the acceptance button below, you acknowledge having read the General Terms of Use and having accepted the terms of this mandate. This action is equivalent to a handwritten electronic signature according to Article 1367 of the Civil Code.",
-            ready_for_auth: "Document ready for digital authentication",
-            scroll_to_sign: "Scroll to sign the mandate ↓",
-            footer_title: "Acceptance of the Mandate",
-            footer_desc: "A PDF copy of this contract will be sent to your email after confirmation.",
+            intro: "This document constitutes the formal strategic mandate governing the professional engagement between the CLIENT and the Strategic Advisory Firm (MA-TRAINING-CONSULTING).",
+            section1_title: "ARTICLE 1: SUBJECT OF THE MANDATE",
+            section1_desc: "The CLIENT entrusts the FIRM with a strategic advisory mandate aimed at professional transformation. This includes the audit of leadership assets and the execution of the DIGNNOS- Protocol.",
+            section2_title: "ARTICLE 2: ENGAGEMENT & IMPLEMENTATION",
+            section2_desc: "The FIRM provides high-level executive intelligence, crisis simulations, and expert workshops. The implementation follows a rigorous methodology designed to meet international management standards.",
+            section3_title: "ARTICLE 3: FINANCIAL FRAMEWORK & BANKING COMPLIANCE",
+            section3_desc: "Professional fees are determined based on the mandate scope. The FIRM satisfies all banking compliance requirements, providing official invoices and supporting documentation for bank transfers (SWIFT/SEPA).",
+            section4_title: "ARTICLE 4: CONFIDENTIALITY & INTELLECTUAL PROPERTY",
+            section4_desc: "All diagnostic reports and advisory methodologies remain the exclusive property of the FIRM. The CLIENT shall maintain strict confidentiality regarding all strategic dossiers provided.",
+            section5_title: "ARTICLE 5: PROFESSIONAL ETHICS & RESPONSIBILITY",
+            section5_desc: "Both parties agree to collaborate in good faith. The FIRM is committed to professional excellence, while the CLIENT ensures active participation in all protocol stages.",
+            section6_title: "ARTICLE 6: JURISDICTION & DIGITAL AUTHORIZATION",
+            section6_desc: "This mandate is governed by international advisory standards. Digital authorization constitutes an irrevocable legal signature authorizing the commencement of services.",
+            signature_clause_title: "Digital Signature Clause",
+            signature_clause_desc: "By accepting this mandate, you certify your identity and authorize the professional engagement. This action is recording as a legal digital signature for banking and administrative purposes.",
+            ready_for_auth: "Mandate ready for digital authentication",
+            scroll_to_sign: "Scroll to authorize the mandate ↓",
+            footer_title: "Authorization of the Mandate",
+            footer_desc: "A copy of this mandate will be sent to your email after digital authorization.",
             print: "Print",
-            accept: "I accept the mandate"
+            accept: "I authorize the mandate"
         },
         footer: {
             rights: "© 2026 MA-TRAINING-CONSULTING.",
@@ -189,24 +265,35 @@ By signing below, you agree to start the consulting process.
             text: "This is a prototype model for demonstration purposes only, not a fully operational system."
         },
         verification: {
-            badge: "Certificate Verification",
+            badge: "Professional Verification",
             titlePre: "Verify Professional",
             titleHighlight: "Credentials",
-            subtitle: "Ensure the authenticity of our certificates and recommendations through our secure validation system.",
-            label: "Certificate ID",
-            placeholder: "e.g. CERT-2026-XXXX",
+            subtitle: "Ensure the authenticity of our official documents, recommendations, and strategic audits through our secure validation system.",
+            label: "Reference or Member ID",
+            placeholder: "e.g. EXP-2026-XXXX or EXEC-YYYY-...",
             buttonIdle: "Verify Now",
             buttonLoading: "Checking...",
-            resultTitle: "Valid Certificate Found",
-            resultSubtitle: "Verification successful",
-            subject: "Certificate Holder",
-            domain: "Field of Expertise",
+            resultTitle: "Verified Credential Found",
+            resultSubtitle: "Authentication successful",
+            subject: "Credential Holder",
+            domain: "Credential Type",
             date: "Issue Date",
-            status: "Status",
-            statusElite: "Valid & Active",
+            status: "Verification Status",
+            statusElite: "Verified & Active",
             viewSign: "View Digital Signature",
             errorTitle: "Verification Failed",
-            errorDesc: "No certificate found for ID: {id}. Please check the reference code."
+            errorDesc: "No credential found for ID: {id}. Please check the reference code.",
+            types: {
+                member: "Certified Executive Member",
+                workshop_attestation: "Workshop Attestation",
+                performance_profile: "Executive Performance Profile",
+                recommendation: "Letter of Recommendation",
+                role_alignment: "Strategic Role Alignment",
+                career_intelligence: "Strategic Career Intelligence"
+            },
+            corporateNoteTitle: "Company / HR Inquiry?",
+            corporateNoteDesc: "Are you looking to evaluate a candidate or employee? We provide objective, data-backed advisory reports and free HR consulting based on their diagnostic journey.",
+            corporateNoteCTA: "Get Corporate Advisory"
         },
         methodology: {
             badge: "OUR CONSULTING METHODOLOGY",
@@ -279,78 +366,31 @@ By signing below, you agree to start the consulting process.
             title: "Propel Your Leadership Journey",
             subtitle: "Select the mandate that centers on your professional growth and specific strategic requirements.",
             tiers: {
-                explorer: {
-                    name: "Explorer",
-                    badge: "Discovery",
-                    price: "Free",
-                    duration: "Forever",
+                trial: {
+                    name: "Discovery Phase",
+                    badge: "Free Diagnostic",
+                    price: "0€",
+                    duration: "/ Starter",
                     features: [
-                        "1 Complete CV Analysis (AI-powered)",
-                        "3 questions/day to AI Advisor",
-                        "Access to 3 professional templates",
-                        "5 Knowledge Base articles",
-                        "Basic career roadmap",
-                        "Explorer badge on profile"
+                        "1-Hour Expert Audit",
+                        "Live System Demonstration",
+                        "Skills Gap Identification",
+                        "Initial Performance Report",
+                        "NO Official Certification"
                     ]
                 },
-                professional: {
-                    name: "Professional",
-                    badge: "For Professionals",
-                    price: "39€",
-                    duration: "/ month",
-                    priceYearly: "399€/year",
-                    savings: "Save 69€",
+                complete: {
+                    name: "Full Mandate",
+                    badge: "End-to-End Transformation 🔥",
+                    price: "Flexible Investment",
+                    duration: "Complete Protocol",
                     features: [
-                        "Unlimited CV Analysis",
-                        "Unlimited AI Advisor 24/7",
-                        "Complete tools library",
-                        "1 Free Job Alignment/month",
-                        "Simulations (149€/unit)",
-                        "Workshops (49€-99€/unit)",
-                        "Email support (48h)",
-                        "Professional badge"
-                    ]
-                },
-                executive: {
-                    name: "Executive",
-                    badge: "Best Value 🔥",
-                    price: "79€",
-                    duration: "/ month",
-                    priceYearly: "799€/year",
-                    savings: "Save 149€",
-                    features: [
-                        "Everything in Professional +",
-                        "Unlimited Job Alignment",
-                        "2 Free Simulations/month",
-                        "1 Free Workshop/month",
-                        "Official Recommendation Letter",
-                        "SCI Report (Strategic Career Intelligence)",
-                        "1 Consultation session/month (30min)",
-                        "Priority support (24h)",
-                        "Golden Executive badge",
-                        "Early access to new features"
-                    ]
-                },
-                elite: {
-                    name: "Elite",
-                    badge: "VIP Total Immersion",
-                    price: "199€",
-                    duration: "/ month",
-                    priceYearly: "1,999€/year",
-                    savings: "Save 389€",
-                    features: [
-                        "Everything in Executive +",
-                        "Unlimited Simulations",
-                        "Unlimited Workshops",
-                        "4 Consultation sessions/month (1h each)",
-                        "Dedicated personal expert",
-                        "VIP support (6h + WhatsApp)",
-                        "Monthly personalized reports",
-                        "LinkedIn Profile review",
-                        "Salary negotiation coaching",
-                        "Platinum Elite badge",
-                        "Exclusive events invitations",
-                        "Lifetime content access (even after cancellation)"
+                        "Full Professional Transformation",
+                        "Official Advisory Dossiers (PDF)",
+                        "Verified Expert Opinions",
+                        "Direct 1-on-1 Mentorship",
+                        "Unlimited Crisis Simulations",
+                        "Global Expert Network Access"
                     ]
                 }
             },
@@ -444,7 +484,7 @@ By signing below, you agree to start the consulting process.
                 academy: "Knowledge Center",
                 library: "Tools & Resources",
                 expert: "Executive Network",
-                certificates: "Executive Performance Profile",
+                certificates: "Strategic Capability Assessment",
                 strategicReport: "Strategic Career Intelligence",
                 recommendation: "Get Recommendation",
                 jobAlignment: "Strategic Role Alignment",
@@ -672,137 +712,213 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             `
         },
         hero: {
-            badge: "Conseil en Carrière & Affaires",
-            titlePre: "Développez votre Carrière &",
-            titleHighlight: "Stratégie d'Affaires",
-            subtitle: "La plateforme de conseil leader pour les professionnels et entrepreneurs. Nous vous aidons à avancer votre carrière et à développer votre entreprise.",
-            ctaDashboard: "Commencer Maintenant",
-            ctaTour: "Comment ça Marche"
+            badge: "🚀 Plateforme de Développement Professionnel Complète",
+            titlePre: "Élevez Votre",
+            titleHighlight: "Niveau Professionnel",
+            subtitle: "La plateforme de conseil leader pour les professionnels combinant diagnostic précis, simulation réaliste et planification stratégique pour développer votre carrière et assurer votre succès.",
+            ctaDashboard: "Commencer le Diagnostic Gratuit",
+            ctaTour: "Voir Comment nous Travaillons"
         },
         features: {
-            title: "Nos Services de Conseil",
-            subtitle: "Transformation complète du leadership à travers sept services de conseil intégrés conçus pour élever vos capacités stratégiques.",
+            title: "Système de Développement Professionnel",
+            subtitle: "8 modules intégrés conçus pour analyser et accélérer votre parcours avec clarté et efficacité.",
             cards: {
                 diagnosis: {
-                    title: "1. Évaluation Stratégique de Carrière",
-                    desc: "Analyse complète de votre profil professionnel par rapport aux standards mondiaux de leadership pour identifier les opportunités de développement stratégique.",
-                    tags: ["Analyse de Carrière", "Évaluation du Leadership"]
+                    title: "1. Audit de Rôle Stratégique",
+                    desc: "**Fonction :** Analyse profonde de l'identité professionnelle. \n**Action :** Audit du CV vs Marché Cible + Diagnostic des écarts. \n**Résultat :** Un rapport de maturité précis identifiant vos leviers de croissance immédiats.",
+                    tags: ["Audit", "Gap Analysis"]
                 },
                 simulation: {
-                    title: "2. Simulations de Crise en Leadership",
-                    desc: "Scénarios de crise réels pour évaluer et améliorer vos capacités de prise de décision sous pression.",
-                    tags: ["Gestion de Crise", "Intelligence Décisionnelle"]
+                    title: "2. Simulations Coordonnées",
+                    desc: "**Fonction :** Validation des compétences en temps réel. \n**Action :** Scénarios de crise et réunions stratégiques avec outils collaboratifs. \n**Résultat :** Évaluation objective de votre performance sous haute pression.",
+                    tags: ["Missions", "Leadership"]
                 },
                 training: {
-                    title: "3. Programmes de Développement Exécutif",
-                    desc: "Programmes de développement du leadership et sessions de coaching exécutif basés sur les méthodologies mondiales.",
-                    tags: ["Coaching Exécutif", "Développement du Leadership"]
+                    title: "3. Workshops Exécutifs",
+                    desc: "**Fonction :** Développement ciblé et intensif. \n**Action :** Sessions de mentorat avec des experts internationaux. \n**Resultat :** Maîtrise des outils et frameworks indispensables pour les postes de direction.",
+                    tags: ["Workshops", "Mentorat"]
                 },
                 mentor: {
-                    title: "4. Conseiller Stratégique IA",
-                    desc: "Votre conseiller stratégique personnel alimenté par l'IA, disponible 24/7 pour des conseils de carrière et des insights en leadership.",
-                    tags: ["Orientation Stratégique", "Support 24/7"]
+                    title: "4. Conseiller Stratégique",
+                    desc: "**Fonction :** Accompagnement permanent 24/7. \n**Action :** Support IA pour vos défis quotidiens + Plan d'apprentissage personnalisé. \n**Résultat :** Une guidance experte continue pour sécuriser vos décisions.",
+                    tags: ["24/7 Support", "IA Advisor"]
                 },
                 academy: {
-                    title: "5. Centre de Connaissances Mondial",
-                    desc: "Accès aux cadres d'élite, études de cas et méthodologies de Harvard, INSEAD et des principaux cabinets de conseil.",
-                    tags: ["Meilleures Pratiques", "Standards Mondiaux"]
+                    title: "5. Centre de Connaissances",
+                    desc: "**Fonction :** Bibliothèque de frameworks avancés. \n**Action :** Accès aux cas d'affaires et méthodologies de gestion mondiales. \n**Résultat :** Solidité théorique et stratégique alignée sur les standards internationaux.",
+                    tags: ["Stratégie", "Études de Cas"]
                 },
                 library: {
-                    title: "6. Bibliothèque d'Outils Stratégiques",
-                    desc: "Outils professionnels, cadres et modèles utilisés par les consultants de McKinsey, BCG et Bain.",
-                    tags: ["Outils de Conseil", "Cadres"]
+                    title: "6. Boîte à Outils & Assets",
+                    desc: "**Fonction :** Efficacité opérationnelle immédiate. \n**Action :** Templates de stratégies, rapports et plans d'action prêts à l'emploi. \n**Résultat :** Production de livrables professionnels de haute qualité en un temps record.",
+                    tags: ["Templates", "Productivity"]
                 },
                 expert: {
-                    title: "7. Accès au Réseau Exécutif",
-                    desc: "Connexion directe à notre réseau mondial de dirigeants de niveau C et de leaders de l'industrie pour le mentorat et les opportunités.",
-                    tags: ["Réseau Exécutif", "Mentorat"]
+                    title: "7. Consultation d'Expert",
+                    desc: "**Fonction :** Second regard stratégique. \n**Action :** Révision de vos projets critiques par des experts du domaine. \n**Résultat :** Réduction drastique des risques et validation de vos orientations.",
+                    tags: ["Expert View", "Validation"]
+                },
+                roadmap: {
+                    title: "8. Feuille de Route 90 Jours",
+                    desc: "**Fonction :** Planification de l'exécution. \n**Action :** Chronologie visuelle avec jalons spécifiques et mesurables. \n**Résultat :** Clarté totale sur vos objectifs et les étapes exactes pour les atteindre.",
+                    tags: ["Roadmap", "Exécution"]
                 }
             }
         },
         system: {
-            title: "Le Système d'Exploitation Exécutif",
-            subtitle: "Un écosystème complet conçu pour transformer le potentiel en pouvoir exécutif confirmé.",
+            title: "Le Protocole DIGNNOS-",
+            subtitle: "Un écosystème complet conçu pour transformer le potentiel en autorité exécutive confirmée.",
             stages: [
-                { id: "01", title: "Audit", desc: "Analyse des écarts de compétences par IA" },
-                { id: "02", title: "Stratégie", desc: "Génération de feuille de route personnalisée" },
-                { id: "03", title: "Exécution", desc: "Simulations de missions réelles" },
-                { id: "04", title: "Autorité", desc: "Certification officielle & placement" }
+                { id: "01", title: "Diagnostic & Intelligence", desc: "Audit par IA et cartographie des écarts de compétences" },
+                { id: "02", title: "Mise en Situation & Simulations", desc: "Exécution de missions réelles sous mentorat d'experts" },
+                { id: "03", title: "Advisory & Autorité", desc: "Dossier de conseil stratégique et placement" }
             ]
         },
         audit: {
-            badge: "Phase 1: Diagnostic",
-            title: "L'Audit de Carrière Forensique",
-            desc: "Arrêtez de deviner. Notre IA scanne votre profil contre plus de 50 paramètres exécutifs pour identifier exactement où vous vous situez.",
-            stat: "Précision 98%",
-            statDesc: "dans l'identification des lacunes",
+            badge: "Moteur d'Audit Stratégique",
+            title: "Évaluation de l'Alignement Exécutif",
+            desc: "Vérifiez votre préparation exécutive pour un nouveau poste ou une promotion interne. Notre IA compare votre diagnostic initial avec la description du poste pour générer un rapport d'analyse complet.",
+            stat: "Analyse IA",
+            statDesc: "Rapports d'alignement stratégique",
             features: [
-                "Analyse votre CV par rapport aux références exécutives mondiales.",
-                "Identifie les lacunes de compétences cachées bloquant votre promotion.",
-                "Génère une feuille de route d'exécution personnalisée de 90 jours."
+                "Comparaison Stratégique : Profil vs Description de Poste spécifique.",
+                "Identification des Écarts : Rapport clair sur les compétences manquantes.",
+                "Verdict de Préparation : Évaluation basée sur les données pour votre promotion."
             ],
-            forensicsLabel: "Audit Forensique IA Actif",
-            scanningLabel: "Scan de 50+ Paramètres"
+            forensicsLabel: "IA d'Audit Active",
+            scanningLabel: "Génération du rapport d'alignement"
         },
         missions: {
-            badge: "Phase 2: Simulation",
-            title: "Jeux de Guerre Corporatifs",
-            desc: "La théorie est pour les étudiants. Vous exécuterez de vraies missions d'entreprise—gestion de crise, P&L, leadership—sous observation experte.",
-            stat: "Sans Risque",
-            statDesc: "L'échec ici vous sauve des millions plus tard",
-            crisisLabel: "Scénario de Crise en Direct",
+            badge: "Accompagnement et Mentorat d'Experts",
+            title: "Simulations Dirigées par des Experts",
+            desc: "Sur la base de votre diagnostic initial, nos experts mondiaux vous accompagnent lors de sessions en direct et de simulations réelles. Nous ciblons vos faiblesses et amplifions vos forces pour vous aligner sur le marché mondial.",
+            stat: "Exécution sans risque",
+            statDesc: "Mentorat d'experts en environnement sécurisé",
+            crisisLabel: "Scénario de Marché en Direct",
             features: [
-                "Naviguez dans des scénarios de boardroom à haute pression.",
-                "Prenez des décisions financières et opérationnelles critiques.",
-                "Recevez un feedback instantané de l'IA et d'experts humains."
+                "Ateliers de mentorat en direct et sessions d'experts spécialisés.",
+                "Développement sur mesure basé sur vos lacunes diagnostiquées.",
+                "Simulations à enjeux élevés pour booster votre valeur sur le marché mondial."
+            ]
+        },
+        targetAudience: {
+            title: "À qui s'adresse cette plateforme ?",
+            subtitle: "Notre système est conçu pour les professionnels qui refusent le statu quo et aspirent à l'excellence mondiale.",
+            cards: [
+                {
+                    title: "Professionnels en Ascension",
+                    desc: "Ceux qui cherchent leur prochaine grande promotion et veulent maîtriser les compétences des rôles seniors."
+                },
+                {
+                    title: "Changement de Carrière",
+                    desc: "Professionnels en transition vers de nouveaux secteurs ayant besoin d'accélérer leur montée en compétence."
+                },
+                {
+                    title: "Futurs Leaders",
+                    desc: "Managers de niveau intermédiaire visant des postes de direction en développant leur pensée stratégique."
+                },
+                {
+                    title: "Talents Internationaux",
+                    desc: "Experts souhaitant aligner leur profil sur les standards mondiaux pour intégrer les grandes firmes."
+                },
+                {
+                    title: "Jeunes Diplômés",
+                    desc: "Les talents qui commencent leur parcours et aspirent à bâtir une base professionnelle solide dès le premier jour."
+                },
+                {
+                    title: "Étudiants et Aspirants",
+                    desc: "Ceux qui se préparent à entrer sur le marché et veulent comprendre les exigences réelles avant l'obtention du diplôme."
+                }
             ]
         },
         assets: {
-            badge: "Phase 3: Autorité",
-            title: "Preuve de Carrière Bancable",
-            desc: "Ne dites pas juste que vous êtes bon. Prouvez-le. Obtenez un 'Profil de Performance Stratégique' qui valide votre capacité auprès des recruteurs.",
-            stat: "Vérifié",
-            statDesc: "Accréditations prêtes pour la blockchain",
-            p1_title: "Historique de Performance Vérifié",
-            p1_desc: "Chaque décision prise en simulation est enregistrée dans un registre sécurisé, prouvant votre compétence aux recruteurs.",
-            p2_title: "Portfolio Prêt pour la Boardroom",
-            p2_desc: "Exportez un portfolio complet de votre travail stratégique, pas seulement un CV générique."
+            badge: "Autorité Professionnelle",
+            title: "Actifs de Conseil Stratégique",
+            desc: "Prouvez votre impact. Obtenez une validation claire et basée sur vos données réelles, prête à être présentée aux recruteurs et conseils d'administration.",
+            reportsTitle: "Rapports de Conseil Exécutif",
+            reports: [
+                { title: "Audit de Maturité CV", desc: "Analyse critique et recommandations d'optimisation basées sur les standards du marché cible." },
+                { title: "Évaluation de Performance IA", desc: "Rapport détaillé de vos compétences décisionnelles et opérationnelles suite aux simulations." },
+                { title: "Plan de Croissance 90 Jours", desc: "Feuille de route stratégique personnalisée pour sécuriser vos premiers succès en poste." },
+                { title: "Dossier d'Expertise Digitale", desc: "Compilation de vos livrables et recommandations produits durant le programme." }
+            ],
+            officialTitle: "Documentation & Avis d'Expert",
+            official: [
+                { title: "Warrant de Capacité Stratégique", desc: "Document officiel attestant de votre aptitude à porter des responsabilités de direction." },
+                { title: "Attestation de Validation de Profile", desc: "Validation factuelle de votre parcours d'excellence, vérifiable par QR code." },
+                { title: "Portfolio de Missions Réelles", desc: "Preuve tangible de vos capacités d'exécution sur des scénarios d'affaires complexes." },
+                { title: "Scorecard de Leadership", desc: "Synthèse de vos métriques de performance validée par nos experts mondiaux." },
+                { title: "Audit d'ADN Professionnel", desc: "Analyse profonde de votre identité de leader et de votre potentiel de transformation." }
+            ],
+            verifiable: "Tous les dossiers de conseil sont 100% vérifiables sur notre registre global sécurisé."
         },
         cert: {
-            badge: "MANDAT STRATÉGIQUE",
-            title: "Accréditation Officielle",
-            desc: "Ce n'est pas un certificat de complétion. C'est un Mandat de Compétence, vérifiant que vous avez exécuté avec succès des mandats de niveau exécutif.",
-            cardTitle: "MANDAT EXÉCUTIF",
-            check1: "Normes Internationalement Reconnues",
-            check2: "Registre Numérique Vérifiable",
-            check3: "Approuvé par les Leaders de l'Industrie",
-            cta: "Obtenir la Certification",
-            cardSubtitle: "ENDOSSEMENT STRATÉGIQUE",
-            cardFooter: "\"Accrédité pour avoir démontré des capacités stratégiques exceptionnelles et une préparation exécutive.\"",
-            warrant_text: "Ce mandat certifie que le titulaire a démontré avec succès une compétence stratégique de niveau exécutif.",
-            authorized: "Autorisé par le Système",
-            ledger: "ID Registre Sécurisé"
+            badge: "AVIS D'EXPERT",
+            title: "L' डीएनए Professional Profile",
+            desc: "Votre capital professionnel mérite un avis d'expert indiscutable. Notre protocole d'audit génère des documents de conseil stratégique prêts pour les comités de direction.",
+            cardTitle: "Profil de Préparation Exécutive",
+            check1: "Validation d'Impact Stratégique",
+            check2: "Authentification de Dossier Digital",
+            check3: "Avis Experts Validés",
+            cta: "Obtenir le Dossier de Conseil",
+            cardSubtitle: "Dossier d'Expertise Professionnelle",
+            cardFooter: "\"Avis d'expert sur la préparation exécutive et le leadership stratégique.\"",
+            warrant_text: "Ce profil atteste que le porteur a validé avec succès les compétences décisionnelles et l'autorité exécutive requises pour le haut management.",
+            authorized: "Validé via Protocole DIGNNOS-",
+            ledger: "ID de Dossier Conseil"
+        },
+        corporate: {
+            badge: "SOLUTIONS D'AIDE À LA DÉCISION",
+            title: "Expertise RH & Stratégique Objective",
+            desc: "Nous fournissons aux organisations un rapport d'avis indépendant et factuel. En croisant diagnostic IA et simulations réelles, nous validons avec précision si un talent est prêt pour une promotion critique ou un recrutement stratégique.",
+            feature1_title: "Verdict de Préparation",
+            feature1_desc: "Recommandation claire pour des rôles spécifiques ou des promotions internes.",
+            feature2_title: "Analyse Objective des Écarts",
+            feature2_desc: "Cartographie directe des forces, faiblesses et risques potentiels, sans biais.",
+            feature3_title: "Roadmap de Pré-intégration",
+            feature3_desc: "Étapes concrètes pour préparer le candidat ou combler les lacunes critiques.",
+            freeBadge: "CONSEIL GRATUIT",
+            inquiryForm: {
+                title: "Demander un Conseil Corporate",
+                companyName: "Nom de l'entreprise",
+                companyEmail: "Email officiel",
+                companyPhone: "Numéro de téléphone",
+                targetPosition: "Poste / Rôle visé",
+                jobDesc: "Description du poste / Exigences",
+                candidateId: "ID de référence du candidat",
+                candidateFirstName: "Prénom du candidat",
+                candidateLastName: "Nom du candidat",
+                reportDate: "Date souhaitée du rapport",
+                interviewDate: "Date de l'entretien",
+                otherInfo: "Exigences supplémentaires / Notes",
+                submit: "Envoyer la demande",
+                success: "Demande envoyée avec succès ! Nos experts vous contacteront bientôt."
+            }
         },
         mandate: {
             title: "MANDAT DE SERVICE",
             ref: "Réf",
-            intro: "Ce document constitue l'accord juridique régissant votre accès à la formule {plan}. En l'acceptant, vous engagez un mandat de service avec DIGITALISA - MA-TRAINING-CONSULTING.",
-            section1_title: "1. Objet du Mandat",
-            section1_desc: "Le présent mandat est confié à DIGITALISA pour l'accompagnement stratégique du CLIENT dans le cadre de la formule {plan}. Ce service inclut spécifiquement :",
-            section2_title: "2. Conditions Financières",
-            section2_desc: "L'accès à ce mandat est conditionné par le règlement de la somme de {price}. Le paiement est dû au moment de la souscription et garantit l'accès immédiat aux services décrits à l'article 1.",
-            section3_title: "3. Propriété Intellectuelle & Confidentialité",
-            section3_desc: "Tous les rapports, diagnostics et méthodologies (incluant les algorithmes IA) restent la propriété exclusive de DIGITALISA. Le CLIENT bénéficie d'une licence d'usage personnel. Le CLIENT s'engage à maintenir la confidentialité des documents stratégiques fournis.",
-            section4_title: "4. Protection des Données (RGPD)",
-            section4_desc: "Vos données professionnelles sont traitées conformément à notre Politique de Confidentialité. Elles sont utilisées exclusivement pour la personnalisation de votre accompagnement et ne sont jamais cédées à des tiers.",
-            signature_clause_title: "Clause de Signature Électronique",
-            signature_clause_desc: "En cliquant sur le bouton d'acceptation ci-dessous, vous reconnaissez avoir pris connaissance des Conditions Générales d'Utilisation et avoir accepté les termes du présent mandat. Cette action vaut signature électronique manuscrite selon l'article 1367 du Code Civil.",
-            ready_for_auth: "Document prêt pour authentification digitale",
-            scroll_to_sign: "Scrollez pour signer le mandat ↓",
-            footer_title: "Acceptation du Mandat",
-            footer_desc: "Une copie PDF de ce contrat sera envoyée à votre email après confirmation.",
+            intro: "Ce document constitue le mandat stratégique formel régissant l'engagement professionnel entre le CLIENT et le Cabinet de Conseil Stratégique (MA-TRAINING-CONSULTING).",
+            section1_title: "ARTICLE 1 : OBJET DU MANDAT",
+            section1_desc: "Le CLIENT confie au CABINET un mandat de conseil stratégique visant à la transformation professionnelle. Ceci inclut l'audit des actifs de leadership et l'exécution du Protocole DIGNNOS-.",
+            section2_title: "ARTICLE 2 : ENGAGEMENT & MISE EN ŒUVRE",
+            section2_desc: "Le CABINET fournit une intelligence exécutive de haut niveau, des simulations de crise et des ateliers d'experts. La mise en œuvre suit une méthodologie rigoureuse conforme aux standards internationaux.",
+            section3_title: "ARTICLE 3 : CADRE FINANCIER & CONFORMITÉ BANCAIRE",
+            section3_desc: "Les honoraires professionnels sont déterminés selon l'étendue du mandat. Le CABINET satisfait à toutes les exigences de conformité bancaire, fournissant des factures officielles pour les virements (SWIFT/SEPA).",
+            section4_title: "ARTICLE 4 : CONFIDENTIALITÉ & PROPRIÉTÉ INTELLECTUELLE",
+            section4_desc: "Tous les rapports de diagnostic et méthodologies de conseil restent la propriété exclusive du CABINET. Le CLIENT s'engage à maintenir une confidentialité stricte.",
+            section5_title: "ARTICLE 5 : ÉTHIQUE & RESPONSABILITÉ PROFESSIONNELLE",
+            section5_desc: "Les deux parties s'engagent à collaborer de bonne foi. Le CABINET s'engage à l'excellence professionnelle, tandis que le CLIENT assure une participation active.",
+            section6_title: "ARTICLE 6 : JURIDICTION & AUTORISATION DIGITALE",
+            section6_desc: "Ce mandat est régi par les normes internationales de conseil. L'autorisation digitale constitue une signature juridique irrévocable autorisant le début des services.",
+            signature_clause_title: "Clause de Signature Digitale",
+            signature_clause_desc: "En acceptant ce mandat, vous certifiez votre identité. Cette action est enregistrée comme une signature numérique légale à des fins bancaires et administratives.",
+            ready_for_auth: "Mandat prêt pour authentification digitale",
+            scroll_to_sign: "Scrollez pour autoriser le mandat ↓",
+            footer_title: "Autorisation du Mandat",
+            footer_desc: "Une copie de ce mandat sera envoyée à votre email après autorisation digitale.",
             print: "Imprimer",
-            accept: "J'accepte le mandat"
+            accept: "J'autorise le mandat"
         },
         footer: {
             rights: "© 2026 MA-TRAINING-CONSULTING.",
@@ -818,24 +934,35 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             text: "Ceci est un modèle prototype à des fins de démonstration uniquement, et non un système opérationnel complet."
         },
         verification: {
-            badge: "Vérification de Certificat",
-            titlePre: "Vérifier les Titres",
-            titleHighlight: "Professionnels",
-            subtitle: "Assurez l'authenticité de nos certificats et recommandations via notre système de validation sécurisé.",
-            label: "ID du Certificat",
-            placeholder: "ex: CERT-2026-XXXX",
+            badge: "Vérification Professionnelle",
+            titlePre: "Vérifier les",
+            titleHighlight: "Titres et Accréditations",
+            subtitle: "Assurez l'authenticité de nos documents officiels, recommandations et audits stratégiques via notre système de validation sécurisé.",
+            label: "Référence ou ID Membre",
+            placeholder: "ex: EXP-2026-XXXX ou EXEC-YYYY-...",
             buttonIdle: "Vérifier Maintenant",
             buttonLoading: "Vérification...",
-            resultTitle: "Certificat Valide Trouvé",
-            resultSubtitle: "Vérification réussie",
-            subject: "Titulaire du Certificat",
-            domain: "Domaine d'Expertise",
+            resultTitle: "Accréditation Valide Trouvée",
+            resultSubtitle: "Authentification réussie",
+            subject: "Titulaire",
+            domain: "Type de Document",
             date: "Date d'Émission",
-            status: "Statut",
-            statusElite: "Valide & Actif",
+            status: "Statut de Vérification",
+            statusElite: "Vérifié & Actif",
             viewSign: "Voir Signature Numérique",
-            errorTitle: "Échec de Vérification",
-            errorDesc: "Aucun certificat trouvé pour l'ID : {id}. Veuillez vérifier le code."
+            errorTitle: "Échec de la Vérification",
+            errorDesc: "Aucun titre trouvé pour l'ID : {id}. Veuillez vérifier le code de référence.",
+            types: {
+                member: "Membre Exécutif Certifié",
+                workshop_attestation: "Attestation d'Atelier",
+                performance_profile: "Profil de Performance Exécutif",
+                recommendation: "Lettre de Recommandation",
+                role_alignment: "Alignement de Rôle Stratégique",
+                career_intelligence: "Intelligence de Carrière Stratégique"
+            },
+            corporateNoteTitle: "Demande Entreprise / RH ?",
+            corporateNoteDesc: "Vous cherchez à évaluer un candidat ou un employé ? Nous fournissons des rapports d'avis objectifs basés sur les données et du conseil RH gratuit basés sur leur parcours de diagnostic.",
+            corporateNoteCTA: "Obtenir un Conseil Corporate"
         },
         methodology: {
             badge: "LE PROTOCOLE DE SUCCÈS",
@@ -908,78 +1035,31 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             title: "Propulsez votre Leadership",
             subtitle: "Sélectionnez le mandat qui correspond à votre croissance professionnelle et à vos exigences stratégiques.",
             tiers: {
-                explorer: {
-                    name: "Explorer",
-                    badge: "Découverte",
-                    price: "Gratuit",
-                    duration: "Toujours",
+                trial: {
+                    name: "Phase de Découverte",
+                    badge: "Diagnostic Gratuit",
+                    price: "0€",
+                    duration: "/ Démarrage",
                     features: [
-                        "1 Analyse CV Complète (IA)",
-                        "3 questions/jour au Conseiller IA",
-                        "Accès à 3 modèles professionnels",
-                        "5 articles de la Base de Connaissances",
-                        "Feuille de route carrière basique",
-                        "Badge Explorer sur le profil"
+                        "1 Heure d'Audit Expert",
+                        "Démo Live du Système",
+                        "Identification des Lacunes",
+                        "Rapport de Performance Initial",
+                        "AUCUNE Certification Officielle"
                     ]
                 },
-                professional: {
-                    name: "Professionnel",
-                    badge: "Pour Professionnels",
-                    price: "39€",
-                    duration: "/ mois",
-                    priceYearly: "399€/an",
-                    savings: "Économisez 69€",
+                complete: {
+                    name: "Mandat Complet",
+                    badge: "Transformation Intégrale 🔥",
+                    price: "Investissement Flexible",
+                    duration: "Protocole Complet",
                     features: [
-                        "Analyse CV Illimitée",
-                        "Conseiller IA Illimité 24/7",
-                        "Bibliothèque d'outils complète",
-                        "1 Alignement de Poste/mois",
-                        "Simulations (149€/unité)",
-                        "Workshops (49€-99€/unité)",
-                        "Support Email (48h)",
-                        "Badge Professionnel"
-                    ]
-                },
-                executive: {
-                    name: "Executive",
-                    badge: "Meilleure Valeur 🔥",
-                    price: "79€",
-                    duration: "/ mois",
-                    priceYearly: "799€/an",
-                    savings: "Économisez 149€",
-                    features: [
-                        "Tout dans Professionnel +",
-                        "Alignement de Poste Illimité",
-                        "2 Simulations Gratuites/mois",
-                        "1 Workshop Gratuit/mois",
-                        "Lettre de Recommandation Officielle",
-                        "Rapport SCI (Intelligence de Carrière Stratégique)",
-                        "1 Session de Consultation/mois (30min)",
-                        "Support Prioritaire (24h)",
-                        "Badge Executive Doré",
-                        "Accès anticipé aux nouvelles fonctionnalités"
-                    ]
-                },
-                elite: {
-                    name: "Elite",
-                    badge: "Immersion Totale VIP",
-                    price: "199€",
-                    duration: "/ mois",
-                    priceYearly: "1,999€/an",
-                    savings: "Économisez 389€",
-                    features: [
-                        "Tout dans Executive +",
-                        "Simulations Illimitées",
-                        "Workshops Illimités",
-                        "4 Sessions de Consultation/mois (1h chacune)",
-                        "Expert personnel dédié",
-                        "Support VIP (6h + WhatsApp)",
-                        "Rapports personnalisés mensuels",
-                        "Revue de Profil LinkedIn",
-                        "Coaching négociation salaire",
-                        "Badge Elite Platine",
-                        "Invitations événements exclusifs",
-                        "Accès contenu à vie (même après annulation)"
+                        "Transformation Professionnelle Totale",
+                        "Dossiers de Conseil Officiels (PDF)",
+                        "Avis d'Experts Certifiés",
+                        "Mentorat Direct 1-on-1",
+                        "Simulations de Crise Illimitées",
+                        "Accès Réseau Global"
                     ]
                 }
             },
@@ -1073,7 +1153,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 academy: "Centre de Connaissances",
                 library: "Outils & Ressources",
                 expert: "Réseau Exécutif",
-                certificates: "Profil de Performance Exécutive",
+                certificates: "Évaluation des Capacités Stratégiques",
                 strategicReport: "Intelligence Stratégique",
                 recommendation: "Obtenir Recommandation",
                 jobAlignment: "Alignment Stratégique de Rôle",
@@ -1272,166 +1352,254 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             enterprises: "للشركات"
         },
         contract: {
-            title: "اتفاقية الخدمة",
-            subtitle: "اتفاقية الاستشارات المهنية",
+            title: "تفويض الخدمة الاستراتيجي",
+            subtitle: "تفويض مهني استشاري",
             step1: "التحقق من الهوية",
-            step2: "شروط الخدمة",
-            step3: "التوقيع الرقمي",
+            step2: "بنود التفويض",
+            step3: "المصادقة الرقمية",
             firstName: "الاسم الأول",
             lastName: "الاسم الأخير",
             phone: "رقم الجوال",
             email: "البريد الإلكتروني",
-            readTerms: "لقد قرأت وقبلت شروط الاتفاقية.",
+            readTerms: "أقر بقرائتي والموافقة على بنود التفويض الاستشاري.",
             signLabel: "التوقيع الرقمي (اكتب الاسم الكامل)",
             signPlaceholder: "مثال: فلان الفلاني",
-            submit: "توقيع الاتفاقية",
-            successTitle: "تم توقيع الاتفاقية",
-            successDesc: "تم تسجيل التزامك بنجاح.",
-            download: "تحميل الاتفاقية (PDF)",
+            submit: "المصادقة على التفويض",
+            successTitle: "تمت المصادقة الرقمية",
+            successDesc: "تم تسجيل تفويضك المهني بنجاح لأغراض الامتثال الإداري والبنكي.",
+            download: "تحميل التفويض (PDF)",
             terms: `
-**اتفاقية خدمة الاستشارات المهنية**
+**تفويض أداء الخدمات الاستشارية الاستراتيجية**
 
-1. **الهدف**: يوافق العميل على المشاركة في برنامج التطوير المهني.
-2. **السرية**: جميع نتائج التقييم والنصائح المقدمة سرية تماماً.
-3. **الالتزام**: تعتمد النتائج على المشاركة الفعالة في جميع مراحل البرنامج.
-4. **الشهادة**: يتم إصدار "التحقق من المعلومات" بعد إتمام البرنامج بنجاح.
-5. **الدفع**: يوافق العميل على الرسوم كما هو محدد في خطة الأسعار.
+**المادة 1: موضوع التفويض الاستشاري**
+يلتزم العميل بالدخول في تفويض استشاري مهني مع MA-TRAINING-CONSULTING بهدف التحول الاستراتيجي وبناء القدرات القيادية التنفيذية.
 
-بالتوقيع أدناه، أنت توافق على بدء عملية الاستشارة.
+**المادة 2: نطاق الخدمات والتنفيذ**
+يشمل التفويض إجراء محاكاة للضغوط، ورش عمل تنفيذية مكثفة، وإصدار ملفات استشارية موثقة وآراء خبراء بناءً على مخرجات بروتوكول DIGNNOS-.
+
+**المادة 3: الإطار المالي والامتثال المصرفي**
+يتم تحديد الرسوم المهنية وفقاً لنطاق التفويض المتفق عليه. يلتزم المكتب بتقديم كافة الفواتير الرسمية والوثائق الداعمة للتحويلات البنكية (SWIFT/SEPA).
+
+**المادة 4: السرية وحقوق الملكية الفكرية**
+تعتبر كافة التقارير التشخيصية والمنهجيات الاستشارية ملكاً حصرياً للمكتب. يلتزم العميل بالسرية المطلقة وعدم نشر الوثائق الاستراتيجية المقدمة.
+
+**المادة 5: قواعد السلوك والمسؤولية المهنية**
+يلتزم المكتب بتقديم أعلى معايير الجودة المهنية العالمية، بينما يلتزم العميل بالمشاركة الفعالة والجادة في كافة مراحل البروتوكول لضمان النتائج.
+
+**المادة 6: الاختصاص القضائي والمصادقة الرقمية**
+يخضع هذا التفويض للمعايير التنظيمية الدولية. تعتبر المصادقة الرقمية بمثابة توقيع رسمي ملزم وقابل للتعديل لأغراض الامتثال القانوني والبنكي.
+
+بالتوقيع أدناه، أنت تفوض البدء الفوري في تنفيذ مهام التفويض الاستراتيجي.
             `
         },
         hero: {
-            badge: "استشارات مهنية وتجارية عالمية",
-            titlePre: "طوّر مسارك المهني و",
-            titleHighlight: "استراتيجية أعمالك",
-            subtitle: "المنصة الاستشارية الرائدة للمحترفين ورواد الأعمال. نساعدك على تطوير مسارك المهني وتنمية مشروعك التجاري باستخدام الخبرات العالمية.",
-            ctaDashboard: "ابدأ الآن",
-            ctaTour: "كيف نعمل"
+            badge: "🚀 منصة التطوير المهني الشاملة",
+            titlePre: "ارفع مستواك",
+            titleHighlight: "المهني",
+            subtitle: "المنصة الاستشارية الرائدة للمحترفين تجمع بين التشخيص الدقيق، المحاكاة الواقعية، والتخطيط الاستراتيجي لتطوير مسارك المهني وضمان نجاحك.",
+            ctaDashboard: "ابدأ التشخيص المجاني",
+            ctaTour: "شاهد كيف نعمل"
         },
         features: {
-            title: "خدماتنا الاستشارية",
-            subtitle: "تحول قيادي شامل من خلال سبع خدمات استشارية متكاملة مصممة لتطوير قدراتك الاستراتيجية.",
+            title: "منظومة التطوير المهني المتكاملة",
+            subtitle: "8 موديلات مصممة لتحليل وتطوير مسارك المهني بوضوح وفاعلية.",
             cards: {
                 diagnosis: {
-                    title: "1. التقييم الاستراتيجي للمسار المهني",
-                    desc: "تحليل شامل لملفك المهني مقابل معايير القيادة العالمية لتحديد فرص التطوير الاستراتيجي.",
-                    tags: ["تحليل المسار المهني", "تقييم القيادة"]
+                    title: "1. Strategic Role Audit | تقييم التوافق الاستراتيجي",
+                    desc: "**الوظيفة:** تقييم مواءمة الكفاءات. \n**الأكشن:** مقارنة الوصف الوظيفي المستهدف مع نتائج التشخيص الأولي. \n**النتيجة:** تقرير تفصيلي يكشف مدى جاهزيتك للمنصب أو الترقية.",
+                    tags: ["توافق وظيفي", "تقرير تقييم"]
                 },
                 simulation: {
-                    title: "2. محاكاة القيادة في الأزمات",
-                    desc: "سيناريوهات أزمات واقعية لتقييم وتطوير قدرتك على اتخاذ القرارات تحت الضغط.",
-                    tags: ["إدارة الأزمات", "ذكاء القرارات"]
+                    title: "2. Real-world Simulations",
+                    desc: "**الوظيفة:** اختبار المهارات العملية. \n**الأكشن:** خوض مواقف عمل واجتماعات واقعية في بيئة افتراضية. \n**النتيجة:** تقييم واضح لأدائك وقدرتك على اتخاذ القرار تحت الضغط.",
+                    tags: ["محاكاة", "أداء عملي"]
                 },
                 training: {
-                    title: "3. برامج التطوير التنفيذي",
-                    desc: "برامج تطوير قيادي وجلسات كوتشينغ تنفيذي مخصصة مبنية على منهجيات عالمية.",
-                    tags: ["كوتشينغ تنفيذي", "تطوير القيادة"]
+                    title: "3. Executive Workshops",
+                    desc: "**الوظيفة:** بناء مهارات محددة. \n**الأكشن:** ورش عمل مخصصة تركز فقط على جوانب التطوير المطلوبة لديك. \n**النتيجة:** إتقان أدوات القيادة الأساسية اللازمة لترقيتك القادمة.",
+                    tags: ["تطوير مهارات", "ورش عمل"]
                 },
                 mentor: {
-                    title: "4. المستشار الاستراتيجي الذكي",
-                    desc: "مستشارك الاستراتيجي الشخصي المدعوم بالذكاء الاصطناعي، متاح 24/7 للإرشاد المهني ورؤى القيادة.",
-                    tags: ["إرشاد استراتيجي", "دعم 24/7"]
+                    title: "4. AI Advisor",
+                    desc: "**الوظيفة:** دعم مهني مستمر 24/7. \n**الأكشن:** مساعد ذكاء اصطناعي لتحديات العمل اليومية + خطة تعلم مخصصة. \n**النتيجة:** توجيه مستمر يساعدك على التطور يومياً والبقاء في المسار الصحيح.",
+                    tags: ["دعم 24/7", "مستشار ذكي"]
                 },
                 academy: {
-                    title: "5. مركز المعرفة العالمي",
-                    desc: "الوصول لأطر العمل النخبوية ودراسات الحالة والمنهجيات من Harvard وINSEAD وأفضل شركات الاستشارات.",
-                    tags: ["أفضل الممارسات", "معايير عالمية"]
+                    title: "5. Knowledge Base",
+                    desc: "**الوظيفة:** مركز المعرفة الاستراتيجية. \n**الأكشن:** الوصول لأهم منهجيات الإدارة وحالات دراسية واقعية. \n**النتيجة:** فهم قوي لاستراتيجيات الإدارة الحديثة والقيادة الفعالة.",
+                    tags: ["معرفة", "استراتيجية"]
                 },
                 library: {
-                    title: "6. مكتبة الأدوات الاستراتيجية",
-                    desc: "أدوات احترافية وأطر عمل ونماذج يستخدمها مستشارو McKinsey وBCG وBain.",
-                    tags: ["أدوات استشارية", "أطر عمل"]
+                    title: "6. Resource Center",
+                    desc: "**الوظيفة:** أدوات وموارد مهنية جاهزة. \n**الأكشن:** قوالب جاهزة للاستخدام (خطط، تقارير، نماذج عمل). \n**النتيجة:** سرعة في إنجاز المهام واحترافية عالية في مخرجات عملك اليومي.",
+                    tags: ["قوالب", "أدوات"]
                 },
                 expert: {
-                    title: "7. الوصول لشبكة القيادات التنفيذية",
-                    desc: "تواصل مباشر مع شبكتنا العالمية من القيادات التنفيذية وقادة الصناعة للتوجيه والفرص.",
-                    tags: ["شبكة تنفيذية", "توجيه مهني"]
+                    title: "7. Expert Consultation",
+                    desc: "**الوظيفة:** رأي استراتيجي خبير. \n**الأكشن:** مراجعة قراراتك ومشاريعك الهامة عبر خبير ذكاء اصطناعي متخصص. \n**النتيجة:** تقليل الأخطاء والحصول على منظور مهني في القضايا المعقدة.",
+                    tags: ["استشارة", "خبرة"]
+                },
+                roadmap: {
+                    title: "8. Career Roadmap",
+                    desc: "**الوظيفة:** تخطيط واضح للخطوات القادمة. \n**الأكشن:** جدول زمني مرئي بأهداف محددة لفترة 90 يوماً القادمة. \n**النتيجة:** وضوح تام لأهدافك المهنية والخطوات الدقيقة للوصول إليها.",
+                    tags: ["خارطة طريق", "تنفيذ"]
                 }
             }
         },
         system: {
-            title: "نظام التشغيل التنفيذي",
-            subtitle: "نظام بيئي متكامل مصمم لتحويل الكفاءة الكامنة إلى قوة تنفيذية مؤكدة.",
+            title: "نظام التشغيل التنفيذي (DIGNNOS- Protocol)",
+            subtitle: "منظومة متكاملة مصممة لتحويل الكفاءة الكامنة إلى سلطة تنفيذية مؤكدة.",
             stages: [
-                { id: "01", title: "التدقيق", desc: "تحليل فجوات المهارات بالذكاء الاصطناعي" },
-                { id: "02", title: "الاستراتيجية", desc: "توليد خارطة طريق مخصصة" },
-                { id: "03", title: "التنفيذ", desc: "محاكاة مهام وتحديات واقعية" },
-                { id: "04", title: "السلطة", desc: "اعتماد رسمي وشهادات موثقة" }
+                { id: "01", title: "التشخيص والذكاء", desc: "تدقيق فجوات المهارات بالذكاء الاصطناعي ورسم الخرائط الاستراتيجية" },
+                { id: "02", title: "التنفيذ والمحاكاة", desc: "خوض مهام واقعية تحت إشراف خبراء ممارسين" },
+                { id: "03", title: "الاستشارة والسلطة", desc: "إصدار ملف الاستشارة الاستراتيجي والتمكين المهني" }
             ]
         },
         audit: {
-            badge: "المرحلة 1: التشخيص",
-            title: "التدقيق المهني الجنائي",
-            desc: "توقف عن التخمين. يقوم الذكاء الاصطناعي لدينا بمسح ملفك الشخصي مقابل أكثر من 50 معياراً تنفيذياً لتحديد مكانك بدقة.",
-            stat: "دقة 98%",
-            statDesc: "في تحديد الفجوات المهارية",
+            badge: "التشخيص والتدقيق الاستراتيجي",
+            title: "Strategic Role Audit",
+            desc: "تحقق من جاهزيتك التنفيذية لمنصب جديد أو ترقية داخلية. يقوم الذكاء الاصطناعي بمقارنة نتائج تشخيصك الأولي مع متطلبات الوصف الوظيفي لإصدار تقرير تحليل فجوات شامل.",
+            stat: "AI Analysis",
+            statDesc: "تقارير الجاهزية والمواءمة",
             features: [
-                "تحليل سيرتك الذاتية مقابل معايير القيادة العالمية.",
-                "تحديد فجوات المهارات الخفية التي تعيق ترقيتك.",
-                "إنشاء خارطة طريق تنفيذية مخصصة لمدة 90 يوماً."
+                "مقارنة استراتيجية: مطابقة بروفايلك المشخّص مع متطلبات الوظيفة.",
+                "تحديد الفجوات: تقرير واضح حول ما ينقصك للانتقال للدور الجديد.",
+                "حكم الجاهزية: تقييم دقيق مبني على البيانات لفرص ترقيتك."
             ],
-            forensicsLabel: "التحليل الجنائي للذكاء الاصطناعي نشط",
-            scanningLabel: "مسح أكثر من 50 معياراً"
+            forensicsLabel: "محرك التدقيق الذكي نشط",
+            scanningLabel: "جاري إصدار تقرير المواءمة"
         },
         missions: {
-            badge: "المرحلة 2: المحاكاة",
-            title: "مناورات الشركات الكبرى",
-            desc: "النظرية للطلاب. هنا ستقوم بتنفيذ مهام شركات حقيقية—إدارة الأزمات، الربح والخسارة، وقيادة الفرق—تحت ملاحظة الخبراء.",
-            stat: "خالي من المخاطر",
-            statDesc: "الفشل هنا ينقذ الملايين لاحقاً",
-            crisisLabel: "سيناريو أزمة حية",
+            badge: "المرافقة والتمكين المهني الشامل",
+            title: "محاكاة واقعية بقيادة الخبراء",
+            desc: "بناءً على نتائج تشخيصك، يرافقك خبراؤنا الدوليون في جلسات حية وورش عمل لمحاكاة الواقع المهني؛ نركز فيها على معالجة نقاط ضعفك وتعزيز نقاط قوتك بما يتوافق مع متطلبات سوق الشغل العالمي.",
+            stat: "بيئة آمنة",
+            statDesc: "تطوير تحت إشراف خبراء ممارسين",
+            crisisLabel: "سيناريو سوق عمل حي",
             features: [
-                "خوض سيناريوهات غرف الاجتماعات عالية الضغط.",
-                "اتخاذ قرارات مالية وعملياتية حاسمة.",
-                "تلقي تعليقات فورية من خبراء الذكاء الاصطناعي والبشر."
+                "جلسات استشارية حية وورش عمل قيادية متخصصة.",
+                "تطوير مخصص يعالج الفجوات المهارية المكتشفة في تشخيصك.",
+                "محاكاة لسيناريوهات عالمية لرفع قيمتك وتنافسيتك المهنية."
+            ]
+        },
+        targetAudience: {
+            title: "لمن هذه المنصة؟",
+            subtitle: "نظامنا مصمم للمحترفين الذين يطمحون للتميز والوصول إلى مستويات عالمية في مساراتهم المهنية.",
+            cards: [
+                {
+                    title: "الطموحون للترقية",
+                    desc: "الساعون للحصول على ترقيتهم الكبرى التالية وإتقان مهارات المناصب القيادية العليا."
+                },
+                {
+                    title: "المغيرون لمسارهم المهني",
+                    desc: "المحترفون المنتقلون إلى قطاعات جديدة ويحتاجون لمسار سريع لسد الفجوات المهارية."
+                },
+                {
+                    title: "القادة الواعدون",
+                    desc: "مدراء الصف المتوسط الطامحون لمناصب الإدارة العليا عبر تطوير التفكير الاستراتيجي."
+                },
+                {
+                    title: "المواهب العالمية",
+                    desc: "الخبراء الراغبون في مواءمة ملفاتهم مع المعايير الدولية للعمل في كبرى الشركات العالمية."
+                },
+                {
+                    title: "حديثو التخرج",
+                    desc: "المواهب التي تبدأ رحلتها وتطمح لبناء أساس مهني صلب منذ اليوم الأول."
+                },
+                {
+                    title: "الطلاب والمقبلون على العمل",
+                    desc: "المستعدون لدخول سوق العمل والراغبون في فهم المتطلبات الحقيقية قبل التخرج."
+                }
             ]
         },
         assets: {
-            badge: "المرحلة 3: السلطة",
-            title: "إثبات مهني مصرفي",
-            desc: "لا تكتفِ بالقول أنك جيد. أثبت ذلك. تخرج بـ 'ملف الأداء الاستراتيجي' الذي يثبت قدرتك للموظفين ومجالس الإدارة.",
-            stat: "مؤكد",
-            statDesc: "اعتمادات جاهزة للبلوكشين",
-            p1_title: "سجل أداء تم التحقق منه",
-            p1_desc: "يتم تسجيل كل قرار تتخذه في المحاكاة في سجل آمن، مما يثبت كفاءتك للموظفين.",
-            p2_title: "محفظة جاهزة لمجالس الإدارة",
-            p2_desc: "تصدير محفظة شاملة لعملك الاستراتيجي، وليس مجرد سيرة ذاتية عادية."
+            badge: "التمكين والسلطة المهنية",
+            title: "الأصول الاستشارية الاستراتيجية",
+            desc: "أكثر من مجرد تدريب؛ ستحصل على حزمة كاملة من التقارير التنفيذية والوثائق الاستشارية الموثقة التي تثبت قيمتك في سوق العمل.",
+            reportsTitle: "تقارير استشارية تنزيلية (PDF)",
+            reports: [
+                { title: "تقرير تحليل السيرة الذاتية (CV Analysis)", desc: "تحليل معمق لدقة سيرتك الذاتية وقدراتك مع ملاحظات صريحة من خبراء الذكاء الاصطناعي." },
+                { title: "نتائج تقييم المقابلات (Interview Evaluation)", desc: "نتائج مبنية على البيانات من مقابلات محاكاة لسيناريوهات القيادة رفيعة المستوى." },
+                { title: "توصيات المسار المهني (Career Path)", desc: "تحديد الأدوار والقطاعات الأكثر ملاءمة لك بناءً على نتائج تشخيصك الشامل." },
+                { title: "سيرة ذاتية ورسالة تزكية مطورة", desc: "إعادة هندسة سيرتك الذاتية وصياغة رسالة توصية قوية بناءً على تدقيق شامل لأدائك." }
+            ],
+            officialTitle: "ملف الاستشارة ورأي الخبراء (صلاحية دائمة)",
+            official: [
+                { title: "وثيقة تقييم القدرات الاستراتيجية والجاهزية المهنية", desc: "الوثيقة الكبرى التي تثبت امتلاكك للفكر الاستراتيجي والقدرة التنفيذية." },
+                { title: "رسالة توصية مهنية رسمية", desc: "تزكية رسمية لمسارك القيادي، قابلة للتحقق الفوري عبر منصتنا العالمية." },
+                { title: "Executive Scorecard", desc: "سجل شفاف ودقيق لمقاييس أدائك في جميع المحاكيات والمهام التي أتممتها." },
+                { title: "تقرير التوافق الاستراتيجي", desc: "إثبات رسمي لمدى مواءمتك مع مناصب تنفيذية محددة بناءً على المعايير العالمية." },
+                { title: "ذكاء المسار الاستراتيجي (SCI)", desc: "تقرير شامل يدقق في مسارك المهني بعيد المدى وفرص نموك المستقبلية." }
+            ],
+            verifiable: "جميع الأصول الاستشارية قابلة للتحقق بنسبة 100% عبر سجلنا العالمي وجهات التوظيف."
         },
         cert: {
-            badge: "التفويض الاستراتيجي",
-            title: "الاعتماد الرسمي",
-            desc: "هذه ليست شهادة إتمام دورة. إنه تفويض بالكفاءة، يثبت أنك قمت بتنفيذ مهام على مستوى تنفيذي بنجاح.",
-            cardTitle: "تفويض تنفيذي",
-            check1: "معايير معترف بها دولياً",
-            check2: "سجل رقمي قابل للتحقق",
-            check3: "معتمد من قادة الصناعة",
-            cta: "احصل على الاعتماد",
-            cardSubtitle: "تزكية استراتيجية",
-            cardFooter: "\"معتمد لإظهار قدرات استراتيجية استثنائية وجاهزية تنفيذية.\"",
-            warrant_text: "تشهد هذه المذكرة أن حاملها قد أظهر بنجاح كفاءة استراتيجية على المستوى التنفيذي.",
-            authorized: "معتمد من النظام",
-            ledger: "معرف السجل الآمن"
+            badge: "أدلة استشارية",
+            title: "بصمتك الاستراتيجية.. رأي خبير",
+            desc: "أظهر أثرك الحقيقي وكفاءتك القيادية من خلال بروفايل دقيق يوثق أدلتك الاستشارية بالأرقام ويدعم خطوتك الكبيرة القادمة.",
+            cardTitle: "ملف الجاهزية التنفيذية",
+            check1: "بيانات الأثر الاستراتيجي",
+            check2: "توثيق الملف الاستشاري الرقمي",
+            check3: "أصول استشارية موثقـة",
+            cta: "احصل على الملف الاستشاري",
+            cardSubtitle: "هوية البصمة الاستشارية",
+            cardFooter: "\"رأي خبير موثق حول الجاهزية التنفيذية والقيادة الاستراتيجية.\"",
+            warrant_text: "يؤكد هذا الملف أن صاحبه قد أتم بنجاح بروتوكول التدقيق الاستراتيجي وأظهر الأثر القيادي المطلوب للمناصب العليا.",
+            authorized: "موثق عبر بروتوكول DIGNNOS-",
+            ledger: "رمز الملف الاستشاري"
+        },
+        corporate: {
+            badge: "حلول الشركات والموارد البشرية",
+            title: "دعم القرار الاسترايتيجي الموضوعي",
+            desc: "نوفر للمؤسسات تقرير رأي استشاري مجاني وموضوعي. بناءً على رحلة المشارك الكاملة، نساعدكم في اتخاذ قرار ترقية أو توظيف مدروس ومبني على بيانات حقيقية.",
+            feature1_title: "حكم الجاهزية",
+            feature1_desc: "توصية واضحة ومباشرة حول مدى ملاءمة المرشح لمنصب أو ترقية محددة.",
+            feature2_title: "تحليل فجوات موضوعي",
+            feature2_desc: "رصد دقيق لنقاط القوة والضعف والمخاطر المحتملة بعيداً عن الانطباعات الشخصية.",
+            feature3_title: "خارطة طريق التجهيز",
+            feature3_desc: "خطوات ملموسة لسد الثغرات وتجهيز الشخص للمهمة الجديدة قبل البدء فيها.",
+            freeBadge: "استشارة مجانية",
+            inquiryForm: {
+                title: "طلب استشارة للشركات",
+                companyName: "اسم الشركة",
+                companyEmail: "البريد الإلكتروني الرسمي",
+                companyPhone: "رقم الهاتف",
+                targetPosition: "المنصب / الدور المستهدف",
+                jobDesc: "وصف المنصب / المتطلبات",
+                candidateId: "الرقم المرجعي للمرشح",
+                candidateFirstName: "الاسم الأول للمرشح",
+                candidateLastName: "لقب المرشح",
+                reportDate: "التاريخ المطلوب للتقرير",
+                interviewDate: "تاريخ المقابلة",
+                otherInfo: "متطلبات إضافية / ملاحظات",
+                submit: "إرسال الطلب",
+                success: "تم إرسال الطلب بنجاح! سيتواصل معك خبراؤنا قريباً."
+            }
         },
         mandate: {
-            title: "تفويض الخدمة",
+            title: "تفويض أداء الخدمات",
             ref: "مرجع",
-            intro: "تشكل هذه الوثيقة الاتفاق القانوني الذي يحكم وصولك إلى خطة {plan}. بقبولها، فإنك تلتزم بتفويض خدمة مع DIGITALISA - MA-TRAINING-CONSULTING.",
-            section1_title: "1. موضوع التفويض",
-            section1_desc: "يتم إسناد هذا التفويض إلى DIGITALISA للدعم الاستراتيجي للعميل في إطار خطة {plan}. تتضمن هذه الخدمة على وجه التحديد:",
-            section2_title: "2. الشروط المالية",
-            section2_desc: "يرتبط الوصول إلى هذه الخدمة بسداد مبلغ {price}. يستحق الدفع عند الاشتراك ويضمن الوصول الفوري إلى الخدمات الموضحة في المادة 1.",
-            section3_title: "3. الملكية الفكرية والسرية",
-            section3_desc: "تظل جميع التقارير والتشخيصات والمنهجيات (بما في ذلك خوارزميات الذكاء الاصطناعي) ملكية حصرية لشركة DIGITALISA. يستفيد العميل من ترخيص استخدام شخصي. يوافق العميل على الحفاظ على سرية الوثائق الاستراتيجية المقدمة.",
-            section4_title: "4. حماية البيانات (RGPD)",
-            section4_desc: "يتم معالجة بياناتك المهنية وفقاً لسياسة الخصوصية الخاصة بنا. يتم استخدامها حصرياً لتخصيص دعمك ولا يتم مشاركتها أبداً مع أطراف ثالثة.",
-            signature_clause_title: "بند التوقيع الإلكتروني",
-            signature_clause_desc: "بالنقر على زر القبول أدناه، فإنك تقر بأنك قد قرأت شروط الاستخدام العامة وقبلت شروط هذا التفويض. هذا الإجراء يعادل التوقيع الإلكتروني بخط اليد وفقاً للمادة 1367 من القانون المدني.",
+            intro: "تشكل هذه الوثيقة التفويض الرسمي الذي ينظم العلاقة المهنية بين العميل ومكتب MA-TRAINING-CONSULTING.",
+            section1_title: "المادة 1: موضوع التفويض",
+            section1_desc: "يهدف هذا التفويض إلى تقديم خدمات استشارية متكاملة لرفع الكفاءة المهنية وتطوير المهارات القيادية للعميل.",
+            section2_title: "المادة 2: بنود التنفيذ",
+            section2_desc: "يوفر المكتب استشارات استراتيجية، محاكاة واقعية، وورش عمل تنفيذية، وفقاً لأعلى معايير الجودة العلمية والمهنية.",
+            section3_title: "المادة 3: الامتثال البنكي والمالي",
+            section3_desc: "يتم تحديد الرسوم بناءً على نطاق العمل، مع التزام المكتب بتوفير كافة الفواتير الرسمية اللازمة للتعاملات البنكية (SWIFT/SEPA).",
+            section4_title: "المادة 4: السرية والخصوصية",
+            section4_desc: "تعتبر كافة التقارير والنتائج ملكية خاصة تضمن سريتها التامة، ويلتزم العميل بعدم نشر الوثائق الاستشارية المقدمة.",
+            section5_title: "المادة 5: الالتزام المهني",
+            section5_desc: "يلتزم المكتب بتقديم أفضل الحلول الاستشارية، بينما يضمن العميل التفاعل الجاد في كافة مراحل البرنامج لضمان أفضل النتائج.",
+            section6_title: "المادة 6: المصادقة الرقمية",
+            section6_desc: "تعتبر المصادقة الرقمية بمثابة توقيع رسمي ونهائي يسمح بالبدء الفوري في تقديم الخدمات الاستشارية المتفق عليها.",
+            signature_clause_title: "بند التوقيع الرقمي",
+            signature_clause_desc: "بالموافقة على هذا التفويض، أنت تؤكد هويتك وتلتزم بالبنود أعلاه. يتم تسجيل هذا الإجراء كتوقيع قانوني معتمد.",
             ready_for_auth: "المستند جاهز للمصادقة الرقمية",
-            scroll_to_sign: "قم بالتمرير لتوقيع التفويض ↓",
-            footer_title: "قبول التفويض",
-            footer_desc: "سيتم إرسال نسخة PDF من هذا العقد إلى بريدك الإلكتروني بعد التأكيد.",
+            scroll_to_sign: "قم بالتمرير للمصادقة على التفويض ↓",
+            footer_title: "المصادقة على التفويض",
+            footer_desc: "سيتم إرسال نسخة رسمية من هذا التفويض إلى بريدك الإلكتروني فور المصادقة.",
             print: "طباعة",
-            accept: "أقبل التفويض"
+            accept: "أصادق على التفويض"
         },
         footer: {
             rights: "© 2026 MA-TRAINING-CONSULTING.",
@@ -1447,24 +1615,35 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             text: "هذا فقط نموذج وليس نظام متكامل الأركان، للتفسير والفهم فقط."
         },
         verification: {
-            badge: "التحقق من الشهادات",
-            titlePre: "التحقق من المؤهلات",
-            titleHighlight: "المهنية",
-            subtitle: "تأكد من صحة شهاداتنا وتوصياتنا من خلال نظام التحقق الآمن لدينا.",
-            label: "رقم الشهادة",
-            placeholder: "مثال: CERT-2026-XXXX",
+            badge: "التحقق المهني",
+            titlePre: "التحقق من",
+            titleHighlight: "الاعتمادات المهنية",
+            subtitle: "تأكد من أصالة وثائقنا الرسمية وتوصياتنا وعمليات التدقيق الاستراتيجي من خلال نظام التحقق الآمن الخاص بنا.",
+            label: "الرقم المرجعي أو معرف العضو",
+            placeholder: "مثال: EXP-2026-XXXX أو EXEC-YYYY-...",
             buttonIdle: "تحقق الآن",
             buttonLoading: "جاري التحقق...",
-            resultTitle: "تم العثور على شهادة صالحة",
+            resultTitle: "تم العثور على اعتماد صالح",
             resultSubtitle: "تم التحقق بنجاح",
-            subject: "صاحب الشهادة",
-            domain: "مجال الخبرة",
+            subject: "صاحب الاعتماد",
+            domain: "نوع الاعتماد",
             date: "تاريخ الإصدار",
-            status: "الحالة",
-            statusElite: "صالح ونشط",
+            status: "حالة التحقق",
+            statusElite: "متحقق منه ونشط",
             viewSign: "عرض التوقيع الرقمي",
             errorTitle: "فشل التحقق",
-            errorDesc: "لم يتم العثور على شهادة بالرقم: {id}. يرجى التحقق من الرمز."
+            errorDesc: "لم يتم العثور على أي اعتماد للمعرف: {id}. يرجى التحقق من الرقم المرجعي.",
+            types: {
+                member: "عضو تنفيذي معتمد",
+                workshop_attestation: "شهادة ورشة عمل",
+                performance_profile: "ملف الأداء التنفيذي",
+                recommendation: "خطاب توصية",
+                role_alignment: "التوافق الوظيفي الاستراتيجي",
+                career_intelligence: "ذكاء المسار الوظيفي الاستراتيجي"
+            },
+            corporateNoteTitle: "استفسار للشركات / الموارد البشرية؟",
+            corporateNoteDesc: "هل ترغب في تقييم مرشح أو موظف؟ نحن نقدم تقارير استشارية موضوعية مدعومة بالبيانات واستشارات مجانية للموارد البشرية بناءً على رحلتهم التشخيصية.",
+            corporateNoteCTA: "احصل على استشارة للشركات"
         },
         methodology: {
             badge: "بروتوكول النجاح",
@@ -1537,78 +1716,31 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             title: "ادفع مسيرتك القيادية للأمام",
             subtitle: "اختر التفويض الذي يتماشى مع أهدافك الاستراتيجية ومتطلباتك المهنية.",
             tiers: {
-                explorer: {
-                    name: "المستكشف",
-                    badge: "اكتشاف",
-                    price: "مجاني",
-                    duration: "مدى الحياة",
+                trial: {
+                    name: "مرحلة الاكتشاف",
+                    badge: "تشخيص مهني مجاني",
+                    price: "0€",
+                    duration: "/ بداية",
                     features: [
-                        "1 تحليل سيرة ذاتية كامل (ذكاء اصطناعي)",
-                        "3 أسئلة/يوم للمستشار الذكي",
-                        "وصول لـ 3 نماذج احترافية",
-                        "5 مقالات من قاعدة المعرفة",
-                        "خارطة طريق مهنية أساسية",
-                        "شارة المستكشف في الملف الشخصي"
+                        "ساعة تدقيق مع الخبير",
+                        "تجربة حية للنظام",
+                        "تحديد فجوات الأداء المبدئية",
+                        "تقرير أولي للمهارات",
+                        "بدون وثائق استشارية رسمية"
                     ]
                 },
-                professional: {
-                    name: "محترف",
-                    badge: "للمحترفين",
-                    price: "39€",
-                    duration: "/ شهرياً",
-                    priceYearly: "399€/سنوياً",
-                    savings: "وفر 69€",
+                complete: {
+                    name: "التفويض الكامل",
+                    badge: "تحول مهني شامل 🔥",
+                    price: "استثمار مرن",
+                    duration: "المنظومة المتكاملة",
                     features: [
-                        "تحليل سيرة ذاتية غير محدود",
-                        "مستشار ذكي غير محدود 24/7",
-                        "مكتبة الأدوات الكاملة",
-                        "1 توافق وظيفي مجاني/شهر",
-                        "محاكاة (149€/وحدة)",
-                        "ورش عمل (49€-99€/وحدة)",
-                        "دعم عبر البريد (48 ساعة)",
-                        "شارة محترف"
-                    ]
-                },
-                executive: {
-                    name: "تنفيذي",
-                    badge: "أفضل قيمة 🔥",
-                    price: "79€",
-                    duration: "/ شهرياً",
-                    priceYearly: "799€/سنوياً",
-                    savings: "وفر 149€",
-                    features: [
-                        "كل شيء في باقة محترف +",
-                        "توافق وظيفي غير محدود",
-                        "2 محاكاة مجانية/شهر",
-                        "1 ورشة عمل مجانية/شهر",
-                        "خطاب توصية رسمي",
-                        "تقرير SCI (ذكاء المسار الاستراتيجي)",
-                        "1 جلسة استشارية/شهر (30 دقيقة)",
-                        "دعم أولوية (24 ساعة)",
-                        "شارة تنفيذي ذهبية",
-                        "وصول مبكر للميزات الجديدة"
-                    ]
-                },
-                elite: {
-                    name: "النخبة",
-                    badge: "غمر كامل VIP",
-                    price: "199€",
-                    duration: "/ شهرياً",
-                    priceYearly: "1,999€/سنوياً",
-                    savings: "وفر 389€",
-                    features: [
-                        "كل شيء في باقة تنفيذي +",
-                        "محاكاة غير محدودة",
-                        "ورش عمل غير محدودة",
-                        "4 جلسات استشارية/شهر (1 ساعة لكل منها)",
-                        "خبير شخصي مخصص",
-                        "دعم VIP (6 ساعات + واتساب)",
-                        "تقارير شهرية مخصصة",
-                        "مراجعة ملف LinkedIn",
-                        "كوتشينغ تفاوض الراتب",
-                        "شارة النخبة البلاتينية",
-                        "دعوات لفعاليات حصرية",
-                        "وصول للمحتوى مدى الحياة (حتى بعد الإلغاء)"
+                        "تطوير مهني شامل من البداية",
+                        "استخراج ملفات الاستشارة الاستراتيجية",
+                        "توصيات الخبراء المعتمدة لنظامك",
+                        "جلسات توجيه شخصي مكثفة",
+                        "محاكاة أزمات واقعية غير محدودة",
+                        "عضوية في شبكة الخبراء العالمية"
                     ]
                 }
             },
@@ -1702,7 +1834,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 academy: "مركز المعرفة",
                 library: "الأدوات والموارد",
                 expert: "شبكة القيادات",
-                certificates: "ملف الأداء التنفيذي الاستراتيجي",
+                certificates: "وثيقة تقييم القدرات الاستراتيجية والجاهزية المهنية",
                 strategicReport: "ذكاء المسار الاستراتيجي",
                 recommendation: "احصل على توصية",
                 jobAlignment: "تقييم التوافق الاستراتيجي",

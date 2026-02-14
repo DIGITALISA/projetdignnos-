@@ -93,12 +93,14 @@ export default function DashboardPage() {
                                         if (readyData.success) {
                                             // Only update and trigger event if there's an actual change to prevent infinite loops
                                             if (profile.canAccessCertificates !== readyData.certReady || 
-                                                profile.canAccessRecommendations !== readyData.recReady) {
+                                                profile.canAccessRecommendations !== readyData.recReady ||
+                                                profile.plan !== readyData.plan) {
                                                 
                                                 const updatedProfile = {
                                                     ...profile,
                                                     canAccessCertificates: readyData.certReady,
-                                                    canAccessRecommendations: readyData.recReady
+                                                    canAccessRecommendations: readyData.recReady,
+                                                    plan: readyData.plan
                                                 };
                                                 localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
                                                 // Trigger event for Sidebar and other components to refresh

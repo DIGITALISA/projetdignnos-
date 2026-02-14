@@ -74,95 +74,147 @@ export default function SimulationPage() {
     const [isDownloading, setIsDownloading] = useState(false);
 
     const handleDownloadReport = async () => {
-        if (!resultsRef.current) return;
+        if (!finalReport || !selectedRole) return;
         setIsDownloading(true);
 
         try {
-            const canvas = await html2canvas(resultsRef.current, {
+            // 1. Create a dedicated container
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            container.style.width = '800px'; 
+            container.style.backgroundColor = '#ffffff';
+            container.style.padding = '40px';
+            container.style.fontFamily = "'Tajawal', sans-serif";
+            container.style.color = '#0f172a';
+
+            // 2. Build Report HTML
+            container.innerHTML = `
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+                    * { box-sizing: border-box; }
+                    .page-break { page-break-inside: avoid; }
+                    .bar-container { background-color: #f1f5f9; border-radius: 99px; height: 8px; width: 100%; overflow: hidden; margin-top: 5px; }
+                    .bar-fill { height: 100%; border-radius: 99px; }
+                </style>
+                <div style="font-family: 'Tajawal', sans-serif;">
+                    
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #9333ea; padding-bottom: 20px; margin-bottom: 30px;">
+                        <div>
+                            <div style="color: #9333ea; font-size: 24px; font-weight: bold;">MA-TRAINING-CONSULTING</div>
+                            <div style="color: #64748b; font-size: 14px;">Role Simulation Analysis</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">${selectedRole.title}</h1>
+                            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+
+                    <!-- Overall Stats -->
+                    <div style="display: flex; gap: 20px; margin-bottom: 30px; justify-content: space-between;">
+                        <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; background-color: #eff6ff;">
+                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Overall Score</div>
+                             <div style="font-size: 32px; font-weight: bold; color: #2563eb;">${finalReport.overallScore}/10</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; background-color: #f0fdf4;">
+                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Readiness</div>
+                             <div style="font-size: 32px; font-weight: bold; color: #16a34a;">${finalReport.readinessLevel}%</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; background-color: #faf5ff;">
+                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Rank</div>
+                             <div style="font-size: 32px; font-weight: bold; color: #9333ea;">${finalReport.rank}</div>
+                        </div>
+                    </div>
+
+                    <!-- Skill Breakdown -->
+                    <div style="margin-bottom: 30px; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Skill Competency Breakdown</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                             ${Object.entries(finalReport.skillScores || {}).map(([skill, score]: [string, number]) => `
+                                <div style="margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px;">
+                                        <span>${skill.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                        <span>${score}/10</span>
+                                    </div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" style="width: ${score * 10}%; background-color: #3b82f6;"></div>
+                                    </div>
+                                </div>
+                             `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Strengths & Improvements -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <div class="page-break" style="border: 1px solid #bbf7d0; background-color: #f0fdf4; padding: 20px; border-radius: 12px;">
+                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #166534; text-transform: uppercase;">Key Strengths</h3>
+                             <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #14532d; line-height: 1.5;">
+                                 ${finalReport.keyStrengths?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None identified</li>'}
+                             </ul>
+                        </div>
+                        <div class="page-break" style="border: 1px solid #fed7aa; background-color: #fff7ed; padding: 20px; border-radius: 12px;">
+                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #9a3412; text-transform: uppercase;">Areas for Growth</h3>
+                             <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7c2d12; line-height: 1.5;">
+                                 ${finalReport.areasToImprove?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None identified</li>'}
+                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="page-break" style="background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #334155;">Strategic Recommendations</h3>
+                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569; white-space: pre-wrap;">${finalReport.recommendations}</p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                        MA-TRAINING-CONSULTING • Role Simulation & Capability Analysis
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(container);
+
+            // 3. Capture
+            const canvas = await html2canvas(container, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: "#f8fafc",
                 logging: false,
-                onclone: (clonedDoc) => {
-                    const el = clonedDoc.getElementById('simulation-results');
-                    if (el) {
-                        el.style.padding = '30px';
-                        el.style.backgroundColor = '#f8fafc';
-
-                        // html2canvas fails on modern CSS colors like lab(), oklch(), etc.
-                        // We need to sanitize the cloned document
-                        const sanitizeStyles = (element: Element) => {
-                            if (element instanceof HTMLElement) {
-                                const style = element.style;
-                                const computed = window.getComputedStyle(element);
-
-                                // problematic properties including gradients
-                                const props = ['color', 'backgroundColor', 'borderColor', 'outlineColor', 'fill', 'stroke', 'backgroundImage', 'background'];
-
-                                props.forEach(prop => {
-                                    const value = (computed as unknown as Record<string, string>)[prop];
-                                    if (value && (
-                                        value.includes('lab(') ||
-                                        value.includes('oklch(') ||
-                                        value.includes('oklab(') ||
-                                        value.includes('color(')
-                                    )) {
-                                        if (prop === 'backgroundImage' || prop === 'background') {
-                                            style.backgroundImage = 'none';
-                                            style.background = 'none';
-
-                                            if (element.classList.contains('from-purple-50')) style.backgroundColor = '#f5f3ff';
-                                            else if (element.classList.contains('from-blue-50')) style.backgroundColor = '#eff6ff';
-                                            else if (element.classList.contains('from-green-50')) style.backgroundColor = '#f0fdf4';
-                                            else if (element.classList.contains('from-orange-50')) style.backgroundColor = '#fff7ed';
-                                            else if (element.classList.contains('from-blue-600')) style.backgroundColor = '#2563eb';
-                                            else style.backgroundColor = '#ffffff';
-                                        } else {
-                                            (style as unknown as Record<string, string>)[prop] = 'transparent';
-                                        }
-                                    }
-                                });
-                            }
-                            Array.from(element.children).forEach(child => sanitizeStyles(child));
-                        };
-
-                        sanitizeStyles(el);
-
-                        // Aggressively remove style tags that contain modern colors to prevent parsing crashes
-                        const styleTags = clonedDoc.getElementsByTagName('style');
-                        for (let i = styleTags.length - 1; i >= 0; i--) {
-                            const tag = styleTags[i];
-                            if (tag.textContent && (
-                                tag.textContent.includes('lab(') ||
-                                tag.textContent.includes('oklch(') ||
-                                tag.textContent.includes('oklab(') ||
-                                tag.textContent.includes('color(')
-                            )) {
-                                tag.remove();
-                            }
-                        }
-                    }
-                },
-                ignoreElements: (element) => {
-                    return element.hasAttribute('data-html2canvas-ignore');
-                },
-                allowTaint: true
+                backgroundColor: "#ffffff",
+                windowWidth: 800
             });
 
-            const imgData = canvas.toDataURL('image/png');
+            // 4. Cleanup
+            document.body.removeChild(container);
+
+            // 5. Generate PDF
+            const imgData = canvas.toDataURL('image/png', 1.0);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = canvas.width;
-            const imgHeight = canvas.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const imgTargetWidth = imgWidth * ratio;
-            const imgTargetHeight = imgHeight * ratio;
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-            pdf.addImage(imgData, 'PNG', 0, 0, imgTargetWidth, imgTargetHeight);
-            pdf.save(`Simulation_Report_${selectedRole?.title?.replace(/\s+/g, '_')}.pdf`);
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position -= pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`Simulation_Report_${selectedRole.title.replace(/\s+/g, '_')}.pdf`);
+
         } catch (error) {
             console.error('Error generating PDF:', error);
+            alert("Failed to generate PDF report.");
         } finally {
             setIsDownloading(false);
         }

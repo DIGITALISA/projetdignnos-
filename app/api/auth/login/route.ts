@@ -33,6 +33,16 @@ export async function POST(req: NextRequest) {
             }, { status: 403 });
         }
 
+        // Initialize trial period on FIRST LOGIN if it's a Trial User and expiry isn't set
+        if (user.role === "Trial User" && !user.trialExpiry) {
+            const duration = user.trialDurationHours || 1;
+            const expiry = new Date();
+            expiry.setHours(expiry.getHours() + duration);
+            
+            user.trialExpiry = expiry;
+            await user.save();
+        }
+
         // Return user data (excluding password)
         const userData = {
             id: user._id,
@@ -50,7 +60,9 @@ export async function POST(req: NextRequest) {
         };
 
         return NextResponse.json({ success: true, user: userData });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        console.error("Login Error:", error);
+        const message = error instanceof Error ? error.message : "An unknown login error occurred";
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

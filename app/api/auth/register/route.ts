@@ -31,6 +31,9 @@ export async function POST(req: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // Generate Member ID (High entropy for professional tracking)
+        const memberId = `EXP-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
         // Create user with status PENDING and Free Tier settings
         await User.create({
             fullName: `${firstName} ${lastName}`,
@@ -48,7 +51,8 @@ export async function POST(req: NextRequest) {
             mandateCurrency,
             mandateAmount,
             plannedPaymentDate,
-            mandateAgreed
+            mandateAgreed,
+            memberId
         });
 
         return NextResponse.json({ success: true, message: "Registration request submitted" });

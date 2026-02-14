@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        // Check if a recommendation already exists for this user
-        const existingRecommendation = await Recommendation.findOne({ userId }).sort({ createdAt: -1 });
+        // Check if a recommendation already exists for this user (for future logic if needed)
+        // await Recommendation.findOne({ userId }).sort({ createdAt: -1 });
 
         // If the user wants to regenerate or if none exists, we proceed.
         // For simplicity, let's always generate a new one if requested via POST, 
@@ -63,7 +63,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Generate a unique reference ID
-        const referenceId = `RECOM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+        // Use the diagnosis reference ID as base if available to keep official assets consistent
+        let referenceId = `RECOM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+        if (diagnosis && (diagnosis as { referenceId?: string }).referenceId) {
+            const baseId = (diagnosis as { referenceId: string }).referenceId.split('-').pop();
+            referenceId = `RECOM-${new Date().getFullYear()}-${baseId}`;
+        }
 
         // Save recommendation
         const recommendation = await Recommendation.create({

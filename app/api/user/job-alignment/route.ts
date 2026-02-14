@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
             language
         );
 
-        const referenceId = `ALIGN-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+        let referenceId = `ALIGN-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+        if (diagnosis && (diagnosis as { referenceId?: string }).referenceId) {
+            const baseId = (diagnosis as { referenceId: string }).referenceId.split('-').pop();
+            referenceId = `ALIGN-${new Date().getFullYear()}-${baseId}`;
+        }
 
         const alignment = await JobAlignment.create({
             userId,

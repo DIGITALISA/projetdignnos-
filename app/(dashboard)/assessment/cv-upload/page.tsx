@@ -163,89 +163,172 @@ export default function CVUploadPage() {
     }, [router]);
 
     const handleDownloadReport = async () => {
-        if (!resultsRef.current) return;
-
+        if (!analysisResult) return;
         setIsDownloading(true);
+
         try {
-            // 1. Clone the results element to manipulate it safely
-            const element = resultsRef.current;
-            const clone = element.cloneNode(true) as HTMLElement;
+            // 1. Create a dedicated container
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            container.style.width = '800px'; 
+            container.style.backgroundColor = '#ffffff';
+            container.style.padding = '40px';
+            container.style.fontFamily = "'Tajawal', sans-serif";
+            container.style.color = '#0f172a';
 
-            // 2. Cleanup the clone: Remove the download button and other UI elements
-            const ignoreElements = clone.querySelectorAll('[data-html2canvas-ignore], button');
-            ignoreElements.forEach(el => el.remove());
+            // 2. Build Report HTML
+            container.innerHTML = `
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+                    * { box-sizing: border-box; }
+                    .page-break { page-break-inside: avoid; }
+                    .section-title { font-size: 16px; font-weight: bold; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; }
+                    .skill-tag { display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; }
+                </style>
+                <div style="font-family: 'Tajawal', sans-serif;">
+                    
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">
+                        <div>
+                            <div style="color: #2563eb; font-size: 24px; font-weight: bold;">MA-TRAINING-CONSULTING</div>
+                            <div style="color: #64748b; font-size: 14px;">Professional CV Audit</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">Analysis Report</h1>
+                            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
 
-            // 3. Robust Fix for 'lab()' and other unsupported color functions
-            // We traverse all elements and replace any color that might cause html2canvas to fail
-            const allElements = clone.querySelectorAll('*');
-            allElements.forEach(el => {
-                const htmlEl = el as HTMLElement;
-                // Force a background color if it's potentially using something weird
-                // but usually, it's enough to just let it be if we're not using lab() explicitly.
-                // However, Tailwind/Modern browsers might.
-                // Let's strip any 'lab(' from style attributes if present
-                if (htmlEl.getAttribute('style')?.includes('lab(')) {
-                    htmlEl.style.color = 'inherit';
-                    htmlEl.style.backgroundColor = 'transparent';
-                }
-            });
+                    <!-- Score & Verdict -->
+                    <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                         <div style="display: flex; gap: 20px; align-items: start;">
+                             <div style="text-align: center; padding: 15px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 120px;">
+                                 <div style="font-size: 12px; color: #64748b; text-transform: uppercase;">Overall Score</div>
+                                 <div style="font-size: 36px; font-weight: bold; color: #2563eb; line-height: 1;">${analysisResult.overallScore}</div>
+                             </div>
+                             <div style="flex: 1;">
+                                 <h2 style="font-size: 16px; color: #334155; margin-top: 0; font-style: italic;">"${analysisResult.verdict}"</h2>
+                                 <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 0;">
+                                     ${analysisResult.overview}
+                                 </p>
+                             </div>
+                         </div>
+                    </div>
 
-            // 4. Append clone to body (off-screen)
-            clone.style.position = "absolute";
-            clone.style.left = "-9999px";
-            clone.style.top = "0";
-            clone.style.width = `${element.offsetWidth}px`;
-            document.body.appendChild(clone);
+                    <!-- Strengths & Weaknesses -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <div class="page-break" style="border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px;">
+                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #166534; text-transform: uppercase;">Key Strengths</h3>
+                             <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #14532d; line-height: 1.5;">
+                                 ${analysisResult.strengths?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None identified</li>'}
+                             </ul>
+                        </div>
+                        <div class="page-break" style="border: 1px solid #fecaca; padding: 20px; border-radius: 12px;">
+                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #b91c1c; text-transform: uppercase;">Critical Weaknesses</h3>
+                             <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7f1d1d; line-height: 1.5;">
+                                 ${analysisResult.weaknesses?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None identified</li>'}
+                             </ul>
+                        </div>
+                    </div>
 
-            // 5. Capture the canvas
-            const canvas = await html2canvas(clone, {
+                    <!-- Skills -->
+                    <div class="page-break" style="margin-bottom: 30px; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                        <h3 class="section-title">Skills Assessment</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                            <div>
+                                <div style="font-size: 12px; font-weight: bold; color: #1d4ed8; margin-bottom: 8px;">Technical</div>
+                                <div>
+                                    ${analysisResult.skills?.technical?.map(s => `<span class="skill-tag" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe;">${s}</span>`).join('') || '-'}
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; font-weight: bold; color: #7e22ce; margin-bottom: 8px;">Soft Skills</div>
+                                <div>
+                                    ${analysisResult.skills?.soft?.map(s => `<span class="skill-tag" style="background: #faf5ff; color: #7e22ce; border: 1px solid #f3e8ff;">${s}</span>`).join('') || '-'}
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; font-weight: bold; color: #c2410c; margin-bottom: 8px;">Identified Gaps</div>
+                                <div>
+                                    ${analysisResult.skills?.gaps?.map(s => `<span class="skill-tag" style="background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;">${s}</span>`).join('') || '-'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experience & Education -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <div class="page-break" style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                             <h3 class="section-title">Experience</h3>
+                             <div style="font-size: 13px; margin-bottom: 5px;"><strong>Years:</strong> ${analysisResult.experience?.years}</div>
+                             <div style="font-size: 13px; margin-bottom: 5px;"><strong>Quality:</strong> <span style="color: #2563eb;">${analysisResult.experience?.quality}</span></div>
+                             <p style="font-size: 12px; color: #64748b; margin-top: 10px;">${analysisResult.experience?.progression}</p>
+                        </div>
+                        <div class="page-break" style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                             <h3 class="section-title">Education</h3>
+                             <div style="font-size: 13px; margin-bottom: 5px;"><strong>Level:</strong> ${analysisResult.education?.level}</div>
+                             <div style="font-size: 13px; margin-bottom: 5px;"><strong>Relevance:</strong> ${analysisResult.education?.relevance}</div>
+                             <p style="font-size: 12px; color: #64748b; margin-top: 10px;">${analysisResult.education?.notes}</p>
+                        </div>
+                    </div>
+
+                    <!-- Immediate Actions -->
+                    <div class="page-break" style="background-color: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 30px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1e40af;">Recommended Actions</h3>
+                        <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #1e3a8a; line-height: 1.6;">
+                             ${analysisResult.immediateActions?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>No specific actions.</li>'}
+                        </ol>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                        MA-TRAINING-CONSULTING • Artificial Intelligence HR Audit
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(container);
+
+            // 3. Capture
+            const canvas = await html2canvas(container, {
                 scale: 2,
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
-                scrollX: 0,
-                scrollY: 0,
-                onclone: (clonedDoc) => {
-                    // Final safety check on the internal clone of html2canvas
-                    const styles = clonedDoc.getElementsByTagName('style');
-                    for (let i = 0; i < styles.length; i++) {
-                        if (styles[i].innerHTML.includes('lab(')) {
-                            styles[i].innerHTML = styles[i].innerHTML.replace(/lab\([^)]+\)/g, '#000000');
-                        }
-                    }
-                }
+                windowWidth: 800
             });
 
-            // 6. Remove clone from DOM
-            document.body.removeChild(clone);
+            // 4. Cleanup
+            document.body.removeChild(container);
 
-            const imgData = canvas.toDataURL('image/png');
+            // 5. Generate PDF
+            const imgData = canvas.toDataURL('image/png', 1.0);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-
             const imgProps = pdf.getImageProperties(imgData);
             const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
             let heightLeft = imgHeight;
             let position = 0;
 
-            // Add first page
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
             heightLeft -= pdfHeight;
 
-            // Add subsequent pages if content overflows
             while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
+                position -= pdfHeight;
                 pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
                 heightLeft -= pdfHeight;
             }
 
             pdf.save(`CV-Analysis-Report-${fileName?.replace(/\s+/g, '-') || 'Expert'}.pdf`);
+
         } catch (error) {
             console.error("PDF generation failed:", error);
-            alert("Failed to generate PDF report: " + (error instanceof Error ? error.message : "Internal Error"));
+            alert("Failed to generate PDF report.");
         } finally {
             setIsDownloading(false);
         }
@@ -271,6 +354,15 @@ export default function CVUploadPage() {
             processFile(e.target.files[0]);
         }
     };
+
+interface FileUploadError extends Error {
+    details?: {
+        extractedLength: number;
+        fileName: string;
+        bufferSize: number;
+        bufferPreview: string;
+    };
+}
 
     const processFile = async (file: File) => {
         // ... existing process logic ...
@@ -307,7 +399,9 @@ export default function CVUploadPage() {
             console.log('API Response:', result);
 
             if (!response.ok) {
-                throw new Error(result.error || `Server error: ${response.status}`);
+                const errorData = new Error(result.error || `Server error: ${response.status}`) as FileUploadError;
+                errorData.details = result.details;
+                throw errorData;
             }
 
             if (result.success && result.analysis) {
@@ -332,11 +426,15 @@ export default function CVUploadPage() {
             } else {
                 throw new Error(result.error || 'Analysis failed - no data returned');
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Upload error:', error);
             setIsUploading(false);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            alert(`Failed to analyze CV: ${errorMessage}\n\nPlease try again or contact support.`);
+            
+            const uploadError = error as FileUploadError;
+            const errorMessage = uploadError.message || 'Unknown error occurred';
+            const details = uploadError.details ? `\n\nTechnical Details:\n- Extracted Text: ${uploadError.details.extractedLength} chars\n- File Size: ${(uploadError.details.bufferSize / 1024).toFixed(1)} KB\n- Buffer Preview: ${uploadError.details.bufferPreview}` : '';
+            
+            alert(`Failed to analyze CV: ${errorMessage}${details}\n\nTips:\n1. Ensure the PDF has selectable text (not a scan).\n2. Try a Word (.docx) file instead.\n3. Try exporting from Canva as "PDF Standard".`);
         }
     };
 

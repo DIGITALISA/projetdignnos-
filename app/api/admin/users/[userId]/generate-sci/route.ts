@@ -60,6 +60,11 @@ export async function POST(
             language
         );
 
+        // Ensure the Reference ID is consistent with the Diagnosis
+        if (diagnosis.referenceId) {
+            sciReport.header.referenceId = diagnosis.referenceId;
+        }
+
         // 4. Update Diagnosis with the new report (Atomic Update)
         const updated = await Diagnosis.findByIdAndUpdate(
             diagnosis._id, 

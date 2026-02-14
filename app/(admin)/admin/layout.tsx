@@ -20,7 +20,8 @@ import {
     ArrowRight,
     Briefcase,
     FileText,
-    Video
+    Video,
+    Building2
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -44,6 +45,7 @@ const adminSidebarItems = [
     { name: "Tools AI", icon: Wrench, href: "/admin/tools" },
     { name: "Workshop Manager", icon: PlayCircle, href: "/admin/training" },
     { name: "Live Briefings", icon: Video, href: "/admin/sessions" },
+    { name: "Corporate Inquiries", icon: Building2, href: "/admin/inquiries" },
     { name: "Library", icon: Library, href: "/admin/library" },
     { name: "System Settings", icon: Settings, href: "/admin/settings" },
 ];

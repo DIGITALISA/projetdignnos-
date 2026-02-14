@@ -57,10 +57,27 @@ export async function POST(req: Request) {
 
         if (type === 'create_request') {
             const { missionType } = body;
+            
+            // Try to find diagnosis for reference ID consistency
+            const Diagnosis = (await import("@/models/Diagnosis")).default;
+            const diagnosis = await Diagnosis.findOne({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                    { userId: userId.toString() }
+                ]
+            }).sort({ updatedAt: -1 });
+
+            let referenceId = `EXEC-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+            if (diagnosis && (diagnosis as { referenceId?: string }).referenceId) {
+                const baseId = (diagnosis as { referenceId: string }).referenceId.split('-').pop();
+                referenceId = `EXEC-${new Date().getFullYear()}-${baseId}`;
+            }
+
             const newSim = await Simulation.create({
                 userId,
                 missionType: missionType || 'Executive Coaching',
-                status: "requested"
+                status: "requested",
+                referenceId
             });
             return NextResponse.json({ success: true, mission: newSim });
         }
@@ -68,7 +85,21 @@ export async function POST(req: Request) {
         if (type === 'assign_mission') {
             const { missionData } = body;
 
-            // Ensure title is present, fallback if missing
+            // Try to find diagnosis for reference ID consistency
+            const Diagnosis = (await import("@/models/Diagnosis")).default;
+            const diagnosis = await Diagnosis.findOne({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                    { userId: userId.toString() }
+                ]
+            }).sort({ updatedAt: -1 });
+
+            let referenceId = `EXEC-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+            if (diagnosis && (diagnosis as { referenceId?: string }).referenceId) {
+                const baseId = (diagnosis as { referenceId: string }).referenceId.split('-').pop();
+                referenceId = `EXEC-${new Date().getFullYear()}-${baseId}`;
+            }
+
             const missionToCreate = {
                 userId,
                 title: missionData.title || "Elite Simulation Mission",
@@ -83,7 +114,8 @@ export async function POST(req: Request) {
                 missionType: missionData.missionType || 'Executive Coaching',
                 status: 'proposed',
                 duration: "90 Days",
-                difficulty: "High - Executive Level"
+                difficulty: "High - Executive Level",
+                referenceId
             };
 
             const newMission = await Simulation.create(missionToCreate);

@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Simulation from "@/models/Simulation";
 import Diagnosis from "@/models/Diagnosis";
+import CorporateInquiry from "@/models/CorporateInquiry";
 
 // Simple in-memory cache
 interface CachedStats {
@@ -11,6 +12,8 @@ interface CachedStats {
     activeTrials: number;
     completedDiagnoses: number;
     totalSimulations: number;
+    corporateReady: number;
+    totalInquiries: number;
 }
 
 let cachedStats: CachedStats | null = null;
@@ -36,13 +39,17 @@ export async function GET() {
             pendingUsers,
             activeTrials,
             completedDiagnoses,
-            totalSimulations
+            totalSimulations,
+            corporateReady,
+            totalInquiries
         ] = await Promise.all([
             User.countDocuments({ role: { $ne: 'Admin' } }),
             User.countDocuments({ status: 'Pending' }),
             User.countDocuments({ role: 'Trial User', status: 'Active' }),
             Diagnosis.countDocuments({ currentStep: 'completed' }),
-            Simulation.countDocuments({})
+            Simulation.countDocuments({}),
+            Diagnosis.countDocuments({ "completionStatus.strategicReportComplete": true }),
+            CorporateInquiry.countDocuments({})
         ]);
 
         const stats = {
@@ -50,7 +57,9 @@ export async function GET() {
             pendingUsers,
             activeTrials,
             completedDiagnoses,
-            totalSimulations
+            totalSimulations,
+            corporateReady,
+            totalInquiries
         };
 
         // Update cache

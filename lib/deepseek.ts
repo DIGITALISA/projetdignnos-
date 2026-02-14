@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { getAIConfig } from './config';
+import { AI_PROMPTS } from './ai-prompts';
 
 async function getAI() {
     const config = await getAIConfig();
@@ -239,9 +240,12 @@ export async function startStructuredInterview(cvAnalysis: unknown, language: st
             messages: [
                 {
                     role: 'system',
-                    content: `You are a senior HR manager conducting a professional CV verification interview.
+                    content: `You are an AI Executive Strategic Expert from MA-TRAINING-CONSULTING conducting a professional CV verification interview.
 
 ${languageInstruction}
+
+**YOUR IDENTITY:**
+You must identify yourself as an "AI Strategic Advisor" or "Executive Expert" from MA-TRAINING-CONSULTING. Do NOT use generic names or other company names.
 
 **YOUR ROLE:**
 You will conduct a structured interview with 15 targeted questions to:
@@ -251,7 +255,7 @@ You will conduct a structured interview with 15 targeted questions to:
 4. Understand their true skill level and experience
 
 **INTERVIEW STRUCTURE:**
-- Start with a warm, professional welcome message
+- Start with a professional welcome message where you introduce yourself as an expert from MA-TRAINING-CONSULTING.
 - Ask 15 strategic questions covering:
   * Technical skills mentioned in CV (verify depth of knowledge)
   * Work experience claims (ask for specific examples)
@@ -270,7 +274,7 @@ You will conduct a structured interview with 15 targeted questions to:
                     content: `CV Analysis: ${JSON.stringify(cvAnalysis)}
 
 Generate:
-1. A professional welcome message (2-3 sentences) explaining the interview purpose
+1. A professional welcome message (2-3 sentences) where you introduce yourself as an AI Strategic Expert from MA-TRAINING-CONSULTING and explain the interview purpose.
 2. The first strategic question to start verifying their CV
 
 Respond in JSON format:
@@ -328,7 +332,7 @@ export async function generateNextInterviewQuestion(
             messages: [
                 {
                     role: 'system',
-                    content: `You are conducting a CV verification interview.
+                    content: `You are an AI Strategic Expert from MA-TRAINING-CONSULTING conducting a CV verification interview.
 
 ${languageInstruction}
 
@@ -399,7 +403,7 @@ export async function evaluateInterview(cvAnalysis: unknown, conversationHistory
             messages: [
                 {
                     role: 'system',
-                    content: `You are a senior HR expert providing final interview evaluation.
+                    content: `You are a Senior Strategic Expert from MA-TRAINING-CONSULTING providing a final CV verification and interview evaluation.
 
 ${languageInstruction}
 
@@ -1425,5 +1429,59 @@ Draft a "Strategic Job Alignment Audit Certificate". This is a formal advisory d
     } catch (error) {
         console.error("Job Alignment Evaluation Error:", error);
         throw error;
+    }
+}
+
+export async function generateCorporateStrategicReport(
+    inquiryData: unknown,
+    candidateData: {
+        diagnosis: unknown;
+        interview: unknown;
+        simulations: unknown[];
+        expertNotes?: string;
+    },
+    language: string = 'en'
+) {
+    try {
+        const promptConfig = AI_PROMPTS.STRATEGIC_CORPORATE_REPORT;
+        const languageInstruction = promptConfig.languageInstructions[language as keyof typeof promptConfig.languageInstructions] || promptConfig.languageInstructions.en;
+
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `${promptConfig.system}\n\n${languageInstruction}`
+                },
+                {
+                    role: 'user',
+                    content: `JOB INQUIRY: ${JSON.stringify(inquiryData)}
+CANDIDATE ANALYSIS: ${JSON.stringify(candidateData.diagnosis)}
+INTERVIEW RESULTS: ${JSON.stringify(candidateData.interview)}
+SIMULATION PERF: ${JSON.stringify(candidateData.simulations)}
+EXPERT FEEDBACK: ${candidateData.expertNotes || 'No specific expert notes provided.'}
+
+Generate the Corporate Strategic Report in ${language}.`
+                }
+            ],
+            temperature: 0.3,
+            max_tokens: 2500,
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+
+        const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        return {
+            success: true,
+            report: JSON.parse(cleanedResult),
+        };
+    } catch (error) {
+        console.error('AI Corporate Report Error:', error);
+        return {
+            success: false,
+            error: 'Failed to generate corporate report',
+        };
     }
 }

@@ -16,9 +16,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CareerUpgrade.AI - Master Your Future",
-  description: "AI-Powered Career Development Platform: Assessment, Simulation, Training, and Strategy.",
+  title: "CareerUpgrade.AI | Strategic Talent Intelligence",
+  description: "Advanced AI-powered career diagnostic, professional simulations, and strategic talent evaluation for individuals and corporations.",
+  keywords: ["AI Career Coach", "Talent Intelligence", "Executive Simulation", "HR Strategic Report"],
 };
+
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 export default function RootLayout({
   children,
@@ -28,11 +31,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <LanguageProvider>
-          {children}
-          <SaleBanner />
-          <DemoDisclaimer />
-        </LanguageProvider>
+        <ToastProvider>
+          <LanguageProvider>
+            {children}
+            <SaleBanner />
+            <DemoDisclaimer />
+          </LanguageProvider>
+        </ToastProvider>
       </body>
     </html>
   );

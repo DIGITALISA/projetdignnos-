@@ -23,8 +23,8 @@ export async function POST(req: NextRequest) {
         const user = await User.findByIdAndUpdate(userId, {
             status: "Active",
             role: "Trial User",
-            isTrial: true,
-            trialExpiry: expiry
+            isTrial: true
+            // trialExpiry is omitted here so it gets set on first login
         }, { new: true });
 
         return NextResponse.json({

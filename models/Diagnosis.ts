@@ -125,7 +125,12 @@ const DiagnosisSchema = new Schema({
         time: { type: String },
         expertName: { type: String, default: "Executive Expert" },
         meetingLink: { type: String }
-    }]
+    }],
+    referenceId: {
+        type: String,
+        unique: true,
+        sparse: true
+    }
 }, {
     timestamps: true,
     strict: false, // Ensure we can save extra fields if needed

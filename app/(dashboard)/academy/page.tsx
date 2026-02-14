@@ -6,10 +6,7 @@ import {
     Sparkles,
     Loader2,
     ArrowLeft,
-    PlayCircle,
     FileText,
-    Eye,
-    Monitor,
     ArrowRight,
     Trophy,
     Award,
@@ -17,6 +14,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 interface Session {
     id: number;
@@ -45,29 +44,13 @@ interface SlideDeck {
     summary: string;
 }
 
-interface ManualSession {
-    _id: string;
-    title: string;
-    videoUrl: string;
-}
-
-interface ManualTheme {
-    _id: string;
-    title: string;
-    instructor: string;
-    status: string;
-}
-
-type SelectedTheme = (Theme | ManualTheme) & { isManual: boolean; sessions?: Session[] };
+type SelectedTheme = Theme & { sessions: Session[] };
 
 export default function AcademyPage() {
     const { dir } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [structure, setStructure] = useState<{ themes: Theme[] } | null>(null);
-    const [manualThemes, setManualThemes] = useState<ManualTheme[]>([]);
     const [selectedTheme, setSelectedTheme] = useState<SelectedTheme | null>(null);
-    const [manualSessions, setManualSessions] = useState<ManualSession[]>([]);
-    const [isLoadingManualSessions, setIsLoadingManualSessions] = useState(false);
     const [currentSlides, setCurrentSlides] = useState<SlideDeck | null>(null);
     const [generatingSlides, setGeneratingSlides] = useState<string | null>(null);
     const [activeSlide, setActiveSlide] = useState(0);
@@ -79,7 +62,7 @@ export default function AcademyPage() {
             const userId = userProfile.email || userProfile.fullName;
             const language = localStorage.getItem('selectedLanguage') || 'fr';
 
-            // Fetch AI Structure
+            // Fetch AI Structure only
             const response = await fetch('/api/user/academy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -89,13 +72,6 @@ export default function AcademyPage() {
             if (data.success) {
                 setStructure(data.structure);
             }
-
-            // Fetch Manual Courses
-            const manualRes = await fetch('/api/admin/courses');
-            const manualData = await manualRes.json();
-            if (Array.isArray(manualData)) {
-                setManualThemes(manualData.filter((c: ManualTheme) => c.status === "Published"));
-            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -103,25 +79,10 @@ export default function AcademyPage() {
         }
     };
 
-    const fetchManualSessions = async (courseId: string) => {
-        setIsLoadingManualSessions(true);
-        try {
-            const res = await fetch(`/api/admin/sessions?courseId=${courseId}`);
-            const data = await res.json();
-            if (Array.isArray(data)) setManualSessions(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoadingManualSessions(false);
-        }
+    const handleSelectTheme = (theme: Theme) => {
+        setSelectedTheme(theme);
     };
 
-    const handleSelectTheme = (theme: Theme | ManualTheme, isManual: boolean) => {
-        setSelectedTheme({ ...theme, isManual });
-        if (isManual) {
-            fetchManualSessions((theme as ManualTheme)._id);
-        }
-    };
 
     const generateSlides = async (topic: string) => {
         setGeneratingSlides(topic);
@@ -141,6 +102,108 @@ export default function AcademyPage() {
             console.error(error);
         } finally {
             setGeneratingSlides(null);
+        }
+    };
+
+    const handleDownloadDeck = async () => {
+        if (!currentSlides) return;
+        const button = document.getElementById('download-pdf-btn');
+        if (button) {
+            button.setAttribute('disabled', 'true');
+            button.innerText = 'Preparing PDF...';
+        }
+
+        const language = localStorage.getItem('selectedLanguage') || 'fr';
+
+        try {
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // Create a temporary container for rendering slides
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.top = '-9999px';
+            container.style.left = '-9999px';
+            container.style.width = '297mm'; // A4 Landscape width
+            container.style.height = '210mm'; // A4 Landscape height
+            document.body.appendChild(container);
+
+            for (let i = 0; i < currentSlides.slides.length; i++) {
+                const slide = currentSlides.slides[i];
+                
+                // Render slide HTML
+                const isRTL = language === 'ar';
+                container.innerHTML = `
+                    <div style="width: 297mm; height: 210mm; background-color: #ffffff; padding: 20mm; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; direction: ${isRTL ? 'rtl' : 'ltr'}; text-align: ${isRTL ? 'right' : 'left'};">
+                        
+                        <!-- Header -->
+                        <div style="margin-bottom: 10mm;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5mm; color: #2563eb; font-size: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; direction: ltr;">
+                                <span>SLIDE ${slide.slideNumber} / ${currentSlides.slides.length}</span>
+                                <span>MA-TRAINING CONSULTING</span>
+                            </div>
+                            <h1 style="font-size: 32px; font-weight: 900; line-height: 1.2; color: #0f172a; margin: 0;">${slide.heading}</h1>
+                        </div>
+
+                        <!-- Content Grid -->
+                        <div style="display: flex; gap: 15mm; flex: 1; flex-direction: ${isRTL ? 'row-reverse' : 'row'};">
+                            
+                            <!-- Bullets -->
+                            <div style="flex: 1;">
+                                ${slide.bullets.map(b => `
+                                    <div style="display: flex; gap: 4mm; margin-bottom: 6mm; flex-direction: ${isRTL ? 'row' : 'row'};">
+                                        <div style="width: 8px; height: 8px; background-color: #2563eb; border-radius: 50%; margin-top: 8px; flex-shrink: 0;"></div>
+                                        <p style="font-size: 16px; line-height: 1.6; color: #334155; margin: 0; font-weight: 500;">${b}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <!-- Insight -->
+                            <div style="flex: 1;">
+                                <div style="background-color: #eff6ff; border: 1px solid #dbeafe; border-radius: 20px; padding: 10mm; height: 100%; box-sizing: border-box;">
+                                    <h4 style="color: #1e3a8a; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 5mm 0;">Expert Interpretation</h4>
+                                    <p style="color: #1e40af; font-size: 16px; font-weight: 700; line-height: 1.6; font-style: italic; margin: 0;">"${slide.expertInsight}"</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="background-color: #0f172a; color: white; padding: 8mm 20mm; margin: 0 -20mm -20mm -20mm; display: flex; justify-content: space-between; align-items: center; direction: ltr;">
+                             <div style="display: flex; align-items: center; gap: 3mm;">
+                                <div style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></div>
+                                <span style="font-size: 10px; font-weight: bold; uppercase; letter-spacing: 2px; opacity: 0.8;">VISUAL: ${slide.visualKey}</span>
+                             </div>
+                             <span style="font-size: 10px; opacity: 0.5; letter-spacing: 1px;">© MA-TRAINING CONSULTING</span>
+                        </div>
+                    </div>
+                `;
+
+                // Capture
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, 297, 210);
+            }
+
+            document.body.removeChild(container);
+            pdf.save(`${currentSlides.title.replace(/\s+/g, '_')}_Deck.pdf`);
+
+        } catch (error) {
+            console.error("PDF Generation failed", error);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            if (button) {
+                button.removeAttribute('disabled');
+                button.innerText = 'Download PDF';
+            }
         }
     };
 
@@ -165,8 +228,8 @@ export default function AcademyPage() {
                 <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-3">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-600 font-black text-[10px] uppercase tracking-widest">
-                            <Monitor size={14} />
-                            Consulting Support
+                            <Sparkles size={14} />
+                            AI-Powered Learning
                         </div>
                         <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-none uppercase">
                             Strategic <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">Resources</span>
@@ -195,12 +258,12 @@ export default function AcademyPage() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
                         >
-                            {/* AI Generated Themes */}
+                            {/* AI Generated Themes Only */}
                             {structure?.themes.map((theme) => (
                                 <div
                                     key={`ai-${theme.id}`}
                                     className="group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden"
-                                    onClick={() => handleSelectTheme(theme, false)}
+                                    onClick={() => handleSelectTheme(theme)}
                                 >
                                     <div className="relative z-10 space-y-6">
                                         <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
@@ -211,38 +274,13 @@ export default function AcademyPage() {
                                             <h3 className="text-2xl font-black text-slate-900 leading-tight">{theme.title}</h3>
                                             <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2">{theme.description}</p>
                                         </div>
-                                        <div className="pt-4 flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest">
-                                            View {theme.sessions.length} modules <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
+                                        <div className="flex items-center justify-between text-blue-600 font-black text-[10px] uppercase tracking-widest border-t border-slate-50 mt-4 pt-6">
+                                            <span>{theme.sessions.length} Modules</span>
+                                            <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
                                         </div>
                                     </div>
                                     <div className="absolute top-0 right-0 p-8 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 duration-700">
                                         <FileText size={100} />
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Manual Admin Themes */}
-                            {manualThemes.map((theme) => (
-                                <div
-                                    key={`manual-${theme._id}`}
-                                    className="group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-indigo-300 transition-all cursor-pointer relative overflow-hidden"
-                                    onClick={() => handleSelectTheme(theme, true)}
-                                >
-                                    <div className="relative z-10 space-y-6">
-                                        <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-500">
-                                            <Monitor size={28} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">Expert Curated</div>
-                                            <h3 className="text-2xl font-black text-slate-900 leading-tight">{theme.title}</h3>
-                                            <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2">{theme.instructor}</p>
-                                        </div>
-                                        <div className="pt-4 flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest">
-                                            View Framework <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
-                                        </div>
-                                    </div>
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 duration-700">
-                                        <PlayCircle size={100} />
                                     </div>
                                 </div>
                             ))}
@@ -264,89 +302,54 @@ export default function AcademyPage() {
 
                             <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 md:p-16 space-y-12">
                                 <header className="space-y-4">
-                                    <div className={cn(
-                                        "inline-block px-4 py-1.5 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl",
-                                        selectedTheme.isManual ? "bg-indigo-50 text-indigo-600" : "bg-blue-50 text-blue-600"
-                                    )}>
-                                        {selectedTheme.isManual ? "Curated Framework" : "AI Generated"}
+                                    <div className="inline-block px-4 py-1.5 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl bg-blue-50 text-blue-600">
+                                        AI Generated
                                     </div>
                                     <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none uppercase">{selectedTheme.title}</h2>
                                 </header>
 
                                 <div className="grid gap-4">
-                                    {selectedTheme.isManual ? (
-                                        isLoadingManualSessions ? (
-                                            <div className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-indigo-600" /></div>
-                                        ) : manualSessions.map((session: ManualSession, idx: number) => (
-                                            <div
-                                                key={session._id}
-                                                className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-indigo-200 hover:shadow-xl transition-all"
-                                            >
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
-                                                        {idx + 1}
-                                                    </div>
+                                    {
+                                    selectedTheme.sessions.map((session: Session, idx: number) => (
+                                        <div
+                                            key={session.id}
+                                            className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all"
+                                        >
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
+                                                    0{idx + 1}
+                                                </div>
+                                                <div className="space-y-1">
                                                     <h4 className="text-xl font-black text-slate-900 tracking-tight">{session.title}</h4>
-                                                </div>
-                                                <div className="flex gap-4 mt-6 md:mt-0">
-                                                    <a
-                                                        href={session.videoUrl}
-                                                        target="_blank"
-                                                        title="Watch Session"
-                                                        className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                                                    >
-                                                        <Eye size={24} />
-                                                    </a>
-                                                    <button
-                                                        title="Download Support"
-                                                        className="w-14 h-14 bg-white border border-slate-200 text-slate-400 rounded-2xl flex items-center justify-center hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm"
-                                                    >
-                                                        <Eye size={24} />
-                                                    </button>
+                                                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                                        <Trophy size={14} /> Level: {session.level}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        ))
-                                    ) : (
-                                        selectedTheme.sessions && (selectedTheme as Theme).sessions.map((session: Session, idx: number) => (
-                                            <div
-                                                key={session.id}
-                                                className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all"
-                                            >
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
-                                                        0{idx + 1}
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <h4 className="text-xl font-black text-slate-900 tracking-tight">{session.title}</h4>
-                                                        <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                                            <Trophy size={14} /> Level: {session.level}
-                                                        </div>
-                                                    </div>
-                                                </div>
 
-                                                <button
-                                                    onClick={() => generateSlides(session.title)}
-                                                    disabled={generatingSlides === session.title}
-                                                    className={cn(
-                                                        "mt-6 md:mt-0 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all",
-                                                        generatingSlides === session.title
-                                                            ? "bg-slate-200 text-slate-400 animate-pulse"
-                                                            : "bg-slate-900 text-white hover:bg-blue-600 shadow-xl"
-                                                    )}
-                                                >
-                                                    {generatingSlides === session.title ? (
-                                                        <>
-                                                            <Loader2 className="animate-spin" size={16} /> Generating...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Sparkles size={16} /> Generate Framework
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
+                                            <button
+                                                onClick={() => generateSlides(session.title)}
+                                                disabled={generatingSlides === session.title}
+                                                className={cn(
+                                                    "mt-6 md:mt-0 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all",
+                                                    generatingSlides === session.title
+                                                        ? "bg-slate-200 text-slate-400 animate-pulse"
+                                                        : "bg-slate-900 text-white hover:bg-blue-600 shadow-xl"
+                                                )}
+                                            >
+                                                {generatingSlides === session.title ? (
+                                                    <>
+                                                        <Loader2 className="animate-spin" size={16} /> Generating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Sparkles size={16} /> Generate Framework
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    ))
+                                }
                                 </div>
                             </div>
                         </motion.div>
@@ -380,39 +383,40 @@ export default function AcademyPage() {
                                     className="bg-white w-full min-h-[60vh] md:aspect-video rounded-4xl md:rounded-[4rem] shadow-2xl overflow-hidden flex flex-col"
                                 >
                                     {/* Slide Content */}
-                                    <div className="p-6 md:p-16 flex-1 flex flex-col justify-center space-y-8 md:space-y-12">
-                                        <header className="space-y-4">
-                                            <div className="text-blue-600 font-black text-xs uppercase tracking-[0.3em]">
-                                                Slide {currentSlides.slides[activeSlide].slideNumber} / {currentSlides.slides.length}
+                                    <div className="p-6 md:p-12 h-full overflow-y-auto custom-scrollbar flex flex-col space-y-8">
+                                        <header className="space-y-4 shrink-0">
+                                            <div className="text-blue-600 font-black text-xs uppercase tracking-[0.3em] flex items-center justify-between">
+                                                <span>Slide {currentSlides.slides[activeSlide].slideNumber} / {currentSlides.slides.length}</span>
+                                                <span className="opacity-50 hidden md:inline-block">MA-TRAINING CONSULTING</span>
                                             </div>
-                                            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-tight">
                                                 {currentSlides.slides[activeSlide].heading}
                                             </h2>
                                         </header>
 
-                                        <div className="grid md:grid-cols-2 gap-8 md:gap-16">
+                                        <div className="grid md:grid-cols-2 gap-8 md:gap-12 pb-8">
                                             <div className="space-y-4 md:space-y-6">
                                                 {currentSlides.slides[activeSlide].bullets.map((bullet, i) => (
                                                     <div key={i} className="flex gap-4">
                                                         <div className="w-2 h-2 rounded-full bg-blue-600 mt-2.5 shrink-0" />
-                                                        <p className="text-lg md:text-2xl text-slate-700 font-medium leading-relaxed">{bullet}</p>
+                                                        <p className="text-lg md:text-xl text-slate-700 font-medium leading-relaxed">{bullet}</p>
                                                     </div>
                                                 ))}
                                             </div>
 
                                             <div className="space-y-8">
-                                                <div className="p-6 md:p-10 bg-blue-50 rounded-4xl md:rounded-[3rem] border border-blue-100 flex flex-col justify-between h-full relative group">
-                                                    <div className="space-y-4">
+                                                <div className="p-6 md:p-8 bg-blue-50/80 rounded-3xl border border-blue-100 flex flex-col gap-4 relative group">
+                                                    <div className="space-y-3">
                                                         <h4 className="flex items-center gap-2 font-black text-blue-900 text-xs uppercase tracking-widest">
                                                             <Sparkles size={16} className="text-blue-600" />
                                                             Expert Interpretation
                                                         </h4>
-                                                        <p className="text-blue-800 text-base md:text-lg font-bold leading-relaxed italic">
+                                                        <p className="text-blue-900 text-base md:text-lg font-bold leading-relaxed italic">
                                                             &quot;{currentSlides.slides[activeSlide].expertInsight}&quot;
                                                         </p>
                                                     </div>
-                                                    <div className="absolute bottom-10 right-10 opacity-10 group-hover:scale-110 transition-transform">
-                                                        <Award size={60} className="md:w-20 md:h-20" />
+                                                    <div className="absolute bottom-4 right-4 opacity-5">
+                                                        <Award size={80} />
                                                     </div>
                                                 </div>
                                             </div>
@@ -454,7 +458,11 @@ export default function AcademyPage() {
                                     <p className="text-white/40 text-xs font-bold tracking-widest uppercase">Official AI-Generated Support v1.0</p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <button className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                                    <button
+                                        id="download-pdf-btn"
+                                        onClick={handleDownloadDeck}
+                                        className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
                                         Download PDF
                                     </button>
                                     <button

@@ -4,12 +4,20 @@ import { useLanguage } from "@/components/providers/LanguageProvider";
 import { Info, X } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export function DemoDisclaimer() {
     const { t, dir } = useLanguage();
     const [isVisible, setIsVisible] = useState(true);
+    const pathname = usePathname();
 
-    if (!isVisible) return null;
+    // Hide on dashboard, admin, and assessment pages
+    const isRestricted = pathname?.startsWith('/dashboard') || 
+                        pathname?.startsWith('/admin') || 
+                        pathname?.includes('/assessment') ||
+                        pathname?.includes('/simulation');
+    
+    if (isRestricted || !isVisible) return null;
 
     return (
         <AnimatePresence>
@@ -20,7 +28,7 @@ export function DemoDisclaimer() {
                 className={`fixed bottom-6 ${dir === 'rtl' ? 'right-6' : 'left-6'} z-40 max-w-sm`}
             >
                 <div className="bg-amber-50 border border-amber-200 shadow-lg rounded-xl p-4 flex items-start gap-3">
-                    <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                         <p className="text-amber-800 text-sm font-medium leading-relaxed">
                             {t.demoDisclaimer?.text}
@@ -28,7 +36,7 @@ export function DemoDisclaimer() {
                     </div>
                     <button
                         onClick={() => setIsVisible(false)}
-                        className="text-amber-400 hover:text-amber-700 transition:-colors ml-1"
+                        className="text-amber-400 hover:text-amber-700 transition-colors ml-1"
                     >
                         <X className="w-4 h-4" />
                     </button>

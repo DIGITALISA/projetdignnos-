@@ -331,10 +331,12 @@ export default function UserProfileReview() {
                                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
                                     <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Candidate Benchmark</p>
                                     <h4 className="text-xl font-bold flex items-center gap-2">
-                                        {userData.interviewResult?.evaluation?.seniorityLevel || "Pending Evaluation"}
-                                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                        {userData.interviewResult?.evaluation?.seniorityLevel || "Pending Analysis"}
+                                        <div className={`w-2 h-2 rounded-full animate-pulse ${userData.interviewResult ? 'bg-emerald-500' : 'bg-blue-500'}`} />
                                     </h4>
-                                    <p className="text-xs text-slate-400 mt-2 font-medium">Verified seniority level based on technical verification rounds.</p>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">
+                                        {userData.interviewResult ? "Verified seniority level based on technical verification rounds." : "Waiting for candidate to complete diagnostic process."}
+                                    </p>
                                 </div>
                                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
                                     <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Strategic Fit</p>
@@ -350,7 +352,7 @@ export default function UserProfileReview() {
                                     AI-Driven Case Synthesis
                                 </h4>
                                 <div className="p-8 bg-linear-to-br from-indigo-500/10 to-blue-500/10 border border-white/5 rounded-4xl text-sm leading-relaxed text-slate-300 font-medium italic">
-                                    {userData.interviewResult?.evaluation?.expertCaseSummary || userData.interviewResult?.evaluation?.executiveSummary || "Case synthesis in progress. Awaiting full simulation completion for technical synchronization."}
+                                    {userData.interviewResult?.evaluation?.expertCaseSummary || userData.interviewResult?.evaluation?.executiveSummary || "Case synthesis unavailable. Awaiting diagnostic completion and expert synchronization."}
                                 </div>
                             </div>
 
@@ -496,23 +498,27 @@ export default function UserProfileReview() {
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-end mb-3">
                                         <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Global Rank</p>
-                                        <span className="text-3xl font-black text-indigo-900">{diagnosis?.report?.rank || "S"}</span>
+                                        <span className="text-3xl font-black text-indigo-900">{diagnosis?.report?.rank || "—"}</span>
                                     </div>
                                     <div className="w-full h-2 bg-indigo-200 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: '85%' }} />
+                                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: diagnosis?.report?.rank ? '85%' : '0%' }} />
                                     </div>
-                                    <p className="text-[9px] font-bold text-indigo-500 mt-3 uppercase">Readiness: {diagnosis?.report?.readinessLevel || 0}%</p>
+                                    <p className="text-[9px] font-bold text-indigo-500 mt-3 uppercase">
+                                        {diagnosis?.report ? `Readiness: ${diagnosis.report.readinessLevel}%` : "Diagnostic Incomplete"}
+                                    </p>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                     <span className="text-xs font-bold text-slate-600">Technical Score</span>
-                                    <span className="text-sm font-black text-slate-900">{diagnosis?.report?.overallScore || 0}/10</span>
+                                    <span className="text-sm font-black text-slate-900">{diagnosis?.report?.overallScore !== undefined ? `${diagnosis.report.overallScore}/10` : "—"}</span>
                                 </div>
                                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                     <span className="text-xs font-bold text-slate-600">Behavioral Fit</span>
-                                    <span className="text-sm font-black text-blue-600">Optimized</span>
+                                    <span className={`text-sm font-black ${diagnosis ? 'text-blue-600' : 'text-slate-400'}`}>
+                                        {diagnosis ? "Optimized" : "Pending"}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -574,7 +580,11 @@ export default function UserProfileReview() {
                                     <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
                                         <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] mb-4">Internal Expert Context</h4>
                                         <p className="text-sm italic text-amber-900 leading-relaxed font-medium">
-                                            &quot;Candidate shows high potential in {userData.user?.selectedRole}, but needs to bridge the gap between theoretical knowledge and operational execution found in simulations.&quot;
+                                            {diagnosis ? (
+                                                `Candidate shows high potential in ${userData.user?.selectedRole || 'their domain'}, but needs to bridge the gap between theoretical knowledge and operational execution found in simulations.`
+                                            ) : (
+                                                "Contextual analysis pending completion of diagnostic assessment modules."
+                                            )}
                                         </p>
                                     </div>
                                     <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100">
@@ -602,31 +612,37 @@ export default function UserProfileReview() {
                                 <div className="space-y-4">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recommended Workshops</p>
                                     <div className="space-y-3">
-                                        {(userData.interviewResult?.evaluation?.expertAdvice?.suggestedWorkshops || diagnosis?.analysis?.expertAdvice?.suggestedWorkshops || [
+                                        {(userData.interviewResult?.evaluation?.expertAdvice?.suggestedWorkshops || diagnosis?.analysis?.expertAdvice?.suggestedWorkshops || (diagnosis ? [
                                             "Advanced Case Resolution Simulation",
                                             "Stakeholder Management in High-Stakes Environments",
                                             "Technical Gap-Bridge Masterclass"
-                                        ]).map((workshop, i) => (
+                                        ] : [])).map((workshop, i) => (
                                             <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
                                                 <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-400 font-bold text-xs">{i+1}</div>
                                                 <span className="text-sm font-medium">{workshop}</span>
                                             </div>
                                         ))}
+                                        {!diagnosis && (
+                                            <p className="text-xs text-slate-500 italic">Awaiting diagnostic results to generate workshop roadmap...</p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Training Modules</p>
                                     <div className="space-y-3">
-                                        {(userData.interviewResult?.evaluation?.expertAdvice?.suggestedTrainings || diagnosis?.analysis?.expertAdvice?.suggestedTrainings || [
+                                        {(userData.interviewResult?.evaluation?.expertAdvice?.suggestedTrainings || diagnosis?.analysis?.expertAdvice?.suggestedTrainings || (diagnosis ? [
                                             "Senior-Level Strategic Alignment",
                                             "Operational Excellence Frameworks",
                                             "Leadership & Crisis Communication"
-                                        ]).map((module, i) => (
+                                        ] : [])).map((module, i) => (
                                             <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
                                                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 font-bold text-xs">{String.fromCharCode(65+i)}</div>
                                                 <span className="text-sm font-medium">{module}</span>
                                             </div>
                                         ))}
+                                        {!diagnosis && (
+                                            <p className="text-xs text-slate-500 italic">Awaiting diagnostic results to define training architecture...</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -643,14 +659,20 @@ export default function UserProfileReview() {
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                                     <span className="text-xs font-bold text-indigo-700">Evolution Rating</span>
-                                    <span className="text-xl font-black text-indigo-800">+12%</span>
+                                    <span className="text-xl font-black text-indigo-800">{diagnosis ? "+12%" : "—"}</span>
                                 </div>
                                 <p className="text-xs text-slate-500 font-medium leading-relaxed italic">
-                                    &quot;Analysis dynamically updates based on the latest simulation outcomes and diagnostic retakes. Currently showing optimal path for {userData.user?.selectedRole}.&quot;
+                                    {diagnosis ? (
+                                        `Analysis dynamically updates based on the latest simulation outcomes and diagnostic retakes. Currently showing optimal path for ${userData.user?.selectedRole || 'selected role'}.`
+                                    ) : (
+                                        "Evolution tracking will begin once the first diagnostic assessment is completed."
+                                    )}
                                 </p>
                                 <div className="pt-4 border-t border-slate-100">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Last Diagnostic Analysis</p>
-                                    <p className="text-xs font-bold text-slate-700">{new Date(diagnosis?.report ? Date.now() : Date.now()).toLocaleDateString()} - Baseline Analysis</p>
+                                    <p className="text-xs font-bold text-slate-700">
+                                        {diagnosis?.report ? `${new Date().toLocaleDateString()} - Active Baseline` : "Not yet analyzed"}
+                                    </p>
                                 </div>
                             </div>
                         </div>

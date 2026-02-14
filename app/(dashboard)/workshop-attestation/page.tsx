@@ -89,7 +89,31 @@ export default function WorkshopAttestationPage() {
             const canvas = await html2canvas(attestationRef.current, {
                 scale: 3,
                 useCORS: true,
-                backgroundColor: "#ffffff"
+                backgroundColor: "#ffffff",
+                logging: false,
+                onclone: (clonedDoc) => {
+                    // 1. Remove stubborn link tags
+                    const links = clonedDoc.getElementsByTagName('link');
+                    while (links.length > 0) {
+                        links[0].parentNode?.removeChild(links[0]);
+                    }
+
+                    // 2. Inject Safe Styles & Font
+                    const safeStyle = clonedDoc.createElement('style');
+                    safeStyle.innerHTML = `
+                        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+                        * { font-family: 'Playfair Display', serif !important; }
+                        .bg-white { background-color: #ffffff !important; }
+                        .text-slate-900 { color: #0f172a !important; }
+                        .text-slate-950 { color: #020617 !important; }
+                        .text-blue-600 { color: #2563eb !important; }
+                        .text-blue-700 { color: #1d4ed8 !important; }
+                        .font-black { font-weight: 900 !important; }
+                        .italic { font-style: italic !important; }
+                        .uppercase { text-transform: uppercase !important; }
+                    `;
+                    clonedDoc.head.appendChild(safeStyle);
+                }
             });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
@@ -104,6 +128,7 @@ export default function WorkshopAttestationPage() {
             pdf.save(`Attestation-Workshop-${workshop.referenceId}.pdf`);
         } catch (error) {
             console.error("Download failed:", error);
+            alert("Failed to generate PDF attestation.");
         } finally {
             setIsDownloading(false);
         }
@@ -164,7 +189,7 @@ export default function WorkshopAttestationPage() {
                                     <div className="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-white rotate-3 shadow-xl mb-4">
                                         <Building2 size={32} />
                                     </div>
-                                    <h4 className="text-slate-900 font-extrabold text-sm uppercase tracking-[0.5em]">CareerUpgrade</h4>
+                                    <h4 className="text-slate-900 font-extrabold text-sm uppercase tracking-[0.5em]">MA-TRAINING-CONSULTING</h4>
                                     <p className="text-blue-600/60 font-black text-[10px] uppercase tracking-[0.3em]">Cabinet de Conseil Stratégique</p>
                                 </div>
                             </div>
@@ -178,7 +203,7 @@ export default function WorkshopAttestationPage() {
 
                                 <div className="max-w-2xl mx-auto space-y-6">
                                     <p className="text-xl font-serif text-slate-500 leading-relaxed italic">
-                                        Le Cabinet CareerUpgrade certifie par la présente la participation active de
+                                        Le Cabinet MA-TRAINING-CONSULTING certifie par la présente la participation active de
                                     </p>
                                     <h2 className="text-5xl font-black text-slate-900 border-b-2 border-slate-900 inline-block pb-2 px-8">
                                         {workshop.participantName}
@@ -221,7 +246,7 @@ export default function WorkshopAttestationPage() {
                                         Signature du Consultant
                                     </div>
                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 max-w-xs leading-relaxed">
-                                        Propriété intellectuelle exclusive de CareerUpgrade.<br />
+                                        Propriété intellectuelle exclusive de MA-TRAINING-CONSULTING.<br />
                                         Vérification autorisée via le code de référence unique.
                                     </p>
                                 </div>

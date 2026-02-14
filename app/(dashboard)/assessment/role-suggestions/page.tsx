@@ -92,114 +92,93 @@ export default function RoleSuggestionsPage() {
     }, [router]);
 
     const handleDownloadReport = async () => {
-        if (!resultsRef.current) return;
-
         setIsDownloading(true);
         try {
-            // 1. Clone the element
-            const element = resultsRef.current;
-            const clone = element.cloneNode(true) as HTMLElement;
+            // 1. Create a dedicated container for the PDF
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            container.style.width = '800px'; // Fixed width for A4 consistency
+            container.style.backgroundColor = '#ffffff';
+            container.style.padding = '40px';
+            container.style.fontFamily = "'Tajawal', sans-serif";
+            container.style.color = '#0f172a';
+            
+            // 2. Prepare Data
+            const ready = roleSuggestions.filter(r => r.category?.toLowerCase() === 'ready').sort((a,b) => b.matchPercentage - a.matchPercentage);
+            const future = roleSuggestions.filter(r => r.category?.toLowerCase() === 'future').sort((a,b) => b.matchPercentage - a.matchPercentage);
 
-            // 2. Pre-process the clone before appending to DOM
-            const buttons = clone.querySelectorAll('button, [data-html2canvas-ignore]');
-            buttons.forEach(b => b.remove());
+            // 3. Build the HTML Template (Clean, Print-Optimized)
+            container.innerHTML = `
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+                    * { box-sizing: border-box; }
+                    .page-break { page-break-inside: avoid; }
+                </style>
+                <div style="font-family: 'Tajawal', sans-serif;">
+                    
+                    <!-- Header -->
+                    <div style="text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0;">
+                       <div style="background: linear-gradient(135deg, #2563eb, #1e40af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; font-weight: bold; margin-bottom: 10px;">
+                            MA-TRAINING-CONSULTING
+                       </div>
+                       <h1 style="font-size: 24px; color: #1e293b; margin: 0; font-weight: bold;">Career Path Recommendations</h1>
+                       <p style="color: #64748b; margin-top: 10px; font-size: 14px;">
+                           Generated for: Strategic Assessment • ${new Date().toLocaleDateString()}
+                       </p>
+                    </div>
 
-            // 3. Append to body off-screen
-            clone.style.position = "absolute";
-            clone.style.left = "-9999px";
-            clone.style.top = "0";
-            clone.style.width = `${element.offsetWidth}px`;
-            document.body.appendChild(clone);
+                    <!-- Introduction -->
+                    <div style="margin-bottom: 30px; background-color: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid #2563eb;">
+                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #334155;">
+                            Based on your AI-driven assessment, we have identified your optimal career paths. 
+                            <strong>Ready Now</strong> roles utilize your current strengths, while <strong>Future Goals</strong> represent strategic growth opportunities.
+                        </p>
+                    </div>
 
-            // 4. Capture with aggressive style sanitization in onclone
-            const canvas = await html2canvas(clone, {
-                scale: 2,
+                    <!-- Ready Roles Section -->
+                    ${ready.length > 0 ? `
+                    <div style="margin-bottom: 40px;">
+                        <h2 style="font-size: 20px; color: #166534; border-bottom: 1px solid #bbb; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">✅</span> Ready Now - Short Term
+                        </h2>
+                        ${ready.map(role => renderRoleCard(role, '#dcfce7', '#166534')).join('')}
+                    </div>
+                    ` : ''}
+
+                    <!-- Future Roles Section -->
+                    ${future.length > 0 ? `
+                    <div style="margin-bottom: 40px;">
+                        <h2 style="font-size: 20px; color: #9a3412; border-bottom: 1px solid #bbb; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                             <span style="font-size: 24px;">🚀</span> Future Goals - Long Term
+                        </h2>
+                        ${future.map(role => renderRoleCard(role, '#ffedd5', '#9a3412')).join('')}
+                    </div>
+                    ` : ''}
+
+                    <!-- Footer -->
+                    <div style="margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                        © ${new Date().getFullYear()} MA-TRAINING-CONSULTING • AI Career Architecture System
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(container);
+
+            // 4. Capture
+            const canvas = await html2canvas(container, {
+                scale: 2, // High resolution
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
-                onclone: (clonedDoc) => {
-                    // A. THE KILLER FIX: Remove ALL <link> tags.
-                    // This prevents html2canvas from ever trying to parse external Tailwind CSS which contains 'lab()'.
-                    const links = clonedDoc.getElementsByTagName('link');
-                    while (links.length > 0) {
-                        links[0].parentNode?.removeChild(links[0]);
-                    }
-                    // "Future Goals" are aspirational roles that might require some upskilling.
-                    // "Ready Now" roles are those where you meet most requirements today.
-                    // B. Remove all <style> tags that might contain offending colors
-                    const styles = clonedDoc.getElementsByTagName('style');
-                    const colorRegex = /(lab|oklch|oklab)\([^)]+\)/g;
-                    for (let i = styles.length - 1; i >= 0; i--) {
-                        if (colorRegex.test(styles[i].innerHTML)) {
-                            // Instead of removing, let's try to sanitize by replacement first
-                            styles[i].innerHTML = styles[i].innerHTML.replace(colorRegex, '#3b82f6');
-                        }
-                    }
-
-                    // C. Inject a "Safe Mini-Tailwind" to restore essential styling without the bloat/errors
-                    const safeStyle = clonedDoc.createElement('style');
-                    safeStyle.innerHTML = `
-                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-                        * { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
-                        .bg-white { background-color: #ffffff !important; }
-                        .text-slate-900 { color: #0f172a !important; }
-                        .text-slate-700 { color: #334155 !important; }
-                        .text-slate-600 { color: #475569 !important; }
-                        .text-slate-500 { color: #64748b !important; }
-                        .text-blue-600 { color: #2563eb !important; }
-                        .text-green-600 { color: #16a34a !important; }
-                        .text-red-600 { color: #dc2626 !important; }
-                        .bg-blue-600 { background-color: #2563eb !important; }
-                        .bg-green-100 { background-color: #dcfce7 !important; }
-                        .bg-orange-100 { background-color: #ffedd5 !important; }
-                        .bg-blue-50 { background-color: #eff6ff !important; }
-                        .bg-slate-50 { background-color: #f8fafc !important; }
-                        .border { border: 1px solid #e2e8f0 !important; }
-                        .border-2 { border: 2px solid #e2e8f0 !important; }
-                        .border-blue-200 { border-color: #bfdbfe !important; }
-                        .rounded-xl { border-radius: 0.75rem !important; }
-                        .rounded-2xl { border-radius: 1rem !important; }
-                        .rounded-full { border-radius: 9999px !important; }
-                        .p-4 { padding: 1rem !important; }
-                        .p-6 { padding: 1.5rem !important; }
-                        .mb-2 { margin-bottom: 0.5rem !important; }
-                        .mb-3 { margin-bottom: 0.75rem !important; }
-                        .mb-4 { margin-bottom: 1rem !important; }
-                        .mb-6 { margin-bottom: 1.5rem !important; }
-                        .flex { display: flex !important; }
-                        .items-center { align-items: center !important; }
-                        .justify-center { justify-content: center !important; }
-                        .grid { display: grid !important; }
-                        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-                        .gap-3 { gap: 0.75rem !important; }
-                        .gap-4 { gap: 1rem !important; }
-                        .w-full { width: 100% !important; }
-                        .h-3 { height: 0.75rem !important; }
-                        .font-bold { font-weight: 700 !important; }
-                        .text-2xl { font-size: 1.5rem !important; }
-                        .text-4xl { font-size: 2.25rem !important; }
-                        .text-sm { font-size: 0.875rem !important; }
-                        /* Fix for the match progress bar */
-                        .bg-green-600 { background-color: #16a34a !important; }
-                        .bg-orange-600 { background-color: #ea580c !important; }
-                    `;
-                    clonedDoc.head.appendChild(safeStyle);
-
-                    // D. Sanitize inline styles on all elements
-                    const allElements = clonedDoc.querySelectorAll('*');
-                    allElements.forEach(el => {
-                        const htmlEl = el as HTMLElement;
-                        const styleAttr = htmlEl.getAttribute?.('style');
-                        if (styleAttr && colorRegex.test(styleAttr)) {
-                            htmlEl.setAttribute('style', styleAttr.replace(colorRegex, '#3b82f6'));
-                        }
-                    });
-                }
+                windowWidth: 800
             });
 
             // 5. Cleanup
-            document.body.removeChild(clone);
+            document.body.removeChild(container);
 
+            // 6. Generate PDF
             const imgData = canvas.toDataURL('image/png', 1.0);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -210,11 +189,9 @@ export default function RoleSuggestionsPage() {
             let heightLeft = imgHeight;
             let position = 0;
 
-            // Add first page
             pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
             heightLeft -= pdfHeight;
 
-            // Multipage
             while (heightLeft > 0) {
                 position -= pdfHeight;
                 pdf.addPage();
@@ -222,14 +199,59 @@ export default function RoleSuggestionsPage() {
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`Career-Path-Recommendations.pdf`);
+            pdf.save(`MA-TRAINING-Career-Path-Report.pdf`);
+
         } catch (error) {
             console.error("PDF generation failed:", error);
-            alert("Failed to generate PDF report: " + (error instanceof Error ? error.message : "Internal Error"));
+            alert("Failed to generate PDF report.");
         } finally {
             setIsDownloading(false);
         }
     };
+
+    // Helper for generating report HTML string
+    const renderRoleCard = (role: RoleSuggestion, bgColor: string, accentColor: string) => `
+        <div class="page-break" style="margin-bottom: 25px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <!-- Card Header -->
+            <div style="background-color: ${bgColor}; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: bold;">${role.title}</h3>
+                <div style="background-color: #ffffff; padding: 4px 12px; border-radius: 20px; font-weight: bold; color: ${accentColor}; font-size: 14px; border: 1px solid ${accentColor}20;">
+                    ${role.matchPercentage}% Match
+                </div>
+            </div>
+            
+            <!-- Body -->
+            <div style="padding: 20px;">
+                <p style="margin: 0 0 20px 0; color: #475569; font-size: 14px; line-height: 1.5;">${role.description}</p>
+                
+                <!-- Grid Stats -->
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <div style="flex: 1; padding: 10px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 5px;">Strengths</div>
+                        <ul style="margin: 0; padding-left: 15px; font-size: 12px; color: #334155;">
+                            ${role.strengths.slice(0, 3).map(s => `<li style="margin-bottom: 2px;">${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                     <div style="flex: 1; padding: 10px; background-color: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #b91c1c; margin-bottom: 5px;">Gaps to Close</div>
+                        <ul style="margin: 0; padding-left: 15px; font-size: 12px; color: #7f1d1d;">
+                            ${role.weaknesses.slice(0, 3).map(w => `<li style="margin-bottom: 2px;">${w}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                
+                 <!-- Competencies -->
+                <div>
+                     <div style="font-size: 12px; font-weight: bold; color: #334155; margin-bottom: 8px;">Required Competencies:</div>
+                     <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                        ${role.requiredCompetencies.map(c => `
+                            <span style="background-color: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 12px; font-size: 11px; border: 1px solid #dbeafe;">${c}</span>
+                        `).join('')}
+                     </div>
+                </div>
+            </div>
+        </div>
+    `;
 
     const selectRole = async (role: RoleSuggestion) => {
         // Store locally
@@ -510,7 +532,6 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
                     <div className="flex-1">
                         <div className="flex items-center gap-3">
                             <h3 className="text-2xl font-bold text-slate-900">{role.title}</h3>
-                            <span className="text-sm font-bold text-indigo-600 shrink-0">{role.matchPercentage}% Match</span>
                             <span className={`px-3 py-1 rounded-full text-sm font-bold border ${colors.badge}`}>
                                 {role.matchPercentage}% Match
                             </span>

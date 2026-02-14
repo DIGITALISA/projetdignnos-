@@ -42,7 +42,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [canAccessRecs, setCanAccessRecs] = useState(false);
     const [canAccessScorecard, setCanAccessScorecard] = useState(false);
     const [userPlan, setUserPlan] = useState("None");
-    const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
     const [attestationStatus, setAttestationStatus] = useState("None");
     const [grantedWorkshop, setGrantedWorkshop] = useState("");
 
@@ -81,6 +80,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             items: [
                 { name: "My Subscription", icon: CreditCard, href: "/subscription" },
                 { name: t.sidebar.items.settings, icon: Settings, href: "/settings" },
+                // Admin/Moderator Link
+                ...(userRole === "Admin" || userRole === "Moderator" ? [
+                    { name: "Moderator Panel", icon: ShieldCheck, href: "/moderateur" }
+                ] : [])
             ]
         }
     ];
@@ -114,7 +117,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     setCanAccessCerts(!!profile.canAccessCertificates);
                     setCanAccessRecs(!!profile.canAccessRecommendations);
                     setCanAccessScorecard(!!profile.canAccessScorecard);
-                    setIsDiagnosisComplete(!!profile.isDiagnosisComplete);
 
                     // FETCH LATEST FROM API to sync if admin changed something
                     const userId = profile.email || profile.fullName;
@@ -126,13 +128,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 setCanAccessCerts(data.certReady);
                                 setCanAccessRecs(data.recReady);
                                 setCanAccessScorecard(data.scorecardReady);
+                                if (data.plan) setUserPlan(data.plan);
+                                if (data.role) setUserRole(data.role);
                                 
                                 // Update localStorage to stay in sync
                                 const updatedProfile = { 
                                     ...profile, 
                                     canAccessCertificates: data.certReady, 
                                     canAccessRecommendations: data.recReady,
-                                    canAccessScorecard: data.scorecardReady
+                                    canAccessScorecard: data.scorecardReady,
+                                    plan: data.plan || profile.plan,
+                                    role: data.role || profile.role
                                 };
                                 localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
                             }
@@ -221,10 +227,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             return true;
         }
 
-        // 2. If Diagnosis is NOT complete, LOCK EVERYTHING ELSE (2-8)
-        const restrictedPaths = [...permanentFreePaths, "/mentor", "/academy", "/expert", "/roadmap"];
-        if (restrictedPaths.some(p => href.startsWith(p)) && !isDiagnosisComplete) {
-            return true;
+        // 2. Sections 2, 3, 6 are PERMANENT FREE ASSETS and always open
+        if (permanentFreePaths.some(p => href.startsWith(p))) {
+            return false;
         }
         
         // Diagnosis starts unlocked but ends locked after 1h
@@ -346,14 +351,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 </div>
                                 <div className={cn("flex items-center gap-1.5 mt-0.5", dir === 'rtl' && "flex-row-reverse")}>
                                     <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse",
-                                        userRole === "Trial User" ? "bg-amber-500" : "bg-blue-500"
+                                        (userPlan === "Pro Essential" || userPlan === "Elite Full Pack") ? "bg-blue-500" :
+                                            isTrialExpired ? "bg-red-500" : "bg-amber-500"
                                     )} />
                                     <p className={cn(
                                         "text-[10px] font-bold uppercase tracking-wider",
-                                        userRole === "Trial User" && !isTrialExpired ? "text-amber-600" :
-                                            userRole === "Trial User" && isTrialExpired ? "text-red-500" : "text-blue-600"
+                                        (userPlan === "Pro Essential" || userPlan === "Elite Full Pack") ? "text-blue-600" :
+                                            isTrialExpired ? "text-red-500" : "text-amber-600"
                                     )}>
-                                        {userRole === "Trial User" ? `${isTrialExpired ? "Accès Limité" : "Essai : " + trialTimeLeft}` : t.sidebar.premium}
+                                        {(userPlan === "Pro Essential" || userPlan === "Elite Full Pack") ? t.sidebar.premium : 
+                                            `${isTrialExpired ? "Accès Limité" : "Essai : " + trialTimeLeft}`}
                                     </p>
                                 </div>
                             </div>

@@ -141,7 +141,30 @@ export default function CertificatePage() {
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
-                backgroundColor: "#ffffff"
+                backgroundColor: "#ffffff",
+                onclone: (clonedDoc) => {
+                    // 1. Remove stubborn link tags
+                    const links = clonedDoc.getElementsByTagName('link');
+                    while (links.length > 0) {
+                        links[0].parentNode?.removeChild(links[0]);
+                    }
+
+                    // 2. Inject Safe Styles & Font
+                    const safeStyle = clonedDoc.createElement('style');
+                    safeStyle.innerHTML = `
+                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+                        * { font-family: 'Tajawal', sans-serif !important; }
+                        .bg-white { background-color: #ffffff !important; }
+                        .text-slate-900 { color: #0f172a !important; }
+                        .text-slate-700 { color: #334155 !important; }
+                        .text-slate-500 { color: #64748b !important; }
+                        .text-blue-600 { color: #2563eb !important; }
+                        .border-blue-600 { border-color: #2563eb !important; }
+                        .font-black { font-weight: 900 !important; }
+                        .uppercase { text-transform: uppercase !important; }
+                    `;
+                    clonedDoc.head.appendChild(safeStyle);
+                }
             });
 
             const imgData = canvas.toDataURL('image/png');
@@ -296,12 +319,12 @@ export default function CertificatePage() {
                                             {/* Header */}
                                             <div className="flex flex-col md:flex-row justify-between items-start border-b-[0.5px] border-slate-200 pb-8 md:pb-12 gap-6 md:gap-0">
                                                 <div className="space-y-4">
-                                                    <div className="flex items-center gap-2 text-slate-900/40 font-black text-[9px] uppercase tracking-[0.6em]">
-                                                        Executive Certification Board
-                                                    </div>
                                                     <h2 className="text-3xl md:text-5xl font-serif font-black tracking-tighter text-slate-900 uppercase leading-none">
-                                                        Performance Dossier
+                                                        Strategic Capability Assessment
                                                     </h2>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">
+                                                        Comprehensive Analysis & Professional Readiness Evaluation
+                                                    </p>
                                                     <div className="flex items-center gap-3">
                                                         <div className="px-3 py-1 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
                                                             Ref: {profile.referenceId}

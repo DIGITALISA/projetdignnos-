@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
 
         const certificates = await Certificate.find({ userId }).populate('courseId').sort({ createdAt: -1 });
         return NextResponse.json(certificates);
-    } catch (error) {
+    } catch (error: unknown) {
+        console.error("Fetch Certificates Error:", error);
         return NextResponse.json({ error: "Failed to fetch certificates" }, { status: 500 });
     }
 }
@@ -31,7 +32,11 @@ export async function POST(req: NextRequest) {
         const domain = diagnosis?.analysis?.careerPaths?.[0] || "Strategic Management";
 
         // Generate a unique professional certificate ID
-        const certificateId = `WARRANT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        let certificateId = `WARRANT-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+        if (diagnosis && (diagnosis as { referenceId?: string }).referenceId) {
+            const baseId = (diagnosis as { referenceId: string }).referenceId.split('-').pop();
+            certificateId = `WARRANT-${new Date().getFullYear()}-${baseId}`;
+        }
 
         // Check if already issued
         const existing = await Certificate.findOne({ userId, courseId });
@@ -53,7 +58,8 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json(certificate, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "An unknown error occurred";
+        return NextResponse.json({ error: message }, { status: 400 });
     }
 }

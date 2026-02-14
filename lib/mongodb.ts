@@ -32,7 +32,7 @@ async function connectDB() {
         try {
             cached.conn = await cached.promise;
             return cached.conn;
-        } catch (e) {
+        } catch {
             // If promise failed, reset and try again
             cached.promise = null;
         }

@@ -78,86 +78,135 @@ export default function ResultsPage() {
     }, [router]);
 
     const handleDownloadReport = async () => {
-        if (!resultsRef.current) return;
+        if (!evaluation) return;
 
         setIsDownloading(true);
         try {
-            // 1. Clone the element
-            const element = resultsRef.current;
-            const clone = element.cloneNode(true) as HTMLElement;
+            // 1. Create a dedicated container
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            container.style.width = '800px'; 
+            container.style.backgroundColor = '#ffffff';
+            container.style.padding = '40px';
+            container.style.fontFamily = "'Tajawal', sans-serif";
+            container.style.color = '#0f172a';
 
-            // 2. Pre-process the clone
-            const ignoreElements = clone.querySelectorAll('button, [data-html2canvas-ignore], .no-print');
-            ignoreElements.forEach(el => el.remove());
+            // 2. Build Report HTML
+            container.innerHTML = `
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+                    * { box-sizing: border-box; }
+                    .page-break { page-break-inside: avoid; }
+                    .bar-container { background-color: #e2e8f0; border-radius: 99px; height: 10px; width: 100%; overflow: hidden; }
+                    .bar-fill { height: 100%; border-radius: 99px; }
+                </style>
+                <div style="font-family: 'Tajawal', sans-serif;">
+                    
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">
+                        <div>
+                            <div style="color: #2563eb; font-size: 24px; font-weight: bold;">MA-TRAINING-CONSULTING</div>
+                            <div style="color: #64748b; font-size: 14px;">Executive Assessment Center</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">Evaluation Report</h1>
+                            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
 
-            // 3. Append to body off-screen
-            clone.style.position = "absolute";
-            clone.style.left = "-9999px";
-            clone.style.top = "0";
-            clone.style.width = `${element.offsetWidth}px`;
-            document.body.appendChild(clone);
+                    <!-- Executive Summary -->
+                    <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                         <div style="display: flex; gap: 20px; align-items: start;">
+                             <div style="flex: 1;">
+                                 <h2 style="font-size: 16px; color: #334155; text-transform: uppercase; letter-spacing: 1px; margin-top: 0;">Executive Summary</h2>
+                                 <p style="font-size: 14px; line-height: 1.6; color: #0f172a; margin-bottom: 10px; font-style: italic;">
+                                     "${evaluation.summary}"
+                                 </p>
+                                 <div style="font-size: 14px; color: #2563eb; font-weight: bold;">Verdict: ${evaluation.verdict}</div>
+                             </div>
+                             <div style="text-align: center; padding: 15px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 120px;">
+                                 <div style="font-size: 12px; color: #64748b; text-transform: uppercase;">Overall Rating</div>
+                                 <div style="font-size: 36px; font-weight: bold; color: #2563eb; line-height: 1;">${evaluation.overallRating}<span style="font-size: 14px; color: #94a3b8;">/10</span></div>
+                             </div>
+                         </div>
+                    </div>
 
-            // 4. Capture with aggressive style sanitization
-            const canvas = await html2canvas(clone, {
+                    <!-- Metrics Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <!-- Accuracy -->
+                        <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                             <h3 style="margin: 0 0 15px 0; font-size: 16px;">CV Accuracy</h3>
+                             <div style="display: flex; align-items: flex-end; gap: 5px; margin-bottom: 10px;">
+                                 <span style="font-size: 32px; font-weight: bold; color: ${evaluation.accuracyScore > 70 ? '#16a34a' : '#ea580c'};">${evaluation.accuracyScore}%</span>
+                             </div>
+                             <div class="bar-container">
+                                 <div class="bar-fill" style="width: ${evaluation.accuracyScore}%; background-color: ${evaluation.accuracyScore > 70 ? '#16a34a' : '#ea580c'};"></div>
+                             </div>
+                        </div>
+                        
+                        <!-- Level -->
+                        <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                             <h3 style="margin: 0 0 15px 0; font-size: 16px;">Assessed Seniority</h3>
+                             <div style="font-size: 24px; font-weight: bold; color: #4f46e5; margin-bottom: 5px;">${evaluation.seniorityLevel || 'Professional'}</div>
+                             <p style="font-size: 12px; color: #64748b; margin: 0;">Based on technical depth and strategic awareness.</p>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analysis -->
+                    <div style="margin-bottom: 30px;">
+                        <h2 style="font-size: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; color: #0f172a;">Detailed Analysis</h2>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <!-- Strengths -->
+                            <div class="page-break">
+                                <h3 style="font-size: 14px; color: #166534; text-transform: uppercase; margin-bottom: 10px;">Confirmed Strengths</h3>
+                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155; line-height: 1.5;">
+                                    ${evaluation.cvVsReality?.confirmedStrengths?.map((s: string) => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None detected</li>'}
+                                </ul>
+                            </div>
+
+                            <!-- Areas for Improvement -->
+                            <div class="page-break">
+                                <h3 style="font-size: 14px; color: #9a3412; text-transform: uppercase; margin-bottom: 10px;">Development Areas</h3>
+                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155; line-height: 1.5;">
+                                    ${evaluation.skillDevelopmentPriorities?.map((s: string) => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None detected</li>'}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Improvement Plan -->
+                    <div class="page-break" style="background-color: #fffbeb; padding: 25px; border-radius: 12px; border: 1px solid #fcd34d;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #92400e;">Recommended Actions</h3>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #78350f;">
+                             ${evaluation.cvImprovements?.map((s: string) => `<li style="margin-bottom: 8px;">${s}</li>`).join('') || '<li>No specific improvements needed.</li>'}
+                        </ul>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                        MA-TRAINING-CONSULTING • Confidential Evaluation Report
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(container);
+
+            // 3. Capture
+            const canvas = await html2canvas(container, {
                 scale: 2,
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
-                onclone: (clonedDoc) => {
-                    // Fix for modern CSS functions like lab()
-                    const links = clonedDoc.getElementsByTagName('link');
-                    while (links.length > 0) {
-                        links[0].parentNode?.removeChild(links[0]);
-                    }
-
-                    const styles = clonedDoc.getElementsByTagName('style');
-                    const colorRegex = /(lab|oklch|oklab)\([^)]+\)/g;
-                    for (let i = styles.length - 1; i >= 0; i--) {
-                        if (colorRegex.test(styles[i].innerHTML)) {
-                            styles[i].innerHTML = styles[i].innerHTML.replace(colorRegex, '#3b82f6');
-                        }
-                    }
-
-                    // Safe style injection
-                    const safeStyle = clonedDoc.createElement('style');
-                    safeStyle.innerHTML = `
-                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-                        * { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
-                        .bg-white { background-color: #ffffff !important; }
-                        .text-slate-900 { color: #0f172a !important; }
-                        .text-slate-700 { color: #334155 !important; }
-                        .text-slate-600 { color: #475569 !important; }
-                        .text-blue-600 { color: #2563eb !important; }
-                        .bg-blue-600 { background-color: #2563eb !important; }
-                        .bg-blue-50 { background-color: #eff6ff !important; }
-                        .bg-slate-50 { background-color: #f8fafc !important; }
-                        .border { border: 1px solid #e2e8f0 !important; }
-                        .rounded-xl { border-radius: 0.75rem !important; }
-                        .rounded-2xl { border-radius: 1rem !important; }
-                        .p-4 { padding: 1rem !important; }
-                        .p-6 { padding: 1.5rem !important; }
-                        .mb-4 { margin-bottom: 1rem !important; }
-                        .flex { display: flex !important; }
-                        .items-center { align-items: center !important; }
-                        .grid { display: grid !important; }
-                        .gap-6 { gap: 1.5rem !important; }
-                        .font-bold { font-weight: 700 !important; }
-                    `;
-                    clonedDoc.head.appendChild(safeStyle);
-
-                    const allElements = clonedDoc.querySelectorAll('*');
-                    allElements.forEach(el => {
-                        const htmlEl = el as HTMLElement;
-                        const styleAttr = htmlEl.getAttribute?.('style');
-                        if (styleAttr && colorRegex.test(styleAttr)) {
-                            htmlEl.setAttribute('style', styleAttr.replace(colorRegex, '#3b82f6'));
-                        }
-                    });
-                }
+                windowWidth: 800
             });
 
-            document.body.removeChild(clone);
+            // 4. Cleanup
+            document.body.removeChild(container);
 
+            // 5. Generate PDF
             const imgData = canvas.toDataURL('image/png', 1.0);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -178,7 +227,8 @@ export default function ResultsPage() {
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`Interview-Evaluation-Results.pdf`);
+            pdf.save(`MA-TRAINING-Evaluation-Report.pdf`);
+
         } catch (error) {
             console.error("PDF generation failed:", error);
             alert("Failed to generate PDF report.");
@@ -459,10 +509,10 @@ export default function ResultsPage() {
                             <Target className="w-6 h-6 text-purple-600" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">🎯 Next Step: Generate Your Professional Documents</h3>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">🎯 Next Step: Explore Your Career Paths</h3>
                             <p className="text-slate-700 mb-4">
-                                Ready to create your ATS-optimized CV and cover letter? Go to the <strong>Role Suggestions</strong> page,
-                                select the role that best fits you, and click <strong>&quot;Focus on This Role&quot;</strong> to start the document generation process.
+                                Ready to discover your optimal roles? Go to the <strong>Career Discovery</strong> chat,
+                                share your aspirations, and our AI will identify the best positions for your profile.
                             </p>
                             <div className="bg-white rounded-lg p-3 border border-purple-200">
                                 <p className="text-sm text-slate-600">
@@ -485,11 +535,11 @@ export default function ResultsPage() {
                     Back to Dashboard
                 </button>
                 <button
-                    onClick={() => router.push('/assessment/role-suggestions')}
+                    onClick={() => router.push('/assessment/role-discovery')}
                     className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2"
                 >
                     <Target className="w-5 h-5" />
-                    View Role Suggestions
+                    Continue to Career Discovery
                 </button>
                 <button
                     onClick={() => router.push('/assessment/cv-upload')}

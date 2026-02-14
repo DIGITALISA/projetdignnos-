@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, TrendingUp, ArrowRight } from "lucide-react";
+import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -396,55 +396,77 @@ export default function InterviewPage() {
     // Interview Complete - Show Results Preview
     if (interviewComplete && finalEvaluation) {
         return (
-            <div className="flex-1 p-8 max-w-4xl mx-auto">
+            <div className="flex-1 flex items-center justify-center p-4 md:p-8">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-6"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
                 >
-                    {/* Completion Header */}
-                    <div className="bg-linear-to-br from-green-50 to-blue-50 rounded-2xl border border-green-200 p-8 text-center">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle className="w-10 h-10 text-green-600" />
+                    {/* Header Section */}
+                    <div className="relative bg-linear-to-br from-emerald-600 to-teal-700 p-8 text-center text-white overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full opacity-20">
+                             <div className="absolute top-0 right-0 w-40 h-40 bg-white blur-3xl rounded-full" />
+                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-300 blur-3xl rounded-full" />
                         </div>
-                        <h1 className="text-3xl font-bold text-slate-900 mb-2">Interview Complete!</h1>
-                        <p className="text-slate-600">Thank you for your honest answers. Here&apos;s your evaluation summary.</p>
+
+                        <motion.div 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }} 
+                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                            className="relative w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/30 shadow-lg"
+                        >
+                            <CheckCircle className="w-10 h-10 text-white" />
+                        </motion.div>
+                        
+                        <h1 className="relative text-3xl font-bold mb-2">Interview Complete!</h1>
+                        <p className="relative text-emerald-50 text-lg">Thank you for your honest answers. Here&apos;s your evaluation summary.</p>
                     </div>
 
-                    {/* Quick Stats */}
-                    <div className="grid md:grid-cols-3 gap-4">
-                        <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
-                            <p className="text-sm text-slate-500 mb-2">CV Accuracy</p>
-                            <p className="text-3xl font-bold text-blue-600">{Number(finalEvaluation.accuracyScore)}%</p>
+                    <div className="p-8 space-y-8">
+                        {/* Quick Stats Grid */}
+                        <div className="grid md:grid-cols-3 gap-4">
+                            {[
+                                { label: "CV Accuracy", value: `${Number(finalEvaluation.accuracyScore)}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
+                                { label: "Questions Answered", value: totalQuestions, color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
+                                { label: "Overall Rating", value: `${Number(finalEvaluation.overallRating)}/10`, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" }
+                            ].map((stat, i) => (
+                                <motion.div 
+                                    key={i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 + (i * 0.1) }}
+                                    className={`${stat.bg} border rounded-2xl p-4 text-center transition-transform hover:scale-105`}
+                                >
+                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{stat.label}</p>
+                                    <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                                </motion.div>
+                            ))}
                         </div>
-                        <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
-                            <p className="text-sm text-slate-500 mb-2">Questions Answered</p>
-                            <p className="text-3xl font-bold text-purple-600">{totalQuestions}</p>
-                        </div>
-                        <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
-                            <p className="text-sm text-slate-500 mb-2">Overall Rating</p>
-                            <p className="text-3xl font-bold text-green-600">{Number(finalEvaluation.overallRating)}/10</p>
-                        </div>
-                    </div>
 
-                    {/* Summary */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">Summary</h2>
-                        <p className="text-slate-700 leading-relaxed">{String(finalEvaluation.summary)}</p>
-                    </div>
+                        {/* Summary */}
+                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                            <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                                <Sparkles className="w-5 h-5 text-amber-500" />
+                                Executive Summary
+                            </h2>
+                            <p className="text-slate-700 leading-relaxed text-base italic">
+                                &ldquo;{String(finalEvaluation.summary)}&rdquo;
+                            </p>
+                        </div>
 
-                    {/* Action Button */}
-                    <button
-                        onClick={() => {
-                            // Store evaluation for role discovery
-                            localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
-                            router.push('/assessment/role-discovery');
-                        }}
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-                    >
-                        Continue to Career Path Discovery
-                        <TrendingUp className="w-5 h-5" />
-                    </button>
+                        {/* Action Button */}
+                        <button
+                            onClick={() => {
+                                // Store evaluation for results page
+                                localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
+                                router.push('/assessment/results');
+                            }}
+                            className="group w-full py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/30 hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        >
+                            <span className="text-lg">View Full Assessment Results</span>
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
                 </motion.div>
             </div>
         );
@@ -453,36 +475,56 @@ export default function InterviewPage() {
     // Interview Chat Screen
     return (
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col items-center text-center gap-4 px-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">AI Career Interview</h1>
-                    <p className="text-slate-500">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">AI Career Interview</h1>
+                    <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto">
                         Answer honestly - we&apos;re verifying your CV and understanding your real capabilities.
                     </p>
                 </div>
 
                 {/* Progress Indicator */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
                     <div className="text-right">
-                        <p className="text-sm text-slate-500">Progress</p>
-                        <p className="text-lg font-bold text-blue-600">{currentQuestionIndex}/{totalQuestions}</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Progress</p>
+                        <p className="text-sm font-bold text-slate-700">{currentQuestionIndex} / {totalQuestions}</p>
                     </div>
-                    <div className="relative w-10 h-10 rounded-xl bg-linear-to-br from-emerald-600 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                        <div
-                            className="absolute inset-0 border-4 border-blue-600 transition-all duration-1000"
-                            style={{
-                                clipPath: `inset(${100 - Math.min(100, (currentQuestionIndex / totalQuestions) * 100)}% 0 0 0)`
-                            }}
-                        />
-                        <span className="text-lg font-bold text-slate-700 relative z-10">
-                            {Math.min(100, Math.round((currentQuestionIndex / totalQuestions) * 100))}%
-                        </span>
+                    
+                    {/* Green Frame Percentage Badge */}
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
+                         {/* Circular Progress Background */}
+                        <svg className="w-full h-full transform -rotate-90">
+                            <circle
+                                cx="50%"
+                                cy="50%"
+                                r="45%"
+                                className="stroke-slate-100 fill-none"
+                                strokeWidth="4"
+                            />
+                            <circle
+                                cx="50%"
+                                cy="50%"
+                                r="45%"
+                                className="stroke-emerald-500 fill-none transition-all duration-1000 ease-out"
+                                strokeWidth="4"
+                                strokeDasharray="283" // 2 * PI * r (approx for 45% of 100)
+                                strokeDashoffset={283 - (Math.min(100, (currentQuestionIndex / totalQuestions) * 100) / 100) * 283}
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                        
+                        {/* The Percentage Text in Green Frame */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-xs md:text-sm font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded-md border border-emerald-200">
+                                {Math.min(100, Math.round((currentQuestionIndex / totalQuestions) * 100))}%
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 overflow-y-auto mb-4">
+            <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-slate-200/60 p-4 md:p-6 overflow-y-auto mb-4 mx-2 md:mx-0">
                 <div className="space-y-6">
                     {messages.map((message, index) => (
                         <motion.div
@@ -492,24 +534,24 @@ export default function InterviewPage() {
                             transition={{ delay: index * 0.1 }}
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                            <div className={`max-w-[90%] md:max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1 text-left'}`}>
                                 {message.role === 'ai' && (
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                            <Sparkles className="w-4 h-4 text-blue-600" />
+                                    <div className="flex items-center gap-2 mb-2 ml-1">
+                                        <div className="w-6 h-6 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+                                            <Sparkles className="w-3 h-3 text-white" />
                                         </div>
-                                        <span className="text-sm font-medium text-slate-600">AI HR Expert</span>
+                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">AI Strategic Expert</span>
                                     </div>
                                 )}
 
-                                <div className={`rounded-2xl p-4 ${message.role === 'user'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-50 text-slate-900'
+                                <div className={`relative rounded-2xl p-4 md:p-5 shadow-sm border ${message.role === 'user'
+                                    ? 'bg-linear-to-br from-blue-600 to-blue-700 text-white border-blue-500 rounded-tr-none'
+                                    : 'bg-white text-slate-800 border-slate-100 rounded-tl-none'
                                     }`}>
-                                    <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                    <p className="leading-relaxed whitespace-pre-wrap text-sm md:text-[15px]">{message.content}</p>
                                 </div>
 
-                                <span className="text-xs text-slate-400 mt-1 block">
+                                <span className={`text-[10px] md:text-xs mt-1 block px-1 ${message.role === 'user' ? 'text-right text-slate-400' : 'text-left text-slate-400'}`}>
                                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
@@ -522,9 +564,9 @@ export default function InterviewPage() {
                             animate={{ opacity: 1 }}
                             className="flex justify-start"
                         >
-                            <div className="flex items-center gap-2 bg-slate-50 rounded-2xl p-4">
-                                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                                <span className="text-slate-600">AI is analyzing your answer...</span>
+                            <div className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm rounded-tl-none ml-10">
+                                <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
+                                <span className="text-slate-500 text-sm font-medium">Analysing strategic fit...</span>
                             </div>
                         </motion.div>
                     )}
@@ -534,8 +576,8 @@ export default function InterviewPage() {
             </div>
 
             {/* Input Area */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
-                <div className="flex gap-3">
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-3 md:p-5 mx-2 md:mx-0">
+                <div className="flex flex-col md:flex-row gap-3">
                     <input
                         type="text"
                         value={inputValue}
@@ -545,31 +587,37 @@ export default function InterviewPage() {
                                 handleSendMessage(e);
                             }
                         }}
-                        placeholder="Type your answer here..."
+                        placeholder={selectedLanguage === 'ar' ? "اكتب إجابتك هنا..." : "Type your answer here..."}
                         disabled={isLoading || interviewComplete}
-                        className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-900 placeholder:text-slate-400"
+                        className="w-full flex-1 px-5 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-sm md:text-base font-medium"
                     />
-                    <button
-                        onClick={handleSkipQuestion}
-                        disabled={isLoading || interviewComplete}
-                        className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        title="Skip this question"
-                    >
-                        <ArrowRight className="w-5 h-5" />
-                        {selectedLanguage === 'ar' ? 'تخطي' :
-                            selectedLanguage === 'fr' ? 'Passer' :
-                                selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
-                    </button>
-                    <button
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isLoading || interviewComplete}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <Send className="w-5 h-5" />
-                        {selectedLanguage === 'ar' ? 'إرسال' :
-                            selectedLanguage === 'fr' ? 'Envoyer' :
-                                selectedLanguage === 'es' ? 'Enviar' : 'Send'}
-                    </button>
+                    <div className="flex gap-2 shrink-0">
+                        <button
+                            onClick={handleSkipQuestion}
+                            disabled={isLoading || interviewComplete}
+                            className="flex-1 md:flex-none px-4 md:px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base"
+                            title="Skip this question"
+                        >
+                            <ArrowRight className="w-4 h-4" />
+                            <span className="hidden md:inline">
+                                {selectedLanguage === 'ar' ? 'تخطي' :
+                                selectedLanguage === 'fr' ? 'Passer' :
+                                    selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
+                            </span>
+                        </button>
+                        <button
+                            onClick={handleSendMessage}
+                            disabled={!inputValue.trim() || isLoading || interviewComplete}
+                            className="flex-1 md:flex-none px-6 md:px-8 py-3 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base"
+                        >
+                            <Send className="w-4 h-4" />
+                             <span className="hidden md:inline">
+                                {selectedLanguage === 'ar' ? 'إرسال' :
+                                selectedLanguage === 'fr' ? 'Envoyer' :
+                                    selectedLanguage === 'es' ? 'Enviar' : 'Send'}
+                            </span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Emergency Unlock - Only shows if potentially stuck */}
