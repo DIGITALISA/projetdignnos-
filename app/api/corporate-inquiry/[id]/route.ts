@@ -4,12 +4,12 @@ import CorporateInquiry from '@/models/CorporateInquiry';
 
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await dbConnect();
         const body = await req.json();
-        const { id } = params;
+        const { id } = await params;
 
         const inquiry = await CorporateInquiry.findByIdAndUpdate(
             id,
@@ -30,11 +30,11 @@ export async function PATCH(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await dbConnect();
-        const { id } = params;
+        const { id } = await params;
 
         const inquiry = await CorporateInquiry.findByIdAndDelete(id);
 
