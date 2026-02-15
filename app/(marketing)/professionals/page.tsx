@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionTemplate, useMotionValue } from "framer-motion";
 import {
     CheckCircle2,
     Zap,
@@ -12,574 +12,385 @@ import {
     ArrowRight,
     Play,
     Briefcase,
-    Check,
     FileText,
-    Download,
-    ShieldCheck,
-    Building2,
-    Scale,
-    Target,
-    LineChart
+    ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState, ReactNode } from "react";
+import { useRef, ReactNode, MouseEvent } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
-import ContractModal from "@/components/legal/ContractModal";
-import { useRouter } from "next/navigation";
 
-// Interfaces
-interface PricingTier {
-    name: string;
-    badge: string;
-    price: string;
-    duration: string;
-    features: string[];
+// --- Types & Interfaces ---
+// --- Types & Interfaces ---
+
+interface Item {
+    title: string;
+    desc: string;
 }
 
-interface CorporateTranslation {
-    feature1_title: string;
-    feature1_desc: string;
-    feature2_title: string;
-    feature2_desc: string;
-    feature3_title: string;
-    feature3_desc: string;
+interface FeatureCard {
+    title: string;
+    desc: string;
+    tags: string[];
 }
 
-interface PricingCardProps {
-    tier: PricingTier;
-    icon: ReactNode;
-    type: string;
-    featured?: boolean;
-    onSelect: (plan: { type: string } & PricingTier) => void;
-}
 
-export default function ProfessionalsPage() {
-    const { t, dir, language } = useLanguage();
-    const router = useRouter();
-    const containerRef = useRef(null);
-    const [selectedPlan, setSelectedPlan] = useState<(PricingTier & { type: string }) | null>(null);
-    const { scrollYProgress } = useScroll({ target: containerRef });
+// --- Helper Components ---
 
-    const handlePlanSelect = (plan: PricingTier & { type: string }) => {
-        if (plan.type === "trial") {
-            router.push("/auth/register");
-        } else {
-            setSelectedPlan(plan);
-        }
-    };
+// 1. Spotlight Card Effect
+function SpotlightCard({ children, className = "" }: { children: ReactNode, className?: string }) {
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
 
-    // Smooth scroll physics
-    const springScroll = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
-    
-    // Parallax effect for background elements
-    const y1 = useTransform(springScroll, [0, 1], [0, -300]);
-    const y2 = useTransform(springScroll, [0, 1], [0, -150]);
-    const rotate1 = useTransform(springScroll, [0, 1], [0, 45]);
+    function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+        const { left, top } = currentTarget.getBoundingClientRect();
+        mouseX.set(clientX - left);
+        mouseY.set(clientY - top);
+    }
 
     return (
-        <div className={cn(
-            "min-h-screen bg-[#FDFDFD] dark:bg-[#050505] selection:bg-blue-600 selection:text-white overflow-x-hidden",
-            language === 'ar' ? 'font-arabic' : 'font-sans'
-        )} dir={dir} ref={containerRef}>
-            
-            {/* 1. ATMOSPHERE & BRANDING */}
-            <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-100 mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}></div>
-            
-            <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-                <motion.div style={{ y: y1, rotate: rotate1 }} className="absolute top-[-20%] left-[-10%] w-[1200px] h-[1200px] bg-linear-to-br from-indigo-50/50 to-blue-50/0 dark:from-indigo-900/10 dark:to-transparent rounded-full blur-[150px]" />
-                <motion.div style={{ y: y2 }} className="absolute -bottom-[20%] right-[-10%] w-[1000px] h-[1000px] bg-linear-to-tl from-slate-100/80 to-transparent dark:from-slate-900/20 dark:to-transparent rounded-full blur-[120px]" />
-            </div>
-
-            {/* SECTION 1: IDENTITY & AMBITION */}
-            <div className="relative">
-                {/* 2. CINEMATIC HERO */}
-                <section className="relative min-h-[90vh] flex flex-col justify-center pt-32 pb-20 px-6 container mx-auto">
-                    <div className="max-w-[1400px] mx-auto text-center relative z-10">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                            className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl mb-12 shadow-sm hover:scale-105 transition-transform cursor-default"
-                        >
-                            <Shield className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
-                            <span className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-600 dark:text-slate-300">
-                                {t.hero.badge}
-                            </span>
-                        </motion.div>
-
-                        <h1 className="text-7xl md:text-[7rem] lg:text-[8.5rem] font-serif font-medium tracking-tighter text-slate-950 dark:text-white mb-10 leading-[0.9] lg:leading-[0.85] relative">
-                            {t.hero.titlePre} <br className="hidden md:block" />
-                            <span className="relative inline-block z-10">
-                                <span className="text-transparent bg-clip-text bg-linear-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-500">
-                                    {t.hero.titleHighlight}
-                                </span>
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: '100%' }}
-                                    transition={{ delay: 1, duration: 1.2, ease: "circOut" }}
-                                    className="absolute bottom-4 left-0 h-6 bg-blue-600/10 dark:bg-blue-500/10 -z-10 -rotate-1 rounded-full blur-sm"
-                                />
-                            </span>
-                        </h1>
-
-                        <p className="text-xl md:text-3xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto mb-16 leading-relaxed font-light tracking-wide">
-                            {t.hero.subtitle}
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                            <Link href="/auth/register" className="group relative w-full sm:w-auto px-12 py-6 bg-slate-950 dark:bg-white text-white dark:text-black rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.3)] active:scale-95 overflow-hidden">
-                                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-                                <span className="flex items-center justify-center gap-4 relative z-10">
-                                    {t.hero.ctaDashboard}
-                                    <ArrowRight className={cn("w-4 h-4 transition-transform duration-300", dir === 'rtl' ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1')} />
-                                </span>
-                            </Link>
-                            <a href="#protocol" className="w-full sm:w-auto px-12 py-6 bg-transparent border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-slate-50 dark:hover:bg-slate-900 active:scale-95 flex items-center justify-center gap-3">
-                                <Play className="w-3 h-3 fill-current" />
-                                {t.hero.ctaTour}
-                            </a>
-                        </div>
-                    </div>
-                </section>
-
-                {/* TARGET AUDIENCE SECTION */}
-                <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
-                    <div className="container mx-auto relative z-10">
-                        <div className="text-center mb-16">
-                            <motion.h2 
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                className="text-3xl md:text-5xl font-serif font-medium text-slate-900 dark:text-white mb-6"
-                            >
-                                {t.targetAudience.title}
-                            </motion.h2>
-                            <motion.p 
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.1 }}
-                                className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-light"
-                            >
-                                {t.targetAudience.subtitle}
-                            </motion.p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {t.targetAudience.cards.map((card: { title: string, desc: string }, index: number) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6">
-                                        <CheckCircle2 className="w-6 h-6" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{card.title}</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-light">
-                                        {card.desc}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            {/* SECTION 2: THE DIGNNOS PROTOCOL (OPERATING SYSTEM) */}
-            <div id="protocol" className="relative bg-white dark:bg-[#080808]">
-                {/* 2.1 SMART MODULES SEARCH/GRID */}
-                <section className="py-32 px-6 container mx-auto">
-                    <div className="text-center mb-24">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest mb-6"
-                        >
-                            <Zap className="w-3 h-3 fill-current" />
-                            {t.features.title}
-                        </motion.div>
-                        <motion.h2 className="text-5xl md:text-8xl font-serif font-medium text-slate-950 dark:text-white mb-8 tracking-tighter">
-                            {t.system.title}
-                        </motion.h2>
-                        <motion.p className="text-xl text-slate-500 max-w-3xl mx-auto font-light leading-relaxed">
-                            {t.system.subtitle}
-                        </motion.p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-32">
-                        {Object.entries(t.features.cards).map(([key, card]: [string, { title: string, desc: string, tags: string[] }], index: number) => (
-                            <motion.div
-                                key={key}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.05 }}
-                                className="group p-8 rounded-4xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-blue-500/30 dark:hover:border-blue-500/30 hover:shadow-2xl transition-all duration-500 flex flex-col items-start relative overflow-hidden"
-                            >
-                                <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-8 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
-                                    {key === 'diagnosis' && <Scan className="w-7 h-7" />}
-                                    {key === 'simulation' && <Play className="w-7 h-7" />}
-                                    {key === 'training' && <Briefcase className="w-7 h-7" />}
-                                    {key === 'mentor' && <Zap className="w-7 h-7" />}
-                                    {key === 'academy' && <Globe className="w-7 h-7" />}
-                                    {key === 'library' && <Shield className="w-7 h-7" />}
-                                    {key === 'expert' && <Crown className="w-7 h-7" />}
-                                    {key === 'roadmap' && <Star className="w-7 h-7" />}
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">{card.title}</h3>
-                                <div className="text-[11px] text-slate-500 dark:text-slate-400 space-y-3 mb-8">
-                                    {card.desc.split('\n').map((line: string, i: number) => {
-                                        if (line.includes('**')) {
-                                            const parts = line.split('**');
-                                            return (parts[1] && parts[2]) ? (
-                                                <p key={i} className="leading-relaxed">
-                                                    <span className="font-bold text-slate-900 dark:text-white italic">{parts[1]}</span>
-                                                    {parts[2]}
-                                                </p>
-                                            ) : <p key={i}>{line}</p>;
-                                        }
-                                        return <p key={i} className="leading-relaxed">{line}</p>;
-                                    })}
-                                </div>
-                                <div className="mt-auto flex flex-wrap gap-2">
-                                    {card.tags.map((tag: string) => (
-                                        <span key={tag} className="text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* 2.2 THE 3-PHASE JOURNEY VISUAL */}
-                    <div className="bg-slate-950 rounded-[4rem] p-10 md:p-24 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -mr-64 -mt-64"></div>
-                        <div className="relative z-10 grid lg:grid-cols-3 gap-12">
-                            {t.system.stages.map((stage: { id: string, title: string, desc: string }, i: number) => (
-                                <motion.div 
-                                    key={i}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: i * 0.2 }}
-                                    className="relative"
-                                >
-                                    <div className="text-[5rem] font-serif font-black text-white/5 leading-none mb-4 absolute -top-8 -left-4">{stage.id}</div>
-                                    <div className="relative z-10 pl-4 border-l-2 border-blue-600/30">
-                                        <h4 className="text-2xl font-serif font-medium mb-4">{stage.title}</h4>
-                                        <p className="text-slate-400 font-light leading-relaxed">{stage.desc}</p>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* 2.3 DEEP DIVE INTEGRATION (DIAGNOSIS & SIMS) */}
-                <section className="py-24 px-6 container mx-auto grid lg:grid-cols-2 gap-12">
-                    {/* Diagnosis Card */}
-                    <div className="bg-slate-50 dark:bg-slate-900/40 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 flex flex-col justify-between group">
-                         <div>
-                            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mb-8 shadow-lg shadow-blue-600/20 group-hover:rotate-12 transition-transform">
-                                <Scan size={24} />
-                            </div>
-                            <h3 className="text-3xl font-serif font-medium text-slate-900 dark:text-white mb-6 italic">{t.audit.title}</h3>
-                            <p className="text-slate-500 dark:text-slate-400 mb-10 leading-relaxed font-light">{t.audit.desc}</p>
-                         </div>
-                         <Link href="/auth/register" className="flex items-center gap-4 text-blue-600 font-black text-[10px] uppercase tracking-widest group">
-                            Explore Forensic Audit
-                            <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
-                         </Link>
-                    </div>
-
-                    {/* Simulation Card */}
-                    <div className="bg-slate-900 rounded-[3rem] p-10 text-white flex flex-col justify-between group overflow-hidden relative">
-                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                         <div className="relative z-10">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mb-8 shadow-lg shadow-indigo-600/20 group-hover:rotate-12 transition-transform">
-                                <Zap size={24} />
-                            </div>
-                            <h3 className="text-3xl font-serif font-medium mb-6 italic">{t.missions.title}</h3>
-                            <p className="text-slate-400 mb-10 leading-relaxed font-light">{t.missions.desc}</p>
-                         </div>
-                         <Link href="/auth/register" className="relative z-10 flex items-center gap-4 text-indigo-400 font-black text-[10px] uppercase tracking-widest group">
-                            Join Simulations
-                            <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
-                         </Link>
-                    </div>
-                </section>
-                
-                {/* 2.4 STRATEGIC ASSETS & DOCUMENTATION */}
-                <section className="py-32 bg-slate-50 dark:bg-slate-900/20 border-y border-slate-100 dark:border-slate-800 px-6">
-                    <div className="container mx-auto">
-                        <div className="text-center mb-24">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest mb-6"
-                            >
-                                <FileText className="w-3 h-3" />
-                                {t.assets.badge}
-                            </motion.div>
-                            <h2 className="text-4xl md:text-6xl font-serif font-medium text-slate-950 dark:text-white mb-8 tracking-tighter">
-                                {t.assets.title}
-                            </h2>
-                            <p className="text-lg text-slate-500 max-w-2xl mx-auto font-light leading-relaxed">
-                                {t.assets.desc}
-                            </p>
-                        </div>
-
-                        <div className="grid lg:grid-cols-2 gap-16 mb-32">
-                            {/* Executive Reports */}
-                            <div className="space-y-12">
-                                <h3 className="text-2xl font-serif italic text-slate-900 dark:text-white flex items-center gap-4">
-                                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-                                    {t.assets.reportsTitle}
-                                </h3>
-                                <div className="grid gap-6">
-                                    {t.assets.reports.map((item: { title: string, desc: string }, i: number) => (
-                                        <div key={i} className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-start gap-6 group">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                                <Download size={20} />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-950 dark:text-white mb-2">{item.title}</h4>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-light leading-relaxed">{item.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Official Certs */}
-                            <div className="space-y-12">
-                                <h3 className="text-2xl font-serif italic text-slate-900 dark:text-white flex items-center gap-4">
-                                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-                                    {t.assets.officialTitle}
-                                </h3>
-                                <div className="grid gap-6">
-                                    {t.assets.official.map((item: { title: string, desc: string }, i: number) => (
-                                        <div key={i} className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-start gap-6 group">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                                <ShieldCheck size={20} />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-950 dark:text-white mb-2">{item.title}</h4>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-light leading-relaxed">{item.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* FINAL WARRANT VISUAL */}
-                        <div className="max-w-4xl mx-auto">
-                            <div className="relative p-1 bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-[3rem] shadow-2xl">
-                                <div className="bg-white dark:bg-slate-950 rounded-[2.8rem] p-12 md:p-20 relative overflow-hidden">
-                                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}></div>
-                                    
-                                    <div className="flex flex-col items-center text-center relative z-10">
-                                        <div className="w-24 h-24 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center mb-10 shadow-inner">
-                                            <Shield className="w-10 h-10 text-blue-600 dark:text-blue-500" strokeWidth={1.5} />
-                                        </div>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6">{t.cert.badge}</span>
-                                        <h3 className="text-3xl md:text-5xl font-serif font-medium text-slate-950 dark:text-white mb-10 tracking-tighter italic">
-                                            {t.cert.title}
-                                        </h3>
-                                        <div className="h-px w-24 bg-blue-600/30 mb-10"></div>
-                                        <p className="text-sm font-light text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed mb-12">
-                                            {t.cert.warrant_text}
-                                        </p>
-                                        <div className="flex flex-wrap justify-center gap-12 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                                            <div className="flex items-center gap-3">
-                                                <Check className="text-blue-600 w-4 h-4" />
-                                                {t.cert.check1}
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <Check className="text-blue-600 w-4 h-4" />
-                                                {t.cert.check2}
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <Check className="text-blue-600 w-4 h-4" />
-                                                {t.cert.check3}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            {/* SECTION 3: INVESTMENT & AUTHENTICATION */}
-            <div className="relative bg-[#FDFDFD] dark:bg-[#050505] border-t border-slate-100 dark:border-slate-900">
-                {/* 3.1 CORPORATE & PRICING COMBINED FLOW */}
-                <section id="pricing" className="py-32 px-6 container mx-auto">
-                    <div className="grid lg:grid-cols-3 gap-16 items-start mb-32">
-                        {/* Summary Column */}
-                        <div className="lg:col-span-1 border-r border-slate-100 dark:border-slate-800 pr-12 h-full">
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 mb-6 block">{t.pricing.badge}</span>
-                            <h2 className="text-5xl md:text-7xl font-serif font-medium text-slate-950 dark:text-white mb-10 leading-[0.9] tracking-tighter">
-                                Investment <br /> Strategies
-                            </h2>
-                            <p className="text-lg text-slate-500 font-light leading-relaxed mb-12">
-                                {t.pricing.subtitle}
-                            </p>
-                            
-                            {/* Corporate Inquiry Quick Link */}
-                            <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
-                                <h4 className="text-lg font-bold mb-4 relative z-10">{t.corporate.badge}</h4>
-                                <p className="text-[11px] text-slate-400 font-light mb-8 relative z-10">{t.corporate.desc}</p>
-                                <a href="#corporate" className="px-6 py-3 bg-white text-slate-950 rounded-xl font-black text-[9px] uppercase tracking-widest relative z-10 hover:bg-slate-100 transition-colors inline-block">
-                                    Contact Specialist
-                                </a>
-                            </div>
-                        </div>
-
-                        {/* Pricing Cards Grid (2 cols) */}
-                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-                             {/* Trial - Discovery */}
-                            <PricingCard 
-                                tier={t.pricing.tiers.trial} 
-                                icon={<Zap className="w-8 h-8" />} 
-                                type="trial" 
-                                onSelect={handlePlanSelect} 
-                            />
-
-                             {/* Complete - Full Mandate */}
-                            <PricingCard 
-                                tier={t.pricing.tiers.complete} 
-                                icon={<ShieldCheck className="w-8 h-8" />} 
-                                type="complete" 
-                                featured
-                                onSelect={handlePlanSelect} 
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* 3.2 CORPORATE FULL DETAILS */}
-                <section id="corporate" className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800">
-                    <div className="container mx-auto">
-                        <div className="max-w-[1400px] mx-auto bg-slate-900 rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden">
-                            <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-                            <div className="grid lg:grid-cols-2 gap-20 items-center relative z-10">
-                                <div>
-                                    <h2 className="text-5xl md:text-7xl font-serif mb-10 leading-tight italic tracking-tighter">
-                                        Executive Talent <br /> Strategy
-                                    </h2>
-                                    <div className="space-y-8">
-                                        {[1, 2, 3].map((num) => (
-                                            <div key={num} className="flex gap-6 group">
-                                                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
-                                                    {num === 1 ? <Scale size={24} /> : num === 2 ? <Target size={24} /> : <LineChart size={24} />}
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xl font-bold mb-2">{(t.corporate as unknown as CorporateTranslation)[`feature${num as 1|2|3}_title` as keyof CorporateTranslation]}</h4>
-                                                    <p className="text-slate-400 text-sm font-light leading-relaxed">{(t.corporate as unknown as CorporateTranslation)[`feature${num as 1|2|3}_desc` as keyof CorporateTranslation]}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-12 rounded-[3rem] text-center">
-                                     <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
-                                        <Building2 className="w-10 h-10 text-blue-500" />
-                                     </div>
-                                     <h3 className="text-2xl font-bold mb-4">{t.corporate.title}</h3>
-                                     <p className="text-slate-400 font-light mb-10 text-sm leading-relaxed">{t.corporate.desc}</p>
-                                     <button className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/20 outline-none">
-                                        Inquire For Organization
-                                     </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-             {/* Contract Modal */}
-             {selectedPlan && (
-                <ContractModal 
-                    isOpen={!!selectedPlan}
-                    onClose={() => setSelectedPlan(null)}
-                    planType={selectedPlan.type}
-                    planName={selectedPlan.name}
-                    planPrice={selectedPlan.price}
-                    features={selectedPlan.features}
-                />
+        <div
+            className={cn(
+                "group relative border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden",
+                className
             )}
-
+            onMouseMove={handleMouseMove}
+        >
+            <motion.div
+                className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
+                style={{
+                    background: useMotionTemplate`
+            radial-gradient(
+              650px circle at ${mouseX}px ${mouseY}px,
+              rgba(59, 130, 246, 0.1),
+              transparent 80%
+            )
+          `,
+                }}
+            />
+            <div className="relative h-full">{children}</div>
         </div>
     );
 }
 
-// Helper Components
-function PricingCard({ tier, icon, type, featured, onSelect }: PricingCardProps) {
-    const { t } = useLanguage();
-    
+// --- Main Page Component ---
+export default function ProfessionalsPage() {
+    const { t, dir, language } = useLanguage();
+    const containerRef = useRef(null);
+    const { scrollYProgress } = useScroll({ target: containerRef });
+    const springScroll = useSpring(scrollYProgress, { stiffness: 50, damping: 20 });
+    const opacityHero = useTransform(springScroll, [0, 0.2], [1, 0]);
+
+    // Text Gradient for Headlines
+    const textGradient = "bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-slate-400";
+
     return (
-        <motion.div 
-            whileHover={{ y: -8 }}
+        <div 
             className={cn(
-                "p-8 rounded-4xl flex flex-col transition-all duration-500 relative overflow-hidden h-full",
-                featured ? "bg-indigo-900 text-white shadow-2xl scale-105 z-10" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-700"
-            )}
+                "min-h-screen bg-[#FAFAFA] dark:bg-[#020202] selection:bg-amber-500/30 selection:text-amber-500 overflow-x-hidden",
+                language === 'ar' ? 'font-arabic' : 'font-sans'
+            )} 
+            dir={dir} 
+            ref={containerRef}
         >
-            {featured && (
-                <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-indigo-400 via-purple-400 to-indigo-400"></div>
-            )}
             
-            <div className="mb-8 relative z-10">
-                <div className={cn("inline-flex p-3 rounded-xl mb-6", featured ? "bg-white/10 text-white" : "bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white")}>
-                    {icon}
+            {/* AMBIENT BACKGROUND - GRID PATTERN */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute inset-0 h-full w-full bg-white dark:bg-[#020202] bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px]"></div>
+                <div className="absolute left-0 right-0 top-[-10%] z-[-1] m-auto h-[500px] w-[500px] rounded-full bg-blue-500/20 dark:bg-blue-900/20 opacity-50 blur-[100px]"></div>
+                <div className="absolute right-[-10%] bottom-[-10%] z-[-1] h-[400px] w-[400px] rounded-full bg-amber-500/10 dark:bg-amber-900/10 opacity-40 blur-[80px]"></div>
+            </div>
+
+            {/* --- HERO SECTION --- */}
+            <section className="relative min-h-screen flex flex-col justify-center px-6 pt-32 pb-20 overflow-hidden">
+                <div className="container mx-auto max-w-[1400px] relative z-10 text-center">
+                    
+                    {/* Badge */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md mb-12 shadow-sm hover:border-amber-500/50 transition-colors cursor-default"
+                    >
+                        <Crown className="w-4 h-4 text-amber-500" />
+                        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300">
+                            {t.hero.badge}
+                        </span>
+                    </motion.div>
+
+                    {/* Headline */}
+                    <motion.h1 
+                        style={{ opacity: opacityHero }}
+                        className="text-6xl md:text-[7rem] lg:text-[8rem] font-serif font-medium leading-[0.9] tracking-tight mb-10 text-slate-900 dark:text-white"
+                    >
+                        {t.hero.titlePre} <br className="hidden md:block" />
+                        <span className="relative inline-block">
+                            <span className={cn(textGradient, "relative z-10")}>
+                                {t.hero.titleHighlight}
+                            </span>
+                            <motion.div 
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: 1 }}
+                                transition={{ delay: 0.8, duration: 1, ease: "circOut" }}
+                                className="absolute bottom-2 left-0 w-full h-[0.2em] bg-blue-500/10 -z-10 rounded-full origin-left"
+                            />
+                        </span>
+                    </motion.h1>
+
+                    <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4, duration: 1 }}
+                        className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto mb-16 font-light leading-relaxed"
+                    >
+                        {t.hero.subtitle}
+                    </motion.p>
+
+                    {/* CTAs */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="flex flex-col sm:flex-row items-center justify-center gap-6"
+                    >
+                        <Link href="/register" className="group relative w-full sm:w-auto px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-full overflow-hidden transition-all hover:shadow-2xl hover:shadow-blue-900/20 active:scale-95">
+                            <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <span className="relative z-10 flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-[0.2em]">
+                                {t.hero.ctaDashboard}
+                                <ArrowRight className={cn("w-4 h-4 transition-transform", dir === 'rtl' ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1')} />
+                            </span>
+                        </Link>
+                        
+                        <a href="#protocol" className="w-full sm:w-auto px-10 py-5 bg-transparent border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-full font-bold text-xs uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-900 transition-all flex items-center justify-center gap-3 active:scale-95">
+                            <Play className="w-3 h-3 fill-current" />
+                            {t.hero.ctaTour}
+                        </a>
+                    </motion.div>
                 </div>
-                <h3 className={cn("text-xl font-bold mb-1", featured ? "text-white" : "text-slate-900 dark:text-white")}>{tier.name}</h3>
-                <p className={cn("text-[10px] font-black uppercase tracking-widest", featured ? "text-indigo-200" : "text-slate-400")}>{tier.badge}</p>
-            </div>
+            </section>
 
-            <div className={cn(
-                "font-serif font-medium mb-8 leading-tight",
-                tier.price.length > 10 ? "text-2xl" : "text-4xl",
-                featured ? "text-white" : "text-slate-900 dark:text-white"
-            )}>
-                {tier.price} <span className={cn("text-xs font-sans font-bold", featured ? "text-indigo-200" : "text-slate-400")}>{tier.duration}</span>
-            </div>
-
-            <div className="space-y-4 mb-10 flex-1 relative z-10">
-                {tier.features.map((f: string, i: number) => (
-                    <div key={i} className={cn("flex items-start gap-3 text-xs font-bold leading-relaxed", featured ? "text-indigo-100" : "text-slate-500 dark:text-slate-400")}>
-                        <Check className={cn("w-4 h-4 shrink-0", featured ? "text-indigo-300" : "text-blue-600")} strokeWidth={3} /> 
-                        {f}
+            {/* --- AUDIENCE TICKER / CARDS --- */}
+            <section className="py-20 bg-white dark:bg-[#080808] border-y border-slate-100 dark:border-slate-900/50">
+                <div className="container mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {t.targetAudience.cards.map((card: Item, idx: number) => (
+                            <SpotlightCard key={idx} className="rounded-3xl p-8 hover:shadow-2xl hover:shadow-blue-900/5 dark:hover:shadow-blue-900/20 border-slate-200 dark:border-slate-800 transition-all duration-500 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                                <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6 shadow-sm">
+                                    <CheckCircle2 size={28} />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">{card.title}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                    {card.desc}
+                                </p>
+                            </SpotlightCard>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </div>
+            </section>
 
-            <button 
-                onClick={() => onSelect({ type, ...tier })}
-                className={cn(
-                    "w-full py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all relative overflow-hidden group",
-                    featured 
-                        ? "bg-white text-indigo-900 hover:bg-slate-100" 
-                        : "bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-blue-600 dark:hover:bg-slate-200"
-                )}
-            >
-                <span className="relative z-10 flex cursor-pointer items-center justify-center gap-2">
-                    {t.pricing.cta}
-                </span>
-            </button>
-        </motion.div>
+            {/* --- PROTOCOL SECTION (BENTO GRID) --- */}
+            <section id="protocol" className="py-32 px-6 bg-slate-50 dark:bg-black/50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+                
+                <div className="container mx-auto max-w-[1400px] relative z-10">
+                    <div className="mb-24 text-center max-w-4xl mx-auto">
+                        <span className="text-blue-600 dark:text-blue-400 font-black text-[10px] uppercase tracking-[0.3em] block mb-6">
+                            The Operating System
+                        </span>
+                        <h2 className="text-5xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8">
+                            {t.system.title}
+                        </h2>
+                        <p className="text-lg text-slate-500 font-light leading-relaxed">
+                            {t.system.subtitle}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {Object.entries(t.features.cards).map(([key, card]: [string, FeatureCard]) => (
+                            <SpotlightCard key={key} className="rounded-3xl p-8 min-h-[320px] flex flex-col justify-between hover:border-blue-500/30 transition-colors">
+                                <div>
+                                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white mb-8">
+                                        {key === 'diagnosis' && <Scan size={20} />}
+                                        {key === 'simulation' && <Play size={20} />}
+                                        {key === 'training' && <Briefcase size={20} />}
+                                        {key === 'mentor' && <Zap size={20} />}
+                                        {key === 'academy' && <Globe size={20} />}
+                                        {key === 'library' && <Shield size={20} />}
+                                        {key === 'expert' && <Crown size={20} />}
+                                        {key === 'roadmap' && <Star size={20} />}
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{card.title}</h3>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-light leading-relaxed line-clamp-4">
+                                        {card.desc.split('\n').map((line: string, idx: number) => {
+                                             if (line.includes('**')) {
+                                                const parts = line.split('**');
+                                                return <span key={idx}>{parts[1]} {parts[2]} </span>
+                                            }
+                                            return <span key={idx}>{line} </span>
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2 mt-6">
+                                    {card.tags.map((tag: string) => (
+                                        <span key={tag} className="px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-800 text-[9px] uppercase tracking-wider font-bold text-slate-400">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </SpotlightCard>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+             {/* --- FEATURE HIGHLIGHT (LARGE CARDS) --- */}
+             <section className="py-24 px-6 bg-linear-to-b from-white to-slate-50 dark:from-[#050505] dark:to-slate-950">
+                <div className="container mx-auto max-w-[1400px]">
+                    <div className="grid lg:grid-cols-2 gap-12">
+                        {/* Audit Card */}
+                        <div className="group relative rounded-[3rem] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-12 overflow-hidden hover:border-blue-500/50 hover:shadow-2xl transition-all duration-500">
+                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-blue-500/20"></div>
+                             <div className="relative z-10 flex flex-col h-full justify-between">
+                                <div>
+                                    <div className="mb-10 w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                        <Scan size={40} strokeWidth={1.5} />
+                                    </div>
+                                    <h3 className="text-4xl font-serif font-medium text-slate-900 dark:text-white mb-6">
+                                        {t.audit.title}
+                                    </h3>
+                                    <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-10 max-w-md text-lg">
+                                        {t.audit.desc}
+                                    </p>
+                                </div>
+                                <Link href="/register" className="inline-flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                    Start Diagnosis <ArrowRight size={16} />
+                                </Link>
+                             </div>
+                        </div>
+
+                         {/* Simulation Card */}
+                         <div className="group relative rounded-[3rem] bg-slate-900 dark:bg-black border border-slate-700 dark:border-slate-800 p-12 overflow-hidden hover:border-amber-500/50 hover:shadow-2xl hover:shadow-amber-900/20 transition-all duration-500">
+                             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-amber-500/20"></div>
+                             <div className="relative z-10 flex flex-col h-full justify-between">
+                                <div>
+                                    <div className="mb-10 w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500">
+                                        <Zap size={40} strokeWidth={1.5} />
+                                    </div>
+                                    <h3 className="text-4xl font-serif font-medium text-white mb-6">
+                                        {t.missions.title}
+                                    </h3>
+                                    <p className="text-slate-400 font-medium leading-relaxed mb-10 max-w-md text-lg">
+                                        {t.missions.desc}
+                                    </p>
+                                </div>
+                                <Link href="/register" className="inline-flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-white hover:text-amber-500 transition-colors">
+                                    Enter Simulation <ArrowRight size={16} />
+                                </Link>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+             </section>
+
+
+            <section className="py-24 px-6 bg-slate-50 dark:bg-black/50 relative overflow-hidden">
+                <div className="container mx-auto max-w-5xl relative z-10">
+                    <div className="bg-white dark:bg-[#0A0A0A] rounded-[2.5rem] p-12 md:p-16 shadow-2xl border border-slate-200 dark:border-slate-800 border-t-[6px] border-t-blue-600 dark:border-t-blue-500 relative overflow-visible">
+                        
+                        {/* Floating Badge */}
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-[0.2em] py-2 px-6 rounded-full shadow-lg shadow-blue-600/20">
+                            Verified Documentation
+                        </div>
+
+                        {/* Background Pattern */}
+                        <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none opacity-50"></div>
+                        
+                        <div className="grid md:grid-cols-2 gap-16 relative z-10">
+                            {/* Column 1 */}
+                            <div>
+                                <h3 className="flex items-center gap-4 text-2xl font-serif text-slate-900 dark:text-white mb-10">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
+                                        <FileText size={20} />
+                                    </div>
+                                    {t.assets.reportsTitle}
+                                </h3>
+                                <ul className="space-y-8">
+                                    {t.assets.reports.map((item: Item, idx: number) => (
+                                        <li key={idx} className="flex gap-4 group">
+                                            <div className="mt-1 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                <CheckCircle2 size={12} />
+                                            </div>
+                                            <div>
+                                                <h5 className="font-bold text-slate-900 dark:text-white text-sm mb-1">{item.title}</h5>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{item.desc}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Column 2 */}
+                            <div>
+                                <h3 className="flex items-center gap-4 text-2xl font-serif text-slate-900 dark:text-white mb-10">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500">
+                                        <ShieldCheck size={20} />
+                                    </div>
+                                    {t.assets.officialTitle}
+                                </h3>
+                                <ul className="space-y-8">
+                                    {t.assets.official.map((item: Item, idx: number) => (
+                                        <li key={idx} className="flex gap-4 group">
+                                            <div className="mt-1 w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                                <CheckCircle2 size={12} />
+                                            </div>
+                                            <div>
+                                                <h5 className="font-bold text-slate-900 dark:text-white text-sm mb-1">{item.title}</h5>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{item.desc}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Footer / Seal */}
+                        <div className="mt-20 pt-10 border-t border-dashed border-slate-200 dark:border-slate-800 text-center relative">
+                            <div className="absolute left-1/2 -top-6 -translate-x-1/2 bg-white dark:bg-[#0A0A0A] px-4 text-slate-300 dark:text-slate-700">
+                                <Crown size={32} className="opacity-20" />
+                            </div>
+                            <h4 className="font-serif text-3xl text-slate-900 dark:text-white mb-2 italic">Your Strategic Profile</h4>
+                            <p className="text-xs text-slate-400 uppercase tracking-widest font-medium max-w-lg mx-auto leading-relaxed">
+                                {t.assets.verifiable}
+                            </p>
+                            <div className="flex justify-center gap-8 mt-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] border border-slate-300 px-3 py-1 rounded">ISO 27001</div>
+                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] border border-slate-300 px-3 py-1 rounded">GDPR Compliant</div>
+                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] border border-slate-300 px-3 py-1 rounded">SSL Secure</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Final CTA Section */}
+            <section className="py-32 px-6 bg-slate-900 dark:bg-black text-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+                <div className="relative z-10 max-w-4xl mx-auto">
+                    <h2 className="text-5xl md:text-7xl font-serif text-white mb-8">
+                        {language === 'ar' ? 'ابدأ تحولك اليوم' : 'Start Your Transformation Today'}
+                    </h2>
+                    <p className="text-xl text-slate-400 mb-12 font-light">
+                        {language === 'ar' 
+                            ? 'انضم إلى نخبة المحترفين الذين أعادوا رسم مسارهم المهني.' 
+                            : 'Join the elite professionals who have redefined their career trajectory.'}
+                    </p>
+                    <Link href="/register" className="inline-flex px-12 py-6 bg-blue-600 text-white rounded-full font-bold text-xs uppercase tracking-[0.2em] hover:bg-blue-700 transition-all">
+                        {t.hero.ctaDashboard}
+                    </Link>
+                </div>
+            </section>
+        </div>
     );
 }
 

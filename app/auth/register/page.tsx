@@ -13,6 +13,43 @@ const currencies = [
     { code: "TND", symbol: "DT", rate: 3.35, name: "Tunisian Dinar" },
     { code: "DZD", symbol: "DA", rate: 145.50, name: "Algerian Dinar" },
     { code: "EGP", symbol: "E£", rate: 33.40, name: "Egyptian Pound" },
+    { code: "ZAR", symbol: "R", rate: 20.05, name: "South African Rand" },
+    { code: "NGN", symbol: "₦", rate: 1650.00, name: "Nigerian Naira" },
+    { code: "KES", symbol: "KSh", rate: 142.00, name: "Kenyan Shilling" },
+    { code: "GHS", symbol: "GH₵", rate: 14.20, name: "Ghanaian Cedi" },
+    { code: "XOF", symbol: "CFA", rate: 655.95, name: "West African CFA Franc" },
+    { code: "XAF", symbol: "FCFA", rate: 655.95, name: "Central African CFA Franc" },
+    { code: "ETB", symbol: "Br", rate: 62.00, name: "Ethiopian Birr" },
+    { code: "MUR", symbol: "₨", rate: 51.00, name: "Mauritian Rupee" },
+    { code: "SCR", symbol: "₨", rate: 15.20, name: "Seychellois Rupee" },
+    { code: "UGX", symbol: "USh", rate: 4100.00, name: "Ugandan Shilling" },
+    { code: "TZS", symbol: "TSh", rate: 2750.00, name: "Tanzanian Shilling" },
+    { code: "RWF", symbol: "FRW", rate: 1400.00, name: "Rwandan Franc" },
+    { code: "AOA", symbol: "Kz", rate: 900.00, name: "Angolan Kwanza" },
+    { code: "BWP", symbol: "P", rate: 14.80, name: "Botswana Pula" },
+    { code: "MWK", symbol: "MK", rate: 1850.00, name: "Malawian Kwacha" },
+    { code: "MZN", symbol: "MT", rate: 69.00, name: "Mozambican Metical" },
+    { code: "NAD", symbol: "$", rate: 20.00, name: "Namibian Dollar" },
+    { code: "ZMW", symbol: "ZK", rate: 28.50, name: "Zambian Kwacha" },
+    { code: "MGA", symbol: "Ar", rate: 5000.00, name: "Malagasy Ariary" },
+    { code: "LYD", symbol: "LD", rate: 5.25, name: "Libyan Dinar" },
+    { code: "MRU", symbol: "UM", rate: 43.00, name: "Mauritanian Ouguiya" },
+    { code: "CVE", symbol: "Esc", rate: 110.26, name: "Cape Verdean Escudo" },
+    { code: "GMD", symbol: "D", rate: 74.00, name: "Gambian Dalasi" },
+    { code: "GNF", symbol: "FG", rate: 9300.00, name: "Guinean Franc" },
+    { code: "LRD", symbol: "$", rate: 210.00, name: "Liberian Dollar" },
+    { code: "SLE", symbol: "Le", rate: 24.00, name: "Sierra Leonean Leone" },
+    { code: "BIF", symbol: "FBu", rate: 3150.00, name: "Burundian Franc" },
+    { code: "CDF", symbol: "FC", rate: 3050.00, name: "Congolese Franc" },
+    { code: "DJF", symbol: "Fdj", rate: 192.00, name: "Djiboutian Franc" },
+    { code: "KMF", symbol: "CF", rate: 491.96, name: "Comorian Franc" },
+    { code: "ERN", symbol: "Nfk", rate: 16.20, name: "Eritrean Nakfa" },
+    { code: "SZL", symbol: "L", rate: 20.00, name: "Swazi Lilangeni" },
+    { code: "LSL", symbol: "L", rate: 20.00, name: "Lesotho Loti" },
+    { code: "STN", symbol: "Db", rate: 24.50, name: "São Tomé and Príncipe Dobra" },
+    { code: "SDG", symbol: "£S", rate: 645.00, name: "Sudanese Pound" },
+    { code: "SSP", symbol: "£", rate: 1450.00, name: "South Sudanese Pound" },
+    { code: "SOS", symbol: "Sh.So.", rate: 620.00, name: "Somali Shilling" },
     { code: "SAR", symbol: "SR", rate: 4.05, name: "Saudi Riyal" },
     { code: "AED", symbol: "DH", rate: 3.97, name: "UAE Dirham" },
     { code: "QAR", symbol: "QR", rate: 3.93, name: "Qatari Riyal" },
@@ -40,7 +77,7 @@ export default function RegisterPage() {
     const [selectedDuration, setSelectedDuration] = useState(durations[0]);
     
     // Original price in EUR per month
-    const basePricePerMonth = 79;
+    const basePricePerMonth = 80;
     
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -141,11 +178,13 @@ export default function RegisterPage() {
                             </div>
                             
                             <h3 className="text-2xl font-bold mb-2">{planInfo.name}</h3>
-                            <div className="text-3xl font-black text-blue-400 mb-2">
-                                {convertedTotalPriceDisplay} {selectedCurrency.symbol}
+                            <div className="text-3xl font-black text-blue-400 mb-2 flex items-baseline gap-2">
+                                <span className="text-xs font-medium text-slate-400">À partir de</span>
+                                {convertedTotalPriceDisplay} {selectedCurrency.symbol} <span className="text-[10px] font-bold">(HT)</span>
+                                <span className="text-[10px] font-medium text-slate-500 ml-1">(Base + Diagnostic)</span>
                             </div>
                             <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-6">
-                                Total pour {selectedDuration.label} 
+                                Base pour {selectedDuration.label} 
                                 {selectedDuration.discount > 0 && (
                                     <span className="text-emerald-500 ml-2">(-{selectedDuration.discount * 100}% Inclus)</span>
                                 )}

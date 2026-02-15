@@ -21,7 +21,9 @@ import {
     Briefcase,
     FileText,
     Video,
-    Building2
+    Building2,
+    Zap,
+    UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,12 +43,14 @@ const adminSidebarItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
     { name: "Mandats", icon: FileText, href: "/admin/registrations" },
     { name: "Participants", icon: Users, href: "/admin/users" },
+    { name: "Recruitment Hub", icon: UserPlus, href: "/admin/recruitment" },
     { name: "Missions & Audits", icon: Briefcase, href: "/admin/simulations" },
     { name: "Tools AI", icon: Wrench, href: "/admin/tools" },
     { name: "Workshop Manager", icon: PlayCircle, href: "/admin/training" },
     { name: "Live Briefings", icon: Video, href: "/admin/sessions" },
     { name: "Corporate Inquiries", icon: Building2, href: "/admin/inquiries" },
     { name: "Library", icon: Library, href: "/admin/library" },
+    { name: "Marketplace Hub", icon: Zap, href: "/admin/digitalization" },
     { name: "System Settings", icon: Settings, href: "/admin/settings" },
 ];
 

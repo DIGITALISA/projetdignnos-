@@ -50,9 +50,9 @@ const plans = [
     {
         name: "Executive",
         badge: "Best Value 🔥",
-        price: "79€",
-        duration: "/ mois",
-        priceYearly: "799€/an",
+        price: "À partir de 80€ (HT)",
+        duration: "+ (Selon Diagnostic & Sessions)",
+        priceYearly: "800€/an",
         savings: "Économisez 149€",
         description: "Le choix idéal pour les leaders ambitieux qui visent l'excellence.",
         features: [

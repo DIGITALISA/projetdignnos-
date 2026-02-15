@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Sparkles, Menu, X, ChevronRight, ShieldCheck } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -18,7 +19,6 @@ export function Navbar() {
         { name: t.nav.home, href: "/" },
         { name: t.nav.professionals, href: "/professionals" },
         { name: t.nav.enterprises, href: "/digitalization" },
-        { name: t.nav.pricing, href: "/pricing" },
         { name: t.nav.verify, href: "/verification" },
     ];
 
@@ -29,10 +29,12 @@ export function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="relative h-14 w-48">
-                        <img
+                        <Image
                             src="/logo-matc.png"
                             alt="MA-TRAINING-CONSULTING"
-                            className="w-full h-full object-contain object-left"
+                            fill
+                            className="object-contain object-left"
+                            priority
                         />
                     </div>
                 </Link>

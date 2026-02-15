@@ -5,7 +5,6 @@ export const translations = {
         nav: {
             home: "Home",
             methodology: "Our Services",
-            pricing: "Pricing",
             verify: "Verify Accreditation",
             signIn: "Sign In",
             workspace: "My Workspace",
@@ -249,6 +248,9 @@ By signing below, you authorize the commencement of the strategic advisory manda
             footer_title: "Authorization of the Mandate",
             footer_desc: "A copy of this mandate will be sent to your email after digital authorization.",
             print: "Print",
+            download: "Download PDF",
+            signature_label: "Digital Signature (Type Full Name)",
+            signature_placeholder: "e.g. John Doe",
             accept: "I authorize the mandate"
         },
         footer: {
@@ -260,6 +262,101 @@ By signing below, you authorize the commencement of the strategic advisory manda
             desc: "We are constantly looking for independent consultants, experts, and trainers in all fields with extensive experience. We also need independent animators who excel in the art of public speaking, explanation, and presentation.",
             cta: "Apply as an Expert",
             close: "Close"
+        },
+        recruit: {
+            badge: "Recruitment 2026 Active",
+            titlePre: "Architect the Future of",
+            titleHighlight: "Executive Intelligence",
+            subtitle: "We are expanding our global network of elite consultants, trainers, and masters of public speaking. We seek experts, animators, and strategic partners from around the world.",
+            roles: {
+                consultant: {
+                    title: "Strategic Consultant",
+                    desc: "Experts in corporate strategy, organizational design, and market entry."
+                },
+                technical: {
+                    title: "Technical Lead",
+                    desc: "Builders of digital ecosystems and AI transformation specialists."
+                },
+                animator: {
+                    title: "Executive Animator",
+                    desc: "Masters of public speaking and explanation who command the board room."
+                },
+                partner: {
+                    title: "Strategic Partner",
+                    desc: "Collaborators and contributors for global professional development."
+                }
+            },
+            ctaInfo: "Go to Information Page",
+            howToApply: {
+                title: "Ready to Join?",
+                desc: "Send your resume and a video presentation of 2-3 minutes answering: \"How do you architect growth?\"",
+                email: "careers@careerupgrade.ai",
+                whatsapp: "WhatsApp Recruitment: +216 99 123 456",
+                button: "Transmit Assets"
+            },
+            infoPage: {
+                title: "Terms & Conditions for Experts",
+                subtitle: "Rules of Engagement & Professional Standards",
+                description: "To maintain our standard of excellence, all consultants, experts, and partners must strictly adhere to the following conditions defined by the company.",
+                conditions: [
+                    "Compliance with global advisory and ethics standards.",
+                    "Strict confidentiality regarding all client data and proprietary methodologies.",
+                    "Active participation in continuous development and peer review processes.",
+                    "Commitment to the mutual interest of the firm and the professional network.",
+                    "Adherence to the formal contract and documented operating procedures."
+                ],
+                agreement: "I have read the document and agree to follow all conditions strictly for our mutual benefit and continuous development.",
+                confirm: "Authorize Agreement"
+            },
+            form: {
+                title: "Excellence Application",
+                subtitle: "Complete your profile for strategic selection",
+                common: {
+                    fullName: "Full Name",
+                    email: "Professional Email",
+                    phone: "Contact Number",
+                    cv: "CV Link / Drive Link",
+                    video: "Presentation Video Link (YouTube/Vimeo/Drive)",
+                    videoNote: "2-3 minutes answering: 'How do you architect growth?'",
+                    submit: "Transmit Application",
+                    successTitle: "Application Transmitted",
+                    successDesc: "Your assets are being audited by our selection board."
+                },
+                roles: {
+                    expert: {
+                        label: "Expert / Consultant",
+                        domain: "Primary Domain of Expertise",
+                        experience: "Years of High-Level Experience",
+                        projects: "Notable Projects / Clients",
+                        tools: "Mastered Tools & Methodologies",
+                        motivation: "Professional Vision & Description"
+                    },
+                    employee: {
+                        label: "Permanent Employee",
+                        position: "Target Position",
+                        availability: "Availability (Notice Period)",
+                        salary: "Expected Compensation Range",
+                        education: "Highest Academic Degree",
+                        motivation: "Career Objectives & Description"
+                    },
+                    partner: {
+                        label: "Strategic Partner / Shareholder",
+                        company: "Entity Name (if applicable)",
+                        type: "Partnership Type (Equity/Resource/Client)",
+                        contribution: "Proposed Strategic Contribution",
+                        network: "Market Reach / Professional Network",
+                        motivation: "Partnership Vision & Description"
+                    },
+                    animator: {
+                        label: "Lead Animator",
+                        specialty: "Speaking Specialty",
+                        experience: "Public Speaking Record",
+                        portfolio: "Performance Portfolio Link",
+                        languages: "Languages Spoken",
+                        motivation: "Stage Methodology & Description"
+                    }
+                }
+            }
         },
         demoDisclaimer: {
             text: "This is a prototype model for demonstration purposes only, not a fully operational system."
@@ -357,46 +454,8 @@ By signing below, you authorize the commencement of the strategic advisory manda
             ctaFinal: {
                 title: "Stop Learning. Start Dominating.",
                 desc: "Join the elite professionals who have redefined their career trajectory using the Success Protocol.",
-                btnStart: "Begin My Mandate",
-                btnPlans: "View Access Plans"
+                btnStart: "Begin My Mandate"
             }
-        },
-        pricing: {
-            badge: "MEMBERSHIP PLANS",
-            title: "Propel Your Leadership Journey",
-            subtitle: "Select the mandate that centers on your professional growth and specific strategic requirements.",
-            tiers: {
-                trial: {
-                    name: "Discovery Phase",
-                    badge: "Free Diagnostic",
-                    price: "0€",
-                    duration: "/ Starter",
-                    features: [
-                        "1-Hour Expert Audit",
-                        "Live System Demonstration",
-                        "Skills Gap Identification",
-                        "Initial Performance Report",
-                        "NO Official Certification"
-                    ]
-                },
-                complete: {
-                    name: "Full Mandate",
-                    badge: "End-to-End Transformation 🔥",
-                    price: "Flexible Investment",
-                    duration: "Complete Protocol",
-                    features: [
-                        "Full Professional Transformation",
-                        "Official Advisory Dossiers (PDF)",
-                        "Verified Expert Opinions",
-                        "Direct 1-on-1 Mentorship",
-                        "Unlimited Crisis Simulations",
-                        "Global Expert Network Access"
-                    ]
-                }
-            },
-            cta: "Choose Your Mandate",
-            contact: "Inquire with an Advisor",
-            guarantee: "100% Secure Processing & Executive Invoicing"
         },
         expert: {
             title: "Expert Intelligence",
@@ -638,6 +697,39 @@ By signing below, you authorize the commencement of the strategic advisory manda
                     { title: "Action Plan", desc: "We create a step-by-step roadmap to achieve your growth goals." },
                     { title: "Execution & Training", desc: "We help you implement the strategy and train your team." }
                 ]
+            },
+            marketplace: {
+                title: "Strategic Consultation Hub",
+                subtitle: "Select a Strategic Framework. We Consult, Adapt, and Build Your Turnkey Solution.",
+                viewProject: "View Strategy",
+                startingPrice: "Consultation Start",
+                currentBid: "Current Value",
+                auctionEnds: "Exclusive Window Ends",
+                bidNow: "Secure Strategy",
+                sold: "Sold Out",
+                demo: "Live Concept",
+                details: {
+                    generalIdea: "Foundational Concept",
+                    strategy: "Strategic Roadmap",
+                    extraServices: "Implementation Services",
+                    auctionInfo: "Exclusive strategies are sold once. Includes deep strategic consulting to customize the framework and full implementation of all required modules."
+                },
+                backToProjects: "Back to Hub",
+                buyNow: "Deploy Now",
+                fixedPrice: "Asset Price",
+                categories: {
+                    all: "All Solutions",
+                    basic: "Basic Assets",
+                    pro: "Exclusive Strategies"
+                },
+                explanation: {
+                    title: "The Strategic Hub",
+                    description: "Select the foundation that matches your vision. We provide the expertise to transform these frameworks into your unique business reality.",
+                    basicTitle: "Standard Frameworks",
+                    basicDesc: "Ready-to-deploy digital structures. Includes standard setup and initial consulting to launch your presence.",
+                    proTitle: "Exclusive Transformations",
+                    proDesc: "Unique business models sold once. Includes deep strategic adaptation and end-to-end implementation of all necessary services."
+                }
             }
         },
         jobAlignment: {
@@ -674,7 +766,6 @@ By signing below, you authorize the commencement of the strategic advisory manda
         nav: {
             home: "Accueil",
             methodology: "Nos Services",
-            pricing: "Tarifs",
             verify: "Vérifier Accréditation",
             signIn: "Connexion",
             workspace: "Mon Espace",
@@ -896,7 +987,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             }
         },
         mandate: {
-            title: "MANDAT DE SERVICE",
+            title: "MANDAT DE PRESTATION",
             ref: "Réf",
             intro: "Ce document constitue le mandat stratégique formel régissant l'engagement professionnel entre le CLIENT et le Cabinet de Conseil Stratégique (MA-TRAINING-CONSULTING).",
             section1_title: "ARTICLE 1 : OBJET DU MANDAT",
@@ -918,6 +1009,9 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             footer_title: "Autorisation du Mandat",
             footer_desc: "Une copie de ce mandat sera envoyée à votre email après autorisation digitale.",
             print: "Imprimer",
+            download: "Télécharger PDF",
+            signature_label: "Signature Numérique (Nom Complet)",
+            signature_placeholder: "ex: Jean Dupont",
             accept: "J'autorise le mandat"
         },
         footer: {
@@ -929,6 +1023,101 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             desc: "Nous sommes constamment à la recherche de consultants, d'experts et de formateurs indépendants dans tous les domaines, dotés d'une grande expérience. Nous recherchons également des animateurs indépendants excellant dans l'art de la parole, de l'explication et de la présentation.",
             cta: "Postuler en tant qu'expert",
             close: "Fermer"
+        },
+        recruit: {
+            badge: "Recrutement 2026 Actif",
+            titlePre: "Architecturer le Futur de",
+            titleHighlight: "l'Intelligence Exécutive",
+            subtitle: "Nous élargissons notre réseau mondial de consultants d'élite, d'experts et de maîtres de la parole. Nous recherchons des experts, animateurs et partenaires stratégiques du monde entier.",
+            roles: {
+                consultant: {
+                    title: "Consultant Stratégique",
+                    desc: "Experts en stratégie d'entreprise, design organisationnel et entrée sur le marché."
+                },
+                technical: {
+                    title: "Leader Technique",
+                    desc: "Bâtisseurs d'écosystèmes numériques et spécialistes de la transformation IA."
+                },
+                animator: {
+                    title: "Animateur Exécutif",
+                    desc: "Maîtres de la parole et de l'explication qui maîtrisent les salles de conseil."
+                },
+                partner: {
+                    title: "Partenaire Stratégique",
+                    desc: "Collaborateurs et contributeurs pour le développement professionnel mondial."
+                }
+            },
+            ctaInfo: "Aller à la page d'information",
+            howToApply: {
+                title: "Prêt à nous rejoindre ?",
+                desc: "Envoyez votre CV et une présentation vidéo de 2-3 minutes répondant à : \"Comment architecturez-vous la croissance ?\"",
+                email: "careers@careerupgrade.ai",
+                whatsapp: "Recrutement WhatsApp : +216 99 123 456",
+                button: "Transmettre les Atouts"
+            },
+            infoPage: {
+                title: "Conditions pour les Experts",
+                subtitle: "Règles d'Engagement et Standards Professionnels",
+                description: "Pour maintenir notre standard d'excellence, tous les consultants, experts et partenaires doivent strictement adhérer aux conditions suivantes définies par l'entreprise.",
+                conditions: [
+                    "Respect des standards mondiaux de conseil et d'éthique.",
+                    "Confidentialité stricte concernant toutes les données clients et méthodologies propriétaires.",
+                    "Participation active aux processus de développement continu et de revue par les pairs.",
+                    "Engagement envers l'intérêt mutuel du cabinet et du réseau professionnel.",
+                    "Respect du contrat formel et des procédures opérationnelles documentées."
+                ],
+                agreement: "J'ai lu le document et j'accepte de suivre strictement toutes les conditions pour notre bénéfice mutuel et un développement continu.",
+                confirm: "Autoriser l'Accord"
+            },
+            form: {
+                title: "Candidature d'Excellence",
+                subtitle: "Complétez votre profil pour une sélection stratégique",
+                common: {
+                    fullName: "Nom Complet",
+                    email: "Email Professionnel",
+                    phone: "Numéro de Contact",
+                    cv: "Lien CV / Lien Drive",
+                    video: "Lien Vidéo de Présentation (YouTube/Vimeo/Drive)",
+                    videoNote: "2-3 minutes répondant à : 'Comment architecturez-vous la croissance ?'",
+                    submit: "Transmettre la Candidature",
+                    successTitle: "Candidature Transmise",
+                    successDesc: "Vos atouts sont en cours d'audit par notre comité de sélection."
+                },
+                roles: {
+                    expert: {
+                        label: "Expert / Consultant",
+                        domain: "Domaine d'Expertise Principal",
+                        experience: "Années d'Expérience de Haut Niveau",
+                        projects: "Projets / Clients Notables",
+                        tools: "Outils & Méthodologies Maîtrisés",
+                        motivation: "Vision Professionnelle & Description"
+                    },
+                    employee: {
+                        label: "Employé Permanent",
+                        position: "Poste Visé",
+                        availability: "Disponibilité (Préavis)",
+                        salary: "Fourchette de Rémunération Attendue",
+                        education: "Diplôme Académique le plus élevé",
+                        motivation: "Objectifs de Carrière & Description"
+                    },
+                    partner: {
+                        label: "Partenaire / Actionnaire Stratégique",
+                        company: "Nom de l'Entité (si applicable)",
+                        type: "Type de Partenariat (Equity/Ressource/Client)",
+                        contribution: "Contribution Stratégique Proposée",
+                        network: "Portée du Marché / Réseau Professionnel",
+                        motivation: "Vision du Partenariat & Description"
+                    },
+                    animator: {
+                        label: "Animateur Principal",
+                        specialty: "Spécialité d'Élocution",
+                        experience: "Historique de Prises de Parole",
+                        portfolio: "Lien Portfolio / Performance",
+                        languages: "Langues Maîtrisées",
+                        motivation: "Méthodologie d'Animation & Description"
+                    }
+                }
+            }
         },
         demoDisclaimer: {
             text: "Ceci est un modèle prototype à des fins de démonstration uniquement, et non un système opérationnel complet."
@@ -1026,46 +1215,8 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             ctaFinal: {
                 title: "Arrêtez d'Apprendre. Commencez à Dominer.",
                 desc: "Rejoignez l'élite des professionnels qui ont redéfini leur trajectoire avec le Protocole Success.",
-                btnStart: "Commencer Mon Mandat",
-                btnPlans: "Voir les Plans d'Accès"
+                btnStart: "Commencer Mon Mandat"
             }
-        },
-        pricing: {
-            badge: "PLANS DE MEMBRE",
-            title: "Propulsez votre Leadership",
-            subtitle: "Sélectionnez le mandat qui correspond à votre croissance professionnelle et à vos exigences stratégiques.",
-            tiers: {
-                trial: {
-                    name: "Phase de Découverte",
-                    badge: "Diagnostic Gratuit",
-                    price: "0€",
-                    duration: "/ Démarrage",
-                    features: [
-                        "1 Heure d'Audit Expert",
-                        "Démo Live du Système",
-                        "Identification des Lacunes",
-                        "Rapport de Performance Initial",
-                        "AUCUNE Certification Officielle"
-                    ]
-                },
-                complete: {
-                    name: "Mandat Complet",
-                    badge: "Transformation Intégrale 🔥",
-                    price: "Investissement Flexible",
-                    duration: "Protocole Complet",
-                    features: [
-                        "Transformation Professionnelle Totale",
-                        "Dossiers de Conseil Officiels (PDF)",
-                        "Avis d'Experts Certifiés",
-                        "Mentorat Direct 1-on-1",
-                        "Simulations de Crise Illimitées",
-                        "Accès Réseau Global"
-                    ]
-                }
-            },
-            cta: "Choisir mon Mandat",
-            contact: "Consulter un Conseiller",
-            guarantee: "Traitement 100% Sécurisé & Facturation Exécutive"
         },
         expert: {
             title: "Intelligence d'Expert",
@@ -1307,6 +1458,39 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                     { title: "Plan d'Action", desc: "Nous créons une feuille de route étape par étape pour atteindre vos objectifs." },
                     { title: "Exécution & Workshop", desc: "Nous vous aidons à mettre en œuvre la stratégie et coachons votre équipe." }
                 ]
+            },
+            marketplace: {
+                title: "Hub de Consultation Digitale",
+                subtitle: "Choisissez un Framework. Nous Consultions, Adaptons et Bâtissons votre Solution.",
+                viewProject: "Voir la Stratégie",
+                startingPrice: "Début Consultation",
+                currentBid: "Valeur Actuelle",
+                auctionEnds: "Fin de l'Exclusivité",
+                bidNow: "Sécuriser la Stratégie",
+                sold: "Vendu",
+                demo: "Concept en Direct",
+                details: {
+                    generalIdea: "Concept Fondateur",
+                    strategy: "Feuille de Route Stratégique",
+                    extraServices: "Services d'Implémentation",
+                    auctionInfo: "Les stratégies exclusives sont vendues une fois. Comprend un conseil approfondi pour personnaliser le framework et l'implémentation complète."
+                },
+                backToProjects: "Retour au Hub",
+                buyNow: "Déployer Maintenant",
+                fixedPrice: "Prix de l'Asset",
+                categories: {
+                    all: "Toutes les Solutions",
+                    basic: "Assets Standards",
+                    pro: "Stratégies Exclusives"
+                },
+                explanation: {
+                    title: "Le Hub Stratégique",
+                    description: "Sélectionnez la base qui correspond à votre vision. Nous apportons l'expertise pour transformer ces frameworks en réalité commerciale.",
+                    basicTitle: "Frameworks Standards",
+                    basicDesc: "Structures digitales prêtes à l'emploi. Inclut l'installation standard et le conseil initial pour démarrer votre présence.",
+                    proTitle: "Transformations Exclusives",
+                    proDesc: "Modèles d'affaires uniques vendus une fois. Inclut une adaptation stratégique personnalisée et l'implémentation de bout en bout."
+                }
             }
         },
         jobAlignment: {
@@ -1336,14 +1520,13 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                     strength: "Forces Opérationnelles",
                     gap: "Lacunes Stratégiques",
                     recommendation: "Feuille de Route d'Implémentation"
-                }
             }
-        },
+        }
+    },
     ar: {
         nav: {
             home: "الرئيسية",
             methodology: "خدماتنا",
-            pricing: "الأسعار",
             verify: "التحقق من الاعتماد",
             signIn: "تسجيل الدخول",
             workspace: "مساحتي",
@@ -1599,6 +1782,9 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             footer_title: "المصادقة على التفويض",
             footer_desc: "سيتم إرسال نسخة رسمية من هذا التفويض إلى بريدك الإلكتروني فور المصادقة.",
             print: "طباعة",
+            download: "تحميل (PDF)",
+            signature_label: "التوقيع الرقمي (اكتب الاسم الكامل)",
+            signature_placeholder: "مثال: فلان الفلاني",
             accept: "أصادق على التفويض"
         },
         footer: {
@@ -1610,6 +1796,101 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             desc: "نحن في بحث مستمر عن مستشارين، خبراء، ومدربين مستقلين في كافة المجالات وذوي خبرة كبيرة جداً. كما نبحث أيضاً عن مقدمين ومنشطين مستقلين يمتازون بفن المخاطبة والتفسير والتعريف.",
             cta: "سجل الآن كخبير",
             close: "إغلاق"
+        },
+        recruit: {
+            badge: "التوظيف لعام 2026 نشط",
+            titlePre: "هندسة مستقبل",
+            titleHighlight: "الذكاء التنفيذي",
+            subtitle: "نحن في توسع مستمر لشبكتنا العالمية من نخبة المستشارين والمدربين وأساتذة الخطابة. نبحث عن خبراء، منشطين، وموظفين مستقلين أو دائمين، ومساهمين وشركاء استراتيجيين من مختلف أنحاء العالم.",
+            roles: {
+                consultant: {
+                    title: "مستشار استراتيجي",
+                    desc: "خبراء في استراتيجية الشركات، التصميم التنظيمي، ودخول الأسواق."
+                },
+                technical: {
+                    title: "قائد تقني",
+                    desc: "بناة الأنظمة الرقمية والمتخصصون في التحول باستخدام الذكاء الاصطناعي."
+                },
+                animator: {
+                    title: "منشط تنفيذي",
+                    desc: "أساتذة الخطابة والتفسير والتعريف الذين يسيطرون على غرف الاجتماعات."
+                },
+                partner: {
+                    title: "شريك استراتيجي",
+                    desc: "مساهمون وشركاء لتطوير المسارات المهنية على مستوى عالمي."
+                }
+            },
+            ctaInfo: "انتقل إلى صفحة المعلومات",
+            howToApply: {
+                title: "هل أنت مستعد للانضمام؟",
+                desc: "أرسل سيرتك الذاتية وعرض فيديو لمدة 2-3 دقائق تجيب فيه على: \"كيف تهندس النمو؟\"",
+                email: "careers@careerupgrade.ai",
+                whatsapp: "واتساب التوظيف: +216 99 123 456",
+                button: "إرسال الأصول"
+            },
+            infoPage: {
+                title: "شروط وأحكام الخبراء",
+                subtitle: "قواعد الاشتباك والمعايير المهنية",
+                description: "للحفاظ على معايير التميز لدينا، يجب على جميع المستشارين والخبراء والشركاء الالتزام الصارم بالشروط التالية التي تحددها الشركة.",
+                conditions: [
+                    "الامتثال لمعايير الاستشارة والأخلاقيات العالمية.",
+                    "السرية التامة لجميع بيانات العملاء والمنهجيات الحصرية.",
+                    "المشاركة النشطة في عمليات التطوير المستمر ومراجعة الأقران.",
+                    "الالتزام بالمصلحة المشتركة للشركة وشبكة المحترفين.",
+                    "احترام العقد الرسمي ووثائق إجراءات التشغيل بحذافيرها."
+                ],
+                agreement: "لقد قرأت الوثيقة وأوافق على اتباع كافة الشروط بحذافيرها من أجل المصلحة المشتركة والتطوير الدائم.",
+                confirm: "الموافقة على الاتفاقية"
+            },
+            form: {
+                title: "طلب التميز المهني",
+                subtitle: "أكمل ملفك الشخصي لعملية الاختيار الاستراتيجي",
+                common: {
+                    fullName: "الاسم الكامل",
+                    email: "البريد الإلكتروني المهني",
+                    phone: "رقم التواصل",
+                    cv: "رابط السيرة الذاتية (Drive/LinkedIn)",
+                    video: "رابط فيديو التقديم (YouTube/Drive)",
+                    videoNote: "الإجابة خلال 2-3 دقائق على: \"كيف تهندس النمو؟\"",
+                    submit: "إرسال الطلب والأصول",
+                    successTitle: "تم استلام الطلب",
+                    successDesc: "أصولك قيد المراجعة والتدقيق من قبل لجنة الاختيار."
+                },
+                roles: {
+                    expert: {
+                        label: "خبير / مستشار",
+                        domain: "مجال الخبرة الأساسي",
+                        experience: "سنوات الخبرة (مستوى عالٍ)",
+                        projects: "أبرز المشاريع / العملاء",
+                        tools: "الأدوات والمنهجيات المستخدمة",
+                        motivation: "الرؤية المهنية والوصف"
+                    },
+                    employee: {
+                        label: "موظف دائم",
+                        position: "المنصب المستهدف",
+                        availability: "تاريخ الالتحاق (notice period)",
+                        salary: "نطاق الراتب المتوقع",
+                        education: "المؤهل العلمي / الشهادة",
+                        motivation: "الأهداف المهنية والوصف"
+                    },
+                    partner: {
+                        label: "شريك استراتيجي / مساهم",
+                        company: "اسم المؤسسة (إن وجد)",
+                        type: "نوع الشراكة (رأس مال/موارد/عملاء)",
+                        contribution: "المساهمة الاستراتيجية المقترحة",
+                        network: "النطاق الجغرافي / الوصول للأسواق",
+                        motivation: "رؤية الشراكة والوصف"
+                    },
+                    animator: {
+                        label: "منشط رئيسي",
+                        specialty: "تخصص الخطابة",
+                        experience: "سجل الأداء العلني",
+                        portfolio: "رابط معرض الأعمال / الأداء",
+                        languages: "اللغات المتقنة",
+                        motivation: "منهجية الإلقاء والوصف"
+                    }
+                }
+            }
         },
         demoDisclaimer: {
             text: "هذا فقط نموذج وليس نظام متكامل الأركان، للتفسير والفهم فقط."
@@ -1707,46 +1988,8 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             ctaFinal: {
                 title: "توقف عن التلقين. ابدأ بالسيطرة.",
                 desc: "انضم إلى نخبة المحترفين الذين أعادوا رسم مسارهم باستخدام بروتوكول النجاح.",
-                btnStart: "ابدأ تفويضي",
-                btnPlans: "عرض خطط الوصول"
+                btnStart: "ابدأ تفويضي"
             }
-        },
-        pricing: {
-            badge: "خطط العضوية",
-            title: "ادفع مسيرتك القيادية للأمام",
-            subtitle: "اختر التفويض الذي يتماشى مع أهدافك الاستراتيجية ومتطلباتك المهنية.",
-            tiers: {
-                trial: {
-                    name: "مرحلة الاكتشاف",
-                    badge: "تشخيص مهني مجاني",
-                    price: "0€",
-                    duration: "/ بداية",
-                    features: [
-                        "ساعة تدقيق مع الخبير",
-                        "تجربة حية للنظام",
-                        "تحديد فجوات الأداء المبدئية",
-                        "تقرير أولي للمهارات",
-                        "بدون وثائق استشارية رسمية"
-                    ]
-                },
-                complete: {
-                    name: "التفويض الكامل",
-                    badge: "تحول مهني شامل 🔥",
-                    price: "استثمار مرن",
-                    duration: "المنظومة المتكاملة",
-                    features: [
-                        "تطوير مهني شامل من البداية",
-                        "استخراج ملفات الاستشارة الاستراتيجية",
-                        "توصيات الخبراء المعتمدة لنظامك",
-                        "جلسات توجيه شخصي مكثفة",
-                        "محاكاة أزمات واقعية غير محدودة",
-                        "عضوية في شبكة الخبراء العالمية"
-                    ]
-                }
-            },
-            cta: "اختر تفويضك",
-            contact: "استفسر من مستشار",
-            guarantee: "معالجة آمنة 100% وفواتير رسمية"
         },
         expert: {
             title: "استخبارات الخبراء",
@@ -1988,6 +2231,39 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                     { title: "خطة العمل", desc: "نضع لك خارطة طريق خطوة بخطوة لتحقيق أهداف نموك." },
                     { title: "التنفيذ والورش العملية", desc: "نساعدك في تنفيذ الاستراتيجية ونرافق فريق عملك خطوة بخطوة." }
                 ]
+            },
+            marketplace: {
+                title: "مركز الاستشارات الرقمية",
+                subtitle: "اختر هيكلاً استراتيجياً. نحن نستشير، نكيف، ونبني حلك المتكامل.",
+                viewProject: "عرض الاستراتيجية",
+                startingPrice: "بداية الاستشارة",
+                currentBid: "القيمة الحالية",
+                auctionEnds: "تنتهي نافذة الحصرية",
+                bidNow: "احجز الاستراتيجية",
+                sold: "تم البيع",
+                demo: "مفهوم حي",
+                details: {
+                    generalIdea: "المفهوم التأسيسي",
+                    strategy: "خارطة الطريق الاستراتيجية",
+                    extraServices: "خدمات التنفيذ والرقمنة",
+                    auctionInfo: "الاستراتيجيات الحصرية تباع مرة واحدة. تشمل استشارات استراتيجية لتمكين الفكرة وتنفيذ حل كامل لجميع الخدمات المطلوبة.",
+                },
+                backToProjects: "العودة للمركز",
+                buyNow: "نفذ الآن",
+                fixedPrice: "سعر الأصل",
+                categories: {
+                    all: "كل الحلول",
+                    basic: "أصول قياسية",
+                    pro: "استراتيجيات حصرية"
+                },
+                explanation: {
+                    title: "المركز الاستراتيجي",
+                    description: "اختر الأساس الذي يتوافق مع رؤيتك. نحن نوفر الخبرة لتحويل هذه الأطُر إلى واقع تجاري فريد خاص بك.",
+                    basicTitle: "أطر عمل قياسية",
+                    basicDesc: "هياكل رقمية جاهزة للتنفيذ. تشمل الإعداد القياسي والاستشارات الأولية لإطلاق حضورك الرقمي.",
+                    proTitle: "تحولات حصرية",
+                    proDesc: "نماذج أعمال فريدة تباع مرة واحدة. تشمل تكييفاً استراتيجياً عميقاً وتنفيذاً شاملاً لجميع الخدمات اللازمة.",
+                }
             }
         },
         jobAlignment: {

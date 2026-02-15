@@ -4,7 +4,22 @@ import LegalDocument from "@/components/legal/LegalDocument";
 import { useParams, notFound } from "next/navigation";
 import { Check, X } from "lucide-react";
 
-const plansData: any = {
+interface PlanFeature {
+  name: string;
+  included: boolean;
+}
+
+interface PlanData {
+  title: string;
+  subtitle: string;
+  version: string;
+  price: string;
+  duration: string;
+  features: PlanFeature[];
+  content: string;
+}
+
+const plansData: Record<string, PlanData> = {
   explorer: {
     title: "Annexe : Formule Explorer",
     subtitle: "Détails de l'accès gratuit permanent à la plateforme.",
@@ -51,7 +66,7 @@ const plansData: any = {
     title: "Annexe : Formule Executive 🔥",
     subtitle: "Les conditions de l'offre Best Value pour les leaders ambitieux.",
     version: "1.5",
-    price: "79€ / mois",
+    price: "80€ / mois (HT)",
     duration: "Mensuel renouvelable / Annuel",
     features: [
       { name: "Tout de Professional", included: true },
@@ -123,7 +138,7 @@ export default function PlanDetailsPage() {
                 <div className="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <h2 className="text-xl font-bold mb-6">Détail des Services</h2>
                     <div className="space-y-3">
-                        {plan.features.map((feature: any, idx: number) => (
+                        {plan.features.map((feature: PlanFeature, idx: number) => (
                             <div key={idx} className="flex items-center gap-3">
                                 {feature.included ? (
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />

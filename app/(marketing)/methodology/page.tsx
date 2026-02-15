@@ -6,7 +6,6 @@ import {
     Library,
     MessageSquare,
     CheckCircle,
-    Award,
     AlertTriangle,
     Cpu,
     Target,
@@ -14,7 +13,6 @@ import {
     TrendingUp,
     ShieldCheck,
     Globe,
-    ArrowRight,
     Sparkles
 } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
@@ -102,7 +100,7 @@ export default function MethodologyPage() {
                             </div>
                             <h1 className="text-5xl lg:text-[7rem] font-serif font-black text-slate-900 dark:text-white tracking-tighter mb-8 leading-[0.85] uppercase">
                                 {m.titlePre} <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-slate-900 dark:from-blue-400 dark:to-white">
+                                <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-700 to-slate-900 dark:from-blue-400 dark:to-white">
                                     {m.titleHighlight}
                                 </span>
                             </h1>
@@ -112,11 +110,11 @@ export default function MethodologyPage() {
                             <div className="flex flex-wrap items-center justify-center gap-6">
                                 <Link
                                     href="/auth/register"
-                                    className="px-10 py-5 bg-slate-900 dark:bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-300 dark:shadow-none hover:scale-105 transition-all"
+                                    className="px-10 py-5 bg-slate-900 dark:bg-blue-600 text-white rounded-4xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-300 dark:shadow-none hover:scale-105 transition-all"
                                 >
                                     {m.ctaStart}
                                 </Link>
-                                <button className="px-10 py-5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-3">
+                                <button className="px-10 py-5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 rounded-4xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-3">
                                     <PlayCircle size={20} className="text-blue-600" />
                                     {m.ctaVideo}
                                 </button>
@@ -141,7 +139,7 @@ export default function MethodologyPage() {
                                 </p>
                                 <div className="grid grid-cols-2 gap-8 pt-6">
                                     {valueProps.map((prop, i) => (
-                                        <div key={i} className="space-y-3 p-6 bg-slate-50 dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700">
+                                        <div key={i} className="space-y-3 p-6 bg-slate-50 dark:bg-slate-800 rounded-4xl border border-slate-100 dark:border-slate-700">
                                             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 text-blue-600 flex items-center justify-center shadow-sm">
                                                 <prop.icon size={24} />
                                             </div>
@@ -155,9 +153,9 @@ export default function MethodologyPage() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                className="relative rounded-[3rem] overflow-hidden shadow-2xl bg-slate-900 dark:bg-slate-950 aspect-square flex items-center justify-center group border-[12px] border-slate-800 dark:border-slate-800/50"
+                                className="relative rounded-[3rem] overflow-hidden shadow-2xl bg-slate-900 dark:bg-slate-950 aspect-square flex items-center justify-center group border-12 border-slate-800 dark:border-slate-800/50"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-br from-blue-600/20 to-transparent" />
                                 <div className="relative z-10 flex flex-col items-center gap-6">
                                     <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white border border-white/20 group-hover:scale-110 transition-transform cursor-pointer shadow-2xl">
                                         <PlayCircle size={48} fill="currentColor" className={isRtl ? "mr-1" : "ml-1"} />
@@ -249,15 +247,9 @@ export default function MethodologyPage() {
                         <div className="flex flex-col sm:flex-row gap-6 justify-center">
                             <Link
                                 href="/auth/register"
-                                className="px-12 py-6 bg-white text-slate-900 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:scale-105 transition-all"
+                                className="px-12 py-6 bg-white text-slate-900 rounded-4xl font-black text-xs uppercase tracking-[0.2em] hover:scale-105 transition-all"
                             >
                                 {m.ctaFinal.btnStart}
-                            </Link>
-                            <Link
-                                href="/pricing"
-                                className="px-12 py-6 bg-white/5 border border-white/20 backdrop-blur-xl text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all"
-                            >
-                                {m.ctaFinal.btnPlans}
                             </Link>
                         </div>
                     </motion.div>
