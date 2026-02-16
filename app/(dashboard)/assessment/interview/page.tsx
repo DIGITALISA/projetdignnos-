@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
+import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -30,8 +30,26 @@ export default function InterviewPage() {
     const [interviewComplete, setInterviewComplete] = useState(false);
     const [finalEvaluation, setFinalEvaluation] = useState<Record<string, unknown> | null>(null);
     const [diagnosisId, setDiagnosisId] = useState<string | null>(null);
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [isTimeUnlocked, setIsTimeUnlocked] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isEvaluatingRef = useRef(false);
+
+    // Timer logic for 20-minute safety unlock
+    useEffect(() => {
+        if (!startTime || interviewComplete) return;
+
+        const checkTime = () => {
+            const elapsed = Date.now() - startTime;
+            const twentyMinutes = 20 * 60 * 1000;
+            if (elapsed >= twentyMinutes && !isTimeUnlocked) {
+                setIsTimeUnlocked(true);
+            }
+        };
+
+        const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+        return () => clearInterval(interval);
+    }, [startTime, interviewComplete, isTimeUnlocked]);
 
     useEffect(() => {
         const loadSession = async () => {
@@ -84,6 +102,9 @@ export default function InterviewPage() {
                                 timestamp: new Date(m.timestamp)
                             }));
                             setMessages(restoredMessages);
+                            if (restoredMessages.length > 0) {
+                                setStartTime(restoredMessages[0].timestamp.getTime());
+                            }
 
                             // Calculate current index accurately, capped by total
                             const calculatedIndex = Math.floor(restoredMessages.length / 2);
@@ -142,6 +163,7 @@ export default function InterviewPage() {
                     timestamp: new Date(),
                 };
 
+                setStartTime(Date.now());
                 setMessages([welcomeMsg]);
 
                 // Add first question
@@ -196,12 +218,13 @@ export default function InterviewPage() {
         }
     }, [messages, diagnosisId, isLoading, interviewComplete, currentQuestionIndex, totalQuestions]);
 
-    // Safety valve: Ensure interviewComplete matches actual progress
-    useEffect(() => {
-        if (interviewComplete && currentQuestionIndex < totalQuestions) {
-            setInterviewComplete(false);
-        }
-    }, [currentQuestionIndex, totalQuestions, interviewComplete]);
+    // Removal of problematic safety valve that was preventing early completion
+    // The previous code was:
+    // useEffect(() => {
+    //     if (interviewComplete && currentQuestionIndex < totalQuestions) {
+    //         setInterviewComplete(false);
+    //     }
+    // }, [currentQuestionIndex, totalQuestions, interviewComplete]);
 
     const forceUnlock = useCallback(() => {
         setIsLoading(false);
@@ -210,6 +233,53 @@ export default function InterviewPage() {
         const calculatedIndex = Math.floor(messages.length / 2);
         setCurrentQuestionIndex(Math.min(calculatedIndex, totalQuestions));
     }, [messages.length, totalQuestions]);
+
+    const handleProceedToResults = useCallback(async () => {
+        if (interviewComplete) {
+            router.push('/assessment/results');
+            return;
+        }
+
+        const isThresholdMet = currentQuestionIndex >= 10;
+
+        if (isTimeUnlocked || isThresholdMet) {
+            // Force evaluate even if not all questions answered
+            setIsLoading(true);
+            try {
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName || 'anonymous';
+                const userName = userProfile.fullName || 'Anonymous User';
+
+                const response = await fetch('/api/interview/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cvAnalysis,
+                        conversationHistory: messages,
+                        language: selectedLanguage,
+                        userId,
+                        userName
+                    }),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    setFinalEvaluation(result.evaluation);
+                    setInterviewComplete(true);
+                    
+                    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                    profile.isDiagnosisComplete = true;
+                    profile.diagnosisData = result.evaluation;
+                    localStorage.setItem("userProfile", JSON.stringify(profile));
+                    window.dispatchEvent(new Event("profileUpdated"));
+                }
+            } catch (error) {
+                console.error("Emergency evaluation failed", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    }, [interviewComplete, isTimeUnlocked, currentQuestionIndex, router, cvAnalysis, messages, selectedLanguage]);
 
     const processStep = useCallback(async (userMessage: Message, originalInput?: string) => {
         setMessages(prev => [...prev, userMessage]);
@@ -404,11 +474,22 @@ export default function InterviewPage() {
                 >
                     {/* Header Section */}
                     <div className="relative bg-linear-to-br from-emerald-600 to-teal-700 p-8 text-center text-white overflow-hidden">
+                        <div className="absolute top-4 left-4 z-20">
+                            <button
+                                onClick={() => setInterviewComplete(false)}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors group flex items-center gap-2 text-white/80 hover:text-white font-medium"
+                                title="Back to Chat"
+                            >
+                                 <ArrowLeft className="w-6 h-6" />
+                                 <span className="hidden sm:inline">{selectedLanguage === 'ar' ? 'مراجعة المحادثة' : 'Review Chat'}</span>
+                            </button>
+                        </div>
+
                         <div className="absolute top-0 left-0 w-full h-full opacity-20">
                              <div className="absolute top-0 right-0 w-40 h-40 bg-white blur-3xl rounded-full" />
                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-300 blur-3xl rounded-full" />
                         </div>
-
+ 
                         <motion.div 
                             initial={{ scale: 0 }} 
                             animate={{ scale: 1 }} 
@@ -418,17 +499,21 @@ export default function InterviewPage() {
                             <CheckCircle className="w-10 h-10 text-white" />
                         </motion.div>
                         
-                        <h1 className="relative text-3xl font-bold mb-2">Interview Complete!</h1>
-                        <p className="relative text-emerald-50 text-lg">Thank you for your honest answers. Here&apos;s your evaluation summary.</p>
+                        <h1 className="relative text-3xl font-bold mb-2">
+                            {selectedLanguage === 'ar' ? '!اكتملت المقابلة' : 'Interview Complete!'}
+                        </h1>
+                        <p className="relative text-emerald-50 text-lg">
+                            {selectedLanguage === 'ar' ? 'شكراً لإجاباتك الصريحة. إليك ملخص لتقييمك' : 'Thank you for your honest answers. Here\'s your evaluation summary.'}
+                        </p>
                     </div>
 
                     <div className="p-8 space-y-8">
                         {/* Quick Stats Grid */}
                         <div className="grid md:grid-cols-3 gap-4">
                             {[
-                                { label: "CV Accuracy", value: `${Number(finalEvaluation.accuracyScore)}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
-                                { label: "Questions Answered", value: totalQuestions, color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
-                                { label: "Overall Rating", value: `${Number(finalEvaluation.overallRating)}/10`, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" }
+                                { label: selectedLanguage === 'ar' ? "دقة السيرة الذاتية" : "CV Accuracy", value: `${Number(finalEvaluation.accuracyScore)}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
+                                { label: selectedLanguage === 'ar' ? "الأسئلة المجابة" : "Questions Answered", value: totalQuestions, color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
+                                { label: selectedLanguage === 'ar' ? "التقييم العام" : "Overall Rating", value: `${Number(finalEvaluation.overallRating)}/10`, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" }
                             ].map((stat, i) => (
                                 <motion.div 
                                     key={i}
@@ -447,7 +532,7 @@ export default function InterviewPage() {
                         <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
                             <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
                                 <Sparkles className="w-5 h-5 text-amber-500" />
-                                Executive Summary
+                                {selectedLanguage === 'ar' ? 'الملخص التنفيذي' : 'Executive Summary'}
                             </h2>
                             <p className="text-slate-700 leading-relaxed text-base italic">
                                 &ldquo;{String(finalEvaluation.summary)}&rdquo;
@@ -463,7 +548,7 @@ export default function InterviewPage() {
                             }}
                             className="group w-full py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/30 hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
                         >
-                            <span className="text-lg">View Full Assessment Results</span>
+                            <span className="text-lg">{selectedLanguage === 'ar' ? 'عرض نتائج التقييم الكاملة' : 'View Full Assessment Results'}</span>
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
@@ -475,7 +560,31 @@ export default function InterviewPage() {
     // Interview Chat Screen
     return (
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
-            <div className="mb-6 flex flex-col items-center text-center gap-4 px-4">
+            <div className="mb-6 flex flex-col items-center text-center gap-4 px-4 relative w-full">
+                <div className="absolute left-4 top-0" data-html2canvas-ignore>
+                    <button
+                        onClick={() => router.push("/assessment/cv-upload")}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors group flex items-center gap-2 text-slate-500 hover:text-blue-600 font-medium"
+                        title="Back to CV Analysis"
+                    >
+                        <ArrowLeft className="w-6 h-6" />
+                        <span className="hidden sm:inline">Back</span>
+                    </button>
+                </div>
+                
+                {(interviewComplete && finalEvaluation) && (
+                    <div className="absolute right-4 top-0" data-html2canvas-ignore>
+                        <button
+                            onClick={() => router.push("/assessment/results")}
+                            className="p-2 hover:bg-slate-100 rounded-full transition-colors group flex items-center gap-2 text-blue-600 font-bold"
+                            title="Go to Full Results"
+                        >
+                            <span className="hidden sm:inline">Next</span>
+                            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+                )}
+
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">AI Career Interview</h1>
                     <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto">
@@ -601,8 +710,8 @@ export default function InterviewPage() {
                             <ArrowRight className="w-4 h-4" />
                             <span className="hidden md:inline">
                                 {selectedLanguage === 'ar' ? 'تخطي' :
-                                selectedLanguage === 'fr' ? 'Passer' :
-                                    selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
+                                    selectedLanguage === 'fr' ? 'Passer' :
+                                        selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
                             </span>
                         </button>
                         <button
@@ -611,17 +720,51 @@ export default function InterviewPage() {
                             className="flex-1 md:flex-none px-6 md:px-8 py-3 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base"
                         >
                             <Send className="w-4 h-4" />
-                             <span className="hidden md:inline">
+                            <span className="hidden md:inline">
                                 {selectedLanguage === 'ar' ? 'إرسال' :
-                                selectedLanguage === 'fr' ? 'Envoyer' :
-                                    selectedLanguage === 'es' ? 'Enviar' : 'Send'}
+                                    selectedLanguage === 'fr' ? 'Envoyer' :
+                                        selectedLanguage === 'es' ? 'Enviar' : 'Send'}
                             </span>
                         </button>
                     </div>
                 </div>
 
+                {/* Next Step Navigation - Active only when complete */}
+                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-center">
+                    <button
+                        onClick={handleProceedToResults}
+                        disabled={!interviewComplete && !isTimeUnlocked && currentQuestionIndex < 10 || isLoading}
+                        className={`
+                            group px-10 py-4 rounded-2xl font-black text-lg transition-all flex items-center gap-3
+                            ${(interviewComplete || isTimeUnlocked || currentQuestionIndex >= 10)
+                                ? "bg-emerald-600 text-white shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 hover:-translate-y-1"
+                                : "bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200"
+                            }
+                        `}
+                    >
+                        {isLoading && !interviewComplete ? (
+                             <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                 <span>
+                                    {selectedLanguage === 'ar' ? 'جاري تقييم الأداء...' :
+                                     selectedLanguage === 'fr' ? 'Évaluation des performances...' :
+                                     selectedLanguage === 'es' ? 'Evaluando desempeño...' : 'Evaluating Performance...'}
+                                 </span>
+                             </>
+                        ) : (
+                            <>
+                                {selectedLanguage === 'ar' ? 'الانتقال إلى النتائج' :
+                                    selectedLanguage === 'fr' ? 'Passer aux résultats' : 'Proceed to Full Results'}
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${interviewComplete || isTimeUnlocked || currentQuestionIndex >= 10 ? 'bg-white/20' : 'bg-slate-200'}`}>
+                                    <ArrowRight className={`w-5 h-5 ${interviewComplete || isTimeUnlocked || currentQuestionIndex >= 10 ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
+                                </div>
+                            </>
+                        )}
+                    </button>
+                </div>
+
                 {/* Emergency Unlock - Only shows if potentially stuck */}
-                {(isLoading || interviewComplete) && currentQuestionIndex < totalQuestions && (
+                {(isLoading && currentQuestionIndex < totalQuestions) && (
                     <div className="mt-4 flex justify-center">
                         <button
                             onClick={forceUnlock}
@@ -633,6 +776,7 @@ export default function InterviewPage() {
                     </div>
                 )}
             </div>
+
         </div>
     );
 }

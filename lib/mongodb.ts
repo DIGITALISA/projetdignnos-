@@ -56,7 +56,8 @@ async function connectDB() {
     cached.promise = mongoose.connect(MONGODB_URI!, opts)
         .then((mongoose) => {
             const duration = Date.now() - startTime;
-            console.log(`✅ MongoDB connected successfully in ${duration}ms`);
+            const { host, name } = mongoose.connection;
+            console.log(`✅ MongoDB connected to ${host}/${name} in ${duration}ms`);
             return mongoose;
         })
         .catch((error) => {

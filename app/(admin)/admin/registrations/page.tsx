@@ -1,26 +1,18 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
     Search, 
-    ShieldCheck, 
     Trash2, 
     Check, 
     Loader2, 
-    Clock, 
-    DollarSign, 
     Calendar, 
     MessageCircle,
     FileText,
-    ExternalLink,
-    ChevronRight,
-    Filter,
     Mail,
-    Send
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 interface MandateRequest {
     _id: string;
@@ -80,7 +72,6 @@ export default function MandateRequestsPage() {
                 const filtered = data.filter(u => 
                     u.mandateDuration || 
                     u.plan === "Executive" || 
-                    u.plan === "Elite Full Pack" || 
                     u.plan === "Pro Essential"
                 );
                 setRequests(filtered.length > 0 ? filtered : mockRequests);

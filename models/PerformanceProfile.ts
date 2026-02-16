@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import { Schema, model, models } from 'mongoose';
 
 const PerformanceProfileSchema = new Schema({
     userId: { type: String, required: true, index: true },
@@ -10,6 +10,7 @@ const PerformanceProfileSchema = new Schema({
         status: String
     }],
     verdict: String,
+    expertNotes: String,
     language: { type: String, default: 'en' },
     referenceId: { type: String, unique: true }
 }, {

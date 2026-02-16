@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Target, Clock, CheckCircle, AlertCircle, Award, ArrowRight, Sparkles, ChevronDown, ChevronUp, Download, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Target, Clock, CheckCircle, AlertCircle, Award, Sparkles, ChevronDown, ChevronUp, Download, Loader2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -450,16 +450,6 @@ export default function RoleSuggestionsPage() {
 
             </div>
 
-            {/* Continue Button */}
-            <div className="flex justify-center pt-8">
-                <button
-                    onClick={() => router.push('/assessment/results')}
-                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
-                >
-                    View Full Assessment Results
-                    <ArrowRight className="w-5 h-5" />
-                </button>
-            </div>
         </div>
     );
 }
@@ -570,90 +560,134 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
                     </div>
                 </div>
 
-                {/* Toggle Details Button */}
-                <button
+                {/* Toggle Details Button - With guiding animation */}
+                <motion.button
                     onClick={onToggle}
-                    className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium flex items-center justify-center gap-2 transition-colors"
+                    whileHover={{ backgroundColor: 'rgba(241, 245, 249, 1)' }}
+                    className="w-full py-3 text-slate-500 hover:text-indigo-600 font-bold flex items-center justify-center gap-2 transition-colors rounded-xl mt-2 group"
                 >
                     {isExpanded ? (
                         <>
-                            Hide Details <ChevronUp className="w-5 h-5" />
+                            <span>Hide Details</span>
+                            <ChevronUp className="w-5 h-5" />
                         </>
                     ) : (
                         <>
-                            View Details <ChevronDown className="w-5 h-5" />
+                            <span className="group-hover:tracking-wide transition-all">View Details</span>
+                            <motion.div
+                                animate={{ y: [0, 4, 0] }}
+                                transition={{ 
+                                    duration: 1.5, 
+                                    repeat: Infinity, 
+                                    ease: "easeInOut" 
+                                }}
+                            >
+                                <ChevronDown className="w-5 h-5" />
+                            </motion.div>
                         </>
                     )}
-                </button>
+                </motion.button>
             </div>
 
-            {/* Expanded Details */}
-            {isExpanded && (
-                <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="border-t border-slate-200 p-6 bg-slate-50"
-                >
-                    <div className="grid md:grid-cols-3 gap-6 mb-6">
-                        {/* Strengths */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                                <h4 className="font-bold text-slate-900">Your Strengths</h4>
-                            </div>
-                            <ul className="space-y-2">
-                                {role.strengths.map((strength, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                                        <span>{strength}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Weaknesses */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <AlertCircle className="w-5 h-5 text-red-600" />
-                                <h4 className="font-bold text-slate-900">Areas to Develop</h4>
-                            </div>
-                            <ul className="space-y-2">
-                                {role.weaknesses.map((weakness, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                                        <span>{weakness}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Required Competencies */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <Award className="w-5 h-5 text-blue-600" />
-                                <h4 className="font-bold text-slate-900">Required Skills</h4>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {role.requiredCompetencies.map((comp, i) => (
-                                    <span key={i} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">
-                                        {comp}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Select Role Button */}
-                    <button
-                        onClick={onSelect}
-                        className="w-full py-4 bg-linear-to-r from-slate-900 to-slate-800 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-slate-500/20 transition-all flex items-center justify-center gap-2 group"
+            {/* Expanded Details with AnimatePresence */}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0, y: -20 }}
+                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        transition={{ 
+                            height: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
+                            opacity: { duration: 0.25 },
+                            y: { duration: 0.4, ease: "easeOut" }
+                        }}
+                        className="border-t border-slate-200 overflow-hidden bg-slate-50"
                     >
-                        <Sparkles className="w-5 h-5" />
-                        Focus on This Role
-                    </button>
-                </motion.div>
-            )}
+                        <div className="p-6">
+                            <div className="grid md:grid-cols-3 gap-6 mb-8">
+                                {/* Strengths */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <CheckCircle className="w-5 h-5 text-green-600" />
+                                        <h4 className="font-bold text-slate-900 text-sm md:text-base">Your Strengths</h4>
+                                    </div>
+                                    <ul className="space-y-2">
+                                        {role.strengths.map((strength, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                                                <span>{strength}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </motion.div>
+
+                                {/* Weaknesses */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <AlertCircle className="w-5 h-5 text-red-600" />
+                                        <h4 className="font-bold text-slate-900 text-sm md:text-base">Areas to Develop</h4>
+                                    </div>
+                                    <ul className="space-y-2">
+                                        {role.weaknesses.map((weakness, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                                                <span>{weakness}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </motion.div>
+
+                                {/* Required Competencies */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Award className="w-5 h-5 text-blue-600" />
+                                        <h4 className="font-bold text-slate-900 text-sm md:text-base">Required Skills</h4>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {role.requiredCompetencies.map((comp, i) => (
+                                            <span key={i} className="px-3 py-1 bg-white text-blue-700 rounded-lg text-xs font-bold border border-blue-100 shadow-xs">
+                                                {comp}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </div>
+
+                            {/* Select Role Button - Special Animation */}
+                            <motion.button
+                                onClick={onSelect}
+                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                whileHover={{ scale: 1.02, backgroundColor: '#000' }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ 
+                                    type: "spring", 
+                                    stiffness: 400, 
+                                    damping: 25,
+                                    delay: 0.4 
+                                }}
+                                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg hover:shadow-2xl hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-3 group"
+                            >
+                                <Sparkles className="w-6 h-6 text-yellow-400 group-hover:rotate-12 transition-transform" />
+                                Focus on This Role
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </motion.button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }

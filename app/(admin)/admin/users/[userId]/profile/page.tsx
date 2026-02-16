@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import {
     CheckCircle, Brain,
     MessageSquare, ArrowLeft, Loader2,
-    Sparkles, ShieldCheck, AlertCircle, ChevronRight, Target
+    Sparkles, ShieldCheck, AlertCircle, ChevronRight, Target, RotateCcw
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 interface Simulation {
     title: string;
@@ -20,6 +21,13 @@ interface UserProfile {
     role: string;
     createdAt: string;
     selectedRole: string;
+    status?: string;
+    plan?: string;
+    resetRequested?: boolean;
+    isDiagnosisComplete?: boolean;
+    canAccessCertificates?: boolean;
+    canAccessRecommendations?: boolean;
+    canAccessScorecard?: boolean;
     diagnosisData?: {
         report?: {
             overview?: string;
@@ -174,7 +182,30 @@ export default function UserProfileReview() {
         if (userId) fetchData();
     }, [userId]);
 
-    const handleGenerateProfile = async () => {
+    const [isSavingNotes, setIsSavingNotes] = useState(false);
+    const handleSaveExpertNotes = async () => {
+        setIsSavingNotes(true);
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/update-expert-notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expertNotes })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("Expert verdict saved successfully!");
+            } else {
+                alert("Failed to save notes: " + data.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error while saving notes");
+        } finally {
+            setIsSavingNotes(false);
+        }
+    };
+
+    const handleGenerateType = async (type: 'assessment' | 'recommendation' | 'scorecard') => {
         setIsGenerating(true);
         try {
             const res = await fetch(`/api/admin/users/${userId}/generate-profile`, {
@@ -182,13 +213,19 @@ export default function UserProfileReview() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     expertNotes,
-                    language: 'fr'
+                    language: 'fr',
+                    type
                 })
             });
             const data = await res.json();
 
             if (data.success) {
-                alert("Executive Profile & Recommendation Letter published! The student can now see these in their dashboard under Certificates & Recommendations.");
+                const labels = {
+                    assessment: "Strategic Capability Assessment",
+                    recommendation: "Recommendation Letter",
+                    scorecard: "Executive Scorecard"
+                };
+                alert(`${labels[type]} generated and published successfully!`);
                 window.location.reload();
             } else {
                 alert("Generation failed: " + data.error);
@@ -226,6 +263,34 @@ export default function UserProfileReview() {
             alert("System error during generation");
         } finally {
             setIsGeneratingSCI(false);
+        }
+    };
+
+    const [isHandlingReset, setIsHandlingReset] = useState(false);
+    const handleResetAction = async (action: 'approve' | 'reject') => {
+        if (action === 'approve' && !window.confirm("CRITICAL ACTION: This will PERMANENTLY delete all diagnostic and simulation data for this user. Are you absolutely sure?")) {
+            return;
+        }
+
+        setIsHandlingReset(true);
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/handle-reset`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error occurred");
+        } finally {
+            setIsHandlingReset(false);
         }
     };
 
@@ -280,6 +345,42 @@ export default function UserProfileReview() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 p-6 md:p-8">
+            {/* Reset Request Alert */}
+            {userData?.user?.resetRequested && (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-rose-50 border-2 border-rose-200 rounded-4xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-rose-100"
+                >
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200">
+                            <RotateCcw className="text-white w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-rose-900 tracking-tight">Progress Reset Requested</h3>
+                            <p className="text-rose-700 font-medium max-w-md">This participant has requested to archive their current progress and restart the journey from the beginning.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => handleResetAction('reject')}
+                            disabled={isHandlingReset}
+                            className="px-6 py-3 bg-white text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-all"
+                        >
+                            Reject Request
+                        </button>
+                        <button
+                            onClick={() => handleResetAction('approve')}
+                            disabled={isHandlingReset}
+                            className="px-8 py-3 bg-rose-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all flex items-center gap-2"
+                        >
+                            {isHandlingReset ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                            Approve & Reset Progress
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
@@ -296,6 +397,14 @@ export default function UserProfileReview() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <button 
+                        onClick={handleSaveExpertNotes}
+                        disabled={isSavingNotes}
+                        className="px-6 py-2.5 bg-slate-100 text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200 flex items-center gap-2"
+                    >
+                        {isSavingNotes ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                        Save Review Progress
+                    </button>
                     <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold uppercase tracking-wider border border-blue-100">
                         {userData.user?.role || "Member"}
                     </div>
@@ -306,7 +415,7 @@ export default function UserProfileReview() {
                 {/* Column 1: Identity & Expert Action (Major Focus) */}
                 <div className="lg:col-span-8 space-y-8">
                     {/* Executive Command Center */}
-                    <div className="bg-slate-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+                    <div className="bg-slate-900 rounded-4xl p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]" />
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[80px]" />
                         
@@ -359,51 +468,75 @@ export default function UserProfileReview() {
                             {/* Validation Actions */}
                             <div className="pt-4 space-y-6">
                                 <div>
-                                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4 block">Confidential Expert Verdict</label>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest block">Confidential Expert Verdict</label>
+                                        <button 
+                                            onClick={handleSaveExpertNotes}
+                                            disabled={isSavingNotes}
+                                            className="text-[10px] font-black text-blue-500 uppercase hover:underline disabled:opacity-50"
+                                        >
+                                            {isSavingNotes ? "Saving..." : "Quick Save Notes"}
+                                        </button>
+                                    </div>
                                     <textarea
                                         value={expertNotes}
                                         onChange={(e) => setExpertNotes(e.target.value)}
-                                        placeholder="Record final professional verdict for the executive roadmap..."
+                                        placeholder="Record final professional verdict for the executive roadmap and scorecard..."
                                         className="w-full h-40 p-6 bg-white/5 border border-white/10 rounded-3xl text-sm focus:ring-2 focus:ring-blue-500/30 outline-none resize-none font-medium text-slate-100 placeholder:text-slate-600 transition-all shadow-inner"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <button
-                                        onClick={handleGenerateProfile}
-                                        disabled={isGenerating || !diagnosis}
-                                        className={`py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-30 group ${
-                                            userData.profile 
-                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" 
-                                            : "bg-white text-slate-900 border border-transparent hover:bg-blue-50"
+                                        onClick={() => handleGenerateType('assessment')}
+                                        disabled={isGenerating || !diagnosis || !userData.user?.isDiagnosisComplete || !expertNotes.trim()}
+                                        className={`py-6 px-4 rounded-3xl font-black text-[9px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-3 disabled:opacity-30 border ${
+                                            userData.user?.canAccessCertificates 
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                            : "bg-white text-slate-900 border-slate-100 hover:bg-slate-50"
                                         }`}
                                     >
-                                        {isGenerating ? (
-                                            <Loader2 size={16} className="animate-spin text-blue-600" />
-                                        ) : userData.profile ? (
-                                            <CheckCircle size={16} className="text-emerald-600" />
-                                        ) : (
-                                            <Sparkles size={16} className="text-blue-600" />
-                                        )}
-                                        {userData.profile ? "Executive Profile Published" : "Executive Letter"}
+                                        {isGenerating ? <Loader2 size={16} className="animate-spin text-blue-600" /> : <ShieldCheck size={18} className={userData.user?.canAccessCertificates ? "text-emerald-600" : "text-blue-600"} />}
+                                        <span className="text-center">Strategic Capability Assessment</span>
                                     </button>
+
+                                    <button
+                                        onClick={() => handleGenerateType('recommendation')}
+                                        disabled={isGenerating || !diagnosis || !userData.user?.isDiagnosisComplete || !expertNotes.trim()}
+                                        className={`py-6 px-4 rounded-3xl font-black text-[9px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-3 disabled:opacity-30 border ${
+                                            userData.user?.canAccessRecommendations 
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                            : "bg-white text-slate-900 border-slate-100 hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        {isGenerating ? <Loader2 size={16} className="animate-spin text-blue-600" /> : <Sparkles size={18} className={userData.user?.canAccessRecommendations ? "text-emerald-600" : "text-indigo-600"} />}
+                                        <span className="text-center">Recommendation Letter</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleGenerateType('scorecard')}
+                                        disabled={isGenerating || !diagnosis || !userData.user?.isDiagnosisComplete || !expertNotes.trim()}
+                                        className={`py-6 px-4 rounded-3xl font-black text-[9px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-3 disabled:opacity-30 border ${
+                                            userData.user?.canAccessScorecard 
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                            : "bg-white text-slate-900 border-slate-100 hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        {isGenerating ? <Loader2 size={16} className="animate-spin text-blue-600" /> : <Target size={18} className={userData.user?.canAccessScorecard ? "text-emerald-600" : "text-amber-600"} />}
+                                        <span className="text-center">Executive Scorecard</span>
+                                    </button>
+
                                     <button
                                         onClick={handleGenerateSCI}
-                                        disabled={isGeneratingSCI || !diagnosis}
-                                        className={`py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-30 group ${
+                                        disabled={isGeneratingSCI || !diagnosis || !userData.user?.isDiagnosisComplete || !expertNotes.trim()}
+                                        className={`py-6 px-4 rounded-3xl font-black text-[9px] uppercase tracking-widest shadow-xl active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-3 disabled:opacity-30 border ${
                                             diagnosis?.analysis?.sciReport 
-                                            ? "bg-emerald-600 text-white hover:bg-emerald-500" 
-                                            : "bg-indigo-600 text-white hover:bg-indigo-500"
+                                            ? "bg-emerald-600 text-white border-transparent" 
+                                            : "bg-indigo-600 text-white border-transparent hover:bg-indigo-500"
                                         }`}
                                     >
-                                        {isGeneratingSCI ? (
-                                            <Loader2 size={16} className="animate-spin" />
-                                        ) : diagnosis?.analysis?.sciReport ? (
-                                            <CheckCircle size={16} className="text-white" />
-                                        ) : (
-                                            <Brain size={16} className="text-white" />
-                                        )}
-                                        {diagnosis?.analysis?.sciReport ? "Strategic Report Published" : "Strategic Intelligence"}
+                                        {isGeneratingSCI ? <Loader2 size={16} className="animate-spin" /> : <Brain size={18} />}
+                                        <span className="text-center text-white">Strategic Intelligence (SCI)</span>
                                     </button>
                                 </div>
                             </div>
@@ -473,10 +606,29 @@ export default function UserProfileReview() {
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Loyalty</p>
                                     <p className="text-xs font-bold text-slate-800">{new Date(userData.user?.createdAt).getFullYear()}</p>
                                 </div>
-                                <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                                    <p className="text-xs font-bold text-emerald-600">Active</p>
+                                <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100 flex items-center">
+                                    <div className="flex-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                                        <p className="text-sm font-bold text-slate-900">{userData.user?.status || "Active"}</p>
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* Quick Actions for Admin */}
+                            <div className="pt-6 border-t border-slate-100 flex flex-col gap-3 w-full">
+                                {(userData?.user?.plan === "Pro Essential") && !userData?.user?.resetRequested && (
+                                    <button
+                                        onClick={() => handleResetAction('approve')}
+                                        disabled={isHandlingReset}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 text-slate-600 hover:bg-rose-50 hover:text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-slate-200 hover:border-rose-200 shadow-sm"
+                                    >
+                                        <RotateCcw className="w-4 h-4" />
+                                        Force Progress Reset
+                                    </button>
+                                )}
+                                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-200">
+                                    Send Notification
+                                </button>
                             </div>
                         </div>
                     </div>

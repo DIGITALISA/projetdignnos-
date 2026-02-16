@@ -39,9 +39,23 @@ export async function POST(request: NextRequest) {
         if (email) {
             await connectDB();
             
-            // Update the user's profile
-            // Mark diagnosis as complete and store the full report
-            const user = await User.findOneAndUpdate(
+            const Diagnosis = (await import('@/models/Diagnosis')).default;
+            
+            // Update the diagnosis record with simulation report
+            await Diagnosis.findOneAndUpdate(
+                { userId: email },
+                { 
+                    $set: { 
+                        simulationReport: result.report,
+                        'completionStatus.simulationComplete': true,
+                        currentStep: 'completed'
+                    } 
+                },
+                { new: true, upsert: false }
+            );
+
+            // Also update User model for backward compatibility
+            await User.findOneAndUpdate(
                 { email },
                 { 
                     $set: { 
@@ -55,13 +69,6 @@ export async function POST(request: NextRequest) {
                 },
                 { new: true }
             );
-
-            if (!user) {
-                console.warn(`[Simulation Complete] User with email ${email} not found.`);
-                // We don't fail the request here, as the user still gets their report on screen
-            } else {
-                console.log(`[Simulation Complete] User ${email} diagnosis marked as complete.`);
-            }
         }
 
         return NextResponse.json({

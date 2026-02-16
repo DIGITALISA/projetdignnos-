@@ -48,6 +48,27 @@ export async function GET(request: NextRequest) {
             });
         }
 
+        let evaluation = diagnosis.interviewEvaluation || null;
+        
+        // Legacy compatibility check: If not in Diagnosis, try InterviewResult
+        if (!evaluation && (diagnosis.currentStep === 'interview_complete' || diagnosis.currentStep === 'completed')) {
+            try {
+                const InterviewResult = (await import('@/models/InterviewResult')).default;
+                const latestResult = await InterviewResult.findOne({ 
+                    $or: [
+                        { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                        { userId: userId.toString() }
+                    ]
+                }).sort({ createdAt: -1 });
+                
+                if (latestResult) {
+                    evaluation = latestResult.evaluation;
+                }
+            } catch (evalError) {
+                console.error('[PROGRESS-FETCH] Error fetching legacy evaluation:', evalError);
+            }
+        }
+
         // إرجاع جميع البيانات المطلوبة
         return NextResponse.json({
             hasData: true,
@@ -61,7 +82,7 @@ export async function GET(request: NextRequest) {
                 completionStatus: diagnosis.completionStatus,
                 
                 // بيانات المقابلة
-                interviewEvaluation: diagnosis.interviewEvaluation,
+                interviewEvaluation: evaluation,
                 conversationHistory: diagnosis.conversationHistory,
                 totalQuestions: diagnosis.totalQuestions,
                 

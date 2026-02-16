@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Lock, Zap, Phone, Star, Crown, Clock, Award, CheckSquare } from "lucide-react";
-import Link from "next/link";
+import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Lock, Zap, Phone, Star, Clock, CheckSquare, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -26,12 +25,13 @@ export default function ParticipantsManagement() {
         canAccessCertificates?: boolean;
         canAccessRecommendations?: boolean;
         canAccessScorecard?: boolean;
+        canAccessSCI?: boolean;
         rawPassword?: string;
         isDiagnosisComplete?: boolean;
         workshopAttestationRequested?: boolean;
-        workshopAttestationStatus?: string;
-        grantedWorkshopTitle?: string;
+        attestations?: Array<{ workshopTitle: string; issueDate: Date; referenceId: string; instructor?: string }>;
         workshopAccessRequests?: string[];
+        resetRequested?: boolean;
     }
 
     interface Workshop {
@@ -51,6 +51,7 @@ export default function ParticipantsManagement() {
         canAccessCertificates: false,
         canAccessRecommendations: false,
         canAccessScorecard: false,
+        canAccessSCI: false,
         rawPassword: ""
     });
 
@@ -97,27 +98,6 @@ export default function ParticipantsManagement() {
         }
     };
 
-    const handleGrantAttestation = async (user: Participant) => {
-        if (!confirm(`Grant Workshop Attestation for ${user.fullName}?`)) return;
-
-        try {
-            const res = await fetch("/api/admin/workshop-attestation/grant", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: user._id, workshopTitle: user.grantedWorkshopTitle })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                alert("Attestation granted successfully");
-                fetchParticipants();
-            } else {
-                alert(data.error || "Failed to grant attestation");
-            }
-        } catch (error) {
-            console.error("Error granting attestation:", error);
-        }
-    };
 
     useEffect(() => {
         fetchParticipants();
@@ -155,6 +135,7 @@ export default function ParticipantsManagement() {
             canAccessCertificates: !!user.canAccessCertificates,
             canAccessRecommendations: !!user.canAccessRecommendations,
             canAccessScorecard: !!user.canAccessScorecard,
+            canAccessSCI: !!user.canAccessSCI,
             rawPassword: user.rawPassword || ""
         });
         setIsAddModalOpen(true);
@@ -182,6 +163,30 @@ export default function ParticipantsManagement() {
         }
     };
 
+    const handleResetAction = async (userId: string, action: 'approve' | 'reject') => {
+        if (action === 'approve' && !window.confirm("CRITICAL: This will PERMANENTLY delete all progress for this user. Continue?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/handle-reset`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                fetchParticipants();
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (error) {
+            console.error("Reset error:", error);
+            alert("Failed to handle reset request");
+        }
+    };
+
     const openAddModal = () => {
         setEditingUserId(null);
         setFormData({
@@ -195,6 +200,7 @@ export default function ParticipantsManagement() {
             canAccessCertificates: false,
             canAccessRecommendations: false,
             canAccessScorecard: false,
+            canAccessSCI: false,
             rawPassword: ""
         });
         setIsAddModalOpen(true);
@@ -217,6 +223,7 @@ export default function ParticipantsManagement() {
                 canAccessCertificates: formData.canAccessCertificates,
                 canAccessRecommendations: formData.canAccessRecommendations,
                 canAccessScorecard: formData.canAccessScorecard,
+                canAccessSCI: formData.canAccessSCI,
                 rawPassword: formData.password || formData.rawPassword
             };
 
@@ -322,7 +329,17 @@ export default function ParticipantsManagement() {
                                 const isParticipant = p.role !== 'Admin' && p.role !== 'Moderator';
                                 const matchesSearch = p.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                     p.email?.toLowerCase().includes(searchTerm.toLowerCase());
-                                const matchesStatus = filterStatus === "All" || p.status === filterStatus;
+                                
+                                let matchesStatus = false;
+                                if (filterStatus === "All") {
+                                    matchesStatus = true;
+                                } else if (filterStatus === "Pending") {
+                                    // Show user if status is pending OR if they requested a reset
+                                    matchesStatus = p.status === "Pending" || p.resetRequested === true;
+                                } else {
+                                    matchesStatus = p.status === filterStatus;
+                                }
+
                                 return isParticipant && matchesSearch && matchesStatus;
                             }).map((user) => (
                                 <tr
@@ -343,12 +360,10 @@ export default function ParticipantsManagement() {
                                     <td className="px-8 py-5">
                                         <div className={cn(
                                             "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest",
-                                            user.plan === "Elite Full Pack" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                                                user.plan === "Pro Essential" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                            user.plan === "Pro Essential" ? "bg-blue-50 text-blue-700 border-blue-200" :
                                                     "bg-slate-50 text-slate-500 border-slate-200"
                                         )}>
-                                            {user.plan === "Elite Full Pack" ? <Crown size={12} /> :
-                                                user.plan === "Pro Essential" ? <Star size={12} /> : <Clock size={12} />}
+                                            {user.plan === "Pro Essential" ? <Star size={12} /> : <Clock size={12} />}
                                             {user.plan || "No Plan"}
                                         </div>
                                     </td>
@@ -384,6 +399,12 @@ export default function ParticipantsManagement() {
                                                 <span className="inline-flex items-center gap-1 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">
                                                     <Check size={10} />
                                                     Diagnosis Done
+                                                </span>
+                                            )}
+                                            {user.resetRequested && (
+                                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 uppercase tracking-tighter animate-pulse">
+                                                    <RotateCcw size={10} />
+                                                    Reset Journey
                                                 </span>
                                             )}
                                         </div>
@@ -423,28 +444,28 @@ export default function ParticipantsManagement() {
                                                 </div>
                                             )}
 
+                                            {user.resetRequested && (
+                                                <div className="flex items-center gap-1 border-r border-slate-100 pr-2 mr-1">
+                                                    <button
+                                                        onClick={() => handleResetAction(user._id, 'approve')}
+                                                        className="px-3 py-1 bg-rose-600 text-white hover:bg-rose-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all shadow-sm"
+                                                        title="Approve & Wipe Data"
+                                                    >
+                                                        Approve Reset
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleResetAction(user._id, 'reject')}
+                                                        className="px-3 py-1 bg-slate-200 text-slate-600 hover:bg-slate-300 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                        title="Reject Request"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            )}
                                             <a href={`/admin/users/${user._id}/profile`} className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-purple-200" title="Review Performance">
                                                 <ShieldCheck size={14} />
                                                 Review
                                             </a>
-                                            {user.workshopAttestationStatus === "Requested" && (
-                                                <button
-                                                    onClick={() => handleGrantAttestation(user)}
-                                                    className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 text-white hover:bg-amber-700 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-md"
-                                                    title={`Grant for: ${user.grantedWorkshopTitle}`}
-                                                >
-                                                    <Award size={14} />
-                                                    Grant Attestation
-                                                </button>
-                                            )}
-                                            <Link
-                                                href={`/workshop-attestation?userId=${user._id}`}
-                                                className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-amber-200"
-                                                title={user.workshopAttestationStatus === "Granted" ? `Granted: ${user.grantedWorkshopTitle}` : "View Template"}
-                                            >
-                                                <ShieldCheck size={14} />
-                                                View
-                                            </Link>
                                             <button onClick={() => handleDelete(user._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Eliminate Asset">
                                                 <Trash2 size={16} />
                                             </button>
@@ -504,7 +525,6 @@ export default function ParticipantsManagement() {
                                             <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
                                                 <option>Free Trial</option>
                                                 <option>Pro Essential</option>
-                                                <option>Elite Full Pack</option>
                                             </select>
                                         </div>
 
@@ -530,6 +550,13 @@ export default function ParticipantsManagement() {
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-bold text-slate-700">Allow Executive Scorecard</span>
                                                         <span className="text-[10px] text-slate-500 italic">Unlocks Performance Analytics</span>
+                                                    </div>
+                                                </label>
+                                                <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                                    <input type="checkbox" className="w-5 h-5 rounded border-slate-200 text-blue-600" checked={formData.canAccessSCI} onChange={(e) => setFormData({ ...formData, canAccessSCI: e.target.checked })} />
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-slate-700">Allow Strategic Intelligence (SCI)</span>
+                                                        <span className="text-[10px] text-slate-500 italic">Unlocks AI Intelligence Report</span>
                                                     </div>
                                                 </label>
                                             </div>

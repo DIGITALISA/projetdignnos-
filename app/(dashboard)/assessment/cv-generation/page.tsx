@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, FileText, Mail, ArrowRight, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Award } from "lucide-react";
+import { Send, Loader2, FileText, Mail, ArrowRight, ArrowLeft, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -78,13 +78,44 @@ export default function CVGenerationPage() {
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [totalQuestions] = useState(6); // Focused questions for CV/Cover Letter
+    const [totalQuestions] = useState(10); // Comprehensive questions for tailored CV/Cover Letter
     const [generationComplete, setGenerationComplete] = useState(false);
     const [generatedDocuments, setGeneratedDocuments] = useState<GeneratedDocuments | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const cvRef = useRef<HTMLDivElement>(null);
     const letterRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleResetSession = () => {
+        if (confirm("Are you sure you want to reset this session? All conversation will be lost.")) {
+            setMessages([]);
+            setCurrentQuestionIndex(0);
+            setGenerationComplete(false);
+            setGeneratedDocuments(null);
+            
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
+            if (userId) {
+                fetch('/api/user/progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        updateData: {
+                            cvGenerationConversation: [],
+                            currentStep: 'cv_generation',
+                            generatedDocuments: null
+                        }
+                    })
+                });
+            }
+            
+            if (cvAnalysis && interviewEvaluation && selectedRole) {
+                startCVGeneration(cvAnalysis, interviewEvaluation, selectedRole, selectedLanguage);
+            }
+        }
+    };
 
     useEffect(() => {
         const loadSession = async () => {
@@ -236,17 +267,49 @@ export default function CVGenerationPage() {
         setMessages(prev => [...prev, userMessage]);
         setInputValue("");
         setIsLoading(true);
+        setError(null);
+
+        // Data recovery fallback
+        let currentCV = cvAnalysis;
+        let currentEval = interviewEvaluation;
+        let currentRole = selectedRole;
+
+        if (!currentCV) {
+            const stored = localStorage.getItem('cvAnalysis');
+            if (stored) currentCV = JSON.parse(stored);
+        }
+        if (!currentEval) {
+            const stored = localStorage.getItem('interviewEvaluation');
+            if (stored) currentEval = JSON.parse(stored);
+        }
+        if (!currentRole) {
+            const stored = localStorage.getItem('selectedRole');
+            if (stored) currentRole = JSON.parse(stored);
+        }
+
+        if (!currentCV || !currentEval || !currentRole) {
+            console.error('[CV Generation] Cannot send message - Missing required data:', {
+                hasCVAnalysis: !!currentCV,
+                hasInterviewEvaluation: !!currentEval,
+                hasSelectedRole: !!currentRole,
+                language: selectedLanguage
+            });
+            setError(selectedLanguage === 'ar' ? "بيانات الجلسة مفقودة. يرجى العودة إلى النتائج والمحاولة مرة أخرى." : "Session data is missing. Please go back to Results and try again.");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             if (currentQuestionIndex >= totalQuestions) {
                 // Generate final CV and Cover Letter
+                console.log('[CV Generation] Sending complete request...');
                 const response = await fetch('/api/cv-generation/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        cvAnalysis,
-                        interviewEvaluation,
-                        selectedRole,
+                        cvAnalysis: currentCV,
+                        interviewEvaluation: currentEval,
+                        selectedRole: currentRole,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
                     }),
@@ -264,16 +327,19 @@ export default function CVGenerationPage() {
                         timestamp: new Date(),
                     };
                     setMessages(prev => [...prev, aiMessage]);
+                } else {
+                    setError(result.error || "Generation failed");
                 }
             } else {
                 // Get next question
+                console.log('[CV Generation] Sending next-question request for question:', currentQuestionIndex + 1);
                 const response = await fetch('/api/cv-generation/next-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        cvAnalysis,
-                        interviewEvaluation,
-                        selectedRole,
+                        cvAnalysis: currentCV,
+                        interviewEvaluation: currentEval,
+                        selectedRole: currentRole,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
                         questionNumber: currentQuestionIndex + 1,
@@ -291,13 +357,98 @@ export default function CVGenerationPage() {
                     };
                     setMessages(prev => [...prev, aiMessage]);
                     setCurrentQuestionIndex(prev => prev + 1);
+                } else {
+                    setError(result.error || "Failed to get next question");
                 }
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (err) {
+            console.error('Error:', err);
+            setError("Failed to generate response. Please try again or use Emergency Finish.");
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleEmergencyFinish = async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        // Data recovery fallback
+        let currentCV = cvAnalysis;
+        let currentEval = interviewEvaluation;
+        let currentRole = selectedRole;
+
+        if (!currentCV) {
+            const stored = localStorage.getItem('cvAnalysis');
+            if (stored) currentCV = JSON.parse(stored);
+        }
+        if (!currentEval) {
+            const stored = localStorage.getItem('interviewEvaluation');
+            if (stored) currentEval = JSON.parse(stored);
+        }
+        if (!currentRole) {
+            const stored = localStorage.getItem('selectedRole');
+            if (stored) currentRole = JSON.parse(stored);
+        }
+
+        console.log('[CV Generation] Emergency Finish clicked', {
+            hasCVAnalysis: !!currentCV,
+            hasInterviewEvaluation: !!currentEval,
+            hasSelectedRole: !!currentRole,
+            messagesCount: messages.length
+        });
+
+        if (!currentCV || !currentEval || !currentRole) {
+            setError(selectedLanguage === 'ar' ? "بيانات الجلسة مفقودة. يرجى العودة إلى النتائج." : "Missing session data. Please return to Results.");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/cv-generation/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cvAnalysis: currentCV,
+                    interviewEvaluation: currentEval,
+                    selectedRole: currentRole,
+                    conversationHistory: messages,
+                    language: selectedLanguage,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setGeneratedDocuments(result.documents);
+                setGenerationComplete(true);
+                
+                const aiMessage: Message = {
+                    role: 'ai',
+                    content: result.completionMessage,
+                    timestamp: new Date(),
+                };
+                setMessages(prev => [...prev, aiMessage]);
+            } else {
+                setError(result.error || "Generation failed");
+            }
+        } catch (error) {
+            console.error('Emergency finish error:', error);
+            setError("Emergency finish failed. Please try resetting the session.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleProceedToSimulation = async () => {
+        if (generationComplete) {
+            localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
+            router.push('/assessment/simulation');
+            return;
+        }
+
+        // If not complete but unlocked (>= 5 questions), trigger finish first
+        await handleEmergencyFinish();
     };
 
     const handleSkipQuestion = async () => {
@@ -318,16 +469,47 @@ export default function CVGenerationPage() {
 
         setMessages(prev => [...prev, userMessage]);
         setIsLoading(true);
+        setError(null);
+
+        // Data recovery fallback
+        let currentCV = cvAnalysis;
+        let currentEval = interviewEvaluation;
+        let currentRole = selectedRole;
+
+        if (!currentCV) {
+            const stored = localStorage.getItem('cvAnalysis');
+            if (stored) currentCV = JSON.parse(stored);
+        }
+        if (!currentEval) {
+            const stored = localStorage.getItem('interviewEvaluation');
+            if (stored) currentEval = JSON.parse(stored);
+        }
+        if (!currentRole) {
+            const stored = localStorage.getItem('selectedRole');
+            if (stored) currentRole = JSON.parse(stored);
+        }
+
+        if (!currentCV || !currentEval || !currentRole) {
+            console.error('[CV Generation] Cannot skip - Missing required data:', {
+                hasCVAnalysis: !!currentCV,
+                hasInterviewEvaluation: !!currentEval,
+                hasSelectedRole: !!currentRole
+            });
+            setError(selectedLanguage === 'ar' ? "بيانات الجلسة مفقودة. يرجى العودة إلى النتائج والمحاولة مرة أخرى." : "Session data is missing. Please go back to Results and try again.");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             if (currentQuestionIndex >= totalQuestions) {
+                console.log('[CV Generation] Skipping to complete...');
                 const response = await fetch('/api/cv-generation/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        cvAnalysis,
-                        interviewEvaluation,
-                        selectedRole,
+                        cvAnalysis: currentCV,
+                        interviewEvaluation: currentEval,
+                        selectedRole: currentRole,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
                     }),
@@ -345,15 +527,18 @@ export default function CVGenerationPage() {
                         timestamp: new Date(),
                     };
                     setMessages(prev => [...prev, aiMessage]);
+                } else {
+                    setError(result.error || "Generation failed");
                 }
             } else {
+                console.log('[CV Generation] Skipping to next question:', currentQuestionIndex + 1);
                 const response = await fetch('/api/cv-generation/next-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        cvAnalysis,
-                        interviewEvaluation,
-                        selectedRole,
+                        cvAnalysis: currentCV,
+                        interviewEvaluation: currentEval,
+                        selectedRole: currentRole,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
                         questionNumber: currentQuestionIndex + 1,
@@ -371,10 +556,13 @@ export default function CVGenerationPage() {
                     };
                     setMessages(prev => [...prev, aiMessage]);
                     setCurrentQuestionIndex(prev => prev + 1);
+                } else {
+                    setError(result.error || "Failed to get next question");
                 }
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (err) {
+            console.error('Error:', err);
+            setError("Failed to process skip. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -509,7 +697,34 @@ export default function CVGenerationPage() {
     // Generation Complete Screen
     if (generationComplete && generatedDocuments) {
         return (
-            <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-8">
+            <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-8 relative">
+                 {/* Header Section */}
+                 <div className="mb-6 flex flex-col items-center text-center gap-6 px-4 shrink-0 relative">
+                    <button 
+                        onClick={() => setGenerationComplete(false)}
+                        className="absolute left-0 top-2 p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm flex items-center gap-2 px-4"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm font-bold">Back to Chat</span>
+                    </button>
+
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative"
+                    >
+                        <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-cyan-400 rounded-2xl blur opacity-20"></div>
+                        <div className="relative bg-white/50 backdrop-blur-sm px-8 py-4 rounded-2xl border border-slate-200/60">
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
+                                Your Professional <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">Portfolio</span>
+                            </h1>
+                            <p className="text-slate-500 text-lg font-medium">
+                                Ready for review and download
+                            </p>
+                        </div>
+                    </motion.div>
+                </div>
+
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -676,33 +891,21 @@ export default function CVGenerationPage() {
                     </motion.div>
                 )}
 
-                {/* Next Step Banner */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="bg-linear-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-6"
-                >
-                    <div className="flex items-center gap-3 mb-3">
-                        <Sparkles className="w-6 h-6 text-purple-600" />
-                        <h3 className="text-xl font-bold text-slate-900">Ready for the Final Step?</h3>
-                    </div>
-                    <p className="text-slate-700 mb-4">
-                        Test your skills in real-world scenarios! Practice as a <strong>{selectedRole?.title}</strong> and get AI-powered feedback on your performance.
-                    </p>
-                </motion.div>
-
-                <button
-                    onClick={() => {
-                        // Store generated documents for simulation
-                        localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
-                        router.push('/assessment/simulation');
-                    }}
-                    className="w-full py-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
-                >
-                    Start Role Simulation
-                    <ArrowRight className="w-5 h-5" />
-                </button>
+                <div className="flex justify-center pt-8 border-t border-slate-100">
+                    <button
+                        onClick={() => {
+                            localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
+                            router.push('/assessment/simulation');
+                        }}
+                        className="group px-12 py-5 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-black text-xl transition-all shadow-xl shadow-purple-600/20 hover:shadow-2xl hover:shadow-purple-600/40 hover:-translate-y-1 flex items-center justify-center gap-3 w-full md:w-auto"
+                    >
+                        {selectedLanguage === 'ar' ? 'البدء في محاكاة الدور' :
+                            selectedLanguage === 'fr' ? 'Commencer la simulation' : 'Start Role Simulation'}
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </button>
+                </div>
             </div>
         );
     }
@@ -710,7 +913,14 @@ export default function CVGenerationPage() {
     return (
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto w-full font-sans">
             {/* Header Section */}
-            <div className="mb-6 flex flex-col items-center text-center gap-6 px-4 shrink-0">
+            <div className="mb-6 flex flex-col items-center text-center gap-6 px-4 shrink-0 relative">
+                <button 
+                    onClick={() => router.push('/assessment/role-suggestions')}
+                    className="absolute left-0 top-2 p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                </button>
+
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -732,18 +942,42 @@ export default function CVGenerationPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="flex items-center gap-4 bg-white px-5 py-2 rounded-full shadow-sm border border-slate-200"
+                    className="flex flex-col md:flex-row items-center gap-4 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-2xl shadow-sm border border-slate-200"
                 >
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Progress</span>
-                    <div className="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
-                        <motion.div 
-                            className="h-full bg-linear-to-r from-blue-500 to-cyan-400"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(currentQuestionIndex / totalQuestions) * 100}%` }}
-                            transition={{ duration: 0.5 }}
-                        />
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Progress</span>
+                        <div className="h-2 w-32 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                            <motion.div 
+                                className="h-full bg-linear-to-r from-blue-500 to-cyan-400"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(100, (currentQuestionIndex / totalQuestions) * 100)}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
+                        </div>
+                        <span className="text-sm font-black text-blue-600">{currentQuestionIndex} / {totalQuestions}</span>
                     </div>
-                    <span className="text-sm font-black text-blue-600">{currentQuestionIndex} / {totalQuestions}</span>
+
+                    {/* Reset Button */}
+                    <button 
+                        onClick={handleResetSession}
+                        className="text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+                    >
+                        <RefreshCw className="w-3 h-3" />
+                        Reset
+                    </button>
+                    
+                    
+                    {/* Emergency Finish Button */}
+                    {!generationComplete && currentQuestionIndex >= totalQuestions && (
+                        <button
+                            onClick={handleEmergencyFinish}
+                            disabled={isLoading}
+                            className="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-1 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-1"
+                        >
+                            <Sparkles className="w-3 h-3" />
+                            Emergency Finish
+                        </button>
+                    )}
                 </motion.div>
             </div>
 
@@ -786,7 +1020,6 @@ export default function CVGenerationPage() {
                             </div>
                         </motion.div>
                     ))}
-
                     {isLoading && (
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -800,50 +1033,102 @@ export default function CVGenerationPage() {
                         </motion.div>
                     )}
 
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex justify-center mt-4"
+                        >
+                            <div className="bg-red-50 border border-red-100 text-red-600 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-sm">
+                                <AlertCircle className="w-5 h-5" />
+                                <span className="text-sm font-bold">{error}</span>
+                                {currentQuestionIndex >= totalQuestions && (
+                                    <button 
+                                        onClick={handleEmergencyFinish}
+                                        className="ml-4 underline text-xs font-black uppercase hover:text-red-800"
+                                    >
+                                        Finish Now
+                                    </button>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+
                     <div ref={messagesEndRef} />
                 </div>
             </div>
 
             {/* Input Area */}
-            <div className="bg-white rounded-4xl shadow-2xl border border-slate-200/60 p-3 md:p-5 mx-2 md:mx-0 shrink-0">
-                <div className="flex flex-col md:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <input
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                            placeholder="Type your answer here..."
-                            disabled={isLoading || generationComplete}
-                            className="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium"
-                        />
+                <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-3 md:p-5 mx-2 md:mx-0 shrink-0">
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                                placeholder="Type your answer here..."
+                                disabled={isLoading || generationComplete}
+                                className="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium"
+                            />
+                        </div>
+                        
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleSkipQuestion}
+                                disabled={isLoading || generationComplete}
+                                className="px-6 py-3 bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                            >
+                                <ArrowRight className="w-4 h-4" />
+                                <span className="hidden md:inline">Skip</span>
+                            </button>
+                            <button
+                                onClick={handleSendMessage}
+                                disabled={!inputValue.trim() || isLoading || generationComplete}
+                                className="px-8 py-3 bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                            >
+                                <Send className="w-4 h-4" />
+                                <span className="hidden md:inline">Send Answer</span>
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div className="flex gap-2">
+
+                    {/* Next Step Navigation - Active only when complete */}
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex justify-center">
                         <button
-                            onClick={handleSkipQuestion}
-                            disabled={isLoading || generationComplete}
-                            className="px-6 py-3 bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                            onClick={handleProceedToSimulation}
+                            disabled={(currentQuestionIndex < 8 && !generationComplete) || isLoading}
+                            className={`
+                                group px-10 py-4 rounded-2xl font-black text-lg transition-all flex items-center gap-3
+                                ${(generationComplete || currentQuestionIndex >= 8)
+                                    ? "bg-purple-600 text-white shadow-xl shadow-purple-600/20 hover:bg-purple-700 hover:-translate-y-1"
+                                    : "bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200"
+                                }
+                            `}
                         >
-                            <ArrowRight className="w-4 h-4" />
-                            <span className="hidden md:inline">Skip</span>
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span>{generationComplete ? "Redirecting..." : "Generating Documents..."}</span>
+                                </>
+                            ) : (
+                                <>
+                                    {selectedLanguage === 'ar' ? 'البدء في محاكاة الدور' :
+                                        selectedLanguage === 'fr' ? 'Commencer la simulation' : 'Start Role Simulation'}
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${(generationComplete || currentQuestionIndex >= 8) ? 'bg-white/20' : 'bg-slate-200'}`}>
+                                        <ArrowRight className={`w-5 h-5 ${(generationComplete || currentQuestionIndex >= 8) ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
+                                    </div>
+                                </>
+                            )}
                         </button>
-                        <button
-                            onClick={handleSendMessage}
-                            disabled={!inputValue.trim() || isLoading || generationComplete}
-                            className="px-8 py-3 bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-                        >
-                            <Send className="w-4 h-4" />
-                            <span className="hidden md:inline">Send Answer</span>
-                        </button>
+                    </div>
+
+                    <div className="mt-3 text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
+                            AI-Powered Career Assistant • {selectedLanguage?.toUpperCase()} Mode
+                        </p>
                     </div>
                 </div>
-                <div className="mt-3 text-center">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
-                        AI-Powered Career Assistant • {selectedLanguage?.toUpperCase()} Mode
-                    </p>
-                </div>
-            </div>
         </div>
     );
 }

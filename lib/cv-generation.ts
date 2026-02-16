@@ -1,14 +1,40 @@
 import OpenAI from 'openai';
 
+export interface CVAnalysis {
+    overview?: string;
+    strengths?: string[];
+    weaknesses?: string[];
+    [key: string]: unknown;
+}
+
+export interface InterviewEvaluation {
+    accuracyScore?: number;
+    overallRating?: number;
+    summary?: string;
+    executiveSummary?: string;
+    [key: string]: unknown;
+}
+
+export interface Role {
+    title: string;
+    [key: string]: unknown;
+}
+
+export interface ConversationMessage {
+    role: 'ai' | 'user' | 'system';
+    content: string;
+    timestamp?: Date | string;
+}
+
 const deepseek = new OpenAI({
     apiKey: process.env.DEEPSEEK_API_KEY,
     baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1',
 });
 
 export async function startCVGeneration(
-    cvAnalysis: any,
-    interviewEvaluation: any,
-    selectedRole: any,
+    cvAnalysis: CVAnalysis,
+    interviewEvaluation: InterviewEvaluation,
+    selectedRole: Role,
     language: string = 'en'
 ) {
     try {
@@ -43,18 +69,19 @@ You have access to:
 3. **Selected Role**: The specific position they're targeting - "${selectedRole.title}"
 
 **YOUR MISSION:**
-Conduct a focused 6-question interview to gather ADDITIONAL information needed to create:
+Conduct a comprehensive 10-question interview to gather ALL necessary information (Real personal data & Deep professional insights) needed to create:
 1. An ATS-optimized CV tailored for "${selectedRole.title}"
 2. A compelling cover letter
 3. Professional marketing tips for their profile
 
 **WHAT YOU NEED TO DISCOVER:**
-1. **Quantifiable Achievements**: Specific metrics, numbers, results they've achieved
-2. **Key Projects**: Detailed examples of relevant work
-3. **Technical Tools**: Specific software, tools, methodologies they've used
-4. **Soft Skills Examples**: Real situations demonstrating leadership, teamwork, problem-solving
-5. **Career Motivation**: Why they want this specific role
-6. **Unique Value Proposition**: What makes them stand out
+0. **Personal Identity**: Full name, real contact details (phone, email), and professional location.
+1. **Quantifiable Achievements**: Specific metrics, numbers, results they've achieved in past roles.
+2. **Key Projects**: Detailed examples of relevant work and their specific contributions.
+3. **Technical Stack**: Software, tools, and methodologies used in a professional context.
+4. **Soft Skills Evidence**: Real-world situations demonstrating leadership, teamwork, or problem-solving.
+5. **Career Drive**: Why this specific role "${selectedRole.title}" is the perfect next step.
+6. **Unique Value Proposition**: The specific "edge" that makes them the best candidate.
 
 **APPROACH:**
 - Ask strategic questions that reveal concrete, quantifiable information
@@ -74,8 +101,9 @@ Interview Evaluation: ${JSON.stringify(interviewEvaluation)}
 Selected Role: ${JSON.stringify(selectedRole)}
 
 Generate:
-1. A professional welcome message (2-3 sentences) explaining this CV generation phase
-2. The first strategic question to gather information for their CV
+1. A professional welcome message (2-3 sentences) explaining this CV generation phase.
+2. The first strategic question to gather information for their CV.
+   *IMPORTANT: Since we need a professional CV, if you don't have their full name, phone number, and professional location, START by asking for these details to ensure accuracy.*
 
 Respond in JSON format:
 {
@@ -109,10 +137,10 @@ Respond in JSON format:
 }
 
 export async function generateNextCVQuestion(
-    cvAnalysis: any,
-    interviewEvaluation: any,
-    selectedRole: any,
-    conversationHistory: any[],
+    cvAnalysis: CVAnalysis,
+    interviewEvaluation: InterviewEvaluation,
+    selectedRole: Role,
+    conversationHistory: ConversationMessage[],
     language: string = 'en',
     questionNumber: number,
     totalQuestions: number
@@ -149,26 +177,37 @@ Based on their previous answers, ask the next strategic question to gather infor
 
 **QUESTION FOCUS BY STAGE:**
 
-**Questions 1-2 (Achievements):**
-- Quantifiable results and metrics
-- Specific projects and their impact
-- Awards, recognition, or notable accomplishments
+**Questions 1-2 (Personal & Bio):**
+- Full Name, Phone Number, and Email Address
+- Current Location (City/Country) and LinkedIn profile
+- NO MOCK DATA. You must explicitly ask for these real details to populate the CV.
 
-**Questions 3-4 (Skills & Tools):**
-- Technical proficiencies relevant to the role
-- Methodologies and frameworks used
-- Certifications or specialized training
+**Questions 3-4 (Achievements & Impact):**
+- Quantifiable results and metrics from previous roles
+- Specific projects and their direct impact
+- Awards, recognition, or notable professional accomplishments
 
-**Questions 5-6 (Motivation & Differentiation):**
-- Why this specific role/company type
-- What makes them uniquely qualified
-- Their professional vision and goals
+**Questions 5-6 (Skills & Technologies):**
+- Technical proficiencies deeply relevant to "${selectedRole.title}"
+- Softwares, methodologies, or frameworks used in practice
+- Certifications, specialized training, or academic projects
+
+**Questions 7-8 (Soft Skills & Experience Context):**
+- Leadership, teamwork, or problem-solving examples
+- Context of previous responsibilities tailored to the new role
+- Any gaps or specific experiences that need professional framing
+
+**Questions 9-10 (Motivation & Unique Value):**
+- Why they are specifically pursuing "${selectedRole.title}"
+- Their "Elevator Pitch" or professional vision
+- What makes them different from any other candidate for this role
 
 **RULES:**
-- Ask ONE specific question
-- Focus on gathering concrete, usable information
-- Help them think in terms of achievements, not just responsibilities
-- Guide them to provide recruiter-friendly responses`
+- Ask ONE specific question at a time
+- Be proactive: if you see placeholder data in the biography, ask for the REAL information
+- Focus on gathering concrete, usable information for a high-end ATS-optimized CV
+- Help them think in terms of achievements, not just simple tasks
+- Guide them to provide recruiter-friendly, professional responses`
                 },
                 {
                     role: 'user',
@@ -202,10 +241,10 @@ Respond with just the question text, no JSON.`
 }
 
 export async function completeCVGeneration(
-    cvAnalysis: any,
-    interviewEvaluation: any,
-    selectedRole: any,
-    conversationHistory: any[],
+    cvAnalysis: CVAnalysis,
+    interviewEvaluation: InterviewEvaluation,
+    selectedRole: Role,
+    conversationHistory: ConversationMessage[],
     language: string = 'en'
 ) {
     try {

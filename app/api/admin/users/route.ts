@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, rawPassword } = body;
+        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, rawPassword } = body;
 
         if (!fullName || !email || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
         // Auto-assign role if plan is premium
         let finalRole = role || "Trial User";
-        if ((plan === "Pro Essential" || plan === "Elite Full Pack") && (finalRole === "Trial User")) {
+        if ((plan === "Pro Essential") && (finalRole === "Trial User")) {
             finalRole = "Premium Member";
         }
 
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
             canAccessCertificates: !!canAccessCertificates,
             canAccessRecommendations: !!canAccessRecommendations,
             canAccessScorecard: !!canAccessScorecard,
+            canAccessSCI: !!canAccessSCI,
             rawPassword: rawPassword || password
         });
 
@@ -70,7 +71,7 @@ export async function PUT(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, rawPassword } = body;
+        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, rawPassword } = body;
 
         if (!id) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -86,11 +87,12 @@ export async function PUT(req: NextRequest) {
             canAccessCertificates: !!canAccessCertificates,
             canAccessRecommendations: !!canAccessRecommendations,
             canAccessScorecard: !!canAccessScorecard,
+            canAccessSCI: !!canAccessSCI,
             rawPassword: rawPassword
         };
 
         // Auto-upgrade role if plan is premium
-        if ((plan === "Pro Essential" || plan === "Elite Full Pack") && (role === "Trial User" || !role)) {
+        if ((plan === "Pro Essential") && (role === "Trial User" || !role)) {
             updateData.role = "Premium Member";
         }
         if (password && password.trim() !== "") {

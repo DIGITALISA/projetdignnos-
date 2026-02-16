@@ -26,56 +26,29 @@ export default function WorkshopAttestationPage() {
     useEffect(() => {
         const loadInfo = async () => {
             const activeWorkshopParam = searchParams.get("activeWorkshop");
+            const refParam = searchParams.get("ref");
+            const dateParam = searchParams.get("date");
             
+            let name = "M. Participant";
             if (userId) {
-                // Fetch specific user info for Admin view
                 try {
                     const res = await fetch(`/api/user/profile?userId=${userId}`);
                     const data = await res.json();
-                    if (data.success) {
-                        setWorkshop({
-                            title: activeWorkshopParam || data.profile.grantedWorkshopTitle || "Leadership Stratégique & Management de Crise",
-                            participantName: data.profile.fullName,
-                            date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
-                            referenceId: `WKS-${userId.substring(userId.length - 6).toUpperCase()}`
-                        });
-                    }
-                } catch (error) {
-                    console.error("Error fetching user for attestation:", error);
-                }
+                    if (data.success) name = data.profile.fullName;
+                } catch (err) { console.error(err); }
             } else {
-                // Load from localStorage for the participant's own view
-                const savedProfile = localStorage.getItem("userProfile");
-                if (savedProfile) {
-                    const parsed = JSON.parse(savedProfile);
-                    
-                    // First try to fetch official data from API for participant
-                    const identifier = parsed.email || parsed.fullName;
-                    if (identifier) {
-                        try {
-                            const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(identifier)}`);
-                            const data = await res.json();
-                            if (data.success) {
-                                setWorkshop({
-                                    title: activeWorkshopParam || data.profile.grantedWorkshopTitle || "Leadership Stratégique",
-                                    participantName: data.profile.fullName,
-                                    date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
-                                    referenceId: `WKS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-                                });
-                                return;
-                            }
-                        } catch (err) { console.error(err); }
-                    }
-
-                    // Fallback to local
-                    setWorkshop({
-                        title: activeWorkshopParam || "Leadership Stratégique & Management de Crise",
-                        participantName: parsed.fullName || "M. Participant",
-                        date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
-                        referenceId: `WKS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-                    });
-                }
+                const saved = localStorage.getItem("userProfile");
+                if (saved) name = JSON.parse(saved).fullName || "M. Participant";
             }
+
+            setWorkshop({
+                title: activeWorkshopParam || "Leadership Stratégique",
+                participantName: name,
+                date: dateParam 
+                    ? new Date(Number(dateParam)).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
+                referenceId: refParam || `WKS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+            });
         };
         
         loadInfo();
@@ -209,7 +182,7 @@ export default function WorkshopAttestationPage() {
                                         {workshop.participantName}
                                     </h2>
                                     <p className="text-xl font-serif text-slate-600 leading-relaxed max-w-xl mx-auto italic mt-6">
-                                        À la séance intensive de Workshop intitulée :
+                                        À la Session Complète de Workshop intitulée :
                                         <br />
                                         <span className="font-black uppercase tracking-wider text-2xl not-italic block mt-2 text-blue-700">
                                             « {workshop.title} »

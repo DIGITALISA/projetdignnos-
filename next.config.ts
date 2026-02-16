@@ -1,3 +1,4 @@
+// Reload trigger: 2026-02-16T18:50:00
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

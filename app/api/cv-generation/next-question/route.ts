@@ -14,6 +14,11 @@ export async function POST(request: NextRequest) {
         } = await request.json();
 
         if (!cvAnalysis || !interviewEvaluation || !selectedRole) {
+            console.error('Missing required fields:', { 
+                hasCVAnalysis: !!cvAnalysis, 
+                hasInterviewEvaluation: !!interviewEvaluation, 
+                hasSelectedRole: !!selectedRole 
+            });
             return NextResponse.json(
                 { error: 'CV analysis, interview evaluation, and selected role are required' },
                 { status: 400 }

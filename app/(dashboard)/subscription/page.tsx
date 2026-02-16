@@ -1,102 +1,48 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Zap, Crown, Shield, ArrowRight, Star, Globe } from "lucide-react";
+import { Check, Shield, ArrowRight, Star, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const plans = [
     {
-        name: "Explorer",
+        name: "Free Trial",
         badge: "Discovery",
-        price: "Free",
-        duration: "Forever",
-        description: "Explore the platform's core capabilities and start your executive journey.",
+        price: "Gratuit",
+        duration: "Diagnostic",
+        description: "Découvrez la puissance de l'IA pour votre carrière avec un diagnostic complet.",
         features: [
-            "1 Complete CV Analysis (AI-powered)",
-            "3 questions/day to AI Advisor",
-            "Access to 3 professional templates",
-            "5 Knowledge Base articles",
-            "Basic career roadmap",
-            "Explorer badge on profile"
+            "1 Analyse CV Complète (IA)",
+            "3 questions/jour au Conseiller IA",
+            "Diagnostic de Compétences",
+            "Aperçu du Scénario d'Excellence",
+            "Recommandations de base"
         ],
-        type: "Explorer",
+        type: "Free Trial",
         color: "slate",
         icon: Globe
     },
     {
-        name: "Professional",
-        badge: "Pour les Professionnels",
-        price: "39€",
-        duration: "/ mois",
-        priceYearly: "399€/an",
-        savings: "Économisez 69€",
-        description: "Pour les professionnels ambitieux qui veulent un développement continu.",
-        features: [
-            "Analyse CV illimitée",
-            "Conseiller IA illimité 24/7",
-            "Bibliothèque complète d'outils",
-            "1 Job Alignment gratuit/mois",
-            "Simulations (149€/unité)",
-            "Workshops (49€-99€/unité)",
-            "Support email (48h)",
-            "Badge Professional"
-        ],
-        type: "Professional",
-        color: "blue",
-        icon: Zap,
-        popular: false
-    },
-    {
-        name: "Executive",
-        badge: "Best Value 🔥",
+        name: "Pro Essential",
+        badge: "Full Access 🔥",
         price: "À partir de 80€ (HT)",
-        duration: "+ (Selon Diagnostic & Sessions)",
-        priceYearly: "800€/an",
-        savings: "Économisez 149€",
-        description: "Le choix idéal pour les leaders ambitieux qui visent l'excellence.",
+        duration: "+ (Selon Diagnostic)",
+        description: "Le protocole complet pour propulser votre carrière vers l'excellence exécutive.",
         features: [
-            "Tout de Professional +",
-            "Job Alignment illimité",
-            "2 Simulations gratuites/mois",
-            "1 Workshop gratuit/mois",
-            "Lettre de Recommandation officielle",
+            "Analyse CV & Profil illimitée",
+            "Conseiller IA Stratégique 24/7",
             "Rapport SCI (Strategic Career Intelligence)",
-            "1 Session de conseil/mois (30min)",
-            "Support prioritaire (24h)",
-            "Badge Executive doré",
-            "Accès anticipé aux nouvelles fonctionnalités"
+            "Accès aux Simulations Exécutives",
+            "Lettre de Recommandation Officielle",
+            "Scorecard de Performance",
+            "Accès aux Ateliers (Workshops)",
+            "Support Prioritaire"
         ],
-        type: "Executive",
-        color: "indigo",
+        type: "Pro Essential",
+        color: "blue",
         icon: Star,
         popular: true
-    },
-    {
-        name: "Elite",
-        badge: "VIP Total Immersion",
-        price: "199€",
-        duration: "/ mois",
-        priceYearly: "1,999€/an",
-        savings: "Économisez 389€",
-        description: "L'accompagnement VIP complet pour les dirigeants et cadres supérieurs.",
-        features: [
-            "Tout de Executive +",
-            "Simulations illimitées",
-            "Workshops illimités",
-            "4 Sessions de conseil/mois (1h chacune)",
-            "Expert dédié personnel",
-            "Support VIP (6h + WhatsApp)",
-            "Rapports mensuels personnalisés",
-            "Révision LinkedIn Profile",
-            "Coaching négociation salariale",
-            "Badge Elite platine",
-            "Invitations événements exclusifs",
-            "Accès à vie au contenu (même après annulation)"
-        ],
-        type: "Elite",
-        color: "amber",
-        icon: Crown
     }
 ];
 

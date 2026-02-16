@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import JobAlignment from '@/models/JobAlignment';
 import Diagnosis from '@/models/Diagnosis';
+import PerformanceProfile from '@/models/PerformanceProfile';
 import { generateJobAlignmentQuestions, evaluateJobAlignment } from '@/lib/deepseek';
 
 export async function POST(request: NextRequest) {
@@ -76,12 +77,21 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
         }
 
+        // Fetch Expert Notes from PerformanceProfile if available
+        const profile = await PerformanceProfile.findOne({ 
+            $or: [
+                { userId: { $regex: new RegExp(`^${alignment.userId}$`, 'i') } },
+                { userId: alignment.userId.toString() }
+            ]
+        });
+
         const report = await evaluateJobAlignment(
             alignment.jobDescription,
             alignment.questions,
             answers,
             { fullName: alignment.userName, userId: alignment.userId },
-            language
+            language,
+            profile?.expertNotes // Pass expert notes if they exist
         );
 
         alignment.answers = answers;

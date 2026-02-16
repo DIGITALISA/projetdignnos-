@@ -15,7 +15,7 @@ export async function POST(
     try {
         const { userId } = await params;
         const userIdParam = userId;
-        const { expertNotes, language = 'fr' } = await request.json();
+        const { expertNotes, language = 'fr', type } = await request.json();
 
         await connectDB();
 
@@ -35,74 +35,100 @@ export async function POST(
             return NextResponse.json({ error: "User has no diagnosis data." }, { status: 400 });
         }
 
-        // 3. Update/Save Expert Notes First (Stored in Profile for now)
-        // We might want to store summary somewhere else, but let's assume we pass it directly to AI this time.
-
-        // 4. GENERATE PROFILE with Expert Context
-        // We need to update the AI function to accept expertNotes. 
-        // For now, we'll append it to simulations or pass it specially.
-        // Let's modify the simulations array to include a "virtual" simulation representing the expert's view if we don't want to change the signature yet, 
-        // OR better: we update signature in a moment. I'll stick to passing it as a "Special Report" inside the prompt data.
-
-        // Let's pretend the Expert Notes is a "Super Simulation" for the AI context
-        const expertContext = {
-            title: "EXPERT_SUPERVISOR_REVIEW",
-            userDraft: expertNotes,
-            expertFeedback: "VALIDATED BY HUMAN EXPERT",
-            score: 100
-        };
-        const augmentedSimulations = [...simulations, expertContext];
-
-        // A. Generate Profile
-        const profileResult = await generatePerformanceProfile(
-            { fullName: user.fullName, userId: identifier },
-            certificates,
-            diagnosis.analysis,
-            augmentedSimulations, // Passing expert notes here
-            language
-        );
-
-        if (!profileResult.success || !profileResult.profile) {
-            throw new Error("AI Profile Generation Failed");
-        }
-
-        // B. Generate Recommendation
-        const recResult = await generateRecommendationLetter(
-            { fullName: user.fullName, userId: identifier },
-            certificates,
-            diagnosis.analysis,
-            augmentedSimulations, // Passing expert notes here
-            language
-        );
-
-        // 5. Save Results
         const referenceId = `EXEC-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
-        // Save Profile
-        await PerformanceProfile.findOneAndUpdate(
-            { userId: identifier },
-            {
-                userName: user.fullName,
-                summary: profileResult.profile.summary,
-                competencies: profileResult.profile.competencies,
-                verdict: profileResult.profile.verdict,
-                expertNotes: expertNotes, // Store the manual notes
+        // Handle generation based on type
+        if (type === 'assessment') {
+            const profileResult = await generatePerformanceProfile(
+                { fullName: user.fullName, userId: identifier },
+                certificates,
+                diagnosis.analysis,
+                simulations, 
                 language,
-                referenceId
-            },
-            { upsert: true, new: true }
-        );
+                expertNotes
+            );
 
-        // Save Recommendation
-        await Recommendation.create({
-            userId: identifier,
-            userName: user.fullName,
-            subject: recResult.recommendation?.subject || "Letter of Recommendation",
-            content: recResult.recommendation?.content || "Generated content...",
-            keyEndorsements: recResult.recommendation?.keyEndorsements || [],
-            language,
-            referenceId
-        });
+            if (!profileResult.success || !profileResult.profile) {
+                throw new Error("AI Performance Profile Generation Failed");
+            }
+
+            await PerformanceProfile.findOneAndUpdate(
+                { userId: identifier },
+                {
+                    userName: user.fullName,
+                    summary: profileResult.profile.summary,
+                    competencies: profileResult.profile.competencies,
+                    verdict: profileResult.profile.verdict,
+                    expertNotes: expertNotes, 
+                    language,
+                    referenceId
+                },
+                { upsert: true, new: true }
+            );
+        } 
+        else if (type === 'recommendation') {
+            const recResult = await generateRecommendationLetter(
+                { fullName: user.fullName, userId: identifier },
+                certificates,
+                diagnosis.analysis,
+                simulations, 
+                language,
+                expertNotes
+            );
+
+            if (!recResult.success || !recResult.recommendation) {
+                throw new Error("AI Recommendation Generation Failed");
+            }
+
+            await Recommendation.findOneAndUpdate(
+                { userId: identifier },
+                {
+                    userName: user.fullName,
+                    subject: recResult.recommendation?.subject || "Letter of Recommendation",
+                    content: recResult.recommendation?.content || "Generated content...",
+                    keyEndorsements: recResult.recommendation?.keyEndorsements || [],
+                    language,
+                    referenceId
+                },
+                { upsert: true }
+            );
+        }
+        else if (type === 'scorecard') {
+            // Need a base profile for scores or derive from AI
+            // We use generatePerformanceProfile briefly to get metrics
+            const profileResult = await generatePerformanceProfile(
+                { fullName: user.fullName, userId: identifier },
+                certificates,
+                diagnosis.analysis,
+                simulations, 
+                language,
+                expertNotes
+            );
+
+            if (profileResult.profile) {
+                const compMap = new Map(profileResult.profile.competencies.map((c: { label: string; score: number }) => [c.label.toLowerCase(), c.score]));
+                
+                await Simulation.findOneAndUpdate(
+                    { userId: identifier, status: 'completed' },
+                    {
+                        $set: {
+                            performanceMetrics: {
+                                leadership: compMap.get('strategic leadership') || compMap.get('leadership') || 8.5,
+                                strategy: compMap.get('operational strategy') || compMap.get('strategy') || 8.0,
+                                communication: compMap.get('executive communication') || compMap.get('communication') || 9.0,
+                                problemSolving: compMap.get('complex problem solving') || compMap.get('problem solving') || 8.2,
+                                decisionSpeed: 8.8,
+                                overallScore: profileResult.profile.competencies.reduce((acc: number, c: { score: number }) => acc + c.score, 0) / profileResult.profile.competencies.length
+                            }
+                        }
+                    },
+                    { sort: { updatedAt: -1 } }
+                );
+            }
+        }
+        else {
+            return NextResponse.json({ error: "Invalid generation type" }, { status: 400 });
+        }
 
         return NextResponse.json({ success: true });
 

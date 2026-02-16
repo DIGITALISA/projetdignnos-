@@ -38,12 +38,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [userRole, setUserRole] = useState("");
     const [trialTimeLeft, setTrialTimeLeft] = useState<string | null>(null);
     const [isTrialExpired, setIsTrialExpired] = useState(false);
-    const [canAccessCerts, setCanAccessCerts] = useState(false);
-    const [canAccessRecs, setCanAccessRecs] = useState(false);
-    const [canAccessScorecard, setCanAccessScorecard] = useState(false);
     const [userPlan, setUserPlan] = useState("None");
-    const [attestationStatus, setAttestationStatus] = useState("None");
-    const [grantedWorkshop, setGrantedWorkshop] = useState("");
+    const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
+    const [hasStartedDiagnosis, setHasStartedDiagnosis] = useState(false);
+    const [hasSCI, setHasSCI] = useState(false);
+    const [hasCompletedSimulation, setHasCompletedSimulation] = useState(false);
+    const [hasScorecard, setHasScorecard] = useState(false);
 
     const sidebarItems = [
         {
@@ -53,16 +53,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             ]
         },
         {
-            category: "Strategic Career Management",
+            category: t.sidebar.categories.journey,
             items: [
-                { name: "1. Diagnosis & Audit", icon: FileText, href: "/assessment/cv-upload" },
-                { name: "2. Real-world Simulations", icon: Users, href: "/simulation" },
-                { name: "3. Executive Workshops", icon: PlayCircle, href: "/training" },
-                { name: "4. AI Advisor", icon: Sparkles, href: "/mentor" },
-                { name: "5. Knowledge Base", icon: BookOpen, href: "/academy" },
-                { name: "6. Resource Center", icon: Library, href: "/library" },
-                { name: "7. Expert Consultation", icon: MessageSquare, href: "/expert" },
-                { name: "8. Career Roadmap", icon: TrendingUp, href: "/roadmap" },
+                { name: t.sidebar.items.diagnosis, icon: FileText, href: "/assessment/cv-upload" },
+                { name: t.sidebar.items.tools, icon: Users, href: "/simulation" },
+                { name: t.sidebar.items.training, icon: PlayCircle, href: "/training" },
+                { name: t.sidebar.items.mentor, icon: Sparkles, href: "/mentor" },
+                { name: t.sidebar.items.academy, icon: BookOpen, href: "/academy" },
+                { name: t.sidebar.items.library, icon: Library, href: "/library" },
+                { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert" },
+                { name: t.sidebar.items.roadmap, icon: TrendingUp, href: "/roadmap" },
             ]
         },
         {
@@ -72,6 +72,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 { name: t.sidebar.items.recommendation, icon: ShieldCheck, href: "/recommendation" },
                 { name: "Executive Scorecard", icon: BarChart3, href: "/performance-scorecard" },
                 { name: t.sidebar.items.jobAlignment, icon: Sparkles, href: "/job-alignment" },
+                { name: "Workshop Attestation", icon: Award, href: "/diplomas" },
                 { name: t.sidebar.items.strategicReport, icon: Sparkles, href: "/strategic-report" },
             ]
         },
@@ -88,17 +89,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         }
     ];
 
-    // DYNAMICALLY Add Workshop Attestation if Granted
-    if (attestationStatus === "Granted") {
-        const achievementGroup = sidebarItems.find(g => g.category === t.sidebar.categories.achievements);
-        if (achievementGroup) {
-            achievementGroup.items.push({
-                name: "Workshop Attestation",
-                icon: Award,
-                href: `/workshop-attestation?activeWorkshop=${encodeURIComponent(grantedWorkshop)}`
-            });
-        }
-    }
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
@@ -114,9 +104,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     if (profile.plan) setUserPlan(profile.plan);
                     
                     // Initial load from localStorage
-                    setCanAccessCerts(!!profile.canAccessCertificates);
-                    setCanAccessRecs(!!profile.canAccessRecommendations);
-                    setCanAccessScorecard(!!profile.canAccessScorecard);
+                    setIsDiagnosisComplete(!!profile.isDiagnosisComplete);
+                    setHasStartedDiagnosis(!!profile.hasStartedDiagnosis);
+                    setHasSCI(!!profile.hasSCI);
+                    setHasCompletedSimulation(!!profile.hasCompletedSimulation);
+                    setHasScorecard(!!profile.hasScorecard);
 
                     // FETCH LATEST FROM API to sync if admin changed something
                     const userId = profile.email || profile.fullName;
@@ -125,11 +117,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             const res = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
                             const data = await res.json();
                             if (data.success) {
-                                setCanAccessCerts(data.certReady);
-                                setCanAccessRecs(data.recReady);
-                                setCanAccessScorecard(data.scorecardReady);
                                 if (data.plan) setUserPlan(data.plan);
                                 if (data.role) setUserRole(data.role);
+                                
+                                setIsDiagnosisComplete(data.isDiagnosticComplete);
+                                setHasStartedDiagnosis(data.details?.hasDiagnosis || false);
+                                setHasSCI(data.details?.hasSCI || false);
+                                setHasCompletedSimulation(data.details?.hasCompletedSimulation || false);
+                                setHasScorecard(data.details?.hasScorecard || false);
                                 
                                 // Update localStorage to stay in sync
                                 const updatedProfile = { 
@@ -137,6 +132,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     canAccessCertificates: data.certReady, 
                                     canAccessRecommendations: data.recReady,
                                     canAccessScorecard: data.scorecardReady,
+                                    canAccessSCI: data.sciReady,
+                                    isDiagnosisComplete: data.isDiagnosticComplete,
+                                    hasStartedDiagnosis: data.details?.hasDiagnosis || false,
+                                    hasSCI: data.details?.hasSCI || false,
+                                    hasCompletedSimulation: data.details?.hasCompletedSimulation || false,
+                                    hasScorecard: data.details?.hasScorecard || false,
                                     plan: data.plan || profile.plan,
                                     role: data.role || profile.role
                                 };
@@ -146,17 +147,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             console.error("Failed to sync access flags", err);
                         }
 
-                        // SYNC ATTESTATION STATUS
-                        try {
-                            const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId)}`);
-                            const data = await res.json();
-                            if (data.success) {
-                                setAttestationStatus(data.profile.workshopAttestationStatus || "None");
-                                setGrantedWorkshop(data.profile.grantedWorkshopTitle || "");
-                            }
-                        } catch (err) {
-                            console.error("Failed to sync attestation status", err);
-                        }
                     }
 
                     if (profile.role === "Trial User" && profile.trialExpiry) {
@@ -198,43 +188,54 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         };
     }, []);
 
-    // Check if an item should be locked based on diagnosis status and plan
+    // Check if an item should be locked based on a progressive hierarchy
     const isLocked = (href: string) => {
-        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+        // 0. ADMIN BYPASS
+        if (userRole === "Admin" || userRole === "Moderator") return false;
+        
 
-        // ALWAYS LOCK Achievements/Official Assets for Free Trial users
-        const achievementPaths = ["/certificate", "/recommendation", "/performance-scorecard", "/job-alignment", "/strategic-report"];
-        if (achievementPaths.includes(href) && isFreePlan) {
-            return true;
-        }
-
-        // High security paths: certificates and recommendations (for non-free users who haven't been approved yet)
-        if (href === "/certificate") return !canAccessCerts;
-        if (href === "/recommendation") return !canAccessRecs;
-        if (href === "/performance-scorecard") return !canAccessScorecard;
-
-        const alwaysOpen = ["/dashboard", "/subscription", "/settings"];
+        // 1. ALWAYS OPEN: Essential pages
+        const alwaysOpen = ["/dashboard", "/subscription", "/settings", "/assessment/cv-upload", "/assessment/cv-generation"];
         if (alwaysOpen.includes(href)) return false;
 
-        // PERMANENT FREE ASSETS (after diagnosis): 2, 3, 6 (Simulation, Training, Library)
-        const permanentFreePaths = ["/simulation", "/training", "/library"];
-        
-        // LIMITED TRIAL ASSETS (1h only): 1 (Diagnosis), 4, 5, 7, 8
-        const limitedTrialPaths = ["/assessment", "/mentor", "/academy", "/expert", "/roadmap"];
+        // 2. STAGE 1 LOCK: Everything requires starting diagnosis (CV Upload done)
+        if (!hasStartedDiagnosis) {
+             return true; 
+        }
 
-        // 1. If Trial is Expired, LOCK the limited assets (1, 4, 5, 7, 8)
+        // 3. STAGE 2 LOCK: SCI Logic (Strategic Report)
+        // Needs Diagnosis Complete (Interview done)
+        if (href.startsWith("/strategic-report") || href.startsWith("/assessment/results")) {
+            return !isDiagnosisComplete;
+        }
+
+        // 4. STAGE 3 LOCK: Simulation & Job Alignment & Roadmap
+        // Needs SCI to be generated (Strategic Intelligence)
+        const strategicTools = ["/simulation", "/job-alignment", "/roadmap", "/mentor", "/academy", "/library", "/expert", "/training"];
+        if (strategicTools.some((p: string) => href.startsWith(p))) {
+            // Unlock if either SCI is ready OR core diagnosis is complete (fallback)
+            if (!hasSCI && !isDiagnosisComplete) return true;
+        }
+
+        // 5. STAGE 4 LOCK: Executive Scorecard
+        // Needs at least one simulation mission completed
+        if (href.startsWith("/performance-scorecard")) {
+            return !hasCompletedSimulation;
+        }
+
+        // 6. STAGE 5 LOCK: Official Assets (Certificates & Recommendation)
+        // Needs Performance Scorecard / Expert Validation (Profile created)
+        if (href.startsWith("/certificate") || href.startsWith("/recommendation")) {
+            return !hasScorecard;
+        }
+
+        // 7. SUBSCRIPTION FALLBACK: For Free Trial users after trial expiry
+        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+        const limitedTrialPaths = ["/mentor", "/academy", "/expert", "/roadmap"];
         if (limitedTrialPaths.some(p => href.startsWith(p)) && isTrialExpired && isFreePlan) {
             return true;
         }
 
-        // 2. Sections 2, 3, 6 are PERMANENT FREE ASSETS and always open
-        if (permanentFreePaths.some(p => href.startsWith(p))) {
-            return false;
-        }
-        
-        // Diagnosis starts unlocked but ends locked after 1h
-        if (href.startsWith("/assessment")) return false;
-        
         return false;
     };
 
@@ -341,25 +342,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{userName}</p>
                                     <span className={cn(
                                         "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border",
-                                        userPlan === "Elite Full Pack" ? "bg-amber-100 text-amber-700 border-amber-200" :
-                                            userPlan === "Pro Essential" ? "bg-blue-100 text-blue-700 border-blue-200" :
+                                        userPlan === "Pro Essential" ? "bg-blue-100 text-blue-700 border-blue-200" :
                                                 "bg-slate-100 text-slate-600 border-slate-200"
                                     )}>
-                                        {userPlan === "Elite Full Pack" ? "élite" :
-                                            userPlan === "Pro Essential" ? "pro" : "essai"}
+                                        {userPlan === "Pro Essential" ? "PRO" : "TRIAL"}
                                     </span>
                                 </div>
                                 <div className={cn("flex items-center gap-1.5 mt-0.5", dir === 'rtl' && "flex-row-reverse")}>
                                     <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse",
-                                        (userPlan === "Pro Essential" || userPlan === "Elite Full Pack") ? "bg-blue-500" :
+                                        (userPlan === "Pro Essential") ? "bg-blue-500" :
                                             isTrialExpired ? "bg-red-500" : "bg-amber-500"
                                     )} />
                                     <p className={cn(
                                         "text-[10px] font-bold uppercase tracking-wider",
-                                        (userPlan === "Pro Essential" || userPlan === "Elite Full Pack") ? "text-blue-600" :
+                                        (userPlan === "Pro Essential") ? "text-blue-600" :
                                             isTrialExpired ? "text-red-500" : "text-amber-600"
                                     )}>
-                                        {(userPlan === "Pro Essential" || userPlan === "Elite Full Pack") ? t.sidebar.premium : 
+                                        {(userPlan === "Pro Essential") ? t.sidebar.premium : 
                                             `${isTrialExpired ? "Accès Limité" : "Essai : " + trialTimeLeft}`}
                                     </p>
                                 </div>

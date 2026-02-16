@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, CheckCircle, AlertCircle, Lightbulb, ArrowRight, Award, Clock, Brain, Download } from "lucide-react";
+import { Send, Loader2, CheckCircle, AlertCircle, Lightbulb, ArrowRight, Award, Clock, Brain, Download, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
     role: 'ai' | 'user';
@@ -72,6 +73,8 @@ export default function SimulationPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [comprehensiveReport, setComprehensiveReport] = useState<string | null>(null);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
     const handleDownloadReport = async () => {
         if (!finalReport || !selectedRole) return;
@@ -217,6 +220,47 @@ export default function SimulationPage() {
             alert("Failed to generate PDF report.");
         } finally {
             setIsDownloading(false);
+        }
+    };
+
+    const handleGenerateComprehensiveReport = async () => {
+        setIsGeneratingReport(true);
+        try {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
+
+            if (!userId) {
+                alert(selectedLanguage === 'ar' ? 'لم يتم العثور على معرف المستخدم' :
+                      selectedLanguage === 'fr' ? 'Identifiant utilisateur introuvable' :
+                      'User ID not found');
+                return;
+            }
+
+            const response = await fetch('/api/diagnosis/comprehensive-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId,
+                    language: selectedLanguage
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setComprehensiveReport(result.report);
+            } else {
+                alert(selectedLanguage === 'ar' ? 'فشل في إنشاء التقرير الشامل' :
+                      selectedLanguage === 'fr' ? 'Échec de la génération du rapport' :
+                      'Failed to generate comprehensive report');
+            }
+        } catch (error) {
+            console.error('Error generating comprehensive report:', error);
+            alert(selectedLanguage === 'ar' ? 'حدث خطأ أثناء إنشاء التقرير' :
+                  selectedLanguage === 'fr' ? 'Erreur lors de la génération du rapport' :
+                  'Error generating report');
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -509,6 +553,66 @@ export default function SimulationPage() {
         }
     }, [inputValue, isLoading, selectedRole, cvAnalysis, currentScenario, messages, selectedLanguage, totalScenarios, scenarioResults, saveProgress]);
 
+    const handleEmergencyFinish = async () => {
+        if (scenarioResults.length < 2) return;
+        
+        setIsLoading(true);
+        try {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            
+            const completeResponse = await fetch('/api/simulation/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: userProfile.email,
+                    selectedRole,
+                    cvAnalysis,
+                    scenarioResults,
+                    language: selectedLanguage,
+                }),
+            });
+
+            const completeResult = await completeResponse.json();
+
+            if (completeResult.success) {
+                const currentProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                currentProfile.isDiagnosisComplete = true;
+                localStorage.setItem('userProfile', JSON.stringify(currentProfile));
+
+                setFinalReport(completeResult.report);
+                setSimulationComplete(true);
+
+                const finalMsgs = [...messages, {
+                    role: 'ai' as const,
+                    content: completeResult.completionMessage,
+                    timestamp: new Date(),
+                }];
+                setMessages(finalMsgs);
+                saveProgress(finalMsgs, scenarioResults, currentScenario + 1);
+            }
+        } catch (error) {
+            console.error('Error in emergency finish:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResetSession = () => {
+        if (confirm(selectedLanguage === 'ar' ? 'هل أنت متأكد أنك تريد إعادة الجلسة؟ ستفقد كل المحادثات.' : 
+                   selectedLanguage === 'fr' ? 'Êtes-vous sûr de vouloir réinitialiser la session ? Toute la conversation sera perdue.' : 
+                   "Are you sure you want to reset this session? All conversation will be lost.")) {
+            setMessages([]);
+            setScenarioResults([]);
+            setCurrentScenario(1);
+            setSimulationComplete(false);
+            setFinalReport(null);
+            
+            if (selectedRole && cvAnalysis) {
+                startSimulation(selectedRole, cvAnalysis, selectedLanguage);
+            }
+        }
+    };
+
     const handleTimeout = useCallback(() => {
         const timeoutMessage = selectedLanguage === 'ar' ? "انتهى الوقت. سأنتقل للسيناريو التالي." :
             selectedLanguage === 'fr' ? "Temps écoulé. Passage au scénario suivant." : "Time expired. Moving to next scenario.";
@@ -545,6 +649,18 @@ export default function SimulationPage() {
     if (simulationComplete && finalReport) {
         return (
             <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+                <div data-html2canvas-ignore>
+                    <button
+                        onClick={() => router.push('/assessment/role-suggestions')}
+                        className="inline-flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span className="font-medium">
+                            {selectedLanguage === 'ar' ? 'العودة' :
+                             selectedLanguage === 'fr' ? 'Retour' : 'Back'}
+                        </span>
+                    </button>
+                </div>
                 <div ref={resultsRef} id="simulation-results" className="space-y-6">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -692,62 +808,254 @@ export default function SimulationPage() {
                     </motion.div>
                 </div>
 
-                <button
-                    onClick={() => router.push('/dashboard')}
-                    data-html2canvas-ignore
-                    className="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold transition-all shadow-xl flex items-center justify-center gap-2 active:scale-95"
-                >
-                    Back to Dashboard
-                    <ArrowRight className="w-5 h-5" />
-                </button>
+                {/* Comprehensive Report Section */}
+                {comprehensiveReport && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-8 relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-2xl"
+                    >
+                        {/* Decorative Top Banner */}
+                        <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
+                        
+                        {/* Background Pattern/Watermark */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-indigo-50 to-purple-50 rounded-bl-full opacity-50 z-0" />
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-linear-to-tr from-blue-50 to-cyan-50 rounded-tr-full opacity-50 z-0" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none">
+                             <Award className="w-[600px] h-[600px] text-slate-900" />
+                        </div>
+
+                        <div className="p-8 md:p-12 relative z-10">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-100">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg text-white">
+                                        <Award className="w-8 h-8" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl md:text-3xl font-black text-slate-900">
+                                            {selectedLanguage === 'ar' ? 'التقرير التشخيصي الشامل' :
+                                             selectedLanguage === 'fr' ? 'Rapport Diagnostique Complet' :
+                                             'Comprehensive Diagnostic Report'}
+                                        </h2>
+                                        <p className="text-slate-500 font-medium mt-1">
+                                            {selectedLanguage === 'ar' ? 'تحليل استراتيجي للقدرات والكفاءات المهنية' :
+                                             selectedLanguage === 'fr' ? 'Analyse stratégique des compétences professionnelles' :
+                                             'Strategic analysis of professional capabilities'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        const blob = new Blob([comprehensiveReport], { type: 'text/plain' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `Comprehensive_Diagnosis_${new Date().toISOString().split('T')[0]}.txt`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+                                    }}
+                                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all flex items-center gap-2 text-sm"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span>
+                                        {selectedLanguage === 'ar' ? 'تصدير نصي' :
+                                         selectedLanguage === 'fr' ? 'Exporter en texte' :
+                                         'Export to Text'}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div className="prose prose-slate prose-lg max-w-none font-sans text-lg text-slate-700">
+                                <ReactMarkdown
+                                    components={{
+                                        h1: ({ ...props }) => <h1 className="text-3xl md:text-4xl font-black text-center text-transparent bg-clip-text bg-linear-to-r from-indigo-700 to-purple-600 mb-10 pb-6 border-b-2 border-indigo-100" {...props} />,
+                                        h2: ({ ...props }) => <h2 className="text-xl md:text-2xl font-bold text-indigo-900 mt-12 mb-6 flex items-center gap-3 bg-indigo-50/80 p-5 rounded-2xl border-l-4 border-indigo-500 shadow-sm" {...props} />,
+                                        h3: ({ ...props }) => <h3 className="text-lg md:text-xl font-bold text-slate-800 mt-8 mb-4 border-b border-slate-200 pb-2 flex items-center gap-2" {...props} />,
+                                        p: ({ ...props }) => <p className="mb-6 leading-loose text-slate-700 text-[17px]" {...props} />,
+                                        ul: ({ ...props }) => <ul className="space-y-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-200/60 shadow-inner" {...props} />,
+                                        li: ({ ...props }) => (
+                                            <li className="flex items-start gap-3" {...props}>
+                                                <span className="mt-2.5 w-2 h-2 rounded-full bg-indigo-600 shrink-0 shadow-sm shadow-indigo-500/30" />
+                                                <span className="flex-1 leading-relaxed">{props.children}</span>
+                                            </li>
+                                        ),
+                                        strong: ({ ...props }) => <strong className="font-bold text-indigo-900 bg-indigo-50/80 px-1.5 py-0.5 rounded-md mx-0.5 border border-indigo-100/50" {...props} />,
+                                        blockquote: ({ ...props }) => (
+                                            <div className="relative my-8 group">
+                                                <div className="absolute -left-2 top-0 bottom-0 w-1 bg-linear-to-b from-amber-400 to-orange-400 rounded-full" />
+                                                <blockquote className="italic text-slate-700 bg-amber-50/50 p-6 rounded-2xl border border-amber-100/50 pl-8 leading-relaxed" {...props} />
+                                            </div>
+                                        ),
+                                        hr: ({ ...props }) => <hr className="my-10 border-slate-200" {...props} />,
+                                    }}
+                                >
+                                    {comprehensiveReport || ''}
+                                </ReactMarkdown>
+                            </div>
+                            
+                            {/* Professional Footer */}
+                            <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                    <span>Verified Assessment</span>
+                                </div>
+                                <span>MA-TRAINING-CONSULTING • AI CAREER ARCHITECTURE</span>
+                                <span>{new Date().getFullYear()}</span>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Action Button */}
+                <div className="mt-8 flex flex-col gap-4">
+                    {!comprehensiveReport ? (
+                        <button
+                            onClick={handleGenerateComprehensiveReport}
+                            disabled={isGeneratingReport}
+                            data-html2canvas-ignore
+                            className="group w-full py-6 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-3xl font-black text-xl transition-all shadow-2xl shadow-purple-600/30 hover:shadow-3xl hover:shadow-purple-600/50 hover:-translate-y-1 flex items-center justify-center gap-4 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isGeneratingReport ? (
+                                <>
+                                    <Loader2 className="w-7 h-7 animate-spin" />
+                                    <span>
+                                        {selectedLanguage === 'ar' ? 'جاري إنشاء التقرير الشامل...' :
+                                         selectedLanguage === 'fr' ? 'Génération du rapport en cours...' :
+                                         'Generating Comprehensive Report...'}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                        <Sparkles className="w-7 h-7 group-hover:rotate-12 group-hover:scale-110 transition-transform" />
+                                    </div>
+                                    <span>
+                                        {selectedLanguage === 'ar' ? 'إنشاء التقرير التشخيصي الشامل' :
+                                         selectedLanguage === 'fr' ? 'Générer le Rapport Diagnostique Complet' :
+                                         'Generate Comprehensive Diagnostic Report'}
+                                    </span>
+                                    <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const savedProfile = localStorage.getItem("userProfile");
+                                    const profile = savedProfile ? JSON.parse(savedProfile) : null;
+                                    const userId = profile?.email || profile?.fullName;
+                                    
+                                    if (userId) {
+                                        await fetch('/api/user/progress', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId,
+                                                updateData: {
+                                                    currentStep: 'completed',
+                                                    completionStatus: 'complete',
+                                                    completedAt: new Date()
+                                                }
+                                            })
+                                        });
+                                    }
+                                } catch (error) {
+                                    console.error("Failed to update status", error);
+                                } finally {
+                                    router.push('/dashboard');
+                                }
+                            }}
+                            data-html2canvas-ignore
+                            className="w-full py-5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-lg transition-all shadow-xl shadow-green-600/20 hover:shadow-2xl hover:shadow-green-600/30 flex items-center justify-center gap-3 active:scale-95"
+                        >
+                            {selectedLanguage === 'ar' ? 'إتمام وإنهاء التشخيص بالكامل' :
+                             selectedLanguage === 'fr' ? 'Finaliser le Diagnostic Complet' :
+                             'Complete & Finish Diagnosis'}
+                            <CheckCircle className="w-6 h-6" />
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
-            <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900 mb-2">Role Simulation</h1>
-                        <p className="text-slate-500">
-                            Practice as: <span className="font-semibold text-purple-600">{selectedRole?.title}</span>
+        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto w-full font-sans">
+            {/* Header Section */}
+            <div className="mb-4 flex flex-col items-center text-center gap-4 px-4 shrink-0 relative">
+                <button 
+                    onClick={() => router.push('/assessment/role-suggestions')}
+                    className="absolute left-0 top-2 p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                </button>
+
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative z-10"
+                >
+                    <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-blue-400 rounded-2xl blur opacity-20"></div>
+                    <div className="relative bg-white/50 backdrop-blur-sm px-8 py-3 rounded-2xl border border-slate-200/60 shadow-sm">
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">
+                            Role <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">Simulation</span>
+                        </h1>
+                        <p className="text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
+                            <span>Practice as:</span>
+                            <span className="font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-100 text-xs uppercase tracking-wide">
+                                {selectedRole?.title}
+                            </span>
                         </p>
                     </div>
+                </motion.div>
 
-                    {/* Timer UI */}
-                    <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl border-2 transition-all duration-500 ${timeLeft < 60 ? 'bg-red-50 border-red-200 animate-pulse' : 'bg-slate-50 border-slate-100'
-                        }`}>
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${timeLeft < 60 ? 'bg-red-100' : 'bg-purple-100'
-                            }`}>
-                            <Clock className={`w-5 h-5 ${timeLeft < 60 ? 'text-red-600' : 'text-purple-600'}`} />
+                {/* Progress & Timer Bar */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-wrap justify-center items-center gap-4 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-2xl shadow-sm border border-slate-200 w-full md:w-auto"
+                >
+                    {/* Progress */}
+                    <div className="flex items-center gap-3 pr-4 border-r border-slate-200">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scenario</span>
+                        <div className="h-2 w-24 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                            <motion.div 
+                                className="h-full bg-linear-to-r from-purple-500 to-blue-500"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(currentScenario / totalScenarios) * 100}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
                         </div>
-                        <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Time Remaining</p>
-                            <p className={`text-xl font-black font-mono ${timeLeft < 60 ? 'text-red-600' : 'text-slate-700'}`}>
-                                {formatTime(timeLeft)}
-                            </p>
-                        </div>
+                        <span className="text-sm font-black text-purple-600">{currentScenario}/{totalScenarios}</span>
                     </div>
-                </div>
 
-                {/* Progress Indicator */}
-                <div className="flex items-center gap-4">
-                    <div className="text-right">
-                        <p className="text-sm text-slate-500">Scenario</p>
-                        <p className="text-lg font-bold text-purple-600">{currentScenario}/{totalScenarios}</p>
-                    </div>
-                    <div className="w-16 h-16 rounded-full border-4 border-slate-200 flex items-center justify-center">
-                        <span className="text-lg font-bold text-slate-700">
-                            {Math.round((currentScenario / totalScenarios) * 100)}%
+                    {/* Timer */}
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-colors ${timeLeft < 60 ? 'bg-red-50 text-red-600 animate-pulse' : 'text-slate-600'}`}>
+                        <Clock className={`w-4 h-4 ${timeLeft < 60 ? 'text-red-500' : 'text-slate-400'}`} />
+                        <span className={`font-mono font-bold text-lg ${timeLeft < 60 ? 'text-red-600' : 'text-slate-700'}`}>
+                            {formatTime(timeLeft)}
                         </span>
                     </div>
-                </div>
+
+                    {/* Reset Button */}
+                    <button 
+                        onClick={handleResetSession}
+                        className="text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors pl-4 border-l border-slate-200"
+                    >
+                        <RefreshCw className="w-3 h-3" />
+                        Reset
+                    </button>
+                </motion.div>
             </div>
 
-            {/* Messages Container */}
-            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 overflow-y-auto mb-4">
-                <div className="space-y-6">
+            {/* Content Area */}
+            <div className="flex-1 flex flex-col bg-white/60 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 overflow-hidden mx-2 md:mx-0 relative">
+                
+                {/* Messages Container */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 custom-scrollbar">
                     {messages.map((message, index) => (
                         <motion.div
                             key={index}
@@ -756,101 +1064,153 @@ export default function SimulationPage() {
                             transition={{ delay: index * 0.1 }}
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                            <div className={`max-w-[90%] md:max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'} group`}>
                                 {message.role === 'ai' && (
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                                            <Brain className="w-4 h-4 text-purple-600" />
+                                    <div className="flex items-center gap-3 mb-2 ml-1">
+                                        <div className="w-8 h-8 rounded-xl bg-linear-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20 text-white">
+                                            <Brain className="w-4 h-4" />
                                         </div>
-                                        <span className="text-sm font-medium text-slate-600">AI Coach</span>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Scenario Manager</span>
                                     </div>
                                 )}
 
-                                <div className={`rounded-2xl p-4 ${message.role === 'user'
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-slate-50 text-slate-900'
+                                <div className={`relative p-5 md:p-6 shadow-sm border ${message.role === 'user'
+                                    ? 'bg-linear-to-br from-slate-900 to-slate-800 text-white rounded-3xl rounded-tr-none border-slate-700'
+                                    : 'bg-white text-slate-700 rounded-3xl rounded-tl-none border-slate-100'
                                     }`}>
-                                    <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                    <p className="leading-relaxed whitespace-pre-wrap text-[15px]">{message.content}</p>
+                                    
+                                    {/* Subtle shine effect for user bubbles */}
+                                    {message.role === 'user' && (
+                                        <div className="absolute inset-0 rounded-3xl rounded-tr-none bg-linear-to-t from-white/5 to-transparent pointer-events-none" />
+                                    )}
                                 </div>
 
+                                {/* Feedback Section */}
                                 {message.feedback && (
-                                    <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Award className="w-5 h-5 text-blue-600" />
-                                            <span className="font-bold text-blue-900">Score: {message.feedback.score}/10</span>
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="mt-4 mx-2 overflow-hidden"
+                                    >
+                                        <div className="bg-blue-50/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 md:p-5 relative">
+                                            <div className="absolute top-0 right-0 p-3 opacity-10">
+                                                <Award className="w-16 h-16 text-blue-600" />
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-3 mb-4 relative z-10">
+                                                <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-black border border-blue-200">
+                                                    Score: {message.feedback.score}/10
+                                                </div>
+                                                <div className="h-px flex-1 bg-blue-200"></div>
+                                            </div>
+
+                                            <div className="grid md:grid-cols-2 gap-4 relative z-10">
+                                                {message.feedback.strengths.length > 0 && (
+                                                    <div className="bg-white/60 rounded-xl p-3 border border-blue-100">
+                                                        <p className="text-xs font-bold text-green-700 mb-2 uppercase tracking-wide flex items-center gap-1">
+                                                            <CheckCircle className="w-3 h-3" /> Strengths
+                                                        </p>
+                                                        <ul className="text-sm text-slate-600 space-y-1.5 ml-1">
+                                                            {message.feedback.strengths.map((s, i) => (
+                                                                <li key={i} className="flex items-start gap-2">
+                                                                    <span className="block w-1 h-1 rounded-full bg-green-400 mt-2 shrink-0"></span>
+                                                                    {s}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                                
+                                                {message.feedback.improvements.length > 0 && (
+                                                    <div className="bg-white/60 rounded-xl p-3 border border-blue-100">
+                                                        <p className="text-xs font-bold text-orange-700 mb-2 uppercase tracking-wide flex items-center gap-1">
+                                                            <Lightbulb className="w-3 h-3" /> To Improve
+                                                        </p>
+                                                        <ul className="text-sm text-slate-600 space-y-1.5 ml-1">
+                                                            {message.feedback.improvements.map((s, i) => (
+                                                                <li key={i} className="flex items-start gap-2">
+                                                                    <span className="block w-1 h-1 rounded-full bg-orange-400 mt-2 shrink-0"></span>
+                                                                    {s}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        {message.feedback.strengths.length > 0 && (
-                                            <div className="mb-2">
-                                                <p className="text-xs font-semibold text-green-700 mb-1">✓ Strengths:</p>
-                                                <ul className="text-xs text-slate-700 space-y-1">
-                                                    {message.feedback.strengths.map((s, i) => (
-                                                        <li key={i}>• {s}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                        {message.feedback.improvements.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-semibold text-orange-700 mb-1">→ Improvements:</p>
-                                                <ul className="text-xs text-slate-700 space-y-1">
-                                                    {message.feedback.improvements.map((s, i) => (
-                                                        <li key={i}>• {s}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
+                                    </motion.div>
                                 )}
 
-                                <span className="text-xs text-slate-400 mt-1 block">
+                                <span className={`text-[10px] uppercase font-bold text-slate-300 mt-2 block px-2 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
                         </motion.div>
                     ))}
 
+                    {/* Loading Indicator */}
                     {isLoading && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="flex justify-start"
                         >
-                            <div className="flex items-center gap-2 bg-slate-50 rounded-2xl p-4">
+                            <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-100 shadow-sm ml-4">
                                 <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
-                                <span className="text-slate-600">Evaluating your response...</span>
+                                <span className="text-slate-500 text-sm font-medium">Analyzing response...</span>
                             </div>
                         </motion.div>
                     )}
 
                     <div ref={messagesEndRef} />
                 </div>
-            </div>
 
-            {/* Input Area */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
-                <div className="flex gap-3">
-                    <textarea
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSendMessage();
-                            }
-                        }}
-                        placeholder="Describe how you would handle this situation..."
-                        disabled={isLoading || simulationComplete}
-                        rows={3}
-                        className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all text-slate-900 placeholder:text-slate-400 resize-none"
-                    />
-                    <button
-                        onClick={() => handleSendMessage()}
-                        disabled={!inputValue.trim() || isLoading || simulationComplete}
-                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 self-end"
-                    >
-                        <Send className="w-5 h-5" />
-                        Submit
-                    </button>
+                {/* Input Area */}
+                <div className="bg-white border-t border-slate-100 p-4 md:p-6 shrink-0 relative z-20">
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                        <div className="relative flex-1 w-full">
+                            <textarea
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendMessage();
+                                    }
+                                }}
+                                placeholder="Describe how you would handle this situation..."
+                                disabled={isLoading || simulationComplete}
+                                rows={2}
+                                className="w-full pl-6 pr-4 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium resize-none"
+                            />
+                        </div>
+                        
+                        <button
+                            onClick={() => handleSendMessage()}
+                            disabled={!inputValue.trim() || isLoading || simulationComplete}
+                            className="w-full md:w-auto px-8 py-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-purple-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                        >
+                            <Send className="w-5 h-5" />
+                            <span className="hidden md:inline">Submit Reponse</span>
+                            <span className="md:hidden">Submit</span>
+                        </button>
+                    </div>
+
+                    {/* Emergency Finish Button - Unlocks after 2 scenarios */}
+                    <div className="mt-6 pt-4 border-t border-slate-100 flex justify-center">
+                        <button
+                            onClick={handleEmergencyFinish}
+                            disabled={scenarioResults.length < 2 || isLoading || simulationComplete}
+                            className="group px-10 py-4 bg-linear-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl font-black text-lg transition-all shadow-xl shadow-amber-600/20 hover:shadow-2xl hover:shadow-amber-600/40 hover:-translate-y-1 flex items-center justify-center gap-3 w-full md:w-auto disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                        >
+                            {selectedLanguage === 'ar' ? 'إنهاء المحاكاة والحصول على التقرير' :
+                                selectedLanguage === 'fr' ? 'Terminer et obtenir le rapport' : 'Finish & Get Report'}
+                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

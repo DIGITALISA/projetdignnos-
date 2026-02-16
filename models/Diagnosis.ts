@@ -88,9 +88,11 @@ const DiagnosisSchema = new Schema({
         type: Schema.Types.Mixed, // نتيجة تقييم المقابلة
     },
     generatedDocuments: {
-        cv: String, // السيرة الذاتية المولدة
+        cv: Schema.Types.Mixed, // السيرة الذاتية المولدة (Object)
         coverLetter: String, // خطاب التقديم
         linkedinProfile: String, // ملف LinkedIn
+        professionalTips: String, // نصائح مهنية
+        keywords: [String], // كلمات البحث المحسنة
     },
     roleDiscoveryConversation: [{
         role: String,
@@ -109,6 +111,9 @@ const DiagnosisSchema = new Schema({
         feedback: Schema.Types.Mixed
     }],
     simulationResults: [Schema.Types.Mixed],
+    simulationReport: Schema.Types.Mixed, // Final simulation performance report
+    comprehensiveReport: String, // AI-generated comprehensive final report
+    comprehensiveReportGeneratedAt: Date, // Timestamp for report generation
     // حالة الإكمال لكل مرحلة
     completionStatus: {
         cvAnalysisComplete: { type: Boolean, default: false },

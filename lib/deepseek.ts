@@ -551,7 +551,8 @@ export async function generateRecommendationLetter(
     completedCourses: unknown[],
     diagnosticResults: unknown,
     simulations: unknown[] = [],
-    language: string = 'en'
+    language: string = 'en',
+    expertNotes?: string
 ) {
     try {
         const languageInstructions: Record<string, string> = {
@@ -573,6 +574,9 @@ export async function generateRecommendationLetter(
 **MISSION:**
 Draft a "High-Stakes Strategic Recommendation Letter" for a candidate who has completed an advanced executive simulation program.
 
+**THE HUMAN FACTOR:**
+You have the "Confidential Expert Notes" from the human coach who supervised the participant. These notes are the most important part of the evaluation. Integrate them naturally into the letter to prove a human expert has verified these results.
+
 **TONE & STYLE:**
 - **Elite & Authoritative:** Use the language of Fortune 500 Boards.
 - **Evidence-Based:** Cite specific behaviors from the simulation (Decision making in crisis, operational precision).
@@ -582,7 +586,7 @@ Draft a "High-Stakes Strategic Recommendation Letter" for a candidate who has co
 **STRUCTURE:**
 1. **The Executive Summary**: A powerful opening statement endorsing the candidate.
 2. **The Simulation Evidence**: specifically mention their handling of the simulation missions (titles provided below).
-3. **The Expert Verdict**: A final, definitive recommendation for recruitment.
+3. **The Expert Verdict**: A final, definitive recommendation for recruitment based on our internal review.
 
 ${languageInstruction}
 
@@ -598,9 +602,10 @@ ${languageInstruction}
                     content: `User Profile: ${JSON.stringify(userProfile)}
 TRAINING RECORD: ${JSON.stringify(completedCourses)}
 DIAGNOSTIC BASELINE: ${JSON.stringify(diagnosticResults)}
-SIMULATION & EXPERT REVIEW: ${JSON.stringify(simulations)}
+SIMULATION DATA: ${JSON.stringify(simulations)}
+CONFIDENTIAL EXPERT NOTES: ${expertNotes || "No specific notes provided by the expert."}
 
-Generate the Elite Executive Dossier in ${language}.`
+Generate the High-Stakes Recommendation Letter in ${language}.`
                 }
             ],
             temperature: 0.7,
@@ -1074,7 +1079,8 @@ export async function generatePerformanceProfile(
     completedCourses: unknown[],
     diagnosticResults: unknown,
     simulations: unknown[] = [],
-    language: string = 'en'
+    language: string = 'en',
+    expertNotes?: string
 ) {
     try {
         const languageInstructions: Record<string, string> = {
@@ -1098,10 +1104,14 @@ export async function generatePerformanceProfile(
 1. Diagnostic baseline (Initial Audit).
 2. Training History (Commitment to learning).
 3. Simulation Performance (Real-world crisis execution).
+4. HUMAN EXPERT VALIDATION (Confidential notes from a senior coach).
+
+**CRITICAL INSTRUCTION:**
+If HUMAN EXPERT VALIDATION is provided, it takes precedent over AI diagnostic data. Use the expert's verdict to calibrate the scores and the final executive summary.
 
 **OUTPUT STRUCTURE (JSON):**
 {
-  "summary": "string (Executive summary of overall performance)",
+  "summary": "string (Executive summary of overall performance, synthesizing AI data and human expert verdict)",
   "competencies": [
     { "label": "Strategic Thinking", "score": number (0-100), "status": "string (Validated/Premium/Elite)" },
     { "label": "Operational Precision", "score": number (0-100), "status": "string (Validated/Premium/Elite)" },
@@ -1120,6 +1130,7 @@ Profile: ${JSON.stringify(userProfile)}
 Diagnostic: ${JSON.stringify(diagnosticResults)}
 Courses: ${JSON.stringify(completedCourses)}
 Simulations: ${JSON.stringify(simulations)}
+HUMAN EXPERT VERDICT: ${expertNotes || "No manual expert notes provided yet."}
 
 Generate the Unified Executive Performance Profile in ${language}.`
                 }
@@ -1139,7 +1150,8 @@ Generate the Unified Executive Performance Profile in ${language}.`
 export async function generateCareerRoadmap(
     userProfile: unknown,
     diagnosticResults: unknown,
-    language: string = 'en'
+    language: string = 'en',
+    expertNotes?: string
 ) {
     try {
         const languageInstructions: Record<string, string> = {
@@ -1159,8 +1171,11 @@ export async function generateCareerRoadmap(
                     role: 'system',
                     content: `You are a World-Class Career Architect and Strategic Growth Consultant. Your mission is to transform a participant's diagnostic results and profile into a precise, step-by-step "Strategic Execution Roadmap".
 
-**THE ROADMAP CONCEPT:**
-You will build a sequential journey of exactly 5 milestones. Each milestone represents a critical phase in the user's professional transformation.
+**THE HUMAN FACTOR (PRIORITY):**
+Confidential Expert Notes: ${expertNotes || "No manual expert notes provided. Use standard diagnostic results."}
+
+**MISSION:**
+Build a sequential journey of exactly 5 milestones. If EXPERT NOTES are present, they are your primary source of truth for the participant's real potential and recommended direction. Use them to override or refine AI diagnostic patterns.
 
 **OUTPUT STRUCTURE (JSON):**
 {
@@ -1170,7 +1185,7 @@ You will build a sequential journey of exactly 5 milestones. Each milestone repr
       "id": number (1 to 5),
       "label": "string (The phase name, e.g., 'Phase 1: Foundation')",
       "title": "string (Specific goal)",
-      "description": "string (Concise action-oriented advice)",
+      "description": "string (Concise action-oriented advice integrating diagnostic data and expert feedback)",
       "tasks": ["string (High-precision action item)", "string"],
       "expectedOutcome": "string",
       "icon": "string (Choose one: 'Target', 'Zap', 'BrainCircuit', 'Trophy', 'Award', 'Rocket', 'ShieldCheck', 'TrendingUp')"
@@ -1178,7 +1193,7 @@ You will build a sequential journey of exactly 5 milestones. Each milestone repr
   ],
   "personalizedWorkshop": {
     "title": "string (Highly specific workshop title)",
-    "description": "string (Arabic text explaining why this specific individual workshop is needed based on diagnosis)",
+    "description": "string (Explanation explaining why this specific workshop is needed based on diagnosis and expert feedback)",
     "durationHours": number,
     "focusAreas": ["string", "string"]
   }
@@ -1194,6 +1209,7 @@ You will build a sequential journey of exactly 5 milestones. Each milestone repr
                     role: 'user',
                     content: `User Profile: ${JSON.stringify(userProfile)}
 Diagnostic Results: ${JSON.stringify(diagnosticResults)}
+EXPERT VALIDATION: ${expertNotes || "Pending expert review."}
 
 Generate the FULL STRATEGIC ROADMAP in ${language}.`
                 }
@@ -1390,7 +1406,8 @@ export async function evaluateJobAlignment(
     questions: Record<string, unknown>[],
     answers: number[],
     userProfile: UserProfile,
-    language: string = 'en'
+    language: string = 'en',
+    expertNotes?: string
 ) {
     try {
         const { client, model } = await getAI();
@@ -1398,17 +1415,23 @@ export async function evaluateJobAlignment(
 A candidate completed a Strategic Alignment Audit for this Job Description: ${jobDescription}.
 Questions & Answers: ${JSON.stringify(questions.map((q, i) => ({ q: q.question, selectedIndex: answers[i], correctIndex: q.correctAnswer })))}
 
+**THE HUMAN FACTOR:**
+Confidential Expert Notes: ${expertNotes || "No manual expert intervention for this specific audit yet. Use standard AI diagnostic logic."}
+
+**CRITICAL INSTRUCTION:**
+If Expert Notes are provided, use them to weight the evaluation. The expert's view on the candidate's character and strategic depth should influence the final verdict on alignment with this specific role.
+
 **MISSION:**
 Draft a "Strategic Job Alignment Audit Certificate". This is a formal advisory document.
 
 **OUTPUT FORMAT (JSON ONLY):**
 {
   "verdict": "string (A powerful 1-sentence executive verdict)",
-  "analysis": "string (3-4 paragraphs of deep strategic analysis for this role)",
+  "analysis": "string (3-4 paragraphs of deep strategic analysis for this role, integrating technical answers and expert feedback)",
   "strengths": ["string", "string", "string"],
   "gaps": ["string", "string", "string"],
   "roadmap": ["string", "string", "string (Specific implementation tasks to succeed in the first 90 days)"],
-  "score": number (0-100 calculated based on correct answers and depth)
+  "score": number (0-100 calculated based on correct answers, depth, and expert validation)"
 }
 
 **LANGUAGE:** ${language === 'fr' ? 'French' : language === 'ar' ? 'Arabic' : 'English'}

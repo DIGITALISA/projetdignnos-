@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import PerformanceProfile from "@/models/PerformanceProfile";
 import { generateCareerRoadmap } from "@/lib/deepseek";
 
 export async function POST(req: Request) {
@@ -23,12 +24,23 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Diagnosis data not found" }, { status: 404 });
         }
 
+        const identifier = user.email || user.fullName;
+        
+        // Fetch expert notes from profile if available
+        const profile = await PerformanceProfile.findOne({ 
+            $or: [
+                { userId: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                { userId: identifier.toString() }
+            ]
+        });
+
         const diagnosis = user.diagnosisData?.report || user.diagnosis?.analysis || user.diagnosis;
 
         const roadmapData = await generateCareerRoadmap(
             { fullName: user.fullName, email: user.email },
             diagnosis,
-            language || 'fr'
+            language || 'fr',
+            profile?.expertNotes
         );
 
         return NextResponse.json(roadmapData);

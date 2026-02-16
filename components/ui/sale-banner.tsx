@@ -31,8 +31,8 @@ export function SaleBanner() {
                         pathname.startsWith('/mentor') ||
                         pathname.startsWith('/academy') ||
                         pathname.startsWith('/expert') ||
-                        pathname.startsWith('/roadmap') ||
-                        pathname.startsWith('/certificate') ||
+                        pathname.startsWith('/diplomas') ||
+                        pathname.startsWith('/strategic-report') ||
                         pathname.startsWith('/recommendation') ||
                         pathname.startsWith('/job-alignment');
     

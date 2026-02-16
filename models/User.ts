@@ -45,7 +45,7 @@ const UserSchema = new Schema({
     },
     plan: {
         type: String,
-        enum: ["Free Trial", "Pro Essential", "Elite Full Pack", "None"],
+        enum: ["Free Trial", "Pro Essential", "None"],
         default: "None",
     },
     subscriptionExpiry: {
@@ -63,6 +63,10 @@ const UserSchema = new Schema({
         default: false,
     },
     canAccessScorecard: {
+        type: Boolean,
+        default: false,
+    },
+    canAccessSCI: {
         type: Boolean,
         default: false,
     },
@@ -104,14 +108,12 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false,
     },
-    workshopAttestationStatus: {
-        type: String,
-        enum: ["None", "Requested", "Granted"],
-        default: "None",
-    },
-    grantedWorkshopTitle: {
-        type: String,
-    },
+    attestations: [{
+        workshopTitle: String,
+        issueDate: { type: Date, default: Date.now },
+        referenceId: String,
+        instructor: String
+    }],
     workshopAccessRequests: [{
         type: Schema.Types.ObjectId,
         ref: 'Course'
@@ -127,11 +129,18 @@ const UserSchema = new Schema({
         type: String,
         unique: true,
         sparse: true // Allow nulls for old users until migrated
+    },
+    resetRequested: {
+        type: Boolean,
+        default: false,
     }
 }, {
     timestamps: true,
 });
 
-const User = models.User || model("User", UserSchema);
+if (models.User) {
+    delete (models as Record<string, unknown>).User;
+}
+const User = model("User", UserSchema);
 
 export default User;

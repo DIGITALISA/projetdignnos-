@@ -11,9 +11,16 @@ export async function POST(request: NextRequest) {
             language = 'en'
         } = await request.json();
 
-        if (!cvAnalysis || !interviewEvaluation || !selectedRole || !conversationHistory) {
+        const missingParams = [];
+        if (!cvAnalysis) missingParams.push('cvAnalysis');
+        if (!interviewEvaluation) missingParams.push('interviewEvaluation');
+        if (!selectedRole) missingParams.push('selectedRole');
+        if (!conversationHistory) missingParams.push('conversationHistory');
+
+        if (missingParams.length > 0) {
+            console.error('Missing parameters in /api/cv-generation/complete:', missingParams);
             return NextResponse.json(
-                { error: 'All parameters are required' },
+                { error: `Missing parameters: ${missingParams.join(', ')}` },
                 { status: 400 }
             );
         }

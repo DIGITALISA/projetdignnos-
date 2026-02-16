@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UploadCloud, CheckCircle, Loader2, FileText, AlertCircle, TrendingUp, TrendingDown, Target, Award, ArrowRight, BookOpen, Globe, Check, Download } from "lucide-react";
+import { UploadCloud, CheckCircle, Loader2, FileText, AlertCircle, TrendingUp, TrendingDown, Target, Award, ArrowRight, ArrowLeft, BookOpen, Globe, Check, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -520,11 +520,20 @@ interface FileUploadError extends Error {
                         className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-100 p-8 md:p-12 text-center"
                     >
                         <div className="mb-8 flex items-center justify-between">
-                            <div className="text-left flex-1">
-                                <h1 className="text-3xl font-bold mb-3 text-slate-900">Upload Your Resume</h1>
-                                <p className="text-slate-500 text-lg">
-                                    Our AI engine will analyze your experience, skills, and potential gaps.
-                                </p>
+                            <div className="text-left flex-1 flex items-center gap-4">
+                                <button
+                                    onClick={() => setSelectedLanguage(null)}
+                                    className="p-2 hover:bg-slate-100 rounded-full transition-colors group"
+                                    title="Back to Language Selection"
+                                >
+                                    <ArrowLeft className="w-6 h-6 text-slate-400 group-hover:text-blue-600" />
+                                </button>
+                                <div>
+                                    <h1 className="text-3xl font-bold mb-1 text-slate-900">Upload Your Resume</h1>
+                                    <p className="text-slate-500 text-lg">
+                                        Our AI engine will analyze your experience, skills, and potential gaps.
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Language Badge */}
@@ -645,17 +654,39 @@ interface FileUploadError extends Error {
                             {/* Header */}
                             <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", marginBottom: "24px", position: "relative", overflow: "hidden" }}>
                                 <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", marginBottom: "16px" }}>
-                                    <div>
-                                        <h1 style={{ fontSize: "30px", fontWeight: "bold", color: "#0f172a", marginBottom: "8px" }}>CV Analysis Results</h1>
-                                        <p style={{ color: "#64748b" }}>Honest feedback from our AI HR Expert</p>
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={resetUpload}
+                                                className="p-2 hover:bg-slate-100 rounded-full transition-colors group"
+                                                title="Back to Upload"
+                                                data-html2canvas-ignore
+                                            >
+                                                <ArrowLeft className="w-6 h-6 text-slate-500 group-hover:text-blue-600" />
+                                            </button>
+                                            <div>
+                                                <h1 style={{ fontSize: "30px", fontWeight: "bold", color: "#0f172a", marginBottom: "8px" }}>CV Analysis Results</h1>
+                                                <p style={{ color: "#64748b" }}>Honest feedback from our AI HR Expert</p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 16px", backgroundColor: "#eff6ff", borderRadius: "12px", border: "1px solid #dbeafe" }}>
-                                            <Award style={{ width: "20px", height: "20px", color: "#2563eb" }} />
-                                            <div style={{ textAlign: "right" }}>
-                                                <p style={{ fontSize: "12px", color: "#64748b", fontWeight: "500", margin: 0 }}>Overall Score</p>
-                                                <p style={{ fontSize: "24px", fontWeight: "bold", color: "#2563eb", margin: 0 }}>{analysisResult?.overallScore || 0}/100</p>
+                                        <div className="flex items-center gap-2">
+                                            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 16px", backgroundColor: "#eff6ff", borderRadius: "12px", border: "1px solid #dbeafe" }}>
+                                                <Award style={{ width: "20px", height: "20px", color: "#2563eb" }} />
+                                                <div style={{ textAlign: "right" }}>
+                                                    <p style={{ fontSize: "12px", color: "#64748b", fontWeight: "500", margin: 0 }}>Overall Score</p>
+                                                    <p style={{ fontSize: "24px", fontWeight: "bold", color: "#2563eb", margin: 0 }}>{analysisResult?.overallScore || 0}/100</p>
+                                                </div>
                                             </div>
+                                            <button
+                                                onClick={proceedToInterview}
+                                                className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-lg shadow-blue-600/20 group"
+                                                title="Next Phase: Interview"
+                                                data-html2canvas-ignore
+                                            >
+                                                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                            </button>
                                         </div>
                                         <button
                                             onClick={handleDownloadReport}
@@ -833,9 +864,10 @@ interface FileUploadError extends Error {
                         <div className="flex gap-4 justify-center pt-4">
                             <button
                                 onClick={resetUpload}
-                                className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all"
+                                className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center gap-2"
                             >
-                                Upload Another CV
+                                <ArrowLeft className="w-5 h-5" />
+                                Back to Upload
                             </button>
                             <button
                                 onClick={proceedToInterview}

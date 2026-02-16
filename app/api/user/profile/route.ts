@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         const isObjectId = userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId);
         const user = await User.findOne(
             isObjectId ? { $or: [{ _id: userId }, { email: userId }] } : { email: userId }
-        ).select('-password -rawPassword');
+        ).select('-password -rawPassword').lean();
 
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });

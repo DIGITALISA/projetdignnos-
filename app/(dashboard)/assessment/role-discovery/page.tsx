@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Target, ArrowRight, CheckCircle } from "lucide-react";
+import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Message {
@@ -63,7 +63,25 @@ export default function RoleDiscoveryPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [totalQuestions] = useState(8); // Shorter interview focused on career goals
     const [discoveryComplete, setDiscoveryComplete] = useState(false);
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [isTimeUnlocked, setIsTimeUnlocked] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Timer logic for 20-minute safety unlock
+    useEffect(() => {
+        if (!startTime || discoveryComplete) return;
+
+        const checkTime = () => {
+            const elapsed = Date.now() - startTime;
+            const twentyMinutes = 20 * 60 * 1000;
+            if (elapsed >= twentyMinutes && !isTimeUnlocked) {
+                setIsTimeUnlocked(true);
+            }
+        };
+
+        const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+        return () => clearInterval(interval);
+    }, [startTime, discoveryComplete, isTimeUnlocked]);
 
     useEffect(() => {
         const loadSession = async () => {
@@ -89,6 +107,9 @@ export default function RoleDiscoveryPage() {
                                 timestamp: new Date(m.timestamp)
                             }));
                             setMessages(restoredMessages);
+                            if (restoredMessages.length > 0) {
+                                setStartTime(restoredMessages[0].timestamp.getTime());
+                            }
                             
                             // Calculate current index
                             const calculatedIndex = Math.floor(restoredMessages.length / 2);
@@ -176,6 +197,7 @@ export default function RoleDiscoveryPage() {
                     content: result.welcomeMessage,
                     timestamp: new Date(),
                 };
+                setStartTime(Date.now());
                 setMessages([welcomeMsg]);
 
                 setTimeout(() => {
@@ -192,6 +214,45 @@ export default function RoleDiscoveryPage() {
             console.error('Error starting role discovery:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleProceedToSuggestions = async () => {
+        if (discoveryComplete) {
+            router.push('/assessment/role-suggestions');
+            return;
+        }
+
+        const isThresholdMet = currentQuestionIndex >= 5;
+
+        if (isTimeUnlocked || isThresholdMet) {
+            setIsLoading(true);
+            try {
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const userId = userProfile.email || userProfile.fullName;
+
+                const response = await fetch('/api/role-discovery/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cvAnalysis,
+                        interviewEvaluation,
+                        conversationHistory: messages,
+                        language: selectedLanguage,
+                        userId
+                    }),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    localStorage.setItem('roleSuggestions', JSON.stringify(result.roles));
+                    setDiscoveryComplete(true);
+                }
+            } catch (error) {
+                console.error("Emergency discovery completion failed", error);
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -371,6 +432,17 @@ export default function RoleDiscoveryPage() {
                 >
                     {/* Header Section with Decoration */}
                     <div className="relative bg-linear-to-br from-purple-600 to-indigo-700 p-8 md:p-12 text-center text-white">
+                        <div className="absolute top-4 left-4 z-20">
+                            <button
+                                onClick={() => setDiscoveryComplete(false)}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors group flex items-center gap-2 text-white/80 hover:text-white font-medium"
+                                title="Back to Chat"
+                            >
+                                <ArrowLeft className="w-6 h-6" />
+                                <span className="hidden sm:inline">Review Chat</span>
+                            </button>
+                        </div>
+
                         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
                             <div className="absolute top-10 left-10 w-20 h-20 rounded-full bg-white blur-3xl" />
                             <div className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-pink-400 blur-3xl" />
@@ -418,7 +490,31 @@ export default function RoleDiscoveryPage() {
 
     return (
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
-            <div className="mb-6 flex flex-col items-center text-center gap-4 px-4">
+            <div className="mb-6 flex flex-col items-center text-center gap-4 px-4 relative w-full">
+                <div className="absolute left-4 top-0" data-html2canvas-ignore>
+                    <button
+                        onClick={() => router.push("/assessment/results")}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors group flex items-center gap-2 text-slate-500 hover:text-purple-600 font-medium"
+                        title="Back to Assessment Results"
+                    >
+                        <ArrowLeft className="w-6 h-6" />
+                        <span className="hidden sm:inline">Back</span>
+                    </button>
+                </div>
+
+                {discoveryComplete && (
+                    <div className="absolute right-4 top-0" data-html2canvas-ignore>
+                        <button
+                            onClick={() => router.push("/assessment/role-suggestions")}
+                            className="p-2 hover:bg-slate-100 rounded-full transition-colors group flex items-center gap-2 text-purple-600 font-bold"
+                            title="Go to Role Suggestions"
+                        >
+                            <span className="hidden sm:inline">Next</span>
+                            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+                )}
+
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Career Path Discovery</h1>
                     <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto">
@@ -540,8 +636,8 @@ export default function RoleDiscoveryPage() {
                             <ArrowRight className="w-4 h-4" />
                             <span className="hidden md:inline">
                                 {selectedLanguage === 'ar' ? 'تخطي' :
-                                selectedLanguage === 'fr' ? 'Passer' :
-                                    selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
+                                    selectedLanguage === 'fr' ? 'Passer' :
+                                        selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
                             </span>
                         </button>
                         <button
@@ -552,11 +648,41 @@ export default function RoleDiscoveryPage() {
                             <Send className="w-4 h-4" />
                             <span className="hidden md:inline">
                                 {selectedLanguage === 'ar' ? 'إرسال' :
-                                selectedLanguage === 'fr' ? 'Envoyer' :
-                                    selectedLanguage === 'es' ? 'Enviar' : 'Send'}
+                                    selectedLanguage === 'fr' ? 'Envoyer' :
+                                        selectedLanguage === 'es' ? 'Enviar' : 'Send'}
                             </span>
                         </button>
                     </div>
+                </div>
+
+                {/* Next Step Navigation - Active only when complete */}
+                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-center">
+                    <button
+                        onClick={handleProceedToSuggestions}
+                        disabled={!discoveryComplete && !isTimeUnlocked && currentQuestionIndex < 5 || isLoading}
+                        className={`
+                            group px-10 py-4 rounded-2xl font-black text-lg transition-all flex items-center gap-3
+                            ${(discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5)
+                                ? "bg-purple-600 text-white shadow-xl shadow-purple-600/20 hover:bg-purple-700 hover:-translate-y-1"
+                                : "bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200"
+                            }
+                        `}
+                    >
+                        {isLoading && !discoveryComplete ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span>Generating Roles...</span>
+                            </>
+                        ) : (
+                            <>
+                                {selectedLanguage === 'ar' ? 'كشف المسارات المهنية' :
+                                    selectedLanguage === 'fr' ? 'Révéler les parcours' : 'Reveal Career Paths'}
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? 'bg-white/20' : 'bg-slate-200'}`}>
+                                    <ArrowRight className={`w-5 h-5 ${discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
+                                </div>
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>

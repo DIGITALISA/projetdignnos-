@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Target, ArrowRight, Home, ShieldCheck, Download, Loader2, Sparkles } from "lucide-react";
+import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Target, ArrowRight, ArrowLeft, Home, Download, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -255,86 +255,112 @@ export default function ResultsPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-linear-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-8"
+                    className="bg-linear-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 p-8"
                 >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                                <h1 className="text-3xl font-bold text-slate-900">Interview Evaluation Results</h1>
-                                <button
-                                    onClick={handleDownloadReport}
-                                    disabled={isDownloading}
-                                    data-html2canvas-ignore
-                                    className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all group"
-                                >
-                                    {isDownloading ? (
-                                        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                                    ) : (
-                                        <Download className="w-5 h-5 text-blue-600" />
-                                    )}
-                                    {isDownloading ? 'Generating...' : 'Download PDF'}
-                                </button>
-                            </div>
-                            <p className="text-slate-600">Comprehensive analysis of your CV accuracy and capabilities</p>
-                        </div>
-                        <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-2xl font-bold text-indigo-700 mx-auto mb-4">
-                            <div className="text-center">
-                                <p className="text-3xl font-bold text-blue-600">{evaluation.overallRating}</p>
-                                <p className="text-xs text-slate-500">/ 10</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => router.push("/assessment/interview")}
+                                className="p-2 hover:bg-white/50 rounded-full transition-colors group text-slate-400 hover:text-indigo-600"
+                                title="Back to Interview"
+                                data-html2canvas-ignore
+                            >
+                                <ArrowLeft className="w-6 h-6" />
+                            </button>
+                            <div>
+                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Interview Evaluation</h1>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-md uppercase tracking-wider">
+                                        Executive Report
+                                    </span>
+                                    <span className="text-slate-400 text-sm">•</span>
+                                    <span className="text-slate-500 text-sm">{new Date().toLocaleDateString()}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Verdict */}
-                    <div className="bg-white rounded-xl p-4 border-l-4 border-blue-500">
-                        <p className="text-slate-700 font-medium italic">&quot;{evaluation.verdict}&quot;</p>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleDownloadReport}
+                                disabled={isDownloading}
+                                data-html2canvas-ignore
+                                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:shadow-md transition-all gap-2"
+                            >
+                                {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                PDF Report
+                            </button>
+                            <button
+                                onClick={() => router.push("/assessment/role-discovery")}
+                                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 group"
+                                data-html2canvas-ignore
+                            >
+                                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
                     </div>
                 </motion.div>
 
-                {/* Key Metrics */}
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* CV Accuracy */}
+                {/* Key Metrics & Executive Summary */}
+                <div className="grid lg:grid-cols-3 gap-6">
+                    {/* CV Accuracy Score */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-white rounded-2xl border border-slate-200 p-6"
+                        className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-center"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-slate-900">CV Accuracy Score</h2>
-                            <Award className="w-6 h-6 text-blue-600" />
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Accuracy Score</h2>
+                            <Award className="w-5 h-5 text-indigo-600" />
                         </div>
-                        <div className="mb-4">
-                            <div className="flex items-end gap-2">
-                                <span className="text-5xl font-bold text-blue-600">{evaluation.accuracyScore}</span>
-                                <span className="text-2xl text-slate-400 mb-2">%</span>
+                        <div className="text-center mb-6">
+                            <div className="inline-flex items-baseline gap-1">
+                                <span className="text-6xl font-black text-indigo-600 tracking-tighter">{evaluation.accuracyScore}</span>
+                                <span className="text-2xl font-bold text-slate-300">%</span>
+                            </div>
+                            <div className="mt-4 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${evaluation.accuracyScore}%` }}
+                                    className="bg-indigo-600 h-full rounded-full"
+                                />
                             </div>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-3">
-                            <div
-                                className="bg-blue-600 h-3 rounded-full transition-all duration-1000"
-                                style={{ width: `${evaluation.accuracyScore}%` }}
-                            />
-                        </div>
-                        <p className="text-sm text-slate-600 mt-3">
-                            {evaluation.accuracyScore >= 80 ? "Excellent accuracy! Your CV reflects your real capabilities well." :
-                                evaluation.accuracyScore >= 60 ? "Good accuracy with room for improvement." :
-                                    "Significant gaps detected between CV and reality."}
+                        <p className="text-xs text-center font-bold text-slate-400 uppercase leading-relaxed">
+                            {evaluation.accuracyScore >= 80 ? "High Integrity Profile" :
+                                evaluation.accuracyScore >= 60 ? "Moderate Accuracy" :
+                                    "Significant Discrepancies"}
                         </p>
                     </motion.div>
 
-                    {/* Summary */}
+                    {/* Executive Summary & Verdict */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-white rounded-2xl border border-slate-200 p-6"
+                        className="lg:col-span-2 bg-white rounded-2xl border border-indigo-100 p-8 shadow-sm relative overflow-hidden"
                     >
-                        <div className="flex items-center gap-2 mb-4">
-                            <Target className="w-6 h-6 text-purple-600" />
-                            <h2 className="text-xl font-bold text-slate-900">Summary</h2>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full -mr-16 -mt-16 blur-3xl" />
+                        
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                                    <Target className="w-5 h-5" />
+                                </div>
+                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Executive Summary</h2>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-slate-50 border-l-4 border-indigo-500 p-4 rounded-r-xl">
+                                    <p className="text-indigo-900 font-bold italic leading-relaxed text-lg">
+                                        &quot;{evaluation.verdict}&quot;
+                                    </p>
+                                </div>
+                                
+                                <p className="text-slate-600 leading-relaxed text-base font-medium">
+                                    {evaluation.summary}
+                                </p>
+                            </div>
                         </div>
-                        <p className="text-slate-700 leading-relaxed">{evaluation.summary}</p>
                     </motion.div>
                 </div>
 
@@ -444,59 +470,7 @@ export default function ResultsPage() {
                     </div>
                 </motion.div>
 
-                {/* AI Mentor Banner */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.55 }}
-                    className="bg-indigo-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden group shadow-2xl"
-                >
-                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-600/20 rounded-full blur-[100px]" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-                        <div className="w-20 h-20 bg-white/10 rounded-4xl flex items-center justify-center border border-white/20 backdrop-blur-md">
-                            <Sparkles className="w-10 h-10 text-blue-400" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                            <h3 className="text-2xl md:text-3xl font-black tracking-tight">Access Executive Simulation</h3>
-                            <p className="text-indigo-200 font-medium leading-relaxed max-w-2xl">
-                                Move beyond theory. Work with an <strong>Industry Expert</strong> to execute your personal Action Plan in a real-world simulation environment.
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => router.push('/simulation')}
-                            className="px-8 py-4 bg-white text-indigo-900 rounded-2xl font-black text-lg hover:bg-blue-50 transition-all shadow-xl active:scale-95 whitespace-nowrap"
-                        >
-                            Start Executive Simulation
-                        </button>
-                    </div>
-                </motion.div>
-
-                {/* Next Steps Banner */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6"
-                >
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-linear-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
-                            <ShieldCheck className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">📜 Official Recommendation Letter</h3>
-                            <p className="text-slate-700 mb-4">
-                                Based on your excellent performance in the interview and your training progress, you can now generate an official <strong>Recommendation Letter</strong> from our AI HR Expert.
-                            </p>
-                            <button
-                                onClick={() => router.push('/recommendation')}
-                                data-html2canvas-ignore
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-md"
-                            >
-                                Generate My Letter
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
+                {/* Content skipped: Access Executive Simulation & Recommendation Letter */}
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -526,7 +500,7 @@ export default function ResultsPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4" data-html2canvas-ignore>
                 <button
                     onClick={() => router.push('/dashboard')}
                     className="px-8 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
@@ -540,13 +514,6 @@ export default function ResultsPage() {
                 >
                     <Target className="w-5 h-5" />
                     Continue to Career Discovery
-                </button>
-                <button
-                    onClick={() => router.push('/assessment/cv-upload')}
-                    className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
-                >
-                    Upload New CV
-                    <ArrowRight className="w-5 h-5" />
                 </button>
             </div>
         </div>

@@ -40,6 +40,7 @@ export default function DashboardPage() {
     ]);
     const [hasStarted, setHasStarted] = useState(false);
     const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
+    const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -53,9 +54,8 @@ export default function DashboardPage() {
                 }
 
                 if (userId) {
-                    // Add timeout protection to prevent infinite loading
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
                     try {
                         const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`, {
@@ -69,8 +69,12 @@ export default function DashboardPage() {
                             const data = response.data;
                             setHasStarted(true);
                             if (data.liveSessions) setLiveSessions(data.liveSessions);
+                            
+                            // Check for completion status
+                            if (data.completionStatus === 'complete' || data.currentStep === 'completed') {
+                                setIsDiagnosisComplete(true);
+                            }
 
-                            // Calculate stats or other info if needed
                             if (data.cvAnalysis) {
                                 const hasSCI = !!data.cvAnalysis.sciReport;
                                 setStats([
@@ -79,19 +83,16 @@ export default function DashboardPage() {
                                     { label: t.dashboard.stats.certificates, value: hasSCI ? "1" : "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
                                 ]);
 
-                                // Sync back to localStorage for other pages
                                 localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
                                 if (data.interviewEvaluation) localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
                                 if (data.roleSuggestions) localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
                                 if (data.selectedRole) localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
                                 if (data.language) localStorage.setItem('selectedLanguage', data.language);
 
-                                // ALSO SYNC ACCESS FLAGS (non-blocking)
                                 fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`)
                                     .then(readyRes => readyRes.json())
                                     .then(readyData => {
                                         if (readyData.success) {
-                                            // Only update and trigger event if there's an actual change to prevent infinite loops
                                             if (profile.canAccessCertificates !== readyData.certReady || 
                                                 profile.canAccessRecommendations !== readyData.recReady ||
                                                 profile.plan !== readyData.plan) {
@@ -103,7 +104,6 @@ export default function DashboardPage() {
                                                     plan: readyData.plan
                                                 };
                                                 localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
-                                                // Trigger event for Sidebar and other components to refresh
                                                 window.dispatchEvent(new Event("profileUpdated"));
                                             }
                                         }
@@ -121,14 +121,12 @@ export default function DashboardPage() {
                         } else {
                             console.error("Failed to fetch progress data", fetchError);
                         }
-                        // Fallback to localStorage even on error
                         const cvAnalysis = localStorage.getItem('cvAnalysis');
                         if (cvAnalysis) {
                             setHasStarted(true);
                         }
                     }
                 } else {
-                    // Fallback to localStorage if no userId (not logged in or first visit)
                     const cvAnalysis = localStorage.getItem('cvAnalysis');
                     if (cvAnalysis) {
                         setHasStarted(true);
@@ -149,7 +147,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.diagnosis,
             description: t.dashboard.journey.stages.diagnosisDesc,
-            status: hasStarted ? "completed" : "in-progress",
+            status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "in-progress"),
             icon: Target,
             href: "/assessment/cv-upload",
             color: "bg-blue-50 text-blue-600",
@@ -158,7 +156,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.simulation,
             description: t.dashboard.journey.stages.simulationDesc,
-            status: hasStarted ? "in-progress" : "locked",
+            status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked"),
             icon: Zap,
             href: "/simulation",
             color: "bg-purple-50 text-purple-600",
@@ -167,7 +165,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.training,
             description: t.dashboard.journey.stages.trainingDesc,
-            status: "locked",
+            status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: PlayCircle,
             href: "/training",
             color: "bg-green-50 text-green-600",
@@ -176,7 +174,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.library,
             description: t.dashboard.journey.stages.libraryDesc,
-            status: "locked",
+            status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: BookOpen,
             href: "/library",
             color: "bg-orange-50 text-orange-600",
@@ -185,7 +183,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.expert,
             description: t.dashboard.journey.stages.expertDesc,
-            status: "locked",
+            status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: MessageSquare,
             href: "/expert",
             color: "bg-pink-50 text-pink-600",
@@ -194,9 +192,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.strategicReport,
             description: t.dashboard.journey.stages.strategicReportDesc,
-            status: hasStarted 
-                ? (stats[2].value === "1" ? "completed" : "in-progress") 
-                : "locked",
+            status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked"),
             icon: Shield,
             href: "/strategic-report",
             color: "bg-slate-900 text-white",
@@ -274,26 +270,38 @@ export default function DashboardPage() {
                                     <Zap className="w-5 h-5 text-purple-600" />
                                     {t.dashboard.currentFocus.title}
                                 </h2>
-                                <Link href="/simulation" className={`text-xs md:text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 group-hover:gap-2 transition-all ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                    {t.dashboard.currentFocus.continue}
-                                    <ArrowRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                                </Link>
+                                {!isDiagnosisComplete && (
+                                    <Link href="/simulation" className={`text-xs md:text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 group-hover:gap-2 transition-all ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                        {t.dashboard.currentFocus.continue}
+                                        <ArrowRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                                    </Link>
+                                )}
                             </div>
 
-                            <div className={`flex-1 bg-linear-to-br from-purple-50 to-white rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 md:gap-8 border border-purple-100/50 relative ${dir === 'rtl' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
+                            <div className={`flex-1 ${isDiagnosisComplete ? 'bg-linear-to-br from-green-50 to-emerald-50 border-green-100' : 'bg-linear-to-br from-purple-50 to-white border-purple-100/50'} rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 md:gap-8 border relative ${dir === 'rtl' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
                                 <div className="relative z-10 flex-1 space-y-3 md:space-y-4 w-full">
-                                    <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider">
-                                        {dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress'}
+                                    <span className={`inline-block px-3 py-1 ${isDiagnosisComplete ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'} text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider`}>
+                                        {isDiagnosisComplete ? (dir === 'rtl' ? 'مكتمل' : 'Completed') : (dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress')}
                                     </span>
-                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900">Career Diagnosis</h3>
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900">
+                                        {isDiagnosisComplete ? 'Career Diagnosis Complete' : 'Career Diagnosis'}
+                                    </h3>
                                     <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                                        {dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!'}
+                                        {isDiagnosisComplete
+                                            ? (dir === 'rtl' ? 'لقد أكملت التشخيص بالكامل. أنت الآن مستعد للمرحلة التالية من رحلتك!' : 'You have effectively completed the full diagnosis. You are now ready for the next stage of your journey!')
+                                            : (dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!')}
                                     </p>
                                 </div>
                                 <div className="relative z-10 w-full sm:w-auto mt-2 sm:mt-0 shrink-0">
-                                    <Link href="/simulation" className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base inline-block text-center whitespace-nowrap">
-                                        {t.dashboard.currentFocus.continue}
-                                    </Link>
+                                    {isDiagnosisComplete ? (
+                                        <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+                                            <CheckCircle2 className="w-8 h-8 text-white" />
+                                        </div>
+                                    ) : (
+                                        <Link href="/simulation" className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base inline-block text-center whitespace-nowrap">
+                                            {t.dashboard.currentFocus.continue}
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </>
