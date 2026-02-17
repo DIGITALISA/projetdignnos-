@@ -88,7 +88,8 @@ export async function PUT(req: NextRequest) {
             canAccessRecommendations: !!canAccessRecommendations,
             canAccessScorecard: !!canAccessScorecard,
             canAccessSCI: !!canAccessSCI,
-            rawPassword: rawPassword
+            rawPassword: rawPassword,
+            paymentStatus: body.paymentStatus
         };
 
         // Auto-upgrade role if plan is premium
@@ -115,6 +116,43 @@ export async function DELETE(req: NextRequest) {
     try {
         await connectDB();
         const { searchParams } = new URL(req.url);
+        const action = searchParams.get("action");
+
+        // --- NEW: DELETE ALL LOGIC ---
+        if (action === 'deleteAll') {
+            // Delete all users EXCEPT Admins and Moderators to prevent lockout
+            const usersToDelete = await User.find({ role: { $nin: ['Admin', 'Moderator'] } });
+            
+            if (usersToDelete.length === 0) {
+                return NextResponse.json({ message: "No eligible users found to delete" });
+            }
+
+            const identifiers = usersToDelete.map(u => u.email || u.fullName);
+            const userIds = usersToDelete.map(u => u._id);
+
+            // Construct global filter for related collections
+            const bulkFilter = {
+                $or: [
+                    { userId: { $in: identifiers } }, // Matches by email/name
+                    { userId: { $in: userIds.map(id => id.toString()) } } // Matches by ID string
+                ]
+            };
+
+            await Promise.all([
+                Diagnosis.deleteMany(bulkFilter),
+                Simulation.deleteMany(bulkFilter),
+                InterviewResult.deleteMany(bulkFilter),
+                PerformanceProfile.deleteMany(bulkFilter),
+                Certificate.deleteMany(bulkFilter),
+                Recommendation.deleteMany(bulkFilter),
+                JobAlignment.deleteMany(bulkFilter),
+                User.deleteMany({ _id: { $in: userIds } })
+            ]);
+
+            return NextResponse.json({ message: `Successfully deleted ${usersToDelete.length} users and all related data.` });
+        }
+
+        // --- EXISTING: SINGLE DELETE LOGIC ---
         const id = searchParams.get("id");
 
         if (!id) {

@@ -1,12 +1,33 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Download, Eye, FileText, FileSpreadsheet, File, Search, Filter, Loader2, Link as LinkIcon, Sparkles, Globe, ExternalLink, Lock, Zap } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, File, Search, Filter, Loader2, Link as LinkIcon, Sparkles, Globe, ExternalLink, Lock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 
+interface Resource {
+    _id: string;
+    title: string;
+    description?: string;
+    url: string;
+    type?: string;
+    category: string;
+    size?: string;
+    visibility?: string;
+}
+
+interface Tool {
+    _id: string;
+    title: string;
+    description?: string;
+    url: string;
+    category: string;
+    visibility?: string;
+    users?: number;
+}
+
 export default function LibraryPage() {
-    const [resources, setResources] = useState<any[]>([]);
-    const [tools, setTools] = useState<any[]>([]);
+    const [resources, setResources] = useState<Resource[]>([]);
+    const [tools, setTools] = useState<Tool[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"documents" | "ai_tools">("documents");
     const [activeCategory, setActiveCategory] = useState("All");
@@ -147,42 +168,43 @@ export default function LibraryPage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredItems.map((item, index) => {
                         if (activeTab === "documents") {
+                            const resource = item as Resource;
                             // Document Card
-                            const color = getColor(item.type || 'file');
+                            const color = getColor(resource.type || 'file');
                             return (
                                 <motion.div
-                                    key={item._id}
+                                    key={resource._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className={`bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden`}
+                                    className={`bg-white rounded-4xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden`}
                                 >
                                     <div className="flex justify-between items-start mb-6">
                                         <div className={`w-14 h-14 rounded-2xl bg-${color}-50 text-${color}-600 flex items-center justify-center shadow-inner`}>
-                                            {getIcon(item.type || 'file')}
+                                            {getIcon(resource.type || 'file')}
                                         </div>
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-${color}-50 text-${color}-600`}>
-                                            {item.type || 'DOC'}
+                                            {resource.type || 'DOC'}
                                         </span>
                                     </div>
                                     <div className="mb-6 h-28">
                                         <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition-colors line-clamp-2 leading-tight">
-                                            {item.title}
+                                            {resource.title}
                                         </h3>
                                         <p className="text-slate-500 text-sm leading-relaxed line-clamp-3 font-medium">
-                                            {item.description || "Premium professional resource for career growth."}
+                                            {resource.description || "Premium professional resource for career growth."}
                                         </p>
                                     </div>
                                     <div className="flex items-center justify-between pt-4 border-t border-slate-100 mb-4">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                            {item.category}
+                                            {resource.category}
                                         </div>
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                            {item.size || "1.2 MB"}
+                                            {resource.size || "1.2 MB"}
                                         </div>
                                     </div>
                                     <a
-                                        href={item.url}
+                                        href={resource.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-bold transition-all shadow-md active:scale-95 bg-slate-900 hover:bg-blue-600`}
@@ -193,50 +215,51 @@ export default function LibraryPage() {
                                 </motion.div>
                             );
                         } else {
+                            const tool = item as Tool;
                             // AI Tool Card
                             return (
                                 <motion.div
-                                    key={item._id}
+                                    key={tool._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="bg-white rounded-[2rem] border border-blue-100 p-1 shadow-sm hover:shadow-2xl hover:shadow-blue-900/10 hover:-translate-y-1 transition-all group relative"
+                                    className="bg-white rounded-4xl border border-blue-100 p-1 shadow-sm hover:shadow-2xl hover:shadow-blue-900/10 hover:-translate-y-1 transition-all group relative"
                                 >
-                                    <div className="bg-gradient-to-br from-indigo-50/50 to-white rounded-[1.8rem] p-6 h-full flex flex-col">
+                                    <div className="bg-linear-to-br from-indigo-50/50 to-white rounded-4xl p-6 h-full flex flex-col">
                                         <div className="flex justify-between items-start mb-6">
                                             <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-md transform group-hover:rotate-6 transition-transform">
                                                 <Globe size={24} />
                                             </div>
                                             <span className={cn(
                                                 "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1",
-                                                item.visibility === "Public" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                                                tool.visibility === "Public" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                                             )}>
-                                                {item.visibility === "Public" ? <Globe size={10} /> : <Lock size={10} />}
-                                                {item.visibility || "Public"}
+                                                {tool.visibility === "Public" ? <Globe size={10} /> : <Lock size={10} />}
+                                                {tool.visibility || "Public"}
                                             </span>
                                         </div>
 
                                         <div className="mb-6 flex-1">
                                             <h3 className="text-xl font-black text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                                {item.title}
+                                                {tool.title}
                                             </h3>
                                             <p className="text-slate-500 text-sm font-medium leading-relaxed line-clamp-3">
-                                                {item.description || "Advanced AI tool for executive productivity and analysis."}
+                                                {tool.description || "Advanced AI tool for executive productivity and analysis."}
                                             </p>
                                         </div>
 
                                         <div className="flex items-center justify-between pt-4 border-t border-slate-100 mb-5">
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
                                                 <Zap size={12} className="text-amber-400" />
-                                                {item.category}
+                                                {tool.category}
                                             </div>
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                {item.users || 0} Users
+                                                {tool.users || 0} Users
                                             </div>
                                         </div>
 
                                         <a
-                                            href={item.url}
+                                            href={tool.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center justify-center gap-2 w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all"

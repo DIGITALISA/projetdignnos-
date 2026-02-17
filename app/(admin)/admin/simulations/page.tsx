@@ -4,11 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Briefcase,
-    Clock,
     CheckCircle2,
     Search,
     Filter,
-    MoreVertical,
     Plus,
     UserPlus,
     Trash2,
@@ -16,37 +14,88 @@ import {
     Send,
     MessageSquare,
     Target,
-    Users,
     ChevronRight,
     Loader2,
     ShieldCheck,
-    AlertCircle,
     X,
     PlayCircle,
-    FileText,
-    Calendar
+    FileText
 } from "lucide-react";
+
+interface Objective {
+    title: string;
+    status: string;
+    date?: string;
+    time?: string;
+    meetingLink?: string;
+}
+
+interface Message {
+    text: string;
+    sender: "admin" | "user";
+    timestamp: string;
+}
+
+interface ResourceAsset {
+    title: string;
+    url: string;
+    type: string;
+}
+
+interface Participant {
+    _id: string;
+    fullName: string;
+    email: string;
+    role: string;
+}
+
+interface Simulation {
+    _id: string;
+    userId: string;
+    status: string;
+    title: string;
+    role: string;
+    company: string;
+    briefing: string;
+    objectives: Objective[];
+    resources?: ResourceAsset[];
+    createdAt: string;
+    draftViewedByAdmin?: boolean;
+    currentDraft?: string;
+    submittedLink?: string;
+    messages?: Message[];
+    missionType?: string;
+    meetingLink?: string;
+}
+
+interface MissionRequest {
+    userId: string;
+    missionType: string;
+    _id?: string;
+    status?: string;
+    createdAt?: string;
+}
 
 export default function SimulationsAdminPage() {
     const [activeTab, setActiveTab] = useState("incoming");
     const [simulations, setSimulations] = useState({
-        pending: [] as any[], // requested + proposed
-        active: [] as any[],
-        completed: [] as any[]
+        pending: [] as (Simulation | MissionRequest)[], // requested + proposed
+        active: [] as Simulation[],
+        completed: [] as Simulation[]
     });
     const [stats, setStats] = useState({ pending: 0, active: 0, completed: 0 });
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [allParticipants, setAllParticipants] = useState<any[]>([]);
+    const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
 
     // Modal state for creating proposal
-    const [selectedRequest, setSelectedRequest] = useState<any>(null);
+    const [selectedRequest, setSelectedRequest] = useState<Simulation | MissionRequest | null>(null);
     const [showProposalModal, setShowProposalModal] = useState(false);
     const [showUserSelectModal, setShowUserSelectModal] = useState(false);
     const [showControlModal, setShowControlModal] = useState(false);
-    const [selectedSimulation, setSelectedSimulation] = useState<any>(null);
+    const [selectedSimulation, setSelectedSimulation] = useState<Simulation | null>(null);
     const [newMessage, setNewMessage] = useState("");
-    const [newResource, setNewResource] = useState({ title: "", url: "", type: "Confidential" });
+    const [newResource, setNewResource] = useState<ResourceAsset>({ title: "", url: "", type: "Confidential" });
 
     // Proposal form state
     const [proposal, setProposal] = useState({
@@ -82,7 +131,7 @@ export default function SimulationsAdminPage() {
                     role: data.mission.role,
                     company: data.mission.company,
                     briefing: data.mission.briefing,
-                    objectives: data.mission.objectives.map((obj: any, idx: number) => ({
+                    objectives: data.mission.objectives.map((obj: string | { title: string }, idx: number) => ({
                         title: typeof obj === 'string' ? obj : obj.title,
                         status: idx === 0 ? "current" : "locked",
                         date: "",
@@ -137,7 +186,7 @@ export default function SimulationsAdminPage() {
             const usersRes = await fetch("/api/admin/users");
             const usersData = await usersRes.json();
             if (Array.isArray(usersData)) {
-                setAllParticipants(usersData.filter((u: any) => u.role !== 'Admin' && u.role !== 'Moderator'));
+                setAllParticipants(usersData.filter((u: Participant) => u.role !== 'Admin' && u.role !== 'Moderator'));
             }
 
         } catch (error) {
@@ -220,15 +269,16 @@ export default function SimulationsAdminPage() {
                 const errorData = await res.json();
                 alert(`Error: ${errorData.error || res.statusText}\n\nDetails: ${errorData.details || "No details"}`);
             }
-        } catch (error: any) {
-            console.error("Failed to create proposal:", error);
-            alert("Connection error: " + error.message);
+        } catch (error) {
+            const err = error as Error;
+            console.error("Failed to create proposal:", err);
+            alert("Connection error: " + err.message);
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const handleUpdateObjectives = async (missionId: string, objectives: any[]) => {
+    const handleUpdateObjectives = async (missionId: string, objectives: Objective[]) => {
         setIsProcessing(true);
         try {
             await fetch("/api/admin/simulations", {
@@ -293,7 +343,7 @@ export default function SimulationsAdminPage() {
         }
     };
 
-    const handleUpdateResources = async (id: string, resources: any[]) => {
+    const handleUpdateResources = async (id: string, resources: ResourceAsset[]) => {
         try {
             await fetch("/api/admin/simulations", {
                 method: "POST",
@@ -450,7 +500,7 @@ export default function SimulationsAdminPage() {
                                 <th className="px-8 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Participant</th>
                                 <th className="px-8 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Type / Status</th>
                                 <th className="px-8 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                                <th className="px-8 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+                                <th className="px-8 py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -481,7 +531,7 @@ export default function SimulationsAdminPage() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-sm text-slate-500 font-medium">
-                                        {new Date(req.createdAt).toLocaleDateString()}
+                                        {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2">
@@ -494,12 +544,14 @@ export default function SimulationsAdminPage() {
                                             >
                                                 <Plus size={14} /> Create Proposal
                                             </button>
-                                            <button
-                                                onClick={() => handleDeleteMission(req._id)}
-                                                className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {req._id && (
+                                                <button
+                                                    onClick={() => handleDeleteMission(req._id!)}
+                                                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -534,11 +586,11 @@ export default function SimulationsAdminPage() {
                                             <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden w-24">
                                                 <div
                                                     className="h-full bg-emerald-500 transition-all"
-                                                    style={{ width: `${(mission.objectives?.filter((o: any) => o.status === 'completed').length / mission.objectives?.length) * 100}%` }}
+                                                    style={{ width: `${(mission.objectives?.filter((o: Objective) => o.status === 'completed').length / mission.objectives?.length) * 100}%` }}
                                                 />
                                             </div>
                                             <span className="text-[10px] font-bold text-slate-400">
-                                                {mission.objectives?.filter((o: any) => o.status === 'completed').length}/{mission.objectives?.length}
+                                                {mission.objectives?.filter((o: Objective) => o.status === 'completed').length}/{mission.objectives?.length}
                                             </span>
                                         </div>
                                     </td>
@@ -599,7 +651,7 @@ export default function SimulationsAdminPage() {
             {/* Proposal Modal */}
             <AnimatePresence>
                 {showProposalModal && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -705,7 +757,7 @@ export default function SimulationsAdminPage() {
                                     <div className="grid md:grid-cols-2 gap-4">
                                         {proposal.objectives.map((obj, i) => (
                                             <div key={i} className="flex gap-3 group">
-                                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black flex-shrink-0 mt-1">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-black shrink-0 mt-1">
                                                     {i + 1}
                                                 </div>
                                                 <div className="flex-1 relative">
@@ -755,7 +807,7 @@ export default function SimulationsAdminPage() {
             {/* User Selection Modal */}
             <AnimatePresence>
                 {showUserSelectModal && (
-                    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -814,7 +866,7 @@ export default function SimulationsAdminPage() {
             {/* Control Modal */}
             <AnimatePresence>
                 {showControlModal && selectedSimulation && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -853,11 +905,11 @@ export default function SimulationsAdminPage() {
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
                                             <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                <FileText size={14} /> Participant's Live Draft
+                                                <FileText size={14} /> Participant&apos;s Live Draft
                                             </label>
                                             <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full animate-pulse">LIVE UPDATING</span>
                                         </div>
-                                        <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-slate-600 text-sm leading-relaxed whitespace-pre-wrap h-64 overflow-y-auto custom-scrollbar italic relative">
+                                        <div className="bg-slate-50 border border-slate-100 rounded-4xl p-6 text-slate-600 text-sm leading-relaxed whitespace-pre-wrap h-64 overflow-y-auto custom-scrollbar italic relative">
                                             {!selectedSimulation.draftViewedByAdmin && (
                                                 <div className="absolute top-4 right-4 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-full animate-bounce shadow-lg">NEW ANSWER</div>
                                             )}
@@ -879,7 +931,7 @@ export default function SimulationsAdminPage() {
                                             <Target size={14} /> Mission Roadmap Control
                                         </label>
                                         <div className="grid grid-cols-1 gap-3">
-                                            {selectedSimulation.objectives?.map((obj: any, idx: number) => (
+                                            {selectedSimulation.objectives?.map((obj: Objective, idx: number) => (
                                                 <div key={idx} className="p-4 bg-white border border-slate-100 rounded-2xl hover:border-blue-100 transition-all group space-y-4">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-3">
@@ -963,7 +1015,7 @@ export default function SimulationsAdminPage() {
                                             <ShieldCheck size={14} /> Confidential Assets (Links)
                                         </label>
                                         <div className="space-y-3">
-                                            {selectedSimulation.resources?.map((res: any, idx: number) => (
+                                            {selectedSimulation.resources?.map((res: ResourceAsset, idx: number) => (
                                                 <div key={idx} className="flex items-center justify-between p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
                                                     <div className="flex items-center gap-3">
                                                         <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
@@ -976,7 +1028,7 @@ export default function SimulationsAdminPage() {
                                                     </div>
                                                     <button
                                                         onClick={() => {
-                                                            const filtered = selectedSimulation.resources.filter((_: any, i: number) => i !== idx);
+                                                            const filtered = selectedSimulation.resources?.filter((_: ResourceAsset, i: number) => i !== idx) || [];
                                                             handleUpdateResources(selectedSimulation._id, filtered);
                                                         }}
                                                         className="text-indigo-300 hover:text-red-500 transition-colors"
@@ -1019,8 +1071,8 @@ export default function SimulationsAdminPage() {
                                         </h3>
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
-                                        {selectedSimulation.messages?.length > 0 ? (
-                                            selectedSimulation.messages.map((msg: any, idx: number) => (
+                                        {selectedSimulation.messages && selectedSimulation.messages.length > 0 ? (
+                                            selectedSimulation.messages.map((msg: Message, idx: number) => (
                                                 <div key={idx} className={cn(
                                                     "flex flex-col gap-1 max-w-[85%]",
                                                     msg.sender === 'admin' ? "ml-auto items-end" : "items-start"
@@ -1091,6 +1143,6 @@ export default function SimulationsAdminPage() {
 
 
 // Helper function to handle conditional classes
-function cn(...classes: any[]) {
+function cn(...classes: (string | boolean | undefined | null)[]) {
     return classes.filter(Boolean).join(" ");
 }

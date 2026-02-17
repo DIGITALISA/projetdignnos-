@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const DigitalProjectSchema = new Schema({
     title: {
@@ -60,7 +60,7 @@ const DigitalProjectSchema = new Schema({
 });
 
 if (models.DigitalProject) {
-    delete (mongoose.models as Record<string, unknown>).DigitalProject;
+    delete (models as Record<string, unknown>).DigitalProject;
 }
 
 const DigitalProject = model("DigitalProject", DigitalProjectSchema);

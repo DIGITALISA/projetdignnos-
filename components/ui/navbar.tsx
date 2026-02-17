@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
@@ -14,6 +14,33 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
     const { t, dir } = useLanguage();
+
+    // Verify user still exists (for deleted accounts)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem("userProfile");
+            if (saved) {
+                try {
+                    const profile = JSON.parse(saved);
+                    const identifier = profile.email || profile.fullName;
+                    if (identifier) {
+                        fetch(`/api/user/readiness?userId=${encodeURIComponent(identifier)}`)
+                            .then(async (res) => {
+                                if (res.status === 404) {
+                                    localStorage.removeItem("userProfile");
+                                    if (pathname.includes('/dashboard')) {
+                                        window.location.href = '/login';
+                                    }
+                                }
+                            })
+                            .catch(() => {});
+                    }
+                } catch {
+                    localStorage.removeItem("userProfile");
+                }
+            }
+        }
+    }, [pathname]);
 
     const navLinks = [
         { name: t.nav.home, href: "/" },

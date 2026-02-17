@@ -1,13 +1,21 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, Filter, MoreVertical, X, Check, Loader2, Edit2, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Search, X, Check, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
+interface Participant {
+    _id: string;
+    fullName: string;
+    email: string;
+    role: string;
+    status: string;
+}
+
 export default function ModeratorUsers() {
     const [searchTerm, setSearchTerm] = useState("");
-    const [participants, setParticipants] = useState<any[]>([]);
+    const [participants, setParticipants] = useState<Participant[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchParticipants = async () => {
@@ -69,7 +77,7 @@ export default function ModeratorUsers() {
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
                 <div className="relative w-full lg:w-96 group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
                     <input
@@ -82,7 +90,7 @@ export default function ModeratorUsers() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+            <div className="bg-white rounded-4xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>

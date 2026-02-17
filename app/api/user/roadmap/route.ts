@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             isObjectId ? { $or: [{ _id: userId }, { email: userId }] } : { email: userId }
         );
 
-        if (!user || (!user.diagnosisData && !user.diagnosis)) {
+        if (!user || !user.diagnosisData) {
             return NextResponse.json({ success: false, error: "Diagnosis data not found" }, { status: 404 });
         }
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
             ]
         });
 
-        const diagnosis = user.diagnosisData?.report || user.diagnosis?.analysis || user.diagnosis;
+        const diagnosis = user.diagnosisData?.report || user.diagnosisData;
 
         const roadmapData = await generateCareerRoadmap(
             { fullName: user.fullName, email: user.email },

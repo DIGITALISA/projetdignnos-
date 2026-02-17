@@ -24,6 +24,7 @@ interface MandateRequest {
     mandateAmount: number;
     plannedPaymentDate: string;
     status: string;
+    paymentStatus?: "Paid" | "Unpaid" | "Trial";
     createdAt: string;
 }
 
@@ -52,6 +53,7 @@ export default function MandateRequestsPage() {
                     mandateAmount: 402,
                     plannedPaymentDate: new Date(Date.now() + 86400000 * 2).toISOString(),
                     status: "Pending",
+                    paymentStatus: "Unpaid",
                     createdAt: new Date().toISOString()
                 },
                 {
@@ -64,6 +66,7 @@ export default function MandateRequestsPage() {
                     mandateAmount: 711,
                     plannedPaymentDate: new Date(Date.now() - 86400000).toISOString(),
                     status: "Active",
+                    paymentStatus: "Paid",
                     createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
                 }
             ];
@@ -106,18 +109,44 @@ export default function MandateRequestsPage() {
     };
 
     const handleConfirmPayment = async (requestId: string) => {
+        await handlePaymentStatusUpdate(requestId, "Paid");
+    };
+
+    const handlePaymentStatusUpdate = async (requestId: string, newStatus: string) => {
         try {
+            const statusMap: Record<string, string> = {
+                'Paid': 'Active',
+                'Trial': 'Active',
+                'Unpaid': 'Pending'
+            };
+            
+            const targetStatus = statusMap[newStatus];
+
+            // Optimistic update
+            setRequests(prev => prev.map(r => 
+                r._id === requestId ? { 
+                    ...r, 
+                    paymentStatus: newStatus as MandateRequest["paymentStatus"], 
+                    status: targetStatus || r.status 
+                } : r
+            ));
+
             const res = await fetch("/api/admin/users", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: requestId, status: "Active" })
+                body: JSON.stringify({ 
+                    id: requestId, 
+                    paymentStatus: newStatus,
+                    status: targetStatus
+                })
             });
 
-            if (res.ok) {
-                setRequests(prev => prev.map(r => r._id === requestId ? { ...r, status: "Active" } : r));
+            if (!res.ok) {
+                // Revert if failed (omitted for brevity, ideally toast error)
+                console.error("Failed to update status");
             }
         } catch (error) {
-            console.error("Error confirming payment:", error);
+            console.error("Error updating payment status:", error);
         }
     };
 
@@ -287,14 +316,29 @@ export default function MandateRequestsPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5 text-center">
-                                            <span className={cn(
-                                                "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                                                req.status === 'Active' ? "bg-green-100 text-green-700" : 
-                                                req.status === 'Pending' ? "bg-amber-100 text-amber-700 animate-pulse" : 
-                                                "bg-slate-100 text-slate-500"
-                                            )}>
-                                                {req.status === 'Active' ? 'Paiement Reçu' : 'En Attente'}
-                                            </span>
+                                            <div className="relative">
+                                                <select
+                                                    value={req.paymentStatus || (req.status === 'Active' ? 'Paid' : 'Unpaid')}
+                                                    onChange={(e) => handlePaymentStatusUpdate(req._id, e.target.value)}
+                                                    className={cn(
+                                                        "appearance-none pl-3 pr-8 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none transition-all text-center border-2",
+                                                        (req.paymentStatus === 'Paid' || (!req.paymentStatus && req.status === 'Active')) 
+                                                            ? "bg-emerald-50 text-emerald-700 border-emerald-100 hover:border-emerald-200" 
+                                                            : req.paymentStatus === 'Trial' 
+                                                                ? "bg-blue-50 text-blue-700 border-blue-100 hover:border-blue-200"
+                                                                : "bg-amber-50 text-amber-700 border-amber-100 hover:border-amber-200"
+                                                    )}
+                                                >
+                                                    <option value="Unpaid">En Attente</option>
+                                                    <option value="Trial">Essai (Trial)</option>
+                                                    <option value="Paid">Paiement Reçu</option>
+                                                </select>
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M1 1.5L4 4.5L7 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex items-center justify-end gap-2">

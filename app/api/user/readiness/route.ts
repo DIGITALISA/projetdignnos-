@@ -25,6 +25,13 @@ export async function GET(req: Request) {
       ],
     }).lean();
 
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
     // Check Diagnosis
     const diagnosis = await Diagnosis.findOne({
       $or: [

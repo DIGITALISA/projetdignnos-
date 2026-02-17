@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, Document, models, model } from 'mongoose';
 
 export interface ICorporateInquiry extends Document {
     companyName: string;
@@ -46,4 +46,4 @@ const CorporateInquirySchema: Schema = new Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.models.CorporateInquiry || mongoose.model<ICorporateInquiry>('CorporateInquiry', CorporateInquirySchema);
+export default models.CorporateInquiry || model<ICorporateInquiry>('CorporateInquiry', CorporateInquirySchema);

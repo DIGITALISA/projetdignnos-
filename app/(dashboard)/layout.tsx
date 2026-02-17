@@ -36,6 +36,13 @@ export default function DashboardLayout({
             try {
                 const readyRes = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
                 const readyData = await readyRes.json();
+                
+                if (readyRes.status === 404 || readyData.error === "User not found") {
+                    console.warn("User deleted or invalid. Logging out.");
+                    localStorage.removeItem("userProfile");
+                    window.location.href = "/login";
+                    return;
+                }
 
                 if (readyData.success) {
                     if (

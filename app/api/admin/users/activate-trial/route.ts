@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
             // trialExpiry is omitted here so it gets set on first login
         }, { new: true });
 
+        if (!user) {
+            return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+        }
+
         return NextResponse.json({
             success: true,
             message: `Trial activated for ${duration} hour(s)`,

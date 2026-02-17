@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Filter, X, Check, Loader2, Link as LinkIcon, Globe, ArrowUpRight, Edit2, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
 
 interface Resource {
     _id?: string;
@@ -200,9 +199,20 @@ export default function LibraryManagement() {
             {/* Modal for adding/editing resource */}
             <AnimatePresence>
                 {isAddModalOpen && (
-                    <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAddModalOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[70] overflow-hidden">
+                    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-white rounded-4xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative z-70 flex flex-col"
+                        >
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
                                     <div className="flex items-center gap-3">
@@ -277,7 +287,7 @@ export default function LibraryManagement() {
                                         <button
                                             type="submit"
                                             disabled={isSubmitting}
-                                            className="flex-[2] px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            className="flex-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
                                             {isSubmitting ? (
                                                 <><Loader2 size={20} className="animate-spin" /> Saving...</>
@@ -289,10 +299,9 @@ export default function LibraryManagement() {
                                 </form>
                             </div>
                         </motion.div>
-                    </>
-                )
-                }
-            </AnimatePresence >
-        </div >
+                    </div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }

@@ -5,7 +5,7 @@ import { Users, ShieldCheck, Activity, Key, Lock, Save, Loader2, Check } from "l
 import { useState, useEffect } from "react";
 
 export default function ModeratorDashboard() {
-    const [stats, setStats] = useState([
+    const [stats] = useState([
         { label: "Total Participants", value: "1,280", icon: Users, color: "indigo" },
         { label: "New Requests", value: "15", icon: Activity, color: "blue" },
         { label: "Verified Admins", value: "3", icon: ShieldCheck, color: "green" },
@@ -70,7 +70,7 @@ export default function ModeratorDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 hover:scale-[1.02] transition-transform"
+                        className="bg-white p-8 rounded-4xl shadow-xl shadow-slate-200/50 border border-slate-100 hover:scale-[1.02] transition-transform"
                     >
                         <div className={`w-14 h-14 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center mb-6`}>
                             <stat.icon size={28} />
@@ -94,13 +94,13 @@ export default function ModeratorDashboard() {
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-slate-900 tracking-tight">Sécurité des Sections Admin</h2>
-                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5 text-indigo-600">Protection par mot de passe</p>
+                            <p className="text-xs font-bold uppercase tracking-widest mt-0.5 text-indigo-600">Protection par mot de passe</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
                         <p className="text-sm text-slate-500 leading-relaxed">
-                            Définissez le mot de passe requis pour accéder aux sections sensibles de l'administration (Tools AI, Training, Library, Settings).
+                            Définissez le mot de passe requis pour accéder aux sections sensibles de l&apos;administration (Tools AI, Training, Library, Settings).
                         </p>
 
                         <div className="relative group">
@@ -108,7 +108,7 @@ export default function ModeratorDashboard() {
                             <input
                                 type="password"
                                 placeholder="Entrez le mot de passe de protection..."
-                                className="w-full pl-14 pr-6 py-5 bg-slate-50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white rounded-[2rem] text-sm font-bold transition-all outline-none"
+                                className="w-full pl-14 pr-6 py-5 bg-slate-50 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white rounded-4xl text-sm font-bold transition-all outline-none"
                                 value={adminPassword}
                                 onChange={(e) => setAdminPassword(e.target.value)}
                             />
@@ -117,7 +117,7 @@ export default function ModeratorDashboard() {
                         <button
                             onClick={handleSavePassword}
                             disabled={isSaving}
-                            className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-bold text-sm uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:bg-slate-900 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                            className="w-full py-5 bg-indigo-600 text-white rounded-4xl font-bold text-sm uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:bg-slate-900 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={20} /> : isSaved ? <Check size={20} /> : <Save size={20} />}
                             {isSaving ? "Enregistrement..." : isSaved ? "Mot de passe enregistré !" : "Sauvegarder le mot de passe"}
@@ -136,7 +136,7 @@ export default function ModeratorDashboard() {
                         <div>
                             <h2 className="text-3xl font-black tracking-tight mb-4">Rôle du Modérateur</h2>
                             <p className="text-indigo-100 text-lg opacity-80 leading-relaxed">
-                                Votre rôle est crucial pour la sécurité. Vous contrôlez qui peut devenir administrateur et vous sécurisez l'accès aux outils de configuration avancés.
+                                Votre rôle est crucial pour la sécurité. Vous contrôlez qui peut devenir administrateur et vous sécurisez l&apos;accès aux outils de configuration avancés.
                             </p>
                         </div>
                         <button className="px-8 py-4 bg-white text-indigo-900 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-50 transition-colors shadow-lg self-start">

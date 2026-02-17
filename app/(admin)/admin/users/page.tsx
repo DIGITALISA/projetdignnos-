@@ -264,6 +264,31 @@ export default function ParticipantsManagement() {
                     <UserPlus size={20} />
                     Add Executive
                 </button>
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("DANGER: VOUS ÊTES SUR LE POINT DE SUPPRIMER TOUS LES PARTICIPANTS !\n\nCette action est irréversible et supprimera TOUS les comptes (sauf les admins) ainsi que toutes leurs données (tests, simulations, certificats...).\n\nVoulez-vous vraiment continuer ?")) {
+                                if (window.confirm("Êtes-vous vraiment sûr ? Confirmez une dernière fois.")) {
+                                    try {
+                                        setIsSubmitting(true);
+                                        const res = await fetch("/api/admin/users?action=deleteAll", { method: "DELETE" });
+                                        const data = await res.json();
+                                        alert(data.message || "Tous les participants ont été supprimés.");
+                                        fetchParticipants();
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert("Erreur lors de la suppression.");
+                                    } finally {
+                                        setIsSubmitting(false);
+                                    }
+                                }
+                            }
+                        }}
+                        disabled={isSubmitting}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-600/20 hover:bg-red-700 hover:-translate-y-0.5 transition-all ml-2"
+                    >
+                        <Trash2 size={20} />
+                        TOUT SUPPRIMER
+                    </button>
             </div>
 
             <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">

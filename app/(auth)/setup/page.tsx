@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShieldAlert, UserPlus, Check, Loader2, ArrowRight } from "lucide-react";
+import { ShieldAlert, UserPlus, Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
@@ -22,7 +22,7 @@ export default function SetupPage() {
                 } else {
                     setStatus("already_done");
                 }
-            } catch (err) {
+            } catch {
                 setError("Failed to check system status");
             }
         };
@@ -48,7 +48,7 @@ export default function SetupPage() {
             } else {
                 setError(data.error || "An error occurred");
             }
-        } catch (err) {
+        } catch {
             setError("Connection failed");
         } finally {
             setIsLoading(false);
@@ -75,7 +75,7 @@ export default function SetupPage() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-slate-50 to-indigo-50">
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-50 via-white to-slate-50 flex items-center justify-center p-6 bg-fixed">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-blue-500/5 space-y-10 border border-white">
                 <div className="text-center space-y-4">
                     <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto shadow-xl shadow-blue-600/20">
@@ -125,8 +125,9 @@ export default function SetupPage() {
                     )}
 
                     <button
-                        disabled={isLoading || status === "done"}
-                        className="w-full py-5 bg-blue-600 text-white rounded-[2rem] font-black uppercase tracking-[0.25em] text-xs shadow-2xl shadow-blue-500/30 hover:bg-slate-900 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-4xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-70 active:scale-[0.98]"
                     >
                         {status === "done" ? <Check size={20} /> : isLoading ? <Loader2 className="animate-spin" size={20} /> : <UserPlus size={20} />}
                         {status === "done" ? "System Initialized!" : isLoading ? "Creating..." : "Initialize System"}

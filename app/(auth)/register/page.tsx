@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function RegisterPage() {
-    const { t, dir } = useLanguage();
+    const { dir } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -91,7 +91,7 @@ export default function RegisterPage() {
                 <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 p-10 md:p-12">
                     <div className="text-center mb-10">
                         <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Inscription Gratuite</h1>
-                        <p className="text-slate-500 font-medium">Rejoignez l'élite et profitez d'un accès d'essai</p>
+                        <p className="text-slate-500 font-medium">Rejoignez l&apos;élite et profitez d&apos;un accès d&apos;essai</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
@@ -157,7 +157,7 @@ export default function RegisterPage() {
                         </div>
 
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Code d'Accès Souhaité</label>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Code d&apos;Accès Souhaité</label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
                                 <input
@@ -186,7 +186,7 @@ export default function RegisterPage() {
                                 <Loader2 className="animate-spin w-5 h-5" />
                             ) : (
                                 <>
-                                    S'inscrire Maintenant
+                                    S&apos;inscrire Maintenant
                                     <ArrowRight size={20} className={dir === 'rtl' ? 'rotate-180' : ''} />
                                 </>
                             )}

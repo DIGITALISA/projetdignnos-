@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const SimulationSchema = new Schema({
     userId: {
@@ -88,7 +88,7 @@ const SimulationSchema = new Schema({
 });
 
 if (models.Simulation) {
-    delete (mongoose.models as Record<string, unknown>).Simulation;
+    delete (models as Record<string, unknown>).Simulation;
 }
 const Simulation = model("Simulation", SimulationSchema);
 

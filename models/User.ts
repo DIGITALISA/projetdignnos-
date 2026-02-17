@@ -27,6 +27,11 @@ const UserSchema = new Schema({
         enum: ["Active", "Pending", "Inactive", "Suspended"],
         default: "Pending",
     },
+    paymentStatus: {
+        type: String,
+        enum: ["Paid", "Unpaid", "Trial"],
+        default: "Unpaid",
+    },
     accountType: {
         type: String,
         enum: ["Free", "Trial", "Premium"],
@@ -107,6 +112,14 @@ const UserSchema = new Schema({
     workshopAttestationRequested: {
         type: Boolean,
         default: false,
+    },
+    workshopAttestationStatus: {
+        type: String,
+        enum: ["None", "Requested", "Granted", "Rejected"],
+        default: "None",
+    },
+    grantedWorkshopTitle: {
+        type: String,
     },
     attestations: [{
         workshopTitle: String,

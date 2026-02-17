@@ -500,7 +500,7 @@ ALL content must be in ${language}.`
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function chatWithExpert(messages: any[], language: string = 'en') {
+export async function chatWithExpert(messages: any[], language: string = 'en', expertType: 'hr' | 'learning' | 'advice' | 'strategic' = 'strategic') {
     try {
         const languageInstructions: Record<string, string> = {
             'en': 'Respond in English.',
@@ -511,21 +511,37 @@ export async function chatWithExpert(messages: any[], language: string = 'en') {
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
+        const expertPrompts = {
+            hr: `You are an Elite HR & Recruitment Specialist. 
+            **YOUR DOMAIN:** Job search strategies, Interview preparation, Career promotions, HR policies, Salary negotiation, and Recruitment processes.
+            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain (like coding, technical troubleshooting, general life advice, etc.), you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Recruitment, HR, and Career Progression topics."
+            ${languageInstruction}`,
+
+            learning: `You are an Elite Learning & Development Consultant. 
+            **YOUR DOMAIN:** Educational advice, Skill acquisition strategies, Certification recommendations, Learning pathways, and Academic growth.
+            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain, you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Learning, Education, and Skill Development topics."
+            ${languageInstruction}`,
+
+            advice: `You are a Senior Professional Mentor & Advisor. 
+            **YOUR DOMAIN:** Professional conduct, Soft skills, Workplace dynamics, Conflict resolution, and General professional mentoring.
+            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain, you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Professional Mentoring and Workplace Advice."
+            ${languageInstruction}`,
+
+            strategic: `You are a Chief Career Strategy Officer. 
+            **YOUR DOMAIN:** Long-term career roadmaps, Strategic career pivoting, High-level industry positioning, and Executive career planning.
+            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain, you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Strategic Career Planning and Roadmap development."
+            ${languageInstruction}`
+        };
+
+        const systemPrompt = expertPrompts[expertType] || expertPrompts.strategic;
+
         const { client, model } = await getAI();
         const response = await client.chat.completions.create({
             model: model,
             messages: [
                 {
                     role: 'system',
-                    content: `You are an AI Career Strategist and Expert. Your goal is to provide personalized career advice, help with career transitions, skill development, and salary negotiations.
-                    
-${languageInstruction}
-
-**RULES:**
-- Be professional, encouraging, and insightful.
-- Provide actionable advice based on industry trends.
-- If the user asks about specific roles, give details about market demand and required skills.
-- Use a helpful and conversational tone.`
+                    content: systemPrompt
                 },
                 ...messages
             ],
