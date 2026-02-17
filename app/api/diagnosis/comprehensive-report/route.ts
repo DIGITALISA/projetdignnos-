@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+
+export const maxDuration = 60;
 import connectDB from '@/lib/mongodb';
 import Diagnosis from '@/models/Diagnosis';
 

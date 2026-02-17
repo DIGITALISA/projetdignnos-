@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { completeSimulation } from '@/lib/simulation';
+
+export const maxDuration = 60;
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 

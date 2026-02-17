@@ -2,8 +2,24 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, CheckCircle, AlertCircle, Lightbulb, ArrowRight, Award, Clock, Brain, Download, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
+import { Send, Loader2, CheckCircle, AlertCircle, Lightbulb, ArrowRight, Award, Clock, Brain, Download, ArrowLeft, Sparkles, RefreshCw, X, Target, BookOpen, Users, MessageSquare, FileText, Map, Briefcase } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+};
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import ReactMarkdown from "react-markdown";
@@ -75,6 +91,9 @@ export default function SimulationPage() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [comprehensiveReport, setComprehensiveReport] = useState<string | null>(null);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [lastError, setLastError] = useState<string | null>(null);
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
 
     const handleDownloadReport = async () => {
         if (!finalReport || !selectedRole) return;
@@ -225,6 +244,7 @@ export default function SimulationPage() {
 
     const handleGenerateComprehensiveReport = async () => {
         setIsGeneratingReport(true);
+        setLastError(null);
         try {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
@@ -236,29 +256,34 @@ export default function SimulationPage() {
                 return;
             }
 
-            const response = await fetch('/api/diagnosis/comprehensive-report', {
+            const response = await fetchWithTimeout('/api/diagnosis/comprehensive-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId,
                     language: selectedLanguage
                 }),
-            });
+            }, 90000);
 
+            if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const result = await response.json();
 
             if (result.success) {
                 setComprehensiveReport(result.report);
             } else {
-                alert(selectedLanguage === 'ar' ? 'فشل في إنشاء التقرير الشامل' :
+                const msg = selectedLanguage === 'ar' ? 'فشل في إنشاء التقرير الشامل' :
                       selectedLanguage === 'fr' ? 'Échec de la génération du rapport' :
-                      'Failed to generate comprehensive report');
+                      'Failed to generate comprehensive report';
+                setLastError(msg);
+                alert(msg);
             }
         } catch (error) {
             console.error('Error generating comprehensive report:', error);
-            alert(selectedLanguage === 'ar' ? 'حدث خطأ أثناء إنشاء التقرير' :
+            const msg = selectedLanguage === 'ar' ? 'حدث خطأ أثناء إنشاء التقرير' :
                   selectedLanguage === 'fr' ? 'Erreur lors de la génération du rapport' :
-                  'Error generating report');
+                  'Error generating report';
+            setLastError(msg);
+            alert(msg);
         } finally {
             setIsGeneratingReport(false);
         }
@@ -266,11 +291,12 @@ export default function SimulationPage() {
 
     const startSimulation = useCallback(async (role: Role, cv: CVAnalysis, language: string) => {
         setIsLoading(true);
+        setLastError(null);
         setTimeLeft(20 * 60); // Reset timer
         try {
             console.log('[Simulation] Starting scenario 1 for role:', role.title);
 
-            const response = await fetch('/api/simulation/start', {
+            const response = await fetchWithTimeout('/api/simulation/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -279,8 +305,9 @@ export default function SimulationPage() {
                     language,
                     scenarioNumber: 1
                 }),
-            });
+            }, 60000);
 
+            if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const result = await response.json();
             console.log('[Simulation] Start result:', result);
 
@@ -297,13 +324,16 @@ export default function SimulationPage() {
                         timestamp: new Date(),
                     }
                 ]);
+            } else {
+                setLastError(selectedLanguage === 'ar' ? 'فشل بدء المحاكاة' : 'Failed to start simulation');
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error starting simulation:', error);
+            setLastError(selectedLanguage === 'ar' ? 'فشل بدء المحاكاة. يرجى المحاولة مرة أخرى.' : 'Failed to start simulation. Please try again.');
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [selectedLanguage]);
 
     const saveProgress = useCallback(async (currentMessages: Message[], currentResults: ScenarioResult[], scenarioIndex: number) => {
         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
@@ -337,7 +367,6 @@ export default function SimulationPage() {
             let storedCV = localStorage.getItem('cvAnalysis');
             let storedLanguage = localStorage.getItem('selectedLanguage');
 
-            // Try to load progress from server first
             if (userId) {
                 try {
                     const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
@@ -346,7 +375,6 @@ export default function SimulationPage() {
                     if (response.hasData && response.data) {
                         const data = response.data;
                         
-                        // Restore base data if missing in storage but present in DB
                         if (!storedRole && data.selectedRole) {
                             storedRole = JSON.stringify(data.selectedRole);
                             localStorage.setItem('selectedRole', storedRole);
@@ -360,7 +388,6 @@ export default function SimulationPage() {
                             localStorage.setItem('selectedLanguage', data.language);
                         }
 
-                        // If there is existing conversation, restore it
                         if (data.simulationConversation && data.simulationConversation.length > 0) {
                             const restoredMessages = data.simulationConversation.map((m: { 
                                 role: 'ai' | 'user', 
@@ -388,20 +415,16 @@ export default function SimulationPage() {
                 }
             }
 
-            // If we still don't have the base data, redirect
-            if (!storedRole || !storedCV) {
+            if (storedRole && storedCV) {
+                const role = JSON.parse(storedRole);
+                const cv = JSON.parse(storedCV);
+                setSelectedRole(role);
+                setCvAnalysis(cv);
+                setSelectedLanguage(storedLanguage || 'en');
+                startSimulation(role, cv, storedLanguage || 'en');
+            } else {
                 router.push('/assessment/role-suggestions');
-                return;
             }
-
-            const role = JSON.parse(storedRole);
-            const cv = JSON.parse(storedCV);
-            setSelectedRole(role);
-            setCvAnalysis(cv);
-            setSelectedLanguage(storedLanguage || 'en');
-
-            // If no conversation restored from API, start fresh
-            startSimulation(role, cv, storedLanguage || 'en');
         };
 
         loadInitialData();
@@ -411,7 +434,7 @@ export default function SimulationPage() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleSendMessage = useCallback(async (forceMessage?: string) => {
+    const handleSendMessage = useCallback(async (forceMessage?: string, isRetry = false) => {
         const messageContent = forceMessage || inputValue;
         if (!messageContent.trim() || isLoading) return;
 
@@ -423,17 +446,21 @@ export default function SimulationPage() {
 
         if (timerRef.current) clearInterval(timerRef.current);
         
-        const initialMessages = [...messages, userMessage];
-        setMessages(initialMessages);
-        setInputValue("");
+        const initialMessages = !isRetry ? [...messages, userMessage] : messages;
+        if (!isRetry) {
+            setMessages(initialMessages);
+            setInputValue("");
+        }
+        
         setIsLoading(true);
+        setLastError(null);
         
         // Save user message progress
         saveProgress(initialMessages, scenarioResults, currentScenario);
 
         try {
             // Evaluate the response
-            const response = await fetch('/api/simulation/evaluate', {
+            const response = await fetchWithTimeout('/api/simulation/evaluate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -444,11 +471,13 @@ export default function SimulationPage() {
                     conversationHistory: messages,
                     language: selectedLanguage,
                 }),
-            });
+            }, 60000);
 
+            if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const result = await response.json();
 
             if (result.success) {
+                setRetryCount(0);
                 // Add AI feedback
                 const feedbackMessage: Message = {
                     role: 'ai',
@@ -482,28 +511,34 @@ export default function SimulationPage() {
                         setCurrentScenario(nextScenario);
                         setTimeLeft(20 * 60); // Reset timer for next scenario
 
-                        const nextResponse = await fetch('/api/simulation/next-scenario', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                selectedRole,
-                                cvAnalysis,
-                                scenarioNumber: nextScenario,
-                                previousResults: updatedResults,
-                                language: selectedLanguage,
-                            }),
-                        });
+                        try {
+                            const nextResponse = await fetchWithTimeout('/api/simulation/next-scenario', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    selectedRole,
+                                    cvAnalysis,
+                                    scenarioNumber: nextScenario,
+                                    previousResults: updatedResults,
+                                    language: selectedLanguage,
+                                }),
+                            }, 60000);
 
-                        const nextResult = await nextResponse.json();
+                            if (!nextResponse.ok) throw new Error(`Server returned ${nextResponse.status}`);
+                            const nextResult = await nextResponse.json();
 
-                        if (nextResult.success) {
-                            const finalMessages = [...updatedMessages, {
-                                role: 'ai' as const,
-                                content: nextResult.scenario,
-                                timestamp: new Date(),
-                            }];
-                            setMessages(finalMessages);
-                            saveProgress(finalMessages, updatedResults, nextScenario);
+                            if (nextResult.success) {
+                                const finalMessages = [...updatedMessages, {
+                                    role: 'ai' as const,
+                                    content: nextResult.scenario,
+                                    timestamp: new Date(),
+                                }];
+                                setMessages(finalMessages);
+                                saveProgress(finalMessages, updatedResults, nextScenario);
+                            }
+                        } catch (err) {
+                            console.error("Error fetching next scenario", err);
+                            setLastError(selectedLanguage === 'ar' ? 'فشل تحميل السيناريو التالي' : 'Failed to load next scenario');
                         }
                     }, 2000);
                 } else {
@@ -511,47 +546,76 @@ export default function SimulationPage() {
                     setTimeout(async () => {
                         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                         
-                        // Persist diagnosis to MongoDB
-                        const completeResponse = await fetch('/api/simulation/complete', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: userProfile.email,
-                                selectedRole,
-                                cvAnalysis,
-                                scenarioResults: updatedResults,
-                                language: selectedLanguage,
-                            }),
-                        });
+                        try {
+                            // Persist diagnosis to MongoDB
+                            const completeResponse = await fetchWithTimeout('/api/simulation/complete', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    email: userProfile.email,
+                                    selectedRole,
+                                    cvAnalysis,
+                                    scenarioResults: updatedResults,
+                                    language: selectedLanguage,
+                                }),
+                            }, 90000);
 
-                        const completeResult = await completeResponse.json();
+                            if (!completeResponse.ok) throw new Error(`Server returned ${completeResponse.status}`);
+                            const completeResult = await completeResponse.json();
 
-                        if (completeResult.success) {
-                            // Update local storage to unlock sections immediately
-                            const currentProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                            currentProfile.isDiagnosisComplete = true;
-                            localStorage.setItem('userProfile', JSON.stringify(currentProfile));
+                            if (completeResult.success) {
+                                // Update local storage to unlock sections immediately
+                                const currentProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                                currentProfile.isDiagnosisComplete = true;
+                                localStorage.setItem('userProfile', JSON.stringify(currentProfile));
 
-                            setFinalReport(completeResult.report);
-                            setSimulationComplete(true);
+                                setFinalReport(completeResult.report);
+                                setSimulationComplete(true);
 
-                            const finalMsgs = [...updatedMessages, {
-                                role: 'ai' as const,
-                                content: completeResult.completionMessage,
-                                timestamp: new Date(),
-                            }];
-                            setMessages(finalMsgs);
-                            saveProgress(finalMsgs, updatedResults, currentScenario + 1);
+                                const finalMsgs = [...updatedMessages, {
+                                    role: 'ai' as const,
+                                    content: completeResult.completionMessage,
+                                    timestamp: new Date(),
+                                }];
+                                setMessages(finalMsgs);
+                                saveProgress(finalMsgs, updatedResults, currentScenario + 1);
+                            }
+                        } catch (err) {
+                            console.error("Error completing simulation", err);
+                            setLastError(selectedLanguage === 'ar' ? 'فشل في إكمال المحاكاة' : 'Failed to complete simulation');
                         }
                     }, 2000);
                 }
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (error: unknown) {
+            console.error('Simulation Error:', error);
+            
+            let errorMsg = selectedLanguage === 'ar'
+                ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
+                : "Connection error. Please try again.";
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                errorMsg = selectedLanguage === 'ar'
+                    ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
+                    : "The server is very slow right now, please try again.";
+            }
+
+            setLastError(errorMsg);
+
+            if (!isRetry && retryCount < 2) {
+                setRetryCount(prev => prev + 1);
+                setTimeout(() => {
+                    handleSendMessage(messageContent, true);
+                }, 2000);
+                return;
+            }
+
+            if (messageContent && !forceMessage) setInputValue(messageContent);
+            alert(errorMsg);
         } finally {
             setIsLoading(false);
         }
-    }, [inputValue, isLoading, selectedRole, cvAnalysis, currentScenario, messages, selectedLanguage, totalScenarios, scenarioResults, saveProgress]);
+    }, [inputValue, isLoading, selectedRole, cvAnalysis, currentScenario, messages, selectedLanguage, totalScenarios, scenarioResults, saveProgress, retryCount]);
 
     const handleEmergencyFinish = async () => {
         if (scenarioResults.length < 2) return;
@@ -907,74 +971,129 @@ export default function SimulationPage() {
                     </motion.div>
                 )}
 
-                {/* Action Button */}
-                <div className="mt-8 flex flex-col gap-4">
+                {/* Action Button - Strategically enhanced to guide user */}
+                <div className="mt-12 flex justify-center w-full px-4">
                     {!comprehensiveReport ? (
-                        <button
-                            onClick={handleGenerateComprehensiveReport}
-                            disabled={isGeneratingReport}
-                            data-html2canvas-ignore
-                            className="group w-full py-6 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-3xl font-black text-xl transition-all shadow-2xl shadow-purple-600/30 hover:shadow-3xl hover:shadow-purple-600/50 hover:-translate-y-1 flex items-center justify-center gap-4 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isGeneratingReport ? (
-                                <>
-                                    <Loader2 className="w-7 h-7 animate-spin" />
-                                    <span>
-                                        {selectedLanguage === 'ar' ? 'جاري إنشاء التقرير الشامل...' :
-                                         selectedLanguage === 'fr' ? 'Génération du rapport en cours...' :
-                                         'Generating Comprehensive Report...'}
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                                        <Sparkles className="w-7 h-7 group-hover:rotate-12 group-hover:scale-110 transition-transform" />
-                                    </div>
-                                    <span>
-                                        {selectedLanguage === 'ar' ? 'إنشاء التقرير التشخيصي الشامل' :
-                                         selectedLanguage === 'fr' ? 'Générer le Rapport Diagnostique Complet' :
-                                         'Generate Comprehensive Diagnostic Report'}
-                                    </span>
-                                    <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                                </>
+                        <div className="relative w-full max-w-4xl group">
+                            {/* Giant Pulsing Background Glow */}
+                            {!isGeneratingReport && (
+                                <motion.div
+                                    animate={{ 
+                                        scale: [1, 1.05, 1],
+                                        opacity: [0.3, 0.6, 0.3]
+                                    }}
+                                    transition={{ 
+                                        duration: 2, 
+                                        repeat: Infinity, 
+                                        ease: "easeInOut" 
+                                    }}
+                                    className="absolute -inset-4 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-[3rem] blur-2xl z-0"
+                                />
                             )}
-                        </button>
+                            
+                            <motion.button
+                                onClick={handleGenerateComprehensiveReport}
+                                disabled={isGeneratingReport}
+                                data-html2canvas-ignore
+                                whileHover={{ scale: 1.02, y: -5 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="relative z-10 w-full py-8 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-[2.5rem] font-black text-2xl md:text-3xl transition-all shadow-[0_20px_50px_rgba(79,70,229,0.3)] hover:shadow-[0_30px_60px_rgba(79,70,229,0.5)] flex items-center justify-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-white/20"
+                            >
+                                {isGeneratingReport ? (
+                                    <>
+                                        <Loader2 className="w-10 h-10 animate-spin" />
+                                        <span>
+                                            {selectedLanguage === 'ar' ? 'جاري إنشاء التقرير الشامل...' :
+                                             selectedLanguage === 'fr' ? 'Génération du rapport en cours...' :
+                                             'Generating Report...'}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
+                                            <Sparkles className="w-8 h-8 text-yellow-300 animate-pulse" />
+                                        </div>
+                                        <span>
+                                            {selectedLanguage === 'ar' ? 'إنشاء التقرير التشخيصي الشامل' :
+                                             selectedLanguage === 'fr' ? 'Générer le Rapport Complet' :
+                                             'Generate Comprehensive Report'}
+                                        </span>
+                                        <motion.div
+                                            animate={{ x: [0, 8, 0] }}
+                                            transition={{ duration: 1.5, repeat: Infinity }}
+                                            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"
+                                        >
+                                            <ArrowRight className="w-8 h-8" />
+                                        </motion.div>
+                                    </>
+                                )}
+                            </motion.button>
+                        </div>
                     ) : (
-                        <button
-                            onClick={async () => {
-                                try {
-                                    const savedProfile = localStorage.getItem("userProfile");
-                                    const profile = savedProfile ? JSON.parse(savedProfile) : null;
-                                    const userId = profile?.email || profile?.fullName;
-                                    
-                                    if (userId) {
-                                        await fetch('/api/user/progress', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                userId,
-                                                updateData: {
-                                                    currentStep: 'completed',
-                                                    completionStatus: 'complete',
-                                                    completedAt: new Date()
-                                                }
-                                            })
-                                        });
+                        <div className="relative w-full max-w-4xl group">
+                            {/* Pulsing Green Glow */}
+                            <motion.div
+                                animate={{ 
+                                    scale: [1, 1.05, 1],
+                                    opacity: [0.3, 0.6, 0.3]
+                                }}
+                                transition={{ 
+                                    duration: 2, 
+                                    repeat: Infinity, 
+                                    ease: "easeInOut" 
+                                }}
+                                className="absolute -inset-4 bg-linear-to-r from-green-600 to-emerald-600 rounded-[3rem] blur-2xl z-0"
+                            />
+                            
+                            <motion.button
+                                onClick={async () => {
+                                    try {
+                                        const savedProfile = localStorage.getItem("userProfile");
+                                        const profile = savedProfile ? JSON.parse(savedProfile) : null;
+                                        const userId = profile?.email || profile?.fullName;
+                                        
+                                        if (userId) {
+                                            await fetch('/api/user/progress', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    userId,
+                                                    updateData: {
+                                                        currentStep: 'completed',
+                                                        completionStatus: 'complete',
+                                                        completedAt: new Date()
+                                                    }
+                                                })
+                                            });
+                                        }
+                                    } catch (error) {
+                                        console.error("Failed to update status", error);
+                                    } finally {
+                                        setShowCompletionModal(true);
                                     }
-                                } catch (error) {
-                                    console.error("Failed to update status", error);
-                                } finally {
-                                    router.push('/dashboard');
-                                }
-                            }}
-                            data-html2canvas-ignore
-                            className="w-full py-5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-lg transition-all shadow-xl shadow-green-600/20 hover:shadow-2xl hover:shadow-green-600/30 flex items-center justify-center gap-3 active:scale-95"
-                        >
-                            {selectedLanguage === 'ar' ? 'إتمام وإنهاء التشخيص بالكامل' :
-                             selectedLanguage === 'fr' ? 'Finaliser le Diagnostic Complet' :
-                             'Complete & Finish Diagnosis'}
-                            <CheckCircle className="w-6 h-6" />
-                        </button>
+                                }}
+                                data-html2canvas-ignore
+                                whileHover={{ scale: 1.02, y: -5 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="relative z-10 w-full py-8 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-[2.5rem] font-black text-2xl md:text-3xl transition-all shadow-[0_20px_50px_rgba(22,163,74,0.3)] hover:shadow-[0_30px_60px_rgba(22,163,74,0.5)] flex items-center justify-center gap-6 border-2 border-white/20"
+                            >
+                                <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
+                                    <CheckCircle className="w-8 h-8 text-white animate-pulse" />
+                                </div>
+                                <span>
+                                    {selectedLanguage === 'ar' ? 'إتمام وإنهاء التشخيص بالكامل' :
+                                     selectedLanguage === 'fr' ? 'Finaliser le Diagnostic Complet' :
+                                     'Complete & Finish Diagnosis'}
+                                </span>
+                                <motion.div
+                                    animate={{ x: [0, 8, 0] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                    className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"
+                                >
+                                    <ArrowRight className="w-8 h-8" />
+                                </motion.div>
+                            </motion.button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -982,6 +1101,7 @@ export default function SimulationPage() {
     }
 
     return (
+        <>
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto w-full font-sans">
             {/* Header Section */}
             <div className="mb-4 flex flex-col items-center text-center gap-4 px-4 shrink-0 relative">
@@ -1157,8 +1277,25 @@ export default function SimulationPage() {
                             className="flex justify-start"
                         >
                             <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-100 shadow-sm ml-4">
-                                <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
-                                <span className="text-slate-500 text-sm font-medium">Analyzing response...</span>
+                                <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+                                <span className="text-slate-500 text-sm font-medium">
+                                    {retryCount > 0 
+                                        ? (selectedLanguage === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
+                                        : (selectedLanguage === 'ar' ? 'جاري تحليل إجابتك...' : 'Analyzing your response...')}
+                                </span>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {lastError && !isLoading && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex justify-center"
+                        >
+                            <div className="flex items-center gap-2 bg-red-50 text-red-600 rounded-2xl p-3 border border-red-200 text-sm">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>{lastError}</span>
                             </div>
                         </motion.div>
                     )}
@@ -1214,5 +1351,267 @@ export default function SimulationPage() {
                 </div>
             </div>
         </div>
+
+        {/* 🎉 Completion Modal - Shows all available services */}
+        {showCompletionModal && (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => {
+                    setShowCompletionModal(false);
+                    router.push('/dashboard');
+                }}
+            >
+                <motion.div
+                    initial={{ scale: 0.9, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ type: "spring", duration: 0.5 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative"
+                >
+                    {/* Close Button */}
+                    <button
+                        onClick={() => {
+                            setShowCompletionModal(false);
+                            router.push('/dashboard');
+                        }}
+                        className="absolute top-6 right-6 w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center transition-colors z-10"
+                    >
+                        <X className="w-5 h-5 text-slate-600" />
+                    </button>
+
+                    {/* Header */}
+                    <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white p-8 md:p-12 rounded-t-3xl text-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20" />
+                        
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.2, type: "spring" }}
+                            className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 relative z-10"
+                        >
+                            <CheckCircle className="w-14 h-14 text-white" />
+                        </motion.div>
+                        
+                        <h2 className="text-3xl md:text-4xl font-black mb-3 relative z-10">
+                            {selectedLanguage === 'ar' ? '🎉 تهانينا! اكتمل التشخيص' :
+                             selectedLanguage === 'fr' ? '🎉 Félicitations ! Diagnostic Terminé' :
+                             '🎉 Congratulations! Diagnosis Complete'}
+                        </h2>
+                        <p className="text-lg text-white/90 max-w-2xl mx-auto relative z-10">
+                            {selectedLanguage === 'ar' ? 'الآن يمكنك الوصول إلى جميع الخدمات المتاحة لتطوير مسارك المهني' :
+                             selectedLanguage === 'fr' ? 'Vous avez maintenant accès à tous les services disponibles pour développer votre carrière' :
+                             'You now have access to all available services to develop your career'}
+                        </p>
+                    </div>
+
+                    {/* Services Grid */}
+                    <div className="p-8 md:p-12">
+                        <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center">
+                            {selectedLanguage === 'ar' ? 'الخدمات المتاحة الآن' :
+                             selectedLanguage === 'fr' ? 'Services Disponibles Maintenant' :
+                             'Available Services Now'}
+                        </h3>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Service 1: Real Simulations */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="bg-linear-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Target className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'محاكاة واقعية' :
+                                     selectedLanguage === 'fr' ? 'Simulations Réelles' :
+                                     'Real Simulations'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'تدرب على سيناريوهات واقعية لتطوير مهاراتك المهنية' :
+                                     selectedLanguage === 'fr' ? 'Entraînez-vous sur des scénarios réels pour développer vos compétences' :
+                                     'Practice real-world scenarios to develop your professional skills'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 2: Executive Workshops */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="bg-linear-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Users className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'ورش تنفيذية' :
+                                     selectedLanguage === 'fr' ? 'Workshops Exécutifs' :
+                                     'Executive Workshops'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'ورش عمل متخصصة لتطوير المهارات القيادية والإدارية' :
+                                     selectedLanguage === 'fr' ? 'Ateliers spécialisés pour développer les compétences de leadership' :
+                                     'Specialized workshops to develop leadership and management skills'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 3: AI Advisor */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="bg-linear-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Brain className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'مستشار ذكاء اصطناعي' :
+                                     selectedLanguage === 'fr' ? 'Conseiller IA' :
+                                     'AI Advisor'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'احصل على نصائح مخصصة من مستشار ذكاء اصطناعي متقدم' :
+                                     selectedLanguage === 'fr' ? 'Obtenez des conseils personnalisés d\'un conseiller IA avancé' :
+                                     'Get personalized advice from an advanced AI advisor'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 4: Knowledge Base */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="bg-linear-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <BookOpen className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'قاعدة المعرفة' :
+                                     selectedLanguage === 'fr' ? 'Base de Connaissances' :
+                                     'Knowledge Base'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'مكتبة شاملة من الموارد والمقالات لتطوير معرفتك' :
+                                     selectedLanguage === 'fr' ? 'Bibliothèque complète de ressources et d\'articles pour développer vos connaissances' :
+                                     'Comprehensive library of resources and articles to expand your knowledge'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 5: Resource Center */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                                className="bg-linear-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <FileText className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'مركز الموارد' :
+                                     selectedLanguage === 'fr' ? 'Centre de Ressources' :
+                                     'Resource Center'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'أدوات ونماذج جاهزة لدعم تطورك المهني' :
+                                     selectedLanguage === 'fr' ? 'Outils et modèles prêts à l\'emploi pour soutenir votre développement' :
+                                     'Ready-to-use tools and templates to support your professional development'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 6: Expert Consultation */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6 }}
+                                className="bg-linear-to-br from-rose-50 to-pink-50 border-2 border-rose-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-rose-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <MessageSquare className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'استشارة خبراء' :
+                                     selectedLanguage === 'fr' ? 'Consultation d\'Experts' :
+                                     'Expert Consultation'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'تواصل مع خبراء متخصصين للحصول على إرشادات مخصصة' :
+                                     selectedLanguage === 'fr' ? 'Connectez-vous avec des experts pour obtenir des conseils personnalisés' :
+                                     'Connect with specialized experts for personalized guidance'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 7: Career Roadmap */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 }}
+                                className="bg-linear-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Map className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'خارطة الطريق المهنية' :
+                                     selectedLanguage === 'fr' ? 'Feuille de Route' :
+                                     'Career Roadmap'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'خطة مخصصة لتحقيق أهدافك المهنية خطوة بخطوة' :
+                                     selectedLanguage === 'fr' ? 'Plan personnalisé pour atteindre vos objectifs professionnels' :
+                                     'Personalized plan to achieve your career goals step by step'}
+                                </p>
+                            </motion.div>
+
+                            {/* Service 8: Professional Portfolio */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.8 }}
+                                className="bg-linear-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                            >
+                                <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Briefcase className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                    {selectedLanguage === 'ar' ? 'ملف مهني متقدم' :
+                                     selectedLanguage === 'fr' ? 'Portfolio Professionnel' :
+                                     'Professional Portfolio'}
+                                </h4>
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                    {selectedLanguage === 'ar' ? 'ملف شامل يعرض إنجازاتك ومهاراتك بشكل احترافي' :
+                                     selectedLanguage === 'fr' ? 'Portfolio complet présentant vos réalisations professionnellement' :
+                                     'Comprehensive portfolio showcasing your achievements professionally'}
+                                </p>
+                            </motion.div>
+                        </div>
+
+                        {/* CTA Button */}
+                        <motion.button
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.9 }}
+                            onClick={() => {
+                                setShowCompletionModal(false);
+                                router.push('/dashboard');
+                            }}
+                            className="mt-10 w-full py-5 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-3"
+                        >
+                            {selectedLanguage === 'ar' ? 'انتقل إلى لوحة التحكم' :
+                             selectedLanguage === 'fr' ? 'Aller au Tableau de Bord' :
+                             'Go to Dashboard'}
+                            <ArrowRight className="w-5 h-5" />
+                        </motion.button>
+                    </div>
+                </motion.div>
+            </motion.div>
+        )}
+        </>
     );
 }

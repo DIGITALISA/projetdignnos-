@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { startRoleDiscoveryInterview } from '@/lib/role-discovery';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
     try {
         const { cvAnalysis, interviewEvaluation, language = 'en' } = await request.json();

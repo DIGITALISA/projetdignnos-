@@ -1,9 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+};
 
 interface Message {
     role: 'ai' | 'user';
@@ -65,6 +81,8 @@ export default function RoleDiscoveryPage() {
     const [discoveryComplete, setDiscoveryComplete] = useState(false);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [isTimeUnlocked, setIsTimeUnlocked] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [lastError, setLastError] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Timer logic for 20-minute safety unlock
@@ -82,6 +100,49 @@ export default function RoleDiscoveryPage() {
         const interval = setInterval(checkTime, 10000); // Check every 10 seconds
         return () => clearInterval(interval);
     }, [startTime, discoveryComplete, isTimeUnlocked]);
+
+    const startRoleDiscovery = useCallback(async (cv: CVAnalysisResult, evaluation: InterviewEvaluation, language: string) => {
+        setIsLoading(true);
+        setLastError(null);
+        try {
+            const response = await fetchWithTimeout('/api/role-discovery/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cvAnalysis: cv,
+                    interviewEvaluation: evaluation,
+                    language
+                }),
+            }, 60000);
+
+            const result = await response.json();
+
+            if (result.success) {
+                const welcomeMsg: Message = {
+                    role: 'ai',
+                    content: result.welcomeMessage,
+                    timestamp: new Date(),
+                };
+                setStartTime(Date.now());
+                setMessages([welcomeMsg]);
+
+                setTimeout(() => {
+                    const firstQuestion: Message = {
+                        role: 'ai',
+                        content: result.firstQuestion,
+                        timestamp: new Date(),
+                    };
+                    setMessages(prev => [...prev, firstQuestion]);
+                    setCurrentQuestionIndex(1);
+                }, 1000);
+            }
+        } catch (error: unknown) {
+            console.error('Error starting role discovery:', error);
+            setLastError(selectedLanguage === 'ar' ? 'فشل بدء كشف المسارات. يرجى المحاولة مرة أخرى.' : 'Failed to start discovery. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [selectedLanguage]);
 
     useEffect(() => {
         const loadSession = async () => {
@@ -150,7 +211,7 @@ export default function RoleDiscoveryPage() {
         };
 
         loadSession();
-    }, [router]);
+    }, [router, startRoleDiscovery]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -176,47 +237,6 @@ export default function RoleDiscoveryPage() {
         }
     }, [messages, discoveryComplete]);
 
-    const startRoleDiscovery = async (cv: CVAnalysisResult, evaluation: InterviewEvaluation, language: string) => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/role-discovery/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cvAnalysis: cv,
-                    interviewEvaluation: evaluation,
-                    language
-                }),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                const welcomeMsg: Message = {
-                    role: 'ai',
-                    content: result.welcomeMessage,
-                    timestamp: new Date(),
-                };
-                setStartTime(Date.now());
-                setMessages([welcomeMsg]);
-
-                setTimeout(() => {
-                    const firstQuestion: Message = {
-                        role: 'ai',
-                        content: result.firstQuestion,
-                        timestamp: new Date(),
-                    };
-                    setMessages(prev => [...prev, firstQuestion]);
-                    setCurrentQuestionIndex(1);
-                }, 1000);
-            }
-        } catch (error) {
-            console.error('Error starting role discovery:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleProceedToSuggestions = async () => {
         if (discoveryComplete) {
             router.push('/assessment/role-suggestions');
@@ -231,7 +251,7 @@ export default function RoleDiscoveryPage() {
                 const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                 const userId = userProfile.email || userProfile.fullName;
 
-                const response = await fetch('/api/role-discovery/complete', {
+                const response = await fetchWithTimeout('/api/role-discovery/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -241,8 +261,9 @@ export default function RoleDiscoveryPage() {
                         language: selectedLanguage,
                         userId
                     }),
-                });
+                }, 90000);
 
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
                 const result = await response.json();
                 if (result.success) {
                     localStorage.setItem('roleSuggestions', JSON.stringify(result.roles));
@@ -250,33 +271,37 @@ export default function RoleDiscoveryPage() {
                 }
             } catch (error) {
                 console.error("Emergency discovery completion failed", error);
+                setLastError(selectedLanguage === 'ar' ? 'فشل كشف المسارات. يرجى المحاولة مرة أخرى.' : 'Discovery completion failed. Please try again.');
             } finally {
                 setIsLoading(false);
             }
         }
     };
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = useCallback(async (isRetry = false) => {
         if (!inputValue.trim() || isLoading) return;
 
+        const currentInput = inputValue;
         const userMessage: Message = {
             role: 'user',
-            content: inputValue,
+            content: currentInput,
             timestamp: new Date(),
         };
 
-        setMessages(prev => [...prev, userMessage]);
-        setInputValue("");
+        if (!isRetry) {
+            setMessages(prev => [...prev, userMessage]);
+            setInputValue("");
+        }
+        
         setIsLoading(true);
+        setLastError(null);
 
         try {
             if (currentQuestionIndex >= totalQuestions) {
-                // Get userId
                 const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                 const userId = userProfile.email || userProfile.fullName;
 
-                // Finish discovery and generate role suggestions
-                const response = await fetch('/api/role-discovery/complete', {
+                const response = await fetchWithTimeout('/api/role-discovery/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -286,14 +311,15 @@ export default function RoleDiscoveryPage() {
                         language: selectedLanguage,
                         userId
                     }),
-                });
+                }, 90000);
 
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
                 const result = await response.json();
 
                 if (result.success) {
-                    // Store role suggestions
                     localStorage.setItem('roleSuggestions', JSON.stringify(result.roles));
                     setDiscoveryComplete(true);
+                    setRetryCount(0);
 
                     const aiMessage: Message = {
                         role: 'ai',
@@ -303,8 +329,7 @@ export default function RoleDiscoveryPage() {
                     setMessages(prev => [...prev, aiMessage]);
                 }
             } else {
-                // Get next question
-                const response = await fetch('/api/role-discovery/next-question', {
+                const response = await fetchWithTimeout('/api/role-discovery/next-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -315,11 +340,12 @@ export default function RoleDiscoveryPage() {
                         questionNumber: currentQuestionIndex + 1,
                         totalQuestions,
                     }),
-                });
+                }, 60000);
 
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
                 const result = await response.json();
 
-                if (result.success) {
+                if (result.success && result.question) {
                     const aiMessage: Message = {
                         role: 'ai',
                         content: result.question,
@@ -327,16 +353,40 @@ export default function RoleDiscoveryPage() {
                     };
                     setMessages(prev => [...prev, aiMessage]);
                     setCurrentQuestionIndex(prev => prev + 1);
+                    setRetryCount(0);
                 }
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (error: unknown) {
+            console.error('Role Discovery Error:', error);
+            
+            let errorMsg = selectedLanguage === 'ar'
+                ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
+                : "Connection error. Please try again.";
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                errorMsg = selectedLanguage === 'ar'
+                    ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
+                    : "The server is very slow right now, please try again.";
+            }
+
+            setLastError(errorMsg);
+
+            if (!isRetry && retryCount < 2) {
+                setRetryCount(prev => prev + 1);
+                setTimeout(() => {
+                    handleSendMessage(true);
+                }, 2000);
+                return;
+            }
+
+            if (currentInput) setInputValue(currentInput);
+            alert(errorMsg);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentQuestionIndex, cvAnalysis, interviewEvaluation, messages, retryCount, selectedLanguage, totalQuestions, inputValue, isLoading]);
 
-    const handleSkipQuestion = async () => {
+    const handleSkipQuestion = useCallback(async (isRetry = false) => {
         if (isLoading) return;
 
         const skipMessages: Record<string, string> = {
@@ -354,16 +404,19 @@ export default function RoleDiscoveryPage() {
             timestamp: new Date(),
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        if (!isRetry) {
+            setMessages(prev => [...prev, userMessage]);
+        }
+        
         setIsLoading(true);
+        setLastError(null);
 
         try {
             if (currentQuestionIndex >= totalQuestions) {
-                // Get userId
                 const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                 const userId = userProfile.email || userProfile.fullName;
 
-                const response = await fetch('/api/role-discovery/complete', {
+                const response = await fetchWithTimeout('/api/role-discovery/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -373,13 +426,15 @@ export default function RoleDiscoveryPage() {
                         language: selectedLanguage,
                         userId
                     }),
-                });
+                }, 90000);
 
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
                 const result = await response.json();
 
                 if (result.success) {
                     localStorage.setItem('roleSuggestions', JSON.stringify(result.roles));
                     setDiscoveryComplete(true);
+                    setRetryCount(0);
 
                     const aiMessage: Message = {
                         role: 'ai',
@@ -389,7 +444,7 @@ export default function RoleDiscoveryPage() {
                     setMessages(prev => [...prev, aiMessage]);
                 }
             } else {
-                const response = await fetch('/api/role-discovery/next-question', {
+                const response = await fetchWithTimeout('/api/role-discovery/next-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -400,11 +455,12 @@ export default function RoleDiscoveryPage() {
                         questionNumber: currentQuestionIndex + 1,
                         totalQuestions,
                     }),
-                });
+                }, 60000);
 
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
                 const result = await response.json();
 
-                if (result.success) {
+                if (result.success && result.question) {
                     const aiMessage: Message = {
                         role: 'ai',
                         content: result.question,
@@ -412,14 +468,37 @@ export default function RoleDiscoveryPage() {
                     };
                     setMessages(prev => [...prev, aiMessage]);
                     setCurrentQuestionIndex(prev => prev + 1);
+                    setRetryCount(0);
                 }
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (error: unknown) {
+            console.error('Skip Question Error:', error);
+            
+            let errorMsg = selectedLanguage === 'ar'
+                ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
+                : "Connection error. Please try again.";
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                errorMsg = selectedLanguage === 'ar'
+                    ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
+                    : "The server is very slow right now, please try again.";
+            }
+
+            setLastError(errorMsg);
+
+            if (!isRetry && retryCount < 2) {
+                setRetryCount(prev => prev + 1);
+                setTimeout(() => {
+                    handleSkipQuestion(true);
+                }, 2000);
+                return;
+            }
+
+            alert(errorMsg);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentQuestionIndex, cvAnalysis, interviewEvaluation, messages, retryCount, selectedLanguage, totalQuestions, isLoading]);
 
     // Discovery Complete Screen
     if (discoveryComplete) {
@@ -475,13 +554,42 @@ export default function RoleDiscoveryPage() {
                             </p>
                         </div>
 
-                        <button
-                            onClick={() => router.push('/assessment/role-suggestions')}
-                            className="group w-full py-4 px-6 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-lg font-bold rounded-xl shadow-xl shadow-purple-600/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
-                        >
-                            <span>Reveal Your Career Paths</span>
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        {/* Action Button - Reveal Career Paths */}
+                        <div className="relative group">
+                            {/* Pulsing Background Glow */}
+                            <motion.div
+                                animate={{ 
+                                    scale: [1, 1.05, 1],
+                                    opacity: [0.3, 0.6, 0.3]
+                                }}
+                                transition={{ 
+                                    duration: 2, 
+                                    repeat: Infinity, 
+                                    ease: "easeInOut" 
+                                }}
+                                className="absolute -inset-2 bg-linear-to-r from-purple-600 to-indigo-600 rounded-2xl blur-xl z-0"
+                            />
+                            
+                            <motion.button
+                                onClick={() => router.push('/assessment/role-suggestions')}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="relative z-10 group w-full py-6 bg-linear-to-r from-purple-600 via-indigo-600 to-indigo-700 text-white text-xl font-black rounded-2xl shadow-2xl shadow-purple-600/40 transition-all flex items-center justify-center gap-4"
+                            >
+                                <Sparkles className="w-7 h-7 text-yellow-300" />
+                                <span>
+                                    {selectedLanguage === 'ar' ? 'كشف المسارات المهنية' : 
+                                     selectedLanguage === 'fr' ? 'Révéler les parcours' : 'Reveal Your Career Paths'}
+                                </span>
+                                <motion.div
+                                    animate={{ x: [0, 5, 0] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                    className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+                                >
+                                    <ArrowRight className="w-6 h-6" />
+                                </motion.div>
+                            </motion.button>
+                        </div>
                     </div>
                 </motion.div>
             </div>
@@ -605,7 +713,24 @@ export default function RoleDiscoveryPage() {
                         >
                             <div className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm rounded-tl-none ml-10">
                                 <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
-                                <span className="text-slate-500 text-sm font-medium">Analyzing career goals...</span>
+                                <span className="text-slate-500 text-sm font-medium">
+                                    {retryCount > 0 
+                                        ? (selectedLanguage === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
+                                        : (selectedLanguage === 'ar' ? 'جاري تحليل الأهداف المهنية...' : 'Analyzing career goals...')}
+                                </span>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {lastError && !isLoading && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex justify-center"
+                        >
+                            <div className="flex items-center gap-2 bg-red-50 text-red-600 rounded-2xl p-3 border border-red-200 text-sm">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>{lastError}</span>
                             </div>
                         </motion.div>
                     )}
@@ -628,7 +753,7 @@ export default function RoleDiscoveryPage() {
                     />
                     <div className="flex gap-2 shrink-0">
                         <button
-                            onClick={handleSkipQuestion}
+                            onClick={() => handleSkipQuestion()}
                             disabled={isLoading || discoveryComplete}
                             className="flex-1 md:flex-none px-4 md:px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base"
                             title="Skip this question"
@@ -641,7 +766,7 @@ export default function RoleDiscoveryPage() {
                             </span>
                         </button>
                         <button
-                            onClick={handleSendMessage}
+                            onClick={() => handleSendMessage()}
                             disabled={!inputValue.trim() || isLoading || discoveryComplete}
                             className="flex-1 md:flex-none px-6 md:px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-purple-600/20 hover:shadow-xl hover:shadow-purple-600/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base"
                         >

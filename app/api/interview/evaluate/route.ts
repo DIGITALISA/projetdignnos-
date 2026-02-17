@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateInterview } from '@/lib/deepseek';
+
+export const maxDuration = 60;
 import connectDB from '@/lib/mongodb';
 import InterviewResult from '@/models/InterviewResult';
 

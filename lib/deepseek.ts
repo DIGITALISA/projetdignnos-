@@ -235,6 +235,8 @@ export async function startStructuredInterview(cvAnalysis: unknown, language: st
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
         const { client, model } = await getAI();
+        console.log(`[AI] Starting structured interview with ${model}...`);
+        const startTime = Date.now();
         const response = await client.chat.completions.create({
             model: model,
             messages: [
@@ -289,6 +291,7 @@ Respond in JSON format:
         });
 
         const result = response.choices[0]?.message?.content;
+        console.log(`[AI] Start interview response received in ${Date.now() - startTime}ms`);
         if (!result) throw new Error('No response from AI');
 
         const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -316,6 +319,14 @@ export async function generateNextInterviewQuestion(
     questionNumber: number,
     totalQuestions: number
 ) {
+    const startTime = Date.now();
+    console.log('[AI] generateNextInterviewQuestion called', {
+        language,
+        questionNumber,
+        totalQuestions,
+        historyLength: Array.isArray(conversationHistory) ? conversationHistory.length : 0
+    });
+
     try {
         const languageInstructions: Record<string, string> = {
             'en': 'Respond in English.',
@@ -327,12 +338,12 @@ export async function generateNextInterviewQuestion(
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
         const { client, model } = await getAI();
-        const response = await client.chat.completions.create({
-            model: model,
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are an AI Strategic Expert from MA-TRAINING-CONSULTING conducting a CV verification interview.
+        console.log(`[AI] Using model: ${model}`);
+
+        const messages = [
+            {
+                role: 'system' as const,
+                content: `You are an AI Strategic Expert from MA-TRAINING-CONSULTING conducting a CV verification interview.
 
 ${languageInstruction}
 
@@ -358,30 +369,59 @@ Based on the candidate's previous answers and their CV analysis:
 - Be specific and targeted
 - Reference their CV or previous answers when relevant
 - Aim to uncover truth, not trick them`
-                },
-                {
-                    role: 'user',
-                    content: `CV Analysis: ${JSON.stringify(cvAnalysis)}
+            },
+            {
+                role: 'user' as const,
+                content: `CV Analysis: ${JSON.stringify(cvAnalysis)}
 
 Conversation so far: ${JSON.stringify(conversationHistory)}
 
 Generate the next interview question (Question ${questionNumber}/${totalQuestions}).
 Respond with just the question text, no JSON.`
-                }
-            ],
+            }
+        ];
+
+        console.log('[AI] Sending request to AI API...');
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: messages,
             temperature: 0.8,
             max_tokens: 300,
         });
 
+        const duration = Date.now() - startTime;
+        const question = response.choices[0]?.message?.content || '';
+        
+        console.log(`[AI] Response received in ${duration}ms`, {
+            hasContent: !!question,
+            contentLength: question.length,
+            firstChars: question.substring(0, 50)
+        });
+
+        if (!question || question.trim().length === 0) {
+            console.error('[AI] Empty response from AI model');
+            return {
+                success: false,
+                error: 'AI returned empty response',
+            };
+        }
+
         return {
             success: true,
-            question: response.choices[0]?.message?.content || '',
+            question: question,
         };
     } catch (error) {
-        console.error('DeepSeek API Error:', error);
+        const duration = Date.now() - startTime;
+        console.error(`[AI] Error after ${duration}ms:`, error);
+        console.error('[AI] Error details:', {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : 'No stack'
+        });
+        
         return {
             success: false,
-            error: 'Failed to generate question',
+            error: error instanceof Error ? error.message : 'Failed to generate question',
         };
     }
 }

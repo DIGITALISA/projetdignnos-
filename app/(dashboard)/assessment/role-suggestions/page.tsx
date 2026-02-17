@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, Clock, CheckCircle, AlertCircle, Award, Sparkles, ChevronDown, ChevronUp, Download, Loader2, ArrowRight } from "lucide-react";
+import { Target, Clock, CheckCircle, AlertCircle, Award, Sparkles, ChevronDown, ChevronUp, Download, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -302,8 +302,19 @@ export default function RoleSuggestionsPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center relative"
+                className="text-center relative pt-4"
             >
+                {/* Back Button */}
+                <div className="absolute top-0 left-0">
+                    <button
+                        onClick={() => router.push('/assessment/interview')}
+                        className="group flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-semibold text-slate-600 shadow-sm"
+                    >
+                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        {selectedLanguage === 'ar' ? 'رجوع' : selectedLanguage === 'fr' ? 'Retour' : 'Back'}
+                    </button>
+                </div>
+
                 <div className="absolute top-0 right-0">
                     <button
                         onClick={handleDownloadReport}
@@ -391,6 +402,7 @@ export default function RoleSuggestionsPage() {
                                     onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
                                     onSelect={() => selectRole(role)}
                                     color="green"
+                                    language={selectedLanguage}
                                 />
                             ))}
                         </div>
@@ -423,6 +435,7 @@ export default function RoleSuggestionsPage() {
                                     onToggle={() => setExpandedRole(expandedRole === role.title ? null : role.title)}
                                     onSelect={() => selectRole(role)}
                                     color="orange"
+                                    language={selectedLanguage}
                                 />
                             ))}
                         </div>
@@ -460,9 +473,10 @@ interface RoleCardProps {
     onToggle: () => void;
     onSelect: () => void;
     color: 'green' | 'orange';
+    language: string;
 }
 
-function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps) {
+function RoleCard({ role, isExpanded, onToggle, onSelect, color, language }: RoleCardProps) {
     const colorClasses = {
         green: {
             border: 'border-green-200',
@@ -560,48 +574,72 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color }: RoleCardProps
                     </div>
                 </div>
 
-                {/* Toggle Details Button - With guiding animation */}
-                <motion.button
-                    onClick={onToggle}
-                    whileHover={{ backgroundColor: 'rgba(241, 245, 249, 1)' }}
-                    className="w-full py-3 text-slate-500 hover:text-indigo-600 font-bold flex items-center justify-center gap-2 transition-colors rounded-xl mt-2 group"
-                >
-                    {isExpanded ? (
-                        <>
-                            <span>Hide Details</span>
-                            <ChevronUp className="w-5 h-5" />
-                        </>
-                    ) : (
-                        <>
-                            <span className="group-hover:tracking-wide transition-all">View Details</span>
-                            <motion.div
-                                animate={{ y: [0, 4, 0] }}
-                                transition={{ 
-                                    duration: 1.5, 
-                                    repeat: Infinity, 
-                                    ease: "easeInOut" 
-                                }}
-                            >
-                                <ChevronDown className="w-5 h-5" />
-                            </motion.div>
-                        </>
+                {/* Toggle Details Button - Enhanced size and animation */}
+                <motion.div className="relative mt-6">
+                    {!isExpanded && (
+                        <motion.div
+                            animate={{ 
+                                scale: [1, 1.05, 1],
+                                opacity: [0, 0.5, 0]
+                            }}
+                            transition={{ 
+                                duration: 2, 
+                                repeat: Infinity, 
+                                ease: "easeInOut" 
+                            }}
+                            className="absolute -inset-1 bg-indigo-400 rounded-2xl blur-md z-0"
+                        />
                     )}
-                </motion.button>
+                    <motion.button
+                        onClick={onToggle}
+                        whileHover={{ scale: 1.02, backgroundColor: isExpanded ? 'rgba(241, 245, 249, 1)' : 'rgba(238, 242, 255, 1)' }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`w-full py-6 rounded-2xl group flex items-center justify-center gap-4 transition-all border-2 relative z-10
+                            ${isExpanded 
+                                ? 'bg-slate-50 border-slate-200 text-slate-500 shadow-inner' 
+                                : 'bg-linear-to-r from-indigo-50 to-blue-50 border-indigo-200 text-indigo-700 shadow-lg shadow-indigo-200/40'
+                            }`}
+                    >
+                        {isExpanded ? (
+                            <>
+                                <span className="font-black uppercase tracking-[0.2em] text-xs">
+                                    {language === 'ar' ? 'إخفاء التفاصيل' : language === 'fr' ? 'Masquer les détails' : 'Hide Details'}
+                                </span>
+                                <ChevronUp className="w-5 h-5 opacity-70" />
+                            </>
+                        ) : (
+                            <>
+                                <span className="font-black uppercase tracking-widest text-lg group-hover:tracking-[0.25em] transition-all">
+                                    {language === 'ar' ? 'عرض كامل التفاصيل والتحليل' : language === 'fr' ? 'Voir l\'analyse complète' : 'View Full Strategic Analysis'}
+                                </span>
+                                <motion.div
+                                    animate={{ y: [0, 6, 0] }}
+                                    transition={{ 
+                                        duration: 1.2, 
+                                        repeat: Infinity, 
+                                        ease: "easeInOut" 
+                                    }}
+                                >
+                                    <ChevronDown className="w-7 h-7" />
+                                </motion.div>
+                            </>
+                        )}
+                    </motion.button>
+                </motion.div>
             </div>
 
             {/* Expanded Details with AnimatePresence */}
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0, y: -20 }}
-                        animate={{ opacity: 1, height: 'auto', y: 0 }}
-                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
                         transition={{ 
-                            height: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
-                            opacity: { duration: 0.25 },
-                            y: { duration: 0.4, ease: "easeOut" }
+                            height: { duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] },
+                            opacity: { duration: 0.3 }
                         }}
-                        className="border-t border-slate-200 overflow-hidden bg-slate-50"
+                        className="border-t-2 border-slate-100 overflow-hidden bg-slate-50/50"
                     >
                         <div className="p-6">
                             <div className="grid md:grid-cols-3 gap-6 mb-8">

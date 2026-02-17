@@ -5,10 +5,118 @@ const deepseek = new OpenAI({
     baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1',
 });
 
+// ✅ Type Definitions
+interface RoleData {
+    title: string;
+    category?: string;
+    matchPercentage?: number;
+    description?: string;
+}
+
+interface CVAnalysis {
+    overallScore?: number;
+    verdict?: string;
+    overview?: string;
+    strengths?: string[];
+    weaknesses?: string[];
+    skills?: {
+        technical?: string[];
+        soft?: string[];
+        gaps?: string[];
+    };
+    experience?: {
+        years?: number;
+        quality?: string;
+        progression?: string;
+    };
+    education?: {
+        level?: string;
+        relevance?: string;
+        notes?: string;
+    };
+    immediateActions?: string[];
+    careerPaths?: string[];
+}
+
+interface GeneratedCV {
+    cvContent?: string;
+    coverLetterContent?: string;
+}
+
+interface ConversationMessage {
+    role: 'user' | 'ai' | 'system';
+    content: string;
+    timestamp?: Date | string;
+}
+
+interface ScenarioResult {
+    scenarioNumber: number;
+    scenarioTitle?: string;
+    evaluation?: {
+        planning?: number;
+        taskManagement?: number;
+        thinking?: number;
+        behavior?: number;
+        decisionMaking?: number;
+        overallScore?: number;
+        strengths?: string[];
+        improvements?: string[];
+        feedback?: string;
+    };
+    userResponse?: string;
+}
+
+// ✅ Helper: Retry mechanism with exponential backoff
+async function callAIWithRetry<T>(
+    apiCall: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+): Promise<T> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await apiCall();
+        } catch (error) {
+            const isLastAttempt = attempt === maxRetries - 1;
+            if (isLastAttempt) {
+                console.error(`[AI Retry] Failed after ${maxRetries} attempts:`, error);
+                throw error;
+            }
+            
+            const delay = baseDelay * Math.pow(2, attempt);
+            console.log(`[AI Retry] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    throw new Error('Retry mechanism failed unexpectedly');
+}
+
+// ✅ Helper: Clean and parse JSON response
+function parseAIResponse<T = Record<string, unknown>>(rawResponse: string, context: string): T {
+    console.log(`[${context}] Raw AI response:`, rawResponse.substring(0, 200));
+    
+    let cleanedResult = rawResponse.trim();
+    cleanedResult = cleanedResult.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+    
+    const jsonMatch = cleanedResult.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+        cleanedResult = jsonMatch[0];
+    }
+    
+    console.log(`[${context}] Cleaned result:`, cleanedResult.substring(0, 200));
+    
+    try {
+        return JSON.parse(cleanedResult) as T;
+    } catch (parseError) {
+        console.error(`[${context}] JSON Parse Error:`, parseError);
+        console.error(`[${context}] Failed to parse:`, cleanedResult);
+        throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
+    }
+}
+
 export async function startSimulation(
-    selectedRole: any,
-    cvAnalysis: any,
-    generatedCV: any,
+    selectedRole: RoleData,
+    cvAnalysis: CVAnalysis,
+    generatedCV: GeneratedCV,
     language: string = 'en',
     scenarioNumber: number = 1
 ) {
@@ -21,17 +129,16 @@ export async function startSimulation(
         };
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
-
-        // Determine scenario type (major or minor)
         const scenarioType = scenarioNumber <= 2 ? 'MAJOR' : 'MINOR';
         const scenarioComplexity = scenarioType === 'MAJOR' ? 'complex, multi-faceted' : 'focused, specific';
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are a Senior Role Simulation Coach creating realistic workplace scenarios.
+        const response = await callAIWithRetry(() => 
+            deepseek.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a Senior Role Simulation Coach creating realistic workplace scenarios.
 
 ${languageInstruction}
 
@@ -63,21 +170,13 @@ Create a ${scenarioComplexity} real-world scenario for "${selectedRole.title}" t
 - **Measurable**: Clear criteria for evaluation
 - **Relevant**: Aligned with role requirements
 - **Engaging**: Interesting and thought-provoking
-
-**EVALUATION CRITERIA:**
-You will assess their response on:
-1. **Planning** (1-10): Do they have a clear, structured approach?
-2. **Task Management** (1-10): How well do they prioritize and organize?
-3. **Thinking** (1-10): Is their reasoning logical and strategic?
-4. **Behavior** (1-10): Professional, appropriate, effective communication?
-5. **Decision Making** (1-10): Sound judgments based on available info?
  
 **CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
 **IMPORTANT: The language instruction applies ONLY to the text content INSIDE the JSON fields.**`
-                },
-                {
-                    role: 'user',
-                    content: `Role: ${selectedRole.title}
+                    },
+                    {
+                        role: 'user',
+                        content: `Role: ${selectedRole.title}
 CV Analysis: ${JSON.stringify(cvAnalysis)}
 Scenario Number: ${scenarioNumber} (${scenarioType})
 
@@ -93,37 +192,22 @@ Respond in JSON format:
   "scenarioType": "${scenarioType}",
   "expectedSkills": ["skill1", "skill2", ...]
 }`
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 2000,
-        });
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000,
+            })
+        );
 
         const result = response.choices[0]?.message?.content;
         if (!result) throw new Error('No response from AI');
 
-        console.log('[Simulation Start] Raw AI response:', result.substring(0, 200));
-
-        // Clean the result more aggressively
-        let cleanedResult = result.trim();
-        cleanedResult = cleanedResult.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-
-        // Try to extract JSON if there's text before/after
-        const jsonMatch = cleanedResult.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            cleanedResult = jsonMatch[0];
-        }
-
-        console.log('[Simulation Start] Cleaned result:', cleanedResult.substring(0, 200));
-
-        let parsed;
-        try {
-            parsed = JSON.parse(cleanedResult);
-        } catch (parseError) {
-            console.error('[Simulation Start] JSON Parse Error:', parseError);
-            console.error('[Simulation Start] Failed to parse:', cleanedResult);
-            throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
-        }
+        const parsed = parseAIResponse<{
+            welcomeMessage: string;
+            scenario: string;
+            scenarioType: string;
+            expectedSkills: string[];
+        }>(result, 'Simulation Start');
 
         return {
             success: true,
@@ -141,12 +225,113 @@ Respond in JSON format:
     }
 }
 
+// ✅ NEW: Generate interactive follow-up question based on user response
+export async function generateFollowUpQuestion(
+    selectedRole: RoleData,
+    scenario: string,
+    userResponse: string,
+    conversationHistory: ConversationMessage[],
+    language: string = 'en',
+    questionNumber: number = 1
+) {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English. Act as a supportive expert coach.',
+            'fr': 'Répondez en français. Agissez comme un coach expert bienveillant.',
+            'ar': 'أجب باللغة العربية. تصرف كمدرب خبير داعم.',
+            'es': 'Responde en español. Actúa como un entrenador experto solidario.',
+        };
+
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const response = await callAIWithRetry(() =>
+            deepseek.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are an Expert Career Coach conducting a LIVE interactive simulation session.
+
+${languageInstruction}
+
+**YOUR ROLE:**
+You are NOT just evaluating - you are COACHING the participant through the scenario in REAL-TIME.
+
+**COACHING APPROACH:**
+1. **Acknowledge** their response (positive reinforcement)
+2. **Probe Deeper** with a thoughtful follow-up question
+3. **Guide** them to think more strategically
+4. **Challenge** them to consider edge cases or alternatives
+
+**FOLLOW-UP QUESTION TYPES:**
+- "Great start! How would you handle [specific edge case]?"
+- "Interesting approach. What if [complication] occurred?"
+- "I like your thinking. Can you elaborate on [specific detail]?"
+- "Good point. How would you prioritize between [option A] and [option B]?"
+
+**TONE:**
+- Supportive and encouraging
+- Professional but warm
+- Genuinely curious about their thinking
+- Like a mentor in a real coaching session
+
+**CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
+**IMPORTANT: The language instruction applies ONLY to the text content INSIDE the JSON fields.**`
+                    },
+                    {
+                        role: 'user',
+                        content: `Role: ${selectedRole.title}
+Scenario: ${scenario}
+User's Response: ${userResponse}
+Conversation History: ${JSON.stringify(conversationHistory)}
+Follow-up Question Number: ${questionNumber} of 2
+
+Generate a thoughtful follow-up question that:
+1. Acknowledges their response
+2. Probes deeper into their thinking
+3. Challenges them to consider additional factors
+
+IMPORTANT: You MUST respond with VALID JSON only.
+Respond in JSON format:
+{
+  "followUpQuestion": "string (your coaching follow-up question)",
+  "focusArea": "string (what aspect you're probing: planning/thinking/behavior/etc)"
+}`
+                    }
+                ],
+                temperature: 0.6,
+                max_tokens: 500,
+            })
+        );
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+
+        const parsed = parseAIResponse<{
+            followUpQuestion: string;
+            focusArea: string;
+        }>(result, 'Follow-up Question');
+
+        return {
+            success: true,
+            followUpQuestion: parsed.followUpQuestion,
+            focusArea: parsed.focusArea
+        };
+    } catch (error) {
+        console.error('DeepSeek API Error:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to generate follow-up question',
+        };
+    }
+}
+
 export async function evaluateResponse(
-    selectedRole: any,
-    cvAnalysis: any,
+    selectedRole: RoleData,
+    cvAnalysis: CVAnalysis,
     scenarioNumber: number,
     userResponse: string,
-    conversationHistory: any[],
+    conversationHistory: ConversationMessage[],
     language: string = 'en'
 ) {
     try {
@@ -160,12 +345,13 @@ export async function evaluateResponse(
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
         const scenarioType = scenarioNumber <= 2 ? 'MAJOR' : 'MINOR';
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are an Expert Performance Evaluator assessing role simulation responses.
+        const response = await callAIWithRetry(() =>
+            deepseek.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are an Expert Performance Evaluator assessing role simulation responses.
 
 **CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
 
@@ -177,7 +363,7 @@ Role: ${selectedRole.title}
 Scenario Type: ${scenarioType}
 
 **YOUR TASK:**
-Evaluate the candidate's response across 5 dimensions:
+Evaluate the candidate's COMPLETE response (including all follow-up answers) across 5 dimensions:
 
 1. **Planning (1-10)**:
    - Do they have a structured approach?
@@ -233,48 +419,44 @@ Evaluate the candidate's response across 5 dimensions:
   },
   "feedback": "string (conversational feedback message to the user)"
 }`
-                },
-                {
-                    role: 'user',
-                    content: `Role: ${selectedRole.title}
+                    },
+                    {
+                        role: 'user',
+                        content: `Role: ${selectedRole.title}
 Scenario Number: ${scenarioNumber}
-Conversation History: ${JSON.stringify(conversationHistory)}
-User Response: ${userResponse}
+Full Conversation History (including follow-ups): ${JSON.stringify(conversationHistory)}
+User's Final Response: ${userResponse}
 
 IMPORTANT: You MUST respond with VALID JSON only. The structure must be exactly as specified in the OUTPUT FORMAT above.
 All text content INSIDE the JSON must be in ${language}.
 Do NOT add any text before or after the JSON. Do NOT wrap it in markdown code blocks.
 
-Evaluate this response now.`
-                }
-            ],
-            temperature: 0.4,
-            max_tokens: 2000,
-        });
+Evaluate this COMPLETE response now (including all follow-up interactions).`
+                    }
+                ],
+                temperature: 0.4,
+                max_tokens: 2000,
+            })
+        );
 
         const result = response.choices[0]?.message?.content;
         if (!result) throw new Error('No response from AI');
 
-        console.log('[Simulation] Raw AI response:', result.substring(0, 200));
-
-        let cleanedResult = result.trim();
-        cleanedResult = cleanedResult.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-
-        const jsonMatch = cleanedResult.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            cleanedResult = jsonMatch[0];
-        }
-
-        console.log('[Simulation] Cleaned result:', cleanedResult.substring(0, 200));
-
-        let parsed;
-        try {
-            parsed = JSON.parse(cleanedResult);
-        } catch (parseError) {
-            console.error('[Simulation] JSON Parse Error:', parseError);
-            console.error('[Simulation] Failed to parse:', cleanedResult);
-            throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
-        }
+        const parsed = parseAIResponse<{
+            scenarioTitle: string;
+            evaluation: {
+                planning: number;
+                taskManagement: number;
+                thinking: number;
+                behavior: number;
+                decisionMaking: number;
+                overallScore: number;
+                strengths: string[];
+                improvements: string[];
+                feedback: string;
+            };
+            feedback: string;
+        }>(result, 'Simulation Evaluation');
 
         return {
             success: true,
@@ -292,10 +474,10 @@ Evaluate this response now.`
 }
 
 export async function generateNextScenario(
-    selectedRole: any,
-    cvAnalysis: any,
+    selectedRole: RoleData,
+    cvAnalysis: CVAnalysis,
     scenarioNumber: number,
-    previousResults: any[],
+    previousResults: ScenarioResult[],
     language: string = 'en'
 ) {
     try {
@@ -309,12 +491,13 @@ export async function generateNextScenario(
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
         const scenarioType = scenarioNumber <= 2 ? 'MAJOR' : 'MINOR';
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are creating the next simulation scenario.
+        const response = await callAIWithRetry(() =>
+            deepseek.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are creating the next simulation scenario.
 
 ${languageInstruction}
 
@@ -340,10 +523,10 @@ ${scenarioType === 'MAJOR' ?
                             '- Complex, multi-step situation\n- Requires strategic planning\n- Multiple stakeholders\n- Competing priorities\n- 3-5 minute response expected' :
                             '- Focused, specific situation\n- Tests one key skill\n- Quick decision needed\n- 1-2 minute response expected'
                         }`
-                },
-                {
-                    role: 'user',
-                    content: `Create scenario ${scenarioNumber} (${scenarioType}) for ${selectedRole.title}.
+                    },
+                    {
+                        role: 'user',
+                        content: `Create scenario ${scenarioNumber} (${scenarioType}) for ${selectedRole.title}.
 
 IMPORTANT: You MUST respond with VALID JSON only.
 Respond in JSON format:
@@ -351,33 +534,20 @@ Respond in JSON format:
   "scenario": "string (detailed scenario)",
   "focusAreas": ["area1", "area2"]
 }`
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 2000,
-        });
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000,
+            })
+        );
 
         const result = response.choices[0]?.message?.content;
         if (!result) throw new Error('No response from AI');
 
-        console.log('[Next Scenario] Raw AI response:', result.substring(0, 200));
-
-        let cleanedResult = result.trim();
-        cleanedResult = cleanedResult.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-
-        const jsonMatch = cleanedResult.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            cleanedResult = jsonMatch[0];
-        }
-
-        let parsed;
-        try {
-            parsed = JSON.parse(cleanedResult);
-        } catch (parseError) {
-            console.error('[Next Scenario] JSON Parse Error:', parseError);
-            console.error('[Next Scenario] Failed to parse:', cleanedResult);
-            throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
-        }
+        const parsed = parseAIResponse<{
+            scenario: string;
+            focusAreas: string[];
+        }>(result, 'Next Scenario');
 
         return {
             success: true,
@@ -394,9 +564,9 @@ Respond in JSON format:
 }
 
 export async function completeSimulation(
-    selectedRole: any,
-    cvAnalysis: any,
-    scenarioResults: any[],
+    selectedRole: RoleData,
+    cvAnalysis: CVAnalysis,
+    scenarioResults: ScenarioResult[],
     language: string = 'en'
 ) {
     try {
@@ -409,12 +579,13 @@ export async function completeSimulation(
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
-        const response = await deepseek.chat.completions.create({
-            model: 'deepseek-chat',
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are a Senior Career Coach providing final simulation assessment.
+        const response = await callAIWithRetry(() =>
+            deepseek.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a Senior Career Coach providing final simulation assessment.
 
 **CRITICAL: You MUST respond ONLY with valid JSON. No explanatory text, no markdown, just pure JSON.**
 
@@ -460,10 +631,10 @@ Analyze ALL scenario results and provide a comprehensive final report.
   "recommendations": "string (detailed recommendations)",
   "nextSteps": ["step 1", "step 2", "step 3"]
 }`
-                },
-                {
-                    role: 'user',
-                    content: `Role: ${selectedRole.title}
+                    },
+                    {
+                        role: 'user',
+                        content: `Role: ${selectedRole.title}
 All Scenario Results: ${JSON.stringify(scenarioResults)}
 
 IMPORTANT: You MUST respond with VALID JSON only. The structure must be exactly as specified in the OUTPUT FORMAT above.
@@ -471,33 +642,32 @@ All text content INSIDE the JSON must be in ${language}.
 Do NOT add any text before or after the JSON. Do NOT wrap it in markdown code blocks.
 
 Generate the final comprehensive report now.`
-                }
-            ],
-            temperature: 0.4,
-            max_tokens: 2000,
-        });
+                    }
+                ],
+                temperature: 0.4,
+                max_tokens: 2000,
+            })
+        );
 
         const result = response.choices[0]?.message?.content;
         if (!result) throw new Error('No response from AI');
 
-        console.log('[Simulation Complete] Raw AI response:', result.substring(0, 200));
-
-        let cleanedResult = result.trim();
-        cleanedResult = cleanedResult.replace(/```json\s*/g, '').replace(/```\s*/g, '');
-
-        const jsonMatch = cleanedResult.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            cleanedResult = jsonMatch[0];
-        }
-
-        let parsed;
-        try {
-            parsed = JSON.parse(cleanedResult);
-        } catch (parseError) {
-            console.error('[Simulation Complete] JSON Parse Error:', parseError);
-            console.error('[Simulation Complete] Failed to parse:', cleanedResult);
-            throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
-        }
+        const parsed = parseAIResponse<{
+            overallScore: number;
+            readinessLevel: number;
+            rank: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+            skillScores: {
+                planning: number;
+                taskManagement: number;
+                thinking: number;
+                behavior: number;
+                decisionMaking: number;
+            };
+            keyStrengths: string[];
+            areasToImprove: string[];
+            recommendations: string;
+            nextSteps: string[];
+        }>(result, 'Simulation Complete');
 
         const completionMessages: Record<string, string> = {
             'en': `Congratulations! You've completed all simulation scenarios. Your overall performance score is ${parsed.overallScore.toFixed(1)}/10. Review your detailed report below.`,

@@ -68,6 +68,16 @@ type CVAnalysis = Record<string, unknown>;
 type InterviewEvaluation = Record<string, unknown>;
 type Role = { title: string; [key: string]: unknown };
 
+// Helper function for fetch with timeout
+const fetchWithTimeout = (url: string, options: RequestInit, timeout = 60000) => {
+    return Promise.race([
+        fetch(url, options),
+        new Promise<Response>((_, reject) =>
+            setTimeout(() => reject(new Error('Request timeout')), timeout)
+        )
+    ]);
+};
+
 export default function CVGenerationPage() {
     const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([]);
@@ -86,6 +96,10 @@ export default function CVGenerationPage() {
     const letterRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    
+    // Retry mechanism states
+    const [retryCount, setRetryCount] = useState(0);
+    const [lastError, setLastError] = useState<string | null>(null);
 
     const handleResetSession = () => {
         if (confirm("Are you sure you want to reset this session? All conversation will be lost.")) {
@@ -255,7 +269,7 @@ export default function CVGenerationPage() {
         }
     };
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = async (isRetryAttempt = false) => {
         if (!inputValue.trim() || isLoading) return;
 
         const userMessage: Message = {
@@ -264,10 +278,15 @@ export default function CVGenerationPage() {
             timestamp: new Date(),
         };
 
-        setMessages(prev => [...prev, userMessage]);
-        setInputValue("");
+        if (!isRetryAttempt) {
+            setMessages(prev => [...prev, userMessage]);
+            setInputValue("");
+            setRetryCount(0);
+        }
+        
         setIsLoading(true);
         setError(null);
+        setLastError(null);
 
         // Data recovery fallback
         let currentCV = cvAnalysis;
@@ -294,30 +313,39 @@ export default function CVGenerationPage() {
                 hasSelectedRole: !!currentRole,
                 language: selectedLanguage
             });
-            setError(selectedLanguage === 'ar' ? "بيانات الجلسة مفقودة. يرجى العودة إلى النتائج والمحاولة مرة أخرى." : "Session data is missing. Please go back to Results and try again.");
+            const errorMsg = selectedLanguage === 'ar' 
+                ? "بيانات الجلسة مفقودة. يرجى العودة إلى النتائج والمحاولة مرة أخرى." 
+                : selectedLanguage === 'fr'
+                ? "Données de session manquantes. Veuillez revenir aux résultats et réessayer."
+                : "Session data is missing. Please go back to Results and try again.";
+            setError(errorMsg);
+            setLastError(errorMsg);
             setIsLoading(false);
             return;
         }
 
+        const maxRetries = 2;
+        
         try {
             if (currentQuestionIndex >= totalQuestions) {
                 // Generate final CV and Cover Letter
                 console.log('[CV Generation] Sending complete request...');
-                const response = await fetch('/api/cv-generation/complete', {
+                const response = await fetchWithTimeout('/api/cv-generation/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         cvAnalysis: currentCV,
                         interviewEvaluation: currentEval,
                         selectedRole: currentRole,
-                        conversationHistory: [...messages, userMessage],
+                        conversationHistory: isRetryAttempt ? messages : [...messages, userMessage],
                         language: selectedLanguage,
                     }),
-                });
+                }, 90000); // 90s timeout for document generation
 
                 const result = await response.json();
 
                 if (result.success) {
+                    setRetryCount(0);
                     setGeneratedDocuments(result.documents);
                     setGenerationComplete(true);
 
@@ -328,28 +356,29 @@ export default function CVGenerationPage() {
                     };
                     setMessages(prev => [...prev, aiMessage]);
                 } else {
-                    setError(result.error || "Generation failed");
+                    throw new Error(result.error || "Generation failed");
                 }
             } else {
                 // Get next question
                 console.log('[CV Generation] Sending next-question request for question:', currentQuestionIndex + 1);
-                const response = await fetch('/api/cv-generation/next-question', {
+                const response = await fetchWithTimeout('/api/cv-generation/next-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         cvAnalysis: currentCV,
                         interviewEvaluation: currentEval,
                         selectedRole: currentRole,
-                        conversationHistory: [...messages, userMessage],
+                        conversationHistory: isRetryAttempt ? messages : [...messages, userMessage],
                         language: selectedLanguage,
                         questionNumber: currentQuestionIndex + 1,
                         totalQuestions,
                     }),
-                });
+                }, 60000);
 
                 const result = await response.json();
 
                 if (result.success) {
+                    setRetryCount(0);
                     const aiMessage: Message = {
                         role: 'ai',
                         content: result.question,
@@ -358,12 +387,44 @@ export default function CVGenerationPage() {
                     setMessages(prev => [...prev, aiMessage]);
                     setCurrentQuestionIndex(prev => prev + 1);
                 } else {
-                    setError(result.error || "Failed to get next question");
+                    throw new Error(result.error || "Failed to get next question");
                 }
             }
         } catch (err) {
             console.error('Error:', err);
-            setError("Failed to generate response. Please try again or use Emergency Finish.");
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            
+            // Retry logic
+            if (retryCount < maxRetries) {
+                console.log(`[CV Generation] Retry attempt ${retryCount + 1}/${maxRetries}`);
+                setRetryCount(prev => prev + 1);
+                
+                const retryMsg = selectedLanguage === 'ar'
+                    ? `إعادة المحاولة ${retryCount + 1}/${maxRetries}...`
+                    : selectedLanguage === 'fr'
+                    ? `Nouvelle tentative ${retryCount + 1}/${maxRetries}...`
+                    : `Retrying ${retryCount + 1}/${maxRetries}...`;
+                setLastError(retryMsg);
+                
+                setTimeout(() => handleSendMessage(true), 1500);
+                return;
+            }
+            
+            // Max retries reached
+            const finalError = errorMessage.includes('timeout') || errorMessage.includes('Request timeout')
+                ? (selectedLanguage === 'ar'
+                    ? 'انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.'
+                    : selectedLanguage === 'fr'
+                    ? 'Délai d\'attente dépassé. Veuillez réessayer.'
+                    : 'Request timed out. Please try again.')
+                : (selectedLanguage === 'ar'
+                    ? 'فشل في الحصول على السؤال التالي. يرجى المحاولة مرة أخرى أو استخدام "إنهاء طارئ".'
+                    : selectedLanguage === 'fr'
+                    ? 'Échec de l\'obtention de la question suivante. Veuillez réessayer ou utiliser "Fin d\'urgence".'
+                    : 'Failed to get next question. Please try again or use Emergency Finish.');
+            
+            setError(finalError);
+            setLastError(finalError);
         } finally {
             setIsLoading(false);
         }
@@ -728,13 +789,17 @@ export default function CVGenerationPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-linear-to-br from-green-50 to-blue-50 rounded-2xl border-2 border-green-200 p-8 text-center"
+                    className="bg-linear-to-br from-green-50 to-blue-50 rounded-3xl border-2 border-green-200 p-10 text-center shadow-lg shadow-green-600/5"
                 >
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-10 h-10 text-green-600" />
+                    <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <CheckCircle className="w-12 h-12 text-green-600" />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Documents Generated Successfully!</h1>
-                    <p className="text-slate-600">Your professional ATS-optimized CV and cover letter are ready</p>
+                    <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
+                        {selectedLanguage === 'ar' ? 'تم إنشاء ملفك المهني بنجاح!' : 'Documents Generated Successfully!'}
+                    </h1>
+                    <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+                        {selectedLanguage === 'ar' ? 'سيرتك الذاتية ورسالة التحفيز المخصصة جاهزة الآن. يمكنك مراجعتها وتحميلها أدناه، أو الانتقال للمرحلة التالية.' : 'Your professional ATS-optimized CV and cover letter are ready. Preview them below or proceed to the next stage.'}
+                    </p>
                 </motion.div>
 
                 {/* Generated Documents Preview */}
@@ -891,20 +956,59 @@ export default function CVGenerationPage() {
                     </motion.div>
                 )}
 
-                <div className="flex justify-center pt-8 border-t border-slate-100">
-                    <button
-                        onClick={() => {
-                            localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
-                            router.push('/assessment/simulation');
-                        }}
-                        className="group px-12 py-5 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-black text-xl transition-all shadow-xl shadow-purple-600/20 hover:shadow-2xl hover:shadow-purple-600/40 hover:-translate-y-1 flex items-center justify-center gap-3 w-full md:w-auto"
-                    >
-                        {selectedLanguage === 'ar' ? 'البدء في محاكاة الدور' :
-                            selectedLanguage === 'fr' ? 'Commencer la simulation' : 'Start Role Simulation'}
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                <div className="flex flex-col items-center gap-6 pt-12 pb-16 border-t border-slate-100">
+                    <div className="text-center space-y-2">
+                        <div className="px-5 py-1.5 bg-purple-100 text-purple-700 rounded-full text-[10px] font-black uppercase tracking-[0.3em] inline-block shadow-sm">
+                            Next Strategic Stage
                         </div>
-                    </button>
+                    </div>
+
+                    <div className="relative group w-full flex justify-center">
+                        {/* Pulsing Background Glow */}
+                        <motion.div
+                            animate={{ 
+                                scale: [1, 1.1, 1],
+                                opacity: [0.3, 0.6, 0.3]
+                            }}
+                            transition={{ 
+                                duration: 2.5, 
+                                repeat: Infinity, 
+                                ease: "easeInOut" 
+                            }}
+                            className="absolute -inset-4 bg-linear-to-r from-purple-600 to-blue-600 rounded-[2.5rem] blur-3xl z-0 max-w-2xl w-full"
+                        />
+                        
+                        <motion.button
+                            onClick={() => {
+                                localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
+                                router.push('/assessment/simulation');
+                            }}
+                            whileHover={{ scale: 1.05, y: -5 }}
+                            whileTap={{ scale: 0.96 }}
+                            className="relative z-10 w-full max-w-2xl px-12 py-8 bg-linear-to-r from-purple-600 via-indigo-600 to-blue-600 text-white rounded-4xl font-black text-3xl shadow-[0_20px_50px_rgba(79,70,229,0.3)] flex items-center justify-center gap-6 transition-all border border-white/20"
+                        >
+                            <Sparkles className="w-10 h-10 text-yellow-300 drop-shadow-lg" />
+                            <span className="tracking-tight">
+                                {selectedLanguage === 'ar' ? 'ابدأ محاكاة الدور الاستراتيجية' :
+                                 selectedLanguage === 'fr' ? 'Lancer la Simulation Stratégique' : 'Start Strategic Simulation'}
+                            </span>
+                            <motion.div
+                                animate={{ x: [0, 8, 0] }}
+                                transition={{ 
+                                    duration: 1.5, 
+                                    repeat: Infinity, 
+                                    ease: "easeInOut" 
+                                }}
+                                className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30"
+                            >
+                                <ArrowRight className="w-8 h-8" />
+                            </motion.div>
+                        </motion.button>
+                    </div>
+
+                    <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.4em] animate-pulse">
+                         {selectedLanguage === 'ar' ? 'انقر أعلاه للتحقق من كفاءتك في ظروف حقيقية' : 'Test your capabilities in real-world scenarios'}
+                    </p>
                 </div>
             </div>
         );
@@ -1033,6 +1137,20 @@ export default function CVGenerationPage() {
                         </motion.div>
                     )}
 
+                    {/* Retry Feedback */}
+                    {lastError && !error && retryCount > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex justify-center mt-4"
+                        >
+                            <div className="bg-amber-50 border border-amber-200 text-amber-700 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-sm">
+                                <RefreshCw className="w-5 h-5 animate-spin" />
+                                <span className="text-sm font-bold">{lastError}</span>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {error && (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -1066,7 +1184,7 @@ export default function CVGenerationPage() {
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage(false)}
                                 placeholder="Type your answer here..."
                                 disabled={isLoading || generationComplete}
                                 className="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium"
@@ -1083,7 +1201,7 @@ export default function CVGenerationPage() {
                                 <span className="hidden md:inline">Skip</span>
                             </button>
                             <button
-                                onClick={handleSendMessage}
+                                onClick={() => handleSendMessage(false)}
                                 disabled={!inputValue.trim() || isLoading || generationComplete}
                                 className="px-8 py-3 bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                             >

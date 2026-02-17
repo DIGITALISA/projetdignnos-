@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Target, ArrowRight, ArrowLeft, Home, Download, Loader2 } from "lucide-react";
+import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Target, ArrowRight, ArrowLeft, Download, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -288,13 +288,16 @@ export default function ResultsPage() {
                                 {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                 PDF Report
                             </button>
-                            <button
+                            <motion.button
+                                initial={{ scale: 1 }}
+                                animate={{ scale: [1, 1.1, 1] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                 onClick={() => router.push("/assessment/role-discovery")}
                                 className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 group"
                                 data-html2canvas-ignore
                             >
                                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                            </button>
+                            </motion.button>
                         </div>
                     </div>
                 </motion.div>
@@ -500,21 +503,29 @@ export default function ResultsPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4" data-html2canvas-ignore>
-                <button
-                    onClick={() => router.push('/dashboard')}
-                    className="px-8 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
-                >
-                    <Home className="w-5 h-5" />
-                    Back to Dashboard
-                </button>
-                <button
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8" data-html2canvas-ignore>
+                <motion.button
+                    initial={{ scale: 1 }}
+                    animate={{ 
+                        scale: [1, 1.05, 1],
+                        boxShadow: [
+                            "0px 10px 15px -3px rgba(147, 51, 234, 0.3)",
+                            "0px 20px 25px -5px rgba(147, 51, 234, 0.5)",
+                            "0px 10px 15px -3px rgba(147, 51, 234, 0.3)"
+                        ]
+                    }}
+                    transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
                     onClick={() => router.push('/assessment/role-discovery')}
-                    className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2"
+                    className="px-16 py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-xl transition-all shadow-xl shadow-purple-600/30 flex items-center justify-center gap-3"
                 >
-                    <Target className="w-5 h-5" />
+                    <Target className="w-6 h-6" />
                     Continue to Career Discovery
-                </button>
+                    <ArrowRight className="w-6 h-6 ml-2" />
+                </motion.button>
             </div>
         </div>
     );

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { startSimulation } from '@/lib/simulation';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
     try {
         const { selectedRole, cvAnalysis, generatedCV, language = 'en', scenarioNumber = 1 } = await request.json();

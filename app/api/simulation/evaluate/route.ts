@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { evaluateResponse } from '@/lib/simulation';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
     try {
         const {

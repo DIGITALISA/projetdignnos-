@@ -18,6 +18,22 @@ const LANGUAGES = [
     { code: 'es', name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
 ];
 
+const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+};
+
 export default function InterviewPage() {
     const router = useRouter();
     const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
@@ -34,6 +50,8 @@ export default function InterviewPage() {
     const [isTimeUnlocked, setIsTimeUnlocked] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isEvaluatingRef = useRef(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [lastError, setLastError] = useState<string | null>(null);
 
     // Timer logic for 20-minute safety unlock
     useEffect(() => {
@@ -147,11 +165,11 @@ export default function InterviewPage() {
         if (messages.length > 0) return;
         setIsLoading(true);
         try {
-            const response = await fetch('/api/interview/start', {
+            const response = await fetchWithTimeout('/api/interview/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cvAnalysis, language: selectedLanguage }),
-            });
+            }, 60000);
 
             const result = await response.json();
 
@@ -281,10 +299,11 @@ export default function InterviewPage() {
         }
     }, [interviewComplete, isTimeUnlocked, currentQuestionIndex, router, cvAnalysis, messages, selectedLanguage]);
 
-    const processStep = useCallback(async (userMessage: Message, originalInput?: string) => {
+    const processStep = useCallback(async (userMessage: Message, originalInput?: string, isRetry = false) => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue("");
         setIsLoading(true);
+        setLastError(null);
 
         try {
             // Check if this is the last interaction
@@ -298,7 +317,7 @@ export default function InterviewPage() {
                 const userName = userProfile.fullName || 'Anonymous User';
 
                 // Finish interview and get final evaluation
-                const response = await fetch('/api/interview/evaluate', {
+                const response = await fetchWithTimeout('/api/interview/evaluate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -308,13 +327,18 @@ export default function InterviewPage() {
                         userId,
                         userName
                     }),
-                });
+                }, 90000); // 90s for full evaluation
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
 
                 const result = await response.json();
 
                 if (result.success) {
                     setFinalEvaluation(result.evaluation);
                     setInterviewComplete(true);
+                    setRetryCount(0);
 
                     // Update userProfile in localStorage to unlock other modules
                     const savedProfile = localStorage.getItem("userProfile");
@@ -337,7 +361,7 @@ export default function InterviewPage() {
                 }
             } else {
                 // Get next question
-                const response = await fetch('/api/interview/next-question', {
+                const response = await fetchWithTimeout('/api/interview/next-question', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -347,30 +371,54 @@ export default function InterviewPage() {
                         questionNumber: currentQuestionIndex + 1,
                         totalQuestions,
                     }),
-                });
+                }, 60000); // 60s for next question
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
 
                 const result = await response.json();
 
-                if (result.success) {
+                if (result.success && result.question) {
                     const aiMessage: Message = {
                         role: 'ai',
                         content: result.question,
                         timestamp: new Date(),
                     };
                     setMessages(prev => [...prev, aiMessage]);
-                    // Increment progress index correctly
                     setCurrentQuestionIndex(prev => Math.min(prev + 1, totalQuestions));
+                    setRetryCount(0);
                 } else {
                     throw new Error(result.error || "Failed to get next question");
                 }
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Interview Process Error:', error);
-            if (originalInput) setInputValue(originalInput);
-
-            const errorMsg = selectedLanguage === 'ar'
+            
+            let errorMsg = selectedLanguage === 'ar'
                 ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
                 : "Connection error. Please try again.";
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                errorMsg = selectedLanguage === 'ar'
+                    ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
+                    : "The server is very slow right now, please try again.";
+            }
+
+            setLastError(errorMsg);
+
+            // Auto-retry once if it's not already a retry
+            if (!isRetry && retryCount < 2) {
+                console.log('Auto-retrying request...');
+                setRetryCount(prev => prev + 1);
+                setTimeout(() => {
+                    processStep(userMessage, originalInput, true);
+                }, 2000);
+                return;
+            }
+
+            // If retry failed or max retries reached, restore input and show error
+            if (originalInput) setInputValue(originalInput);
             alert(errorMsg);
 
             // Reset evaluation ref on error to allow retry
@@ -378,7 +426,7 @@ export default function InterviewPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [currentQuestionIndex, totalQuestions, cvAnalysis, messages, selectedLanguage]);
+    }, [currentQuestionIndex, totalQuestions, cvAnalysis, messages, selectedLanguage, retryCount]);
 
     const handleSendMessage = useCallback(async (e?: React.FormEvent | React.KeyboardEvent) => {
         if (e && 'preventDefault' in e) e.preventDefault();
@@ -539,18 +587,45 @@ export default function InterviewPage() {
                             </p>
                         </div>
 
-                        {/* Action Button */}
-                        <button
-                            onClick={() => {
-                                // Store evaluation for results page
-                                localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
-                                router.push('/assessment/results');
-                            }}
-                            className="group w-full py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/30 hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                        >
-                            <span className="text-lg">{selectedLanguage === 'ar' ? 'عرض نتائج التقييم الكاملة' : 'View Full Assessment Results'}</span>
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        {/* Action Button - Strategically enhanced to guide user */}
+                        <div className="relative group">
+                            {/* Pulsing Background Glow */}
+                            <motion.div
+                                animate={{ 
+                                    scale: [1, 1.05, 1],
+                                    opacity: [0.3, 0.6, 0.3]
+                                }}
+                                transition={{ 
+                                    duration: 2, 
+                                    repeat: Infinity, 
+                                    ease: "easeInOut" 
+                                }}
+                                className="absolute -inset-2 bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl blur-xl z-0"
+                            />
+                            
+                            <motion.button
+                                onClick={() => {
+                                    // Store evaluation for results page
+                                    localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
+                                    router.push('/assessment/results');
+                                }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="relative z-10 group w-full py-6 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white rounded-2xl font-black text-xl transition-all shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-4"
+                            >
+                                <Sparkles className="w-7 h-7 text-yellow-300" />
+                                <span>
+                                    {selectedLanguage === 'ar' ? 'عرض نتائج التقييم الكاملة' : 'View Full Assessment Results'}
+                                </span>
+                                <motion.div
+                                    animate={{ x: [0, 5, 0] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                    className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+                                >
+                                    <ArrowRight className="w-6 h-6" />
+                                </motion.div>
+                            </motion.button>
+                        </div>
                     </div>
                 </motion.div>
             </div>
@@ -675,7 +750,24 @@ export default function InterviewPage() {
                         >
                             <div className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm rounded-tl-none ml-10">
                                 <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
-                                <span className="text-slate-500 text-sm font-medium">Analysing strategic fit...</span>
+                                <span className="text-slate-500 text-sm font-medium">
+                                    {retryCount > 0 
+                                        ? (selectedLanguage === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
+                                        : (selectedLanguage === 'ar' ? 'جاري التحليل الاستراتيجي...' : 'Analysing strategic fit...')}
+                                </span>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {lastError && !isLoading && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex justify-center"
+                        >
+                            <div className="flex items-center gap-2 bg-red-50 text-red-600 rounded-2xl p-3 border border-red-200 text-sm">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>{lastError}</span>
                             </div>
                         </motion.div>
                     )}

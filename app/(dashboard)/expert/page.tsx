@@ -177,41 +177,39 @@ export default function ExpertPage() {
     return (
         <div className="flex-1 flex flex-col h-[calc(100dvh-8rem)]">
             {!selectedExpert ? (
-                <div className="max-w-6xl mx-auto space-y-12 py-10">
-                    <div className="space-y-4 text-center">
-                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-700">
-                            {t.expert?.selectionTitle || "Select Your Expert"}
-                        </h1>
-                        <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                /* Expert Selection View */
+                <div className="flex flex-col h-full overflow-y-auto">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-slate-900 mb-2">{t.expert?.selectionTitle || "Select Your Expert"}</h1>
+                        <p className="text-slate-500">
                             {t.expert?.selectionSubtitle || "Choose a specialized AI expert to guide your career journey."}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
                         {experts.map((expert) => (
                             <button
                                 key={expert.id}
                                 onClick={() => setSelectedExpert(expert.id)}
-                                className="relative group p-8 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:border-blue-200 transition-all duration-300 overflow-hidden text-center"
+                                className="relative group text-left p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300"
                             >
-                                <div className={`absolute inset-0 bg-linear-to-br ${expert.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                                <div className={`absolute inset-0 bg-linear-to-r ${expert.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity`} />
                                 
-                                <div className="relative flex flex-col items-center gap-6">
-                                    <div className={`p-5 rounded-2xl ${expert.color} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm`}>
-                                        <expert.icon className="w-10 h-10" />
+                                <div className="flex items-start gap-5">
+                                    <div className={`p-4 rounded-xl ${expert.color} group-hover:scale-110 transition-transform duration-300`}>
+                                        <expert.icon className="w-8 h-8" />
                                     </div>
-                                    <div className="space-y-3">
-                                        <h3 className="text-2xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition-colors">
                                             {expert.title}
                                         </h3>
-                                        <p className="text-slate-500 leading-relaxed font-medium">
+                                        <p className="text-slate-500 leading-relaxed">
                                             {expert.description}
                                         </p>
                                     </div>
-                                    
-                                    <div className={`mt-4 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider ${expert.color} opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300`}>
-                                        Select Expert
-                                    </div>
+                                </div>
+                                <div className="mt-6 flex items-center text-sm font-semibold text-blue-600 gap-2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0">
+                                    Start Consultation <Send className="w-4 h-4" />
                                 </div>
                             </button>
                         ))}
