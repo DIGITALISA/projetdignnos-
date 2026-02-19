@@ -139,7 +139,7 @@ function DiplomasContent() {
                                                 </div>
                                             </div>
                                             <Link 
-                                                href={`/workshop-attestation?userId=${userId || ''}&activeWorkshop=${encodeURIComponent(att.workshopTitle)}&ref=${att.referenceId}&date=${new Date(att.issueDate).getTime()}`}
+                                                href={`/attestations/certificate?userId=${userId || ''}&activeWorkshop=${encodeURIComponent(att.workshopTitle)}&ref=${att.referenceId}&date=${new Date(att.issueDate).getTime()}`}
                                                 className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all"
                                             >
                                                 <ChevronRight size={24} />

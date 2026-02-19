@@ -219,7 +219,7 @@ export default function CVGenerationPage() {
                         userId,
                         updateData: {
                             cvGenerationConversation: messages,
-                            currentStep: generationComplete ? 'cv_generation_complete' : 'cv_generation',
+                            currentStep: 'cv_generation',
                             generatedDocuments: generationComplete ? generatedDocuments : null
                         }
                     })
@@ -339,6 +339,7 @@ export default function CVGenerationPage() {
                         selectedRole: currentRole,
                         conversationHistory: isRetryAttempt ? messages : [...messages, userMessage],
                         language: selectedLanguage,
+                        userId: JSON.parse(localStorage.getItem('userProfile') || '{}').email || JSON.parse(localStorage.getItem('userProfile') || '{}').fullName,
                     }),
                 }, 90000); // 90s timeout for document generation
 
@@ -475,6 +476,7 @@ export default function CVGenerationPage() {
                     selectedRole: currentRole,
                     conversationHistory: messages,
                     language: selectedLanguage,
+                    userId: JSON.parse(localStorage.getItem('userProfile') || '{}').email || JSON.parse(localStorage.getItem('userProfile') || '{}').fullName,
                 }),
             });
 
@@ -573,6 +575,7 @@ export default function CVGenerationPage() {
                         selectedRole: currentRole,
                         conversationHistory: [...messages, userMessage],
                         language: selectedLanguage,
+                        userId: JSON.parse(localStorage.getItem('userProfile') || '{}').email || JSON.parse(localStorage.getItem('userProfile') || '{}').fullName,
                     }),
                 });
 

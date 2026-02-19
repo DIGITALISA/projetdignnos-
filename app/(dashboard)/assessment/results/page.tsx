@@ -6,6 +6,8 @@ import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Ta
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useLanguage } from "@/components/providers/LanguageProvider";
+import { type Language } from "@/lib/i18n/translations";
 
 interface InterviewEvaluation {
     accuracyScore: number;
@@ -25,6 +27,7 @@ interface InterviewEvaluation {
 
 export default function ResultsPage() {
     const router = useRouter();
+    const { t, dir } = useLanguage();
     const resultsRef = useRef<HTMLDivElement>(null);
     const [evaluation, setEvaluation] = useState<InterviewEvaluation | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -90,8 +93,9 @@ export default function ResultsPage() {
             container.style.width = '800px'; 
             container.style.backgroundColor = '#ffffff';
             container.style.padding = '40px';
-            container.style.fontFamily = "'Tajawal', sans-serif";
+            container.style.fontFamily = dir === 'rtl' ? "'Tajawal', sans-serif" : "Inter, sans-serif";
             container.style.color = '#0f172a';
+            container.dir = dir;
 
             // 2. Build Report HTML
             container.innerHTML = `
@@ -102,29 +106,29 @@ export default function ResultsPage() {
                     .bar-container { background-color: #e2e8f0; border-radius: 99px; height: 10px; width: 100%; overflow: hidden; }
                     .bar-fill { height: 100%; border-radius: 99px; }
                 </style>
-                <div style="font-family: 'Tajawal', sans-serif;">
+                <div style="font-family: ${dir === 'rtl' ? "'Tajawal', sans-serif" : "inherit"};" dir="${dir}">
                     
                     <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">
-                        <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'};">
+                        <div style="text-align: ${dir === 'rtl' ? 'right' : 'left'};">
                             <div style="color: #2563eb; font-size: 24px; font-weight: bold;">MA-TRAINING-CONSULTING</div>
                             <div style="color: #64748b; font-size: 14px;">Executive Assessment Center</div>
                         </div>
-                        <div style="text-align: right;">
-                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">Evaluation Report</h1>
+                        <div style="text-align: ${dir === 'rtl' ? 'left' : 'right'};">
+                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">${t.results.title}</h1>
                             <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
                         </div>
                     </div>
 
                     <!-- Executive Summary -->
                     <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
-                         <div style="display: flex; gap: 20px; align-items: start;">
+                         <div style="display: flex; gap: 20px; align-items: start; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'}; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
                              <div style="flex: 1;">
-                                 <h2 style="font-size: 16px; color: #334155; text-transform: uppercase; letter-spacing: 1px; margin-top: 0;">Executive Summary</h2>
+                                 <h2 style="font-size: 16px; color: #334155; text-transform: uppercase; letter-spacing: 1px; margin-top: 0;">${t.results.executiveSummary}</h2>
                                  <p style="font-size: 14px; line-height: 1.6; color: #0f172a; margin-bottom: 10px; font-style: italic;">
                                      "${evaluation.summary}"
                                  </p>
-                                 <div style="font-size: 14px; color: #2563eb; font-weight: bold;">Verdict: ${evaluation.verdict}</div>
+                                 <div style="font-size: 14px; color: #2563eb; font-weight: bold;">${t.results.verdict}: ${evaluation.verdict}</div>
                              </div>
                              <div style="text-align: center; padding: 15px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 120px;">
                                  <div style="font-size: 12px; color: #64748b; text-transform: uppercase;">Overall Rating</div>
@@ -136,9 +140,9 @@ export default function ResultsPage() {
                     <!-- Metrics Grid -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
                         <!-- Accuracy -->
-                        <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
-                             <h3 style="margin: 0 0 15px 0; font-size: 16px;">CV Accuracy</h3>
-                             <div style="display: flex; align-items: flex-end; gap: 5px; margin-bottom: 10px;">
+                        <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
+                             <h3 style="margin: 0 0 15px 0; font-size: 16px;">${t.results.accuracyScore}</h3>
+                             <div style="display: flex; align-items: flex-end; gap: 5px; margin-bottom: 10px; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'};">
                                  <span style="font-size: 32px; font-weight: bold; color: ${evaluation.accuracyScore > 70 ? '#16a34a' : '#ea580c'};">${evaluation.accuracyScore}%</span>
                              </div>
                              <div class="bar-container">
@@ -147,41 +151,41 @@ export default function ResultsPage() {
                         </div>
                         
                         <!-- Level -->
-                        <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
-                             <h3 style="margin: 0 0 15px 0; font-size: 16px;">Assessed Seniority</h3>
+                        <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
+                             <h3 style="margin: 0 0 15px 0; font-size: 16px;">${t.results.seniority}</h3>
                              <div style="font-size: 24px; font-weight: bold; color: #4f46e5; margin-bottom: 5px;">${evaluation.seniorityLevel || 'Professional'}</div>
                              <p style="font-size: 12px; color: #64748b; margin: 0;">Based on technical depth and strategic awareness.</p>
                         </div>
                     </div>
 
                     <!-- Detailed Analysis -->
-                    <div style="margin-bottom: 30px;">
-                        <h2 style="font-size: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; color: #0f172a;">Detailed Analysis</h2>
+                    <div style="margin-bottom: 30px; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
+                        <h2 style="font-size: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; color: #0f172a;">${t.results.cvVsReality}</h2>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <!-- Strengths -->
                             <div class="page-break">
-                                <h3 style="font-size: 14px; color: #166534; text-transform: uppercase; margin-bottom: 10px;">Confirmed Strengths</h3>
-                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155; line-height: 1.5;">
-                                    ${evaluation.cvVsReality?.confirmedStrengths?.map((s: string) => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None detected</li>'}
+                                <h3 style="font-size: 14px; color: #166534; text-transform: uppercase; margin-bottom: 10px;">${t.results.confirmedStrengths}</h3>
+                                <ul style="margin: 0; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px; font-size: 13px; color: #334155; line-height: 1.5;">
+                                    ${evaluation.cvVsReality?.confirmedStrengths?.map((s: string) => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || `<li>${t.results.noneDetected}</li>`}
                                 </ul>
                             </div>
 
                             <!-- Areas for Improvement -->
                             <div class="page-break">
-                                <h3 style="font-size: 14px; color: #9a3412; text-transform: uppercase; margin-bottom: 10px;">Development Areas</h3>
-                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155; line-height: 1.5;">
-                                    ${evaluation.skillDevelopmentPriorities?.map((s: string) => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None detected</li>'}
+                                <h3 style="font-size: 14px; color: #9a3412; text-transform: uppercase; margin-bottom: 10px;">${t.results.skillPriorities}</h3>
+                                <ul style="margin: 0; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px; font-size: 13px; color: #334155; line-height: 1.5;">
+                                    ${evaluation.skillDevelopmentPriorities?.map((s: string) => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || `<li>${t.results.noneDetected}</li>`}
                                 </ul>
                             </div>
                         </div>
                     </div>
 
                     <!-- Improvement Plan -->
-                    <div class="page-break" style="background-color: #fffbeb; padding: 25px; border-radius: 12px; border: 1px solid #fcd34d;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #92400e;">Recommended Actions</h3>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #78350f;">
-                             ${evaluation.cvImprovements?.map((s: string) => `<li style="margin-bottom: 8px;">${s}</li>`).join('') || '<li>No specific improvements needed.</li>'}
+                    <div class="page-break" style="background-color: #fffbeb; padding: 25px; border-radius: 12px; border: 1px solid #fcd34d; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #92400e;">${t.results.recommendedActions}</h3>
+                        <ul style="margin: 0; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px; font-size: 14px; color: #78350f;">
+                             ${evaluation.cvImprovements?.map((s: string) => `<li style="margin-bottom: 8px;">${s}</li>`).join('') || `<li>${t.results.noImprovementsNeeded}</li>`}
                         </ul>
                     </div>
 
@@ -242,14 +246,14 @@ export default function ResultsPage() {
             <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-slate-600">Loading your results...</p>
+                    <p className="text-slate-600">{t.results.loadingResults}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+        <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6" dir={dir}>
             <div ref={resultsRef} className="space-y-6">
                 {/* Header */}
                 <motion.div
@@ -262,16 +266,16 @@ export default function ResultsPage() {
                             <button
                                 onClick={() => router.push("/assessment/interview")}
                                 className="p-2 hover:bg-white/50 rounded-full transition-colors group text-slate-400 hover:text-indigo-600"
-                                title="Back to Interview"
+                                title={t.results.backToInterview}
                                 data-html2canvas-ignore
                             >
-                                <ArrowLeft className="w-6 h-6" />
+                                <ArrowLeft className={`w-6 h-6 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                             </button>
                             <div>
-                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Interview Evaluation</h1>
+                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{t.results.title}</h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-md uppercase tracking-wider">
-                                        Executive Report
+                                        {t.results.badge}
                                     </span>
                                     <span className="text-slate-400 text-sm">•</span>
                                     <span className="text-slate-500 text-sm">{new Date().toLocaleDateString()}</span>
@@ -286,7 +290,7 @@ export default function ResultsPage() {
                                 className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:shadow-md transition-all gap-2"
                             >
                                 {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                PDF Report
+                                {t.results.pdfReport}
                             </button>
                             <motion.button
                                 initial={{ scale: 1 }}
@@ -296,7 +300,7 @@ export default function ResultsPage() {
                                 className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 group"
                                 data-html2canvas-ignore
                             >
-                                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight className={`w-6 h-6 group-hover:translate-x-1 transition-transform ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                             </motion.button>
                         </div>
                     </div>
@@ -312,7 +316,7 @@ export default function ResultsPage() {
                         className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-center"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Accuracy Score</h2>
+                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">{t.results.accuracyScore}</h2>
                             <Award className="w-5 h-5 text-indigo-600" />
                         </div>
                         <div className="text-center mb-6">
@@ -329,9 +333,9 @@ export default function ResultsPage() {
                             </div>
                         </div>
                         <p className="text-xs text-center font-bold text-slate-400 uppercase leading-relaxed">
-                            {evaluation.accuracyScore >= 80 ? "High Integrity Profile" :
-                                evaluation.accuracyScore >= 60 ? "Moderate Accuracy" :
-                                    "Significant Discrepancies"}
+                            {evaluation.accuracyScore >= 80 ? t.results.highIntegrity :
+                                evaluation.accuracyScore >= 60 ? t.results.moderateAccuracy :
+                                    t.results.significantDiscrepancies}
                         </p>
                     </motion.div>
 
@@ -349,7 +353,7 @@ export default function ResultsPage() {
                                 <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
                                     <Target className="w-5 h-5" />
                                 </div>
-                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Executive Summary</h2>
+                                <h2 className="text-xl font-bold text-slate-900 tracking-tight">{t.results.executiveSummary}</h2>
                             </div>
 
                             <div className="space-y-6">
@@ -374,22 +378,25 @@ export default function ResultsPage() {
                     transition={{ delay: 0.3 }}
                     className="bg-white rounded-2xl border border-slate-200 p-6"
                 >
-                    <h2 className="text-2xl font-bold text-slate-900 mb-6">CV vs Reality Analysis</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6">{t.results.cvVsReality}</h2>
 
                     <div className="grid md:grid-cols-3 gap-6">
                         {/* Confirmed Strengths */}
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <CheckCircle className="w-5 h-5 text-green-600" />
-                                <h3 className="font-bold text-green-700">Confirmed Strengths</h3>
+                                <h3 className="font-bold text-green-700">{t.results.confirmedStrengths}</h3>
                             </div>
                             <ul className="space-y-2">
                                 {evaluation.cvVsReality?.confirmedStrengths?.map((item: string, i: number) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                                        <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0 ${dir === 'rtl' ? 'ml-2' : ''}`} />
                                         <span>{item}</span>
                                     </li>
                                 ))}
+                                {(!evaluation.cvVsReality?.confirmedStrengths || evaluation.cvVsReality.confirmedStrengths.length === 0) && (
+                                    <li className="text-sm text-slate-400 italic">{t.results.noneDetected}</li>
+                                )}
                             </ul>
                         </div>
 
@@ -397,15 +404,18 @@ export default function ResultsPage() {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <AlertCircle className="w-5 h-5 text-red-600" />
-                                <h3 className="font-bold text-red-700">Exaggerations Detected</h3>
+                                <h3 className="font-bold text-red-700">{t.results.exaggerationsDetected}</h3>
                             </div>
                             <ul className="space-y-2">
                                 {evaluation.cvVsReality?.exaggerations?.map((item: string, i: number) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                                        <AlertCircle className={`w-4 h-4 text-red-500 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} />
                                         <span>{item}</span>
                                     </li>
                                 ))}
+                                {(!evaluation.cvVsReality?.exaggerations || evaluation.cvVsReality.exaggerations.length === 0) && (
+                                    <li className="text-sm text-slate-400 italic">{t.results.noneDetected}</li>
+                                )}
                             </ul>
                         </div>
 
@@ -413,15 +423,18 @@ export default function ResultsPage() {
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <TrendingUp className="w-5 h-5 text-blue-600" />
-                                <h3 className="font-bold text-blue-700">Hidden Strengths</h3>
+                                <h3 className="font-bold text-blue-700">{t.results.hiddenStrengths}</h3>
                             </div>
                             <ul className="space-y-2">
                                 {evaluation.cvVsReality?.hiddenStrengths?.map((item: string, i: number) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
+                                        <span className={`w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0 ${dir === 'rtl' ? 'ml-2' : ''}`} />
                                         <span>{item}</span>
                                     </li>
                                 ))}
+                                {(!evaluation.cvVsReality?.hiddenStrengths || evaluation.cvVsReality.hiddenStrengths.length === 0) && (
+                                    <li className="text-sm text-slate-400 italic">{t.results.noneDetected}</li>
+                                )}
                             </ul>
                         </div>
                     </div>
@@ -436,9 +449,9 @@ export default function ResultsPage() {
                 >
                     <div className="flex items-center gap-2 mb-4">
                         <FileText className="w-6 h-6 text-green-600" />
-                        <h2 className="text-2xl font-bold text-slate-900">CV Improvement Recommendations</h2>
+                        <h2 className="text-2xl font-bold text-slate-900">{t.results.cvImprovements}</h2>
                     </div>
-                    <p className="text-slate-600 mb-4">Specific changes to make your CV more accurate and effective:</p>
+                    <p className="text-slate-600 mb-4">{t.results.cvImprovementsDesc}</p>
                     <ol className="space-y-3">
                         {evaluation.cvImprovements?.map((item: string, i: number) => (
                             <li key={i} className="flex items-start gap-3">
@@ -460,20 +473,18 @@ export default function ResultsPage() {
                 >
                     <div className="flex items-center gap-2 mb-4">
                         <TrendingDown className="w-6 h-6 text-orange-600" />
-                        <h2 className="text-2xl font-bold text-slate-900">Skill Development Priorities</h2>
+                        <h2 className="text-2xl font-bold text-slate-900">{t.results.skillPriorities}</h2>
                     </div>
-                    <p className="text-slate-600 mb-4">Focus on improving these areas to match your career goals:</p>
+                    <p className="text-slate-600 mb-4">{t.results.skillPrioritiesDesc}</p>
                     <div className="grid md:grid-cols-2 gap-3">
                         {evaluation.skillDevelopmentPriorities?.map((item: string, i: number) => (
                             <div key={i} className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
-                                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform shrink-0" />
+                                <ArrowRight className={`ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform shrink-0 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                                 <span className="text-slate-700 font-medium">{item}</span>
                             </div>
                         ))}
                     </div>
                 </motion.div>
-
-                {/* Content skipped: Access Executive Simulation & Recommendation Letter */}
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -486,15 +497,13 @@ export default function ResultsPage() {
                             <Target className="w-6 h-6 text-purple-600" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">🎯 Next Step: Explore Your Career Paths</h3>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">🎯 {t.results.nextStepPaths}</h3>
                             <p className="text-slate-700 mb-4">
-                                Ready to discover your optimal roles? Go to the <strong>Career Discovery</strong> chat,
-                                share your aspirations, and our AI will identify the best positions for your profile.
+                                {t.results.nextStepDesc}
                             </p>
                             <div className="bg-white rounded-lg p-3 border border-purple-200">
                                 <p className="text-sm text-slate-600">
-                                    💡 <strong>Tip:</strong> Choose a role with a high match percentage (70%+) for the best results.
-                                    The AI will create tailored documents specifically for that position.
+                                    💡 <strong>Tip:</strong> {t.results.tip}
                                 </p>
                             </div>
                         </div>
@@ -523,8 +532,8 @@ export default function ResultsPage() {
                     className="px-16 py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-xl transition-all shadow-xl shadow-purple-600/30 flex items-center justify-center gap-3"
                 >
                     <Target className="w-6 h-6" />
-                    Continue to Career Discovery
-                    <ArrowRight className="w-6 h-6 ml-2" />
+                    {t.results.continueDiscovery}
+                    <ArrowRight className={`w-6 h-6 ml-2 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                 </motion.button>
             </div>
         </div>

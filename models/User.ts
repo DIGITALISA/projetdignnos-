@@ -46,7 +46,7 @@ const UserSchema = new Schema({
     },
     trialDurationHours: {
         type: Number,
-        default: 1, // 1h for Free accounts, 3h for Trial Users
+        default: 0.25, // 15 minutes (0.25h) for Free accounts
     },
     plan: {
         type: String,

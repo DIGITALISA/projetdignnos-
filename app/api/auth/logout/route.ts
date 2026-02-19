@@ -5,9 +5,11 @@ export async function POST(req: NextRequest) {
     
     // Clear secure cookies by setting expiry to past
     const isProduction = process.env.NODE_ENV === 'production';
+    const isLocalhost = req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
+    
     const cookieOptions = {
         httpOnly: true,
-        secure: isProduction,
+        secure: isProduction && !isLocalhost,
         sameSite: 'lax' as const,
         path: '/',
         expires: new Date(0), // Set to epoch time to expire immediately

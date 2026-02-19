@@ -128,19 +128,30 @@ export async function POST(request: NextRequest) {
         await connectDB();
 
         // تحديث البيانات (بحث غير حساس لحالة الأحرف لضمان تحديث السجل الصحيح)
-        const updated = await Diagnosis.findOneAndUpdate(
-            { 
-                $or: [
-                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
-                    { userId: userId.toString() }
-                ]
-            },
+        const diagnosis = await Diagnosis.findOne({ 
+            $or: [
+                { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                { userId: userId.toString() }
+            ]
+        }).sort({ updatedAt: -1 });
+
+        if (!diagnosis) {
+            return NextResponse.json(
+                { error: 'Diagnosis record not found' },
+                { status: 404 }
+            );
+        }
+
+        const updated = await Diagnosis.findByIdAndUpdate(
+            diagnosis._id,
             {
-                ...updateData,
-                updatedAt: new Date()
+                $set: {
+                    ...updateData,
+                    updatedAt: new Date()
+                }
             },
-            { new: true, upsert: false }
-        ).sort({ updatedAt: -1 });
+            { new: true }
+        );
 
         if (!updated) {
             return NextResponse.json(

@@ -72,7 +72,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 { name: t.sidebar.items.recommendation, icon: ShieldCheck, href: "/recommendation" },
                 { name: "Executive Scorecard", icon: BarChart3, href: "/performance-scorecard" },
                 { name: t.sidebar.items.jobAlignment, icon: Sparkles, href: "/job-alignment" },
-                { name: "Workshop Attestation", icon: Award, href: "/diplomas" },
+                { name: "Workshop Attestation", icon: Award, href: "/attestations" },
                 { name: t.sidebar.items.strategicReport, icon: Sparkles, href: "/strategic-report" },
             ]
         },
@@ -121,7 +121,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 if (data.role) setUserRole(data.role);
                                 
                                 setIsDiagnosisComplete(data.isDiagnosticComplete);
-                                setHasStartedDiagnosis(data.details?.hasDiagnosis || false);
+                                setHasStartedDiagnosis(data.details?.hasStartedDiagnosis || false);
                                 setHasSCI(data.details?.hasSCI || false);
                                 setHasCompletedSimulation(data.details?.hasCompletedSimulation || false);
                                 setHasScorecard(data.details?.hasScorecard || false);
@@ -134,7 +134,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     canAccessScorecard: data.scorecardReady,
                                     canAccessSCI: data.sciReady,
                                     isDiagnosisComplete: data.isDiagnosticComplete,
-                                    hasStartedDiagnosis: data.details?.hasDiagnosis || false,
+                                    hasStartedDiagnosis: data.details?.hasStartedDiagnosis || false,
                                     hasSCI: data.details?.hasSCI || false,
                                     hasCompletedSimulation: data.details?.hasCompletedSimulation || false,
                                     hasScorecard: data.details?.hasScorecard || false,
@@ -149,7 +149,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                     }
 
-                    if (profile.role === "Trial User" && profile.trialExpiry) {
+                    if ((profile.role === "Trial User" || profile.role === "Free Tier") && profile.trialExpiry) {
                         const expiry = new Date(profile.trialExpiry).getTime();
                         const updateTimer = () => {
                             const now = new Date().getTime();
@@ -211,26 +211,37 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         // 4. STAGE 3 LOCK: Simulation & Job Alignment & Roadmap
         // Needs SCI to be generated (Strategic Intelligence)
-        const strategicTools = ["/simulation", "/job-alignment", "/roadmap", "/mentor", "/academy", "/library", "/expert", "/training"];
+        const strategicTools = ["/simulation", "/job-alignment", "/roadmap", "/mentor", "/academy", "/library", "/expert"];
+        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+        
         if (strategicTools.some((p: string) => href.startsWith(p))) {
-            // Unlock if either SCI is ready OR core diagnosis is complete (fallback)
+            // Even if diagnostic is complete, if it's a FREE plan, we keep these locked to encourage upgrade
+            if (isFreePlan) return true;
+            
+            // Unlock for PRO if either SCI is ready OR core diagnosis is complete
             if (!hasSCI && !isDiagnosisComplete) return true;
+        }
+
+        // Training (Workshops) - Unlock only after diagnosis completion
+        if (href.startsWith("/training")) {
+             return !isDiagnosisComplete;
         }
 
         // 5. STAGE 4 LOCK: Executive Scorecard
         // Needs at least one simulation mission completed
         if (href.startsWith("/performance-scorecard")) {
+            if (isFreePlan) return true;
             return !hasCompletedSimulation;
         }
 
         // 6. STAGE 5 LOCK: Official Assets (Certificates & Recommendation)
         // Needs Performance Scorecard / Expert Validation (Profile created)
         if (href.startsWith("/certificate") || href.startsWith("/recommendation")) {
+            if (isFreePlan) return true;
             return !hasScorecard;
         }
 
         // 7. SUBSCRIPTION FALLBACK: For Free Trial users after trial expiry
-        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
         const limitedTrialPaths = ["/mentor", "/academy", "/expert", "/roadmap"];
         if (limitedTrialPaths.some(p => href.startsWith(p)) && isTrialExpired && isFreePlan) {
             return true;

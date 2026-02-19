@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useMotionTemplate, useMotionValue, AnimatePresence } from "framer-motion";
-import React, { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useRef, useState } from "react";
 import {
     Scan,
     Play,
@@ -14,17 +14,16 @@ import {
     CheckCircle2,
     Crown,
     ArrowRight,
-    Loader2,
     Star,
     Award,
     FileText,
     Target,
     ShieldCheck,
-    X
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
+import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
 
 // --- CONTENT DICTIONARY (LOCALIZED) ---
 const CONTENT = {
@@ -211,35 +210,13 @@ const CONTENT = {
 // --- Helper Components ---
 
 function SpotlightCard({ children, className = "" }: { children: React.ReactNode, className?: string }) {
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
-
-    function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-        const { left, top } = currentTarget.getBoundingClientRect();
-        mouseX.set(clientX - left);
-        mouseY.set(clientY - top);
-    }
-
     return (
         <div
             className={cn(
                 "group relative border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden",
                 className
             )}
-            onMouseMove={handleMouseMove}
         >
-            <motion.div
-                className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover:opacity-100"
-                style={{
-                    background: useMotionTemplate`
-            radial-gradient(
-              650px circle at ${mouseX}px ${mouseY}px,
-              rgba(59, 130, 246, 0.1),
-              transparent 80%
-            )
-          `,
-                }}
-            />
             <div className="relative h-full">{children}</div>
         </div>
     );
@@ -248,45 +225,8 @@ function SpotlightCard({ children, className = "" }: { children: React.ReactNode
 export default function ProfessionalsPage() {
     const { language, dir } = useLanguage();
     const t = CONTENT[language === 'ar' ? 'ar' : 'en'];
-    const containerRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [isConsultingFormOpen, setIsConsultingFormOpen] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-    const [formData, setFormData] = useState({
-        fullName: '',
-        email: '',
-        phone: ''
-    });
-
-    const handleFormSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setSubmitStatus('idle');
-
-        try {
-            const res = await fetch('/api/consulting-inquiry', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            if (res.ok) {
-                setSubmitStatus('success');
-                setTimeout(() => {
-                    setIsConsultingFormOpen(false);
-                    setSubmitStatus('idle');
-                    setFormData({ fullName: '', email: '', phone: '' });
-                }, 3000);
-            } else {
-                setSubmitStatus('error');
-            }
-        } catch (error) {
-            console.error("Submission error:", error);
-            setSubmitStatus('error');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     return (
         <div 
@@ -554,121 +494,11 @@ export default function ProfessionalsPage() {
                 </div>
             </section>
 
-            {/* --- CONSULTING INQUIRY FORM MODAL --- */}
-            <AnimatePresence>
-                {isConsultingFormOpen && (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                        onClick={() => setIsConsultingFormOpen(false)}
-                    >
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative"
-                        >
-                            <button 
-                                onClick={() => setIsConsultingFormOpen(false)}
-                                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                            >
-                                <X size={24} />
-                            </button>
-                            
-                            <div className="p-8">
-                                <div className="text-center mb-8">
-                                    <h3 className="text-2xl font-serif text-slate-900 dark:text-white mb-2">
-                                        {language === 'ar' ? 'طلب استشارة استراتيجية' : 'Request Strategic Consulting'}
-                                    </h3>
-                                    <p className="text-slate-500 text-sm">
-                                        {language === 'ar' 
-                                            ? 'املأ الاستمارة وسيتواصل معك أحد كبار مستشارينا.' 
-                                            : 'Fill the form and a senior consultant will execute your request.'}
-                                    </p>
-                                </div>
-
-                                <form className="space-y-4" onSubmit={handleFormSubmit}>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                                            {language === 'ar' ? 'الاسم الكامل' : 'Full Name'}
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            required
-                                            value={formData.fullName}
-                                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-900 dark:text-white" 
-                                            placeholder={language === 'ar' ? 'أدخل اسمك الكامل' : 'Enter your full name'}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                                            {language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
-                                        </label>
-                                        <input 
-                                            type="email" 
-                                            required
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-900 dark:text-white" 
-                                            placeholder="example@mail.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                                            {language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
-                                        </label>
-                                        <input 
-                                            type="tel" 
-                                            required
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-slate-900 dark:text-white" 
-                                            placeholder="+123 456 789"
-                                        />
-                                    </div>
-                                    
-                                    <button 
-                                        type="submit" 
-                                        disabled={isSubmitting || submitStatus === 'success'}
-                                        className={cn(
-                                            "w-full py-4 font-bold rounded-lg shadow-lg transition-all text-sm uppercase tracking-widest mt-6 flex items-center justify-center gap-2",
-                                            submitStatus === 'success' 
-                                                ? "bg-emerald-500 text-white" 
-                                                : "bg-amber-500 hover:bg-amber-600 text-white hover:shadow-amber-500/20"
-                                        )}
-                                    >
-                                        {isSubmitting ? (
-                                            <Loader2 className="animate-spin w-5 h-5" />
-                                        ) : submitStatus === 'success' ? (
-                                            <>
-                                                <CheckCircle2 size={18} />
-                                                {language === 'ar' ? 'تم الإرسال بنجاح' : 'Sent Successfully'}
-                                            </>
-                                        ) : (
-                                            language === 'ar' ? 'إرسال الطلب' : 'Submit Request'
-                                        )}
-                                    </button>
-
-                                    {submitStatus === 'error' && (
-                                        <p className="text-red-500 text-xs text-center mt-2 font-bold">
-                                            {language === 'ar' ? 'حدث خطأ، يرجى المحاولة مرة أخرى.' : 'An error occurred, please try again.'}
-                                        </p>
-                                    )}
-                                </form>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-slate-950 px-8 py-4 text-center border-t border-slate-100 dark:border-slate-800">
-                                <p className="text-xs text-slate-400">
-                                    {language === 'ar' ? 'بياناتك محمية بموجب اتفاقية السرية.' : 'Your data is protected under our NDA.'}
-                                </p>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <ConsultingInquiryModal 
+                isOpen={isConsultingFormOpen}
+                onClose={() => setIsConsultingFormOpen(false)}
+                redirectToDashboard={true}
+            />
         </div>
     );
 }

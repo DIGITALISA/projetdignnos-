@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
             status: "Pending",
             accountType: "Free",
             isTrial: true,
-            trialDurationHours: 1,
+            trialDurationHours: 0.25,
             plan: "Free Trial",
             mandateDuration,
             mandateCurrency,

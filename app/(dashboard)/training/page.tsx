@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface Session {
     _id: string;
@@ -24,9 +25,11 @@ interface Course {
     date?: string;
     isAccessOpen?: boolean;
     allowedUsers?: string[];
+    description?: string;
 }
 
 export default function TrainingPage() {
+    const { dir } = useLanguage();
     const [courses, setCourses] = useState<Course[]>([]);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,8 +38,17 @@ export default function TrainingPage() {
     const [numParticipants, setNumParticipants] = useState<Record<string, number>>({});
     const [lockedParticipants, setLockedParticipants] = useState<Record<string, boolean>>({});
     const [pendingRequests, setPendingRequests] = useState<string[]>([]);
+    const [diagnosisGaps, setDiagnosisGaps] = useState<string[]>([]);
 
     const fetchUserRequests = async () => {
+        const savedDiagnosis = localStorage.getItem("cvAnalysis");
+        if (savedDiagnosis) {
+            try {
+                const diag = JSON.parse(savedDiagnosis);
+                setDiagnosisGaps(diag.skills?.gaps || []);
+            } catch (e) { console.log(e); }
+        }
+
         const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
         const identifier = profile.email || profile.fullName;
         if (!identifier) return;
@@ -55,11 +67,16 @@ export default function TrainingPage() {
     const fetchCourses = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/courses', { cache: 'no-store' });
+            const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userEmail = profile.email || profile.fullName;
+
+            if (!userEmail) return;
+
+            const res = await fetch(`/api/user/courses?email=${encodeURIComponent(userEmail)}`, { cache: 'no-store' });
             const data = await res.json();
+            
             if (Array.isArray(data)) {
-                // Filter only published programs for details view
-                setCourses(data.filter(c => c.status === "Published"));
+                setCourses(data);
             }
         } catch (error) {
             console.error("Error fetching courses:", error);
@@ -210,9 +227,104 @@ export default function TrainingPage() {
                     <p className="text-slate-500 font-medium">Loading workshop schedule...</p>
                 </div>
             ) : courses.length === 0 ? (
-                <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-                    <p className="text-slate-400">No upcoming workshops scheduled.</p>
-                </div>
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="max-w-4xl mx-auto py-12 px-8 bg-white rounded-[3rem] border border-slate-200 shadow-2xl relative overflow-hidden"
+                >
+                    {/* Decorative Background */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 opacity-50 blur-3xl pointer-events-none" />
+                    
+                    <div className="relative z-10 text-center space-y-8">
+                        <div className="w-20 h-20 bg-blue-600 rounded-4xl flex items-center justify-center mx-auto shadow-xl shadow-blue-200 rotate-6">
+                            <Sparkles className="w-10 h-10 text-white" />
+                        </div>
+                        
+                        <div className="space-y-4 max-w-2xl mx-auto">
+                            <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
+                                {dir === 'rtl' ? 'بروتوكول تخصيص الورشات التنفيذية' : 'Executive Workshop Customization Protocol'}
+                            </h2>
+                            <p className="text-slate-500 font-medium text-lg leading-relaxed">
+                                {dir === 'rtl' 
+                                    ? 'يتم الآن تحليل نتائج تشخيصك الشامل من قبل خبرائنا لتصميم ورشة عمل مطابقة تماماً لاحتياجاتك المهنية. نعتمد نهجاً دقيقاً لضمان أقصى استفادة.' 
+                                    : 'Our experts are currently analyzing your comprehensive diagnostic results to design a workshop that perfectly matches your professional needs.'}
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6 pt-6">
+                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition-all hover:shadow-lg text-start flex gap-4">
+                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shrink-0 text-blue-600 shadow-sm">
+                                    <Clock size={24} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
+                                        {dir === 'rtl' ? 'مراجعة خبير بشري (24-72 ساعة)' : 'Human Expert Review (24-72h)'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                                        {dir === 'rtl' 
+                                            ? 'بعد قراءة التشخيص، يحدد الخبير الموديولات، الساعات، والأهداف التدريبية المخصصة لك بدقة.'
+                                            : 'After reviewing your diagnosis, an expert defines your modules, hours, and personalized training objectives.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 p-6 rounded-4xl border border-slate-100 transition-all hover:shadow-lg text-start flex gap-4">
+                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shrink-0 text-amber-600 shadow-sm">
+                                    <Users size={24} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
+                                        {dir === 'rtl' ? 'فلترة المجموعات المصغرة' : 'Micro-Group Filtering'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                                        {dir === 'rtl' 
+                                            ? 'نجمعك مع مشاركين (بحد أقصى 5) لديهم نفس المستوى والاحتياجات لضمان جودة التفاعل.'
+                                            : 'We match you with participants (max 5) sharing the same professional level and needs for high-quality interaction.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 p-6 rounded-4xl border border-slate-100 transition-all hover:shadow-lg text-start flex gap-4">
+                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shrink-0 text-emerald-600 shadow-sm">
+                                    <CheckCircle size={24} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
+                                        {dir === 'rtl' ? 'تحكم مرن بالعدد والتكلفة' : 'Flexible Enrollment & Cost'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                                        {dir === 'rtl' 
+                                            ? 'يمكنك الاختيار بين جلسة فردية أو مجموعة (2-3 أشخاص). كلما زاد عدد المجموعة، قلت التكلفة الفردية.'
+                                            : 'Choose between individual sessions or groups (2-3). Individual costs decrease as group size increases.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 p-6 rounded-4xl border border-slate-100 transition-all hover:shadow-lg text-start flex gap-4">
+                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shrink-0 text-indigo-600 shadow-sm">
+                                    <Calendar size={24} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
+                                        {dir === 'rtl' ? 'تأكيد الموعد النهائي (7 أيام)' : 'Final Scheduling (7 Days)'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                                        {dir === 'rtl' 
+                                            ? 'بمجرد اكتمال المجموعة المطلوبة، يتم تثبيت مواعيد الجلسات بحد أقصى 7 أيام من تاريخ التأكيد.'
+                                            : 'Once the requested group is formed, session dates are finalized within a maximum of 7 days.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6">
+                            <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-xs uppercase tracking-widest">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                {dir === 'rtl' ? 'بانتظام اكتمال التشخيص وتخصيص الجلسات' : 'Waiting for diagnosis completion and session customization'}
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {courses.map((course, index) => (
@@ -223,15 +335,22 @@ export default function TrainingPage() {
                             transition={{ delay: index * 0.1 }}
                             className={`bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden hover:shadow-2xl hover:border-blue-300 transition-all group flex flex-col relative`}
                         >
-                            {/* Recommendation Badge (Mock logic for demo) */}
-                            {index === 0 && (
-                                <div className="absolute top-4 left-4 z-20">
-                                    <div className="bg-white/90 backdrop-blur-md text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-white/50 shadow-lg flex items-center gap-1.5 animate-pulse">
-                                        <Sparkles size={12} />
-                                        <span>Recommended for You</span>
+                            {/* Recommendation Badge */}
+                            {(() => {
+                                const isRecommended = diagnosisGaps.length > 0 && diagnosisGaps.some(gap => 
+                                    course.title.toLowerCase().includes(gap.toLowerCase()) || 
+                                    (course.description?.toLowerCase().includes(gap.toLowerCase()))
+                                );
+
+                                return isRecommended && (
+                                    <div className="absolute top-4 left-4 z-20">
+                                        <div className="bg-white/90 backdrop-blur-md text-amber-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-white/50 shadow-lg flex items-center gap-1.5">
+                                            <Sparkles size={12} />
+                                            <span>Gap Fix Recommended</span>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                             <div className="relative h-56 bg-linear-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
                                 <div className="w-20 h-20 bg-linear-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center mb-6 shadow-iner border border-slate-200">

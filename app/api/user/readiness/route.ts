@@ -49,8 +49,11 @@ export async function GET(req: Request) {
       status: "completed",
     }).lean();
 
+    const hasStartedDiagnosis = !!diagnosis;
     const hasDiagnosis = !!diagnosis && (
         diagnosis.currentStep === "completed" || 
+        diagnosis.currentStep === "interview_complete" ||
+        diagnosis.completionStatus?.interviewComplete ||
         diagnosis.completionStatus?.strategicReportComplete || 
         !!diagnosis.analysis?.sciReport
     );
@@ -92,6 +95,7 @@ export async function GET(req: Request) {
       role: user?.role || "Trial User",
       details: {
         hasDiagnosis,
+        hasStartedDiagnosis,
         hasSCI: sciReady,
         hasCompletedSimulation,
         hasScorecard: scorecardReady

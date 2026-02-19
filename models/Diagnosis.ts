@@ -54,7 +54,19 @@ const DiagnosisSchema = new Schema({
     },
     currentStep: {
         type: String,
-        enum: ['cv_upload', 'analysis_complete', 'interview_in_progress', 'interview_complete', 'role_discovery', 'role_selected', 'cv_generation', 'completed'],
+        enum: [
+            'cv_upload',
+            'analysis_complete',
+            'interview_in_progress',
+            'interview_complete',
+            'role_discovery',
+            'role_discovery_complete',
+            'role_selected',
+            'cv_generation',
+            'simulation_in_progress',
+            'simulation_complete',
+            'completed'
+        ],
         default: 'analysis_complete'
     },
     totalQuestions: {

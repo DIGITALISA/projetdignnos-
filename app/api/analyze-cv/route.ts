@@ -117,16 +117,54 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        let finalTrialExpiry = null;
+
         // Save to MongoDB if user info is provided
         if (userId && userName) {
             try {
                 await connectDB();
+                
+                // Get user plan from User model
+                const User = (await import('@/models/User')).default;
+                const user = await User.findOne({ 
+                    $or: [
+                        { email: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                        { fullName: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                        { email: userId },
+                        { fullName: userName }
+                    ]
+                });
+                
+                const isFreeTier = !user || user.plan === "Free Trial" || user.plan === "None" || user.role === "Trial User" || user.role === "Free Tier";
+                
+                // ✅ INITIALIZE TRIAL ON FIRST CV UPLOAD
+                if ((user?.role === "Trial User" || user?.role === "Free Tier") && !user.trialExpiry) {
+                    const duration = user.trialDurationHours || 0.25; // Default 15 mins
+                    const expiry = new Date();
+                    expiry.setMinutes(expiry.getMinutes() + (duration * 60));
+                    user.trialExpiry = expiry;
+                    await user.save();
+                    console.log(`⏱️ Trial started for user ${userId}. Expires at: ${expiry}`);
+                }
+
+                finalTrialExpiry = user?.trialExpiry;
+
                 const existing = await Diagnosis.findOne({ 
                     $or: [
                         { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
                         { userId: userId.toString() }
                     ]
                 }).sort({ updatedAt: -1 });
+
+                // ... (rest of the block)
+                if (isFreeTier && existing && (existing.completionStatus?.cvAnalysisComplete || existing.cvText)) {
+                    return NextResponse.json({ 
+                        error: 'ONE_ATTEMPT_LIMIT',
+                        message: language === 'ar' 
+                            ? 'لقد استخدمت محاولتك المجانية الوحيدة للتشخيص. يرجى الترقية لإجراء تحليل جديد.' 
+                            : 'You have already used your one free diagnostic attempt. Please upgrade to Pro to perform a new analysis.' 
+                    }, { status: 403 });
+                }
 
                 const referenceId = existing?.referenceId || `SCI-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -169,12 +207,16 @@ export async function POST(request: NextRequest) {
                 console.log('✅ CV Analysis saved to MongoDB for user:', userId);
             } catch (dbError) {
                 console.error('❌ Database Error:', dbError);
+                if ((dbError as { message?: string }).message?.includes('ONE_ATTEMPT_LIMIT')) {
+                    throw dbError; // Rethrow to be caught by outer catch
+                }
             }
         }
 
         return NextResponse.json({
             success: true,
             analysis: result.analysis,
+            trialExpiry: finalTrialExpiry
         });
     } catch (error) {
         console.error('API Error:', error);

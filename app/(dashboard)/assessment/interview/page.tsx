@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Sparkles, Globe, CheckCircle, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { Send, Loader2, Sparkles, Globe, AlertCircle, ArrowRight, ArrowLeft, Lock, ShieldCheck, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useLanguage } from "@/components/providers/LanguageProvider";
+import { Language } from "@/lib/i18n/translations";
 
 interface Message {
     role: 'ai' | 'user';
@@ -15,7 +18,6 @@ const LANGUAGES = [
     { code: 'en', name: 'English', flag: '🇬🇧', nativeName: 'English' },
     { code: 'fr', name: 'French', flag: '🇫🇷', nativeName: 'Français' },
     { code: 'ar', name: 'Arabic', flag: '🇸🇦', nativeName: 'العربية' },
-    { code: 'es', name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
 ];
 
 const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
@@ -36,13 +38,14 @@ const fetchWithTimeout = async (resource: string, options: RequestInit = {}, tim
 
 export default function InterviewPage() {
     const router = useRouter();
+    const { setLanguage } = useLanguage();
     const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [cvAnalysis, setCvAnalysis] = useState<Record<string, unknown> | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [totalQuestions, setTotalQuestions] = useState(15); // Default 15 questions
+    const [totalQuestions, setTotalQuestions] = useState(15); 
     const [interviewComplete, setInterviewComplete] = useState(false);
     const [finalEvaluation, setFinalEvaluation] = useState<Record<string, unknown> | null>(null);
     const [diagnosisId, setDiagnosisId] = useState<string | null>(null);
@@ -69,12 +72,17 @@ export default function InterviewPage() {
         return () => clearInterval(interval);
     }, [startTime, interviewComplete, isTimeUnlocked]);
 
+    const handleLanguageSelect = (lang: string) => {
+        setSelectedLanguage(lang);
+        setLanguage(lang as Language);
+        localStorage.setItem('selectedLanguage', lang);
+    };
+
     useEffect(() => {
         const loadSession = async () => {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
 
-            // First check URL/API for active session
             if (userId) {
                 try {
                     const res = await fetch(`/api/assessment/progress?userId=${encodeURIComponent(userId)}`);
@@ -83,7 +91,14 @@ export default function InterviewPage() {
                     if (data.hasActiveSession) {
                         setDiagnosisId(data.diagnosisId);
                         if (data.analysis) setCvAnalysis(data.analysis);
-                        if (data.language) setSelectedLanguage(data.language);
+                        
+                        // ✅ SYNC GLOBAL LANGUAGE FROM SAVED SESSION
+                        if (data.language) {
+                            setSelectedLanguage(data.language);
+                            setLanguage(data.language as Language);
+                            localStorage.setItem('selectedLanguage', data.language);
+                        }
+                        
                         if (data.totalQuestions) setTotalQuestions(data.totalQuestions);
 
                         if (data.evaluation) {
@@ -501,7 +516,7 @@ export default function InterviewPage() {
                                 key={lang.code}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => setSelectedLanguage(lang.code)}
+                                onClick={() => handleLanguageSelect(lang.code)}
                                 className="group relative p-6 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-2xl transition-all text-left overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -525,6 +540,9 @@ export default function InterviewPage() {
 
     // Interview Complete - Show Results Preview
     if (interviewComplete && finalEvaluation) {
+        const userProfile = JSON.parse(typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}');
+        const isFreeTier = userProfile.plan === "Free Trial" || userProfile.plan === "None" || userProfile.role === "Trial User" || !userProfile.plan;
+
         return (
             <div className="flex-1 flex items-center justify-center p-4 md:p-8">
                 <motion.div
@@ -533,7 +551,7 @@ export default function InterviewPage() {
                     className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
                 >
                     {/* Header Section */}
-                    <div className="relative bg-linear-to-br from-emerald-600 to-teal-700 p-8 text-center text-white overflow-hidden">
+                    <div className="relative bg-linear-to-br from-indigo-600 to-slate-900 p-8 text-center text-white overflow-hidden">
                         <div className="absolute top-4 left-4 z-20">
                             <button
                                 onClick={() => setInterviewComplete(false)}
@@ -546,8 +564,8 @@ export default function InterviewPage() {
                         </div>
 
                         <div className="absolute top-0 left-0 w-full h-full opacity-20">
-                             <div className="absolute top-0 right-0 w-40 h-40 bg-white blur-3xl rounded-full" />
-                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-300 blur-3xl rounded-full" />
+                             <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500 blur-3xl rounded-full" />
+                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500 blur-3xl rounded-full" />
                         </div>
  
                         <motion.div 
@@ -556,14 +574,16 @@ export default function InterviewPage() {
                             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                             className="relative w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border border-white/30 shadow-lg"
                         >
-                            <CheckCircle className="w-10 h-10 text-white" />
+                            <Sparkles className="w-10 h-10 text-yellow-400" />
                         </motion.div>
                         
                         <h1 className="relative text-3xl font-bold mb-2">
-                            {selectedLanguage === 'ar' ? '!اكتملت المقابلة' : 'Interview Complete!'}
+                            {selectedLanguage === 'ar' ? 'تم الانتهاء من التدقيق العاجل' : 'Urgent Audit Completed'}
                         </h1>
-                        <p className="relative text-emerald-50 text-lg">
-                            {selectedLanguage === 'ar' ? 'شكراً لإجاباتك الصريحة. إليك ملخص لتقييمك' : 'Thank you for your honest answers. Here\'s your evaluation summary.'}
+                        <p className="relative text-indigo-100 text-lg">
+                            {selectedLanguage === 'ar' 
+                                ? 'لقد كشفنا عن ثغرات استراتيجية في ملفك. إليك التحليل الأولي' 
+                                : 'We have detected strategic gaps in your profile. Here is the initial analysis.'}
                         </p>
                     </div>
 
@@ -571,9 +591,9 @@ export default function InterviewPage() {
                         {/* Quick Stats Grid */}
                         <div className="grid md:grid-cols-3 gap-4">
                             {[
-                                { label: selectedLanguage === 'ar' ? "دقة السيرة الذاتية" : "CV Accuracy", value: `${Number(finalEvaluation.accuracyScore)}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
-                                { label: selectedLanguage === 'ar' ? "الأسئلة المجابة" : "Questions Answered", value: totalQuestions, color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
-                                { label: selectedLanguage === 'ar' ? "التقييم العام" : "Overall Rating", value: `${Number(finalEvaluation.overallRating)}/10`, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" }
+                                { label: selectedLanguage === 'ar' ? "دقة السيرة الذاتية" : "CV Accuracy", value: `${Number(finalEvaluation.accuracyScore)}%`, color: Number(finalEvaluation.accuracyScore) < 40 ? "text-red-600" : "text-blue-600", bg: "bg-slate-50 border-slate-100" },
+                                { label: selectedLanguage === 'ar' ? "الأسئلة" : "Questions", value: totalQuestions, color: "text-slate-600", bg: "bg-slate-50 border-slate-100" },
+                                { label: selectedLanguage === 'ar' ? "التقييم الأولي" : "Initial Rating", value: `${Number(finalEvaluation.overallRating)}/10`, color: Number(finalEvaluation.overallRating) < 4 ? "text-red-600" : "text-emerald-600", bg: "bg-slate-50 border-slate-100" }
                             ].map((stat, i) => (
                                 <motion.div 
                                     key={i}
@@ -582,62 +602,114 @@ export default function InterviewPage() {
                                     transition={{ delay: 0.4 + (i * 0.1) }}
                                     className={`${stat.bg} border rounded-2xl p-4 text-center transition-transform hover:scale-105`}
                                 >
-                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{stat.label}</p>
-                                    <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+                                    <p className={`text-3xl font-black ${stat.color}`}>{stat.value}</p>
                                 </motion.div>
                             ))}
                         </div>
 
-                        {/* Summary */}
-                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                            <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                                <Sparkles className="w-5 h-5 text-amber-500" />
-                                {selectedLanguage === 'ar' ? 'الملخص التنفيذي' : 'Executive Summary'}
-                            </h2>
-                            <p className="text-slate-700 leading-relaxed text-base italic">
-                                &ldquo;{String(finalEvaluation.summary)}&rdquo;
-                            </p>
-                        </div>
+                        {/* Teaser Context for Free Tier */}
+                        {isFreeTier ? (
+                            <div className="space-y-6">
+                                <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 shadow-2xl relative overflow-hidden">
+                                     {/* Background Graphic */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full -mr-16 -mt-16" />
+                                    
+                                    <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2 relative z-10">
+                                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                                        {selectedLanguage === 'ar' ? 'تقرير أولي - الدخول محدود' : 'Preliminary Report - Limited Access'}
+                                    </h2>
+                                    <p className="text-slate-300 leading-relaxed text-sm relative z-10">
+                                        {selectedLanguage === 'ar' 
+                                            ? 'انتباه: هذا التقييم غير مكتمل ولا يشمل كامل البيانات لأنك حالياً في الخطة المجانية. لقد قمنا فقط بتحليل القشرة السطحية لملفك المهني.' 
+                                            : 'Note: This assessment is incomplete and does not include full data because you are currently on the free plan. We have only analyzed the surface level of your professional profile.'}
+                                    </p>
+                                    <div className="mt-4 pt-4 border-t border-slate-800 flex items-center gap-2 text-amber-400 font-bold text-xs relative z-10">
+                                        <Lock className="w-3 h-3" />
+                                        <span>
+                                            {selectedLanguage === 'ar' ? 'هناك 4 ميزات استراتيجية ما زالت مغلقة في انتظارك' : '4 Strategic features are still locked awaiting you'}
+                                        </span>
+                                    </div>
+                                </div>
 
-                        {/* Action Button - Strategically enhanced to guide user */}
-                        <div className="relative group">
-                            {/* Pulsing Background Glow */}
-                            <motion.div
-                                animate={{ 
-                                    scale: [1, 1.05, 1],
-                                    opacity: [0.3, 0.6, 0.3]
-                                }}
-                                transition={{ 
-                                    duration: 2, 
-                                    repeat: Infinity, 
-                                    ease: "easeInOut" 
-                                }}
-                                className="absolute -inset-2 bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl blur-xl z-0"
-                            />
-                            
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {[
+                                        { title: selectedLanguage === 'ar' ? 'التدقيق الاستراتيجي العميق (SCI)' : 'Deep Strategic Audit (SCI)', desc: selectedLanguage === 'ar' ? 'كشف نقاط العمى التي تمنع ترقيتك' : 'Unlock blind spots blocking your promotion' },
+                                        { title: selectedLanguage === 'ar' ? 'خارطة الطريق التنفيذية' : 'Executive Roadmap', desc: selectedLanguage === 'ar' ? 'خطة عمل لـ 18 شهراً القادمة' : 'Action plan for the next 18 months' },
+                                        { title: selectedLanguage === 'ar' ? 'محاكاة القيادة والضغط' : 'Leadership & Pressure Simulation', desc: selectedLanguage === 'ar' ? 'اختبار قدراتك في مواجهة الأزمات' : 'Test your crisis management skills' },
+                                        { title: selectedLanguage === 'ar' ? 'تحليل التنافسية السوقية' : 'Market Competitiveness Analysis', desc: selectedLanguage === 'ar' ? 'أين أنت فعلياً مقارنة بالمحترفين؟' : 'Where you really stand vs pros?' }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:border-indigo-300 transition-colors">
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center mt-0.5 shrink-0">
+                                                <Lock className="w-3 h-3 text-slate-400" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-800">{item.title}</h4>
+                                                <p className="text-[10px] text-slate-500">{item.desc}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                                <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-amber-500" />
+                                    {selectedLanguage === 'ar' ? 'الملخص التنفيذي للمحترفين' : 'Executive Professional Summary'}
+                                </h2>
+                                <p className="text-slate-700 leading-relaxed text-base italic">
+                                    &ldquo;{String(finalEvaluation.summary)}&rdquo;
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Action Button */}
+                        <div className="relative pt-4">
                             <motion.button
                                 onClick={() => {
-                                    // Store evaluation for results page
-                                    localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
-                                    router.push('/assessment/results');
+                                    if (isFreeTier) {
+                                        router.push('/subscription');
+                                    } else {
+                                        localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
+                                        router.push('/assessment/results');
+                                    }
                                 }}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="relative z-10 group w-full py-6 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white rounded-2xl font-black text-xl transition-all shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-4"
+                                className="relative z-10 w-full py-5 bg-linear-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-2xl font-black text-xl transition-all shadow-xl flex items-center justify-center gap-4"
                             >
-                                <Sparkles className="w-7 h-7 text-yellow-300" />
-                                <span>
-                                    {selectedLanguage === 'ar' ? 'عرض نتائج التقييم الكاملة' : 'View Full Assessment Results'}
-                                </span>
-                                <motion.div
-                                    animate={{ x: [0, 5, 0] }}
-                                    transition={{ duration: 1.5, repeat: Infinity }}
-                                    className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
-                                >
-                                    <ArrowRight className="w-6 h-6" />
-                                </motion.div>
+                                {isFreeTier ? (
+                                    <>
+                                        <ShieldCheck className="w-6 h-6 text-yellow-400" />
+                                        <span>
+                                            {selectedLanguage === 'ar' ? 'اكتشف التشخيص الكامل الآن' : 'Unlock Full Diagnosis Now'}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>
+                                            {selectedLanguage === 'ar' ? 'عرض التقرير الاستراتيجي' : 'View Strategic Report'}
+                                        </span>
+                                        <ArrowRight className="w-6 h-6" />
+                                    </>
+                                )}
                             </motion.button>
                         </div>
+
+                        {isFreeTier && (
+                             <div className="mt-8 pt-6 border-t border-slate-100">
+                                <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+                                    {selectedLanguage === 'ar' ? 'ورش عمل مخصصة لفجواتك' : 'Workshops Tailored to Your Gaps'}
+                                </p>
+                                <div className="flex justify-center gap-4">
+                                    <Link href="/training" className="group flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition-colors">
+                                        <BookOpen className="w-5 h-5" />
+                                        <span>{selectedLanguage === 'ar' ? 'تصفح الورش المقترحة بك' : 'Explore Your Recommended Workshops'}</span>
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+                                </div>
+                             </div>
+                        )}
                     </div>
                 </motion.div>
             </div>

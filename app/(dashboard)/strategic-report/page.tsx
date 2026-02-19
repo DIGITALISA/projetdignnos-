@@ -6,7 +6,7 @@ import {
     FileText, Download, Shield,  
     Target, LineChart, 
     CheckCircle2, ArrowRight, Loader2,
-    Calendar, Fingerprint, Award, Zap, Clock, PlayCircle
+    Calendar, Fingerprint, Award, Zap, Clock, PlayCircle, Lock
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -42,6 +42,8 @@ export default function StrategicReportPage() {
     const [diagnosis, setDiagnosis] = useState<DiagnosisData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'report' | 'history'>('report');
+    const [userPlan, setUserPlan] = useState<string>("None");
+    const [userRole, setUserRole] = useState<string>("");
     
     // Access localized strings
     const sciT = t.sidebar.sciReport;
@@ -59,6 +61,8 @@ export default function StrategicReportPage() {
             try {
                 const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                 const userId = profile.email || profile.fullName;
+                setUserPlan(profile.plan || "None");
+                setUserRole(profile.role || "");
 
                 if (userId) {
                     const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
@@ -150,6 +154,8 @@ export default function StrategicReportPage() {
         }
     ];
 
+    const isFreeTier = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+
     if (isLoading) {
         return (
             <div className="flex-1 flex items-center justify-center min-h-[60vh]">
@@ -165,6 +171,70 @@ export default function StrategicReportPage() {
 
     return (
         <div className={`max-w-5xl mx-auto space-y-8 pb-32 ${dir === 'rtl' ? 'font-arabic' : ''}`} dir={dir}>
+            {/* Upgrade Modal for Free Tier - Overlay when on report tab */}
+            {isFreeTier && activeTab === 'report' && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-white rounded-[2.5rem] p-10 max-w-lg w-full shadow-2xl border border-slate-200 text-center relative overflow-hidden"
+                    >
+                        {/* Background Decoration */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16" />
+                        
+                        <div className="w-20 h-20 bg-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <Lock className="w-10 h-10 text-indigo-600" />
+                        </div>
+                        
+                        <h2 className="text-3xl font-black text-slate-900 mb-4">
+                            {dir === 'rtl' ? 'هذا التقرير مغلق حالياً' : 'Strategic Report Locked'}
+                        </h2>
+                        
+                        <p className="text-slate-600 font-medium leading-relaxed mb-8">
+                            {dir === 'rtl' 
+                                ? 'التقرير الاستراتيجي العميق (SCI) متاح حصرياً لمشتركي الخطة الاحترافية. قم بالترقية الآن لفتح تحليل الـ 18 شهراً لخارطة طريقك المهنية.' 
+                                : 'The Deep Strategic Career Intelligence (SCI) report is exclusive to Pro Plan members. Upgrade now to unlock your full 18-month career execution roadmap.'}
+                        </p>
+                        
+                        <div className="space-y-4">
+                            <Link 
+                                href="/subscription"
+                                className="block w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
+                            >
+                                {dir === 'rtl' ? 'فتح التقرير الكامل الآن' : 'Unlock Full Report Now'}
+                            </Link>
+                            
+                            <button 
+                                onClick={() => setActiveTab('history')}
+                                className="block w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+                            >
+                                {dir === 'rtl' ? 'العودة لسجل بروتوكول التشخيص' : 'Return to Diagnostic History'}
+                            </button>
+                        </div>
+
+                        <div className="mt-8 flex items-center justify-center gap-6 pt-6 border-t border-slate-100">
+                             <div className="flex flex-col items-center">
+                                 <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mb-1">
+                                     <Shield className="w-4 h-4 text-blue-600" />
+                                 </div>
+                                 <span className="text-[10px] font-bold text-slate-400 uppercase">SCI Audit</span>
+                             </div>
+                             <div className="flex flex-col items-center">
+                                 <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center mb-1">
+                                     <Zap className="w-4 h-4 text-purple-600" />
+                                 </div>
+                                 <span className="text-[10px] font-bold text-slate-400 uppercase">Roadmap</span>
+                             </div>
+                             <div className="flex flex-col items-center">
+                                 <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center mb-1">
+                                     <LineChart className="w-4 h-4 text-amber-600" />
+                                 </div>
+                                 <span className="text-[10px] font-bold text-slate-400 uppercase">Analytics</span>
+                             </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
             {/* Tabs Navigation */}
             <div className="flex p-1 bg-slate-100 rounded-2xl w-fit mx-auto mb-8 border border-slate-200 shadow-sm relative z-20">
                 {report && (

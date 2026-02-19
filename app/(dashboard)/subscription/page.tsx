@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Check, Shield, ArrowRight, Star, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
 
 const plans = [
     {
@@ -53,6 +54,7 @@ interface UserProfile {
 
 export default function SubscriptionPage() {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         // Use Promise to move state update out of synchronous effect execution
@@ -80,7 +82,7 @@ export default function SubscriptionPage() {
                         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest mb-6 border border-blue-100"
                     >
                         <Star size={14} className="fill-current" />
-                        Options de Mandat Stratégique
+                        Options de Mandات Stratégique
                     </motion.div>
                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
                         Propulsez votre <span className="text-blue-600">Carrière</span>
@@ -162,7 +164,7 @@ export default function SubscriptionPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => alert("Contactez l'administration pour changer de pack.")}
+                                    onClick={() => !isCurrent && setIsModalOpen(true)}
                                     className={cn(
                                         "w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl",
                                         isCurrent ? "bg-slate-100 text-slate-400 cursor-not-allowed" :
@@ -196,6 +198,12 @@ export default function SubscriptionPage() {
                     </div>
                 </div>
             </div>
+
+            <ConsultingInquiryModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                redirectToDashboard={true}
+            />
         </div>
     );
 }

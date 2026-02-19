@@ -83,7 +83,9 @@ export default function DashboardLayout({
                 const isAdmin = profile.role === "Admin" || profile.role === "Moderator";
                 if (!isAdmin) {
                     const isFreePlan = profile.plan === "Free Trial" || profile.plan === "None" || profile.role === "Trial User";
-                    const isTrialExpired = profile.role === "Trial User" && profile.trialExpiry && new Date(profile.trialExpiry).getTime() < new Date().getTime();
+                    const isTrialExpired = (profile.role === "Trial User" || profile.role === "Free Tier") && 
+                                           profile.trialExpiry && 
+                                           new Date(profile.trialExpiry).getTime() < new Date().getTime();
 
                     const limitedTrialPaths = ["/assessment", "/mentor", "/academy", "/expert", "/roadmap"];
                     const isLimitedPath = limitedTrialPaths.some(p => pathname.startsWith(p));

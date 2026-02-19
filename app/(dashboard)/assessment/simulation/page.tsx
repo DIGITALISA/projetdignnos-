@@ -23,6 +23,8 @@ const fetchWithTimeout = async (resource: string, options: RequestInit = {}, tim
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import ReactMarkdown from "react-markdown";
+import { useLanguage } from "@/components/providers/LanguageProvider";
+import { type Language } from "@/lib/i18n/translations";
 
 interface Message {
     role: 'ai' | 'user';
@@ -73,12 +75,13 @@ interface FinalReport {
 
 export default function SimulationPage() {
     const router = useRouter();
+    const { t, language, dir, setLanguage } = useLanguage();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [cvAnalysis, setCvAnalysis] = useState<CVAnalysis | null>(null);
-    const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+    const [selectedLanguage, setSelectedLanguage] = useState<string>(language);
     const [currentScenario, setCurrentScenario] = useState(1);
     const [totalScenarios] = useState(4); // 2 major + 2 minor scenarios
     const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
@@ -109,8 +112,9 @@ export default function SimulationPage() {
             container.style.width = '800px'; 
             container.style.backgroundColor = '#ffffff';
             container.style.padding = '40px';
-            container.style.fontFamily = "'Tajawal', sans-serif";
+            container.style.fontFamily = dir === 'rtl' ? "'Tajawal', sans-serif" : "Inter, sans-serif";
             container.style.color = '#0f172a';
+            container.dir = dir;
 
             // 2. Build Report HTML
             container.innerHTML = `
@@ -121,48 +125,48 @@ export default function SimulationPage() {
                     .bar-container { background-color: #f1f5f9; border-radius: 99px; height: 8px; width: 100%; overflow: hidden; margin-top: 5px; }
                     .bar-fill { height: 100%; border-radius: 99px; }
                 </style>
-                <div style="font-family: 'Tajawal', sans-serif;">
+                <div style="font-family: ${dir === 'rtl' ? "'Tajawal', sans-serif" : "inherit"};" dir="${dir}">
                     
                     <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #9333ea; padding-bottom: 20px; margin-bottom: 30px;">
-                        <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #9333ea; padding-bottom: 20px; margin-bottom: 30px; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'};">
+                        <div style="text-align: ${dir === 'rtl' ? 'right' : 'left'};">
                             <div style="color: #9333ea; font-size: 24px; font-weight: bold;">MA-TRAINING-CONSULTING</div>
-                            <div style="color: #64748b; font-size: 14px;">Role Simulation Analysis</div>
+                            <div style="color: #64748b; font-size: 14px;">${t.simulation.title}</div>
                         </div>
-                        <div style="text-align: right;">
+                        <div style="text-align: ${dir === 'rtl' ? 'left' : 'right'};">
                             <h1 style="margin: 0; font-size: 20px; color: #1e293b;">${selectedRole.title}</h1>
                             <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
                         </div>
                     </div>
 
                     <!-- Overall Stats -->
-                    <div style="display: flex; gap: 20px; margin-bottom: 30px; justify-content: space-between;">
+                    <div style="display: flex; gap: 20px; margin-bottom: 30px; justify-content: space-between; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'};">
                         <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; background-color: #eff6ff;">
-                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Overall Score</div>
+                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">${t.simulation.overallScore}</div>
                              <div style="font-size: 32px; font-weight: bold; color: #2563eb;">${finalReport.overallScore}/10</div>
                         </div>
                         <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; background-color: #f0fdf4;">
-                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Readiness</div>
+                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">${t.simulation.readiness}</div>
                              <div style="font-size: 32px; font-weight: bold; color: #16a34a;">${finalReport.readinessLevel}%</div>
                         </div>
                         <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; background-color: #faf5ff;">
-                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Rank</div>
+                             <div style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">${t.simulation.rank}</div>
                              <div style="font-size: 32px; font-weight: bold; color: #9333ea;">${finalReport.rank}</div>
                         </div>
                     </div>
 
                     <!-- Skill Breakdown -->
-                    <div style="margin-bottom: 30px; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Skill Competency Breakdown</h3>
+                    <div style="margin-bottom: 30px; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">${t.simulation.competencyBreakdown}</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                              ${Object.entries(finalReport.skillScores || {}).map(([skill, score]: [string, number]) => `
                                 <div style="margin-bottom: 10px;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'};">
                                         <span>${skill.replace(/([A-Z])/g, ' $1').trim()}</span>
                                         <span>${score}/10</span>
                                     </div>
                                     <div class="bar-container">
-                                        <div class="bar-fill" style="width: ${score * 10}%; background-color: #3b82f6;"></div>
+                                        <div class="bar-fill" style="width: ${score * 10}%; background-color: #3b82f6; float: ${dir === 'rtl' ? 'right' : 'left'};"></div>
                                     </div>
                                 </div>
                              `).join('')}
@@ -170,24 +174,24 @@ export default function SimulationPage() {
                     </div>
 
                     <!-- Strengths & Improvements -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
                         <div class="page-break" style="border: 1px solid #bbf7d0; background-color: #f0fdf4; padding: 20px; border-radius: 12px;">
-                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #166534; text-transform: uppercase;">Key Strengths</h3>
-                             <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #14532d; line-height: 1.5;">
-                                 ${finalReport.keyStrengths?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None identified</li>'}
+                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #166534; text-transform: uppercase;">${t.simulation.keyStrengths}</h3>
+                             <ul style="margin: 0; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px; font-size: 13px; color: #14532d; line-height: 1.5;">
+                                 ${finalReport.keyStrengths?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || `<li>${t.results.noneDetected}</li>`}
                              </ul>
                         </div>
                         <div class="page-break" style="border: 1px solid #fed7aa; background-color: #fff7ed; padding: 20px; border-radius: 12px;">
-                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #9a3412; text-transform: uppercase;">Areas for Growth</h3>
-                             <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #7c2d12; line-height: 1.5;">
-                                 ${finalReport.areasToImprove?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || '<li>None identified</li>'}
+                             <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #9a3412; text-transform: uppercase;">${t.simulation.areasGrowth}</h3>
+                             <ul style="margin: 0; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px; font-size: 13px; color: #7c2d12; line-height: 1.5;">
+                                 ${finalReport.areasToImprove?.map(s => `<li style="margin-bottom: 5px;">${s}</li>`).join('') || `<li>${t.results.noneDetected}</li>`}
                              </ul>
                         </div>
                     </div>
 
                     <!-- Recommendations -->
-                    <div class="page-break" style="background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #334155;">Strategic Recommendations</h3>
+                    <div class="page-break" style="background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
+                        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #334155;">${t.simulation.strategicRecommendations}</h3>
                         <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569; white-space: pre-wrap;">${finalReport.recommendations}</p>
                     </div>
 
@@ -237,7 +241,7 @@ export default function SimulationPage() {
 
         } catch (error) {
             console.error('Error generating PDF:', error);
-            alert("Failed to generate PDF report.");
+            alert(t.simulation.failedDownloadPdf);
         } finally {
             setIsDownloading(false);
         }
@@ -251,9 +255,7 @@ export default function SimulationPage() {
             const userId = userProfile.email || userProfile.fullName;
 
             if (!userId) {
-                alert(selectedLanguage === 'ar' ? 'لم يتم العثور على معرف المستخدم' :
-                      selectedLanguage === 'fr' ? 'Identifiant utilisateur introuvable' :
-                      'User ID not found');
+                alert(t.simulation.userIdNotFound);
                 return;
             }
 
@@ -272,17 +274,13 @@ export default function SimulationPage() {
             if (result.success) {
                 setComprehensiveReport(result.report);
             } else {
-                const msg = selectedLanguage === 'ar' ? 'فشل في إنشاء التقرير الشامل' :
-                      selectedLanguage === 'fr' ? 'Échec de la génération du rapport' :
-                      'Failed to generate comprehensive report';
+                const msg = t.simulation.failedGenerateReport;
                 setLastError(msg);
                 alert(msg);
             }
         } catch (error) {
             console.error('Error generating comprehensive report:', error);
-            const msg = selectedLanguage === 'ar' ? 'حدث خطأ أثناء إنشاء التقرير' :
-                  selectedLanguage === 'fr' ? 'Erreur lors de la génération du rapport' :
-                  'Error generating report';
+            const msg = t.simulation.errorGeneratingReport;
             setLastError(msg);
             alert(msg);
         } finally {
@@ -307,13 +305,14 @@ export default function SimulationPage() {
                     currentScenario: scenarioIndex,
                     totalScenarios,
                     selectedRole,
-                    cvAnalysis
+                    cvAnalysis,
+                    language: selectedLanguage,
                 }),
             });
         } catch (error) {
             console.error('Error saving progress:', error);
         }
-    }, [totalScenarios, selectedRole, cvAnalysis]);
+    }, [totalScenarios, selectedRole, cvAnalysis, selectedLanguage]);
 
     const startSimulation = useCallback(async (role: Role, cv: CVAnalysis, language: string) => {
         setIsLoading(true);
@@ -354,15 +353,15 @@ export default function SimulationPage() {
                 // Save initial scenario progress
                 saveProgress(initialMsgs, [], 1);
             } else {
-                setLastError(selectedLanguage === 'ar' ? 'فشل بدء المحاكاة' : 'Failed to start simulation');
+                setLastError(t.simulation.failedStartSimulation);
             }
         } catch (error: unknown) {
             console.error('Error starting simulation:', error);
-            setLastError(selectedLanguage === 'ar' ? 'فشل بدء المحاكاة. يرجى المحاولة مرة أخرى.' : 'Failed to start simulation. Please try again.');
+            setLastError(t.simulation.failedStartSimulation);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedLanguage, saveProgress]);
+    }, [saveProgress, t]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -392,6 +391,7 @@ export default function SimulationPage() {
                         if (data.language) {
                             storedLanguage = data.language;
                             localStorage.setItem('selectedLanguage', data.language);
+                            setLanguage(data.language as Language);
                         }
 
                         if (data.simulationConversation && data.simulationConversation.length > 0) {
@@ -436,7 +436,7 @@ export default function SimulationPage() {
         if (hasInitializedRef.current) return;
         hasInitializedRef.current = true;
         loadInitialData();
-    }, [router, startSimulation]);
+    }, [router, startSimulation, setLanguage]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -546,7 +546,7 @@ export default function SimulationPage() {
                             }
                         } catch (err) {
                             console.error("Error fetching next scenario", err);
-                            setLastError(selectedLanguage === 'ar' ? 'فشل تحميل السيناريو التالي' : 'Failed to load next scenario');
+                            setLastError(t.simulation.failedNextScenario);
                         }
                     }, 2000);
                 } else {
@@ -590,7 +590,7 @@ export default function SimulationPage() {
                             }
                         } catch (err) {
                             console.error("Error completing simulation", err);
-                            setLastError(selectedLanguage === 'ar' ? 'فشل في إكمال المحاكاة' : 'Failed to complete simulation');
+                            setLastError(t.simulation.failedCompleteSimulation);
                         }
                     }, 2000);
                 }
@@ -598,14 +598,10 @@ export default function SimulationPage() {
         } catch (error: unknown) {
             console.error('Simulation Error:', error);
             
-            let errorMsg = selectedLanguage === 'ar'
-                ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
-                : "Connection error. Please try again.";
+            let errorMsg = t.simulation.connectionError;
 
             if (error instanceof Error && error.name === 'AbortError') {
-                errorMsg = selectedLanguage === 'ar'
-                    ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
-                    : "The server is very slow right now, please try again.";
+                errorMsg = t.simulation.serverSlow;
             }
 
             setLastError(errorMsg);
@@ -623,7 +619,7 @@ export default function SimulationPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [inputValue, isLoading, selectedRole, cvAnalysis, currentScenario, messages, selectedLanguage, totalScenarios, scenarioResults, saveProgress, retryCount]);
+    }, [inputValue, isLoading, selectedRole, cvAnalysis, currentScenario, messages, selectedLanguage, totalScenarios, scenarioResults, saveProgress, retryCount, t]);
 
     const handleEmergencyFinish = async () => {
         if (scenarioResults.length < 2) return;
@@ -637,7 +633,7 @@ export default function SimulationPage() {
             const finalCV = cvAnalysis || JSON.parse(localStorage.getItem('cvAnalysis') || 'null');
 
             if (!finalRole || !finalCV) {
-                throw new Error("Missing role or CV data. Please refresh.");
+                throw new Error(t.simulation.missingData);
             }
 
             const completeResponse = await fetch('/api/simulation/complete', {
@@ -678,9 +674,7 @@ export default function SimulationPage() {
     };
 
     const handleResetSession = () => {
-        if (confirm(selectedLanguage === 'ar' ? 'هل أنت متأكد أنك تريد إعادة الجلسة؟ ستفقد كل المحادثات.' : 
-                   selectedLanguage === 'fr' ? 'Êtes-vous sûr de vouloir réinitialiser la session ? Toute la conversation sera perdue.' : 
-                   "Are you sure you want to reset this session? All conversation will be lost.")) {
+        if (confirm(t.simulation.resetConfirm)) {
             setMessages([]);
             setScenarioResults([]);
             setCurrentScenario(1);
@@ -694,10 +688,8 @@ export default function SimulationPage() {
     };
 
     const handleTimeout = useCallback(() => {
-        const timeoutMessage = selectedLanguage === 'ar' ? "انتهى الوقت. سأنتقل للسيناريو التالي." :
-            selectedLanguage === 'fr' ? "Temps écoulé. Passage au scénario suivant." : "Time expired. Moving to next scenario.";
-        handleSendMessage(timeoutMessage);
-    }, [selectedLanguage, handleSendMessage]);
+        handleSendMessage(t.simulation.timeoutMessage);
+    }, [t, handleSendMessage]);
 
     // Timer Effect
     useEffect(() => {
@@ -735,10 +727,9 @@ export default function SimulationPage() {
                         onClick={() => router.push('/assessment/role-suggestions')}
                         className="inline-flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                         <span className="font-medium">
-                            {selectedLanguage === 'ar' ? 'العودة' :
-                             selectedLanguage === 'fr' ? 'Retour' : 'Back'}
+                            {t.simulation.back}
                         </span>
                     </button>
                 </div>
@@ -748,14 +739,14 @@ export default function SimulationPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-linear-to-br from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-8"
                     >
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="flex items-center gap-6">
+                        <div className={`flex flex-col md:flex-row items-center justify-between gap-6 ${dir === 'rtl' ? 'md:flex-row-reverse' : ''}`}>
+                            <div className={`flex items-center gap-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
                                     <Award className="w-10 h-10 text-purple-600" />
                                 </div>
-                                <div className="text-left">
-                                    <h1 className="text-3xl font-bold text-slate-900 mb-1">Simulation Complete!</h1>
-                                    <p className="text-slate-600">Performance report for: <span className="font-bold text-purple-600">{selectedRole?.title}</span></p>
+                                <div className={dir === 'rtl' ? 'text-right' : 'text-left'}>
+                                    <h1 className="text-3xl font-bold text-slate-900 mb-1">{t.simulation.complete}</h1>
+                                    <p className="text-slate-600">{t.simulation.performanceReport} <span className="font-bold text-purple-600">{selectedRole?.title}</span></p>
                                 </div>
                             </div>
 
@@ -766,8 +757,7 @@ export default function SimulationPage() {
                                     className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-700 shadow-sm active:scale-95"
                                 >
                                     <MessageSquare className="w-5 h-5 text-slate-400" />
-                                    {selectedLanguage === 'ar' ? 'مراجعة المحادثة' : 
-                                     selectedLanguage === 'fr' ? 'Revoir la conversation' : 'Review Chat History'}
+                                    {t.simulation.reviewChat}
                                 </button>
 
                                 <button
@@ -781,8 +771,7 @@ export default function SimulationPage() {
                                     ) : (
                                         <Download className="w-5 h-5" />
                                     )}
-                                    {selectedLanguage === 'ar' ? 'تحميل التقرير PDF' :
-                                        selectedLanguage === 'fr' ? 'Télécharger le rapport PDF' : 'Download Report PDF'}
+                                    {t.simulation.downloadPdf}
                                 </button>
                             </div>
                         </div>
@@ -795,30 +784,30 @@ export default function SimulationPage() {
                         transition={{ delay: 0.1 }}
                         className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
                     >
-                        <h2 className="text-2xl font-bold text-slate-900 mb-6">Overall Performance</h2>
+                        <h2 className={`text-2xl font-bold text-slate-900 mb-6 ${dir === 'rtl' ? 'text-right' : ''}`}>{t.simulation.overallPerformance}</h2>
 
                         <div className="grid md:grid-cols-3 gap-6 mb-8">
                             <div className="text-center p-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
                                 <div className="text-5xl font-black text-blue-600 mb-2">{finalReport.overallScore}</div>
-                                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overall Score</div>
+                                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t.simulation.overallScore}</div>
                             </div>
                             <div className="text-center p-6 bg-linear-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
                                 <div className="text-5xl font-black text-green-600 mb-2">{finalReport.readinessLevel}%</div>
-                                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Role Readiness</div>
+                                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t.simulation.readiness}</div>
                             </div>
                             <div className="text-center p-6 bg-linear-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
-                                <div className="text-5xl font-black text-purple-600 mb-2">{finalReport.rank}</div>
-                                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Performance Rank</div>
+                                <div className="text-5xl font-black text-purple-600 mb-2">{(t.simulation.rankLabels as Record<string, string>)[finalReport.rank] || finalReport.rank}</div>
+                                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t.simulation.rank}</div>
                             </div>
                         </div>
 
                         {/* Skill Breakdown */}
                         <div className="space-y-6">
-                            <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Skill Breakdown</h3>
+                            <h3 className={`text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 ${dir === 'rtl' ? 'text-right' : ''}`}>{t.simulation.competencyBreakdown}</h3>
                             <div className="grid md:grid-cols-2 gap-x-12 gap-y-6">
                                 {Object.entries(finalReport.skillScores || {}).map(([skill, score]: [string, number]) => (
-                                    <div key={skill} className="space-y-3">
-                                        <div className="flex justify-between items-center">
+                                    <div key={skill} className="space-y-3" dir={dir}>
+                                        <div className={`flex justify-between items-center ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                             <span className="text-sm font-bold text-slate-700 capitalize">{skill.replace(/([A-Z])/g, ' $1').trim()}</span>
                                             <span className="text-sm font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{score}/10</span>
                                         </div>
@@ -826,7 +815,7 @@ export default function SimulationPage() {
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${(score / 10) * 100}%` }}
-                                                className="bg-linear-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-1000"
+                                                className={`h-3 rounded-full transition-all duration-1000 ${dir === 'rtl' ? 'bg-linear-to-l' : 'bg-linear-to-r'} from-blue-500 to-blue-600`}
                                             />
                                         </div>
                                     </div>
@@ -843,14 +832,14 @@ export default function SimulationPage() {
                             transition={{ delay: 0.2 }}
                             className="bg-white rounded-2xl border border-green-200 p-6 shadow-sm"
                         >
-                            <div className="flex items-center gap-2 mb-4">
+                            <div className={`flex items-center gap-2 mb-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <CheckCircle className="w-6 h-6 text-green-600" />
-                                <h3 className="text-xl font-bold text-slate-900">Key Strengths</h3>
+                                <h3 className="text-xl font-bold text-slate-900">{t.simulation.keyStrengths}</h3>
                             </div>
                             <ul className="space-y-3">
                                 {finalReport.keyStrengths?.map((strength: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-3 p-3 bg-green-50 rounded-xl text-slate-700 text-sm font-medium">
-                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                    <li key={i} className={`flex items-start gap-3 p-3 bg-green-50 rounded-xl text-slate-700 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`}>
+                                        <CheckCircle className={`w-4 h-4 text-green-500 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} />
                                         <span>{strength}</span>
                                     </li>
                                 ))}
@@ -859,18 +848,18 @@ export default function SimulationPage() {
 
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
                             className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm"
                         >
-                            <div className="flex items-center gap-2 mb-4">
+                            <div className={`flex items-center gap-2 mb-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <AlertCircle className="w-6 h-6 text-orange-600" />
-                                <h3 className="text-xl font-bold text-slate-900">Areas to Improve</h3>
+                                <h3 className="text-xl font-bold text-slate-900">{t.simulation.areasGrowth}</h3>
                             </div>
                             <ul className="space-y-3">
                                 {finalReport.areasToImprove?.map((area: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-3 p-3 bg-orange-50 rounded-xl text-slate-700 text-sm font-medium">
-                                        <AlertCircle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                                    <li key={i} className={`flex items-start gap-3 p-3 bg-orange-50 rounded-xl text-slate-700 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`}>
+                                        <AlertCircle className={`w-4 h-4 text-orange-500 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} />
                                         <span>{area}</span>
                                     </li>
                                 ))}
@@ -886,14 +875,14 @@ export default function SimulationPage() {
                         className="bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl p-0.5"
                     >
                         <div className="bg-white rounded-[calc(1rem-2px)] p-8">
-                            <div className="flex items-center gap-3 mb-6">
+                            <div className={`flex items-center gap-3 mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                                     <Lightbulb className="w-6 h-6 text-blue-600" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-900">Strategic Recommendations</h3>
+                                <h3 className="text-2xl font-bold text-slate-900">{t.simulation.strategicRecommendations}</h3>
                             </div>
                             <div className="prose prose-slate max-w-none">
-                                <div className="text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">
+                                <div className={`text-slate-700 leading-relaxed text-lg whitespace-pre-wrap ${dir === 'rtl' ? 'text-right' : ''}`}>
                                     {finalReport.recommendations}
                                 </div>
                             </div>
@@ -927,14 +916,10 @@ export default function SimulationPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-2xl md:text-3xl font-black text-slate-900">
-                                            {selectedLanguage === 'ar' ? 'التقرير التشخيصي الشامل' :
-                                             selectedLanguage === 'fr' ? 'Rapport Diagnostique Complet' :
-                                             'Comprehensive Diagnostic Report'}
+                                            {t.simulation.comprehensiveReport.title}
                                         </h2>
                                         <p className="text-slate-500 font-medium mt-1">
-                                            {selectedLanguage === 'ar' ? 'تحليل استراتيجي للقدرات والكفاءات المهنية' :
-                                             selectedLanguage === 'fr' ? 'Analyse stratégique des compétences professionnelles' :
-                                             'Strategic analysis of professional capabilities'}
+                                            {t.simulation.comprehensiveReport.subtitle}
                                         </p>
                                     </div>
                                 </div>
@@ -952,9 +937,7 @@ export default function SimulationPage() {
                                 >
                                     <Download className="w-4 h-4" />
                                     <span>
-                                        {selectedLanguage === 'ar' ? 'تصدير نصي' :
-                                         selectedLanguage === 'fr' ? 'Exporter en texte' :
-                                         'Export to Text'}
+                                        {t.simulation.comprehensiveReport.exportToText}
                                     </span>
                                 </button>
                             </div>
@@ -991,7 +974,7 @@ export default function SimulationPage() {
                             <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                    <span>Verified Assessment</span>
+                                    <span>{t.simulation.comprehensiveReport.verifiedAssessment}</span>
                                 </div>
                                 <span>MA-TRAINING-CONSULTING • AI CAREER ARCHITECTURE</span>
                                 <span>{new Date().getFullYear()}</span>
@@ -1031,11 +1014,7 @@ export default function SimulationPage() {
                                 {isGeneratingReport ? (
                                     <>
                                         <Loader2 className="w-10 h-10 animate-spin" />
-                                        <span>
-                                            {selectedLanguage === 'ar' ? 'جاري إنشاء التقرير الشامل...' :
-                                             selectedLanguage === 'fr' ? 'Génération du rapport en cours...' :
-                                             'Generating Report...'}
-                                        </span>
+                                        <span>{t.simulation.comprehensiveReport.generatingReport}</span>
                                     </>
                                 ) : (
                                     <>
@@ -1043,9 +1022,7 @@ export default function SimulationPage() {
                                             <Sparkles className="w-8 h-8 text-yellow-300 animate-pulse" />
                                         </div>
                                         <span>
-                                            {selectedLanguage === 'ar' ? 'إنشاء التقرير التشخيصي الشامل' :
-                                             selectedLanguage === 'fr' ? 'Générer le Rapport Complet' :
-                                             'Generate Comprehensive Report'}
+                                            {t.simulation.comprehensiveReport.generateButton}
                                         </span>
                                         <motion.div
                                             animate={{ x: [0, 8, 0] }}
@@ -1110,9 +1087,7 @@ export default function SimulationPage() {
                                     <CheckCircle className="w-8 h-8 text-white animate-pulse" />
                                 </div>
                                 <span>
-                                    {selectedLanguage === 'ar' ? 'إتمام وإنهاء التشخيص بالكامل' :
-                                     selectedLanguage === 'fr' ? 'Finaliser le Diagnostic Complet' :
-                                     'Complete & Finish Diagnosis'}
+                                    {t.simulation.completeDiagnosis}
                                 </span>
                                 <motion.div
                                     animate={{ x: [0, 8, 0] }}
@@ -1143,7 +1118,8 @@ export default function SimulationPage() {
                         animate={{ scale: 1, y: 0 }}
                         transition={{ type: "spring", duration: 0.5 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative text-left"
+                        className={`bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative ${dir === 'rtl' ? 'text-right' : 'text-left'}`}
+                        dir={dir}
                     >
                         {/* Close Button */}
                         <button
@@ -1151,7 +1127,7 @@ export default function SimulationPage() {
                                 setShowCompletionModal(false);
                                 router.push('/dashboard');
                             }}
-                            className="absolute top-6 right-6 w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center transition-colors z-10"
+                            className={`absolute top-6 ${dir === 'rtl' ? 'left-6' : 'right-6'} w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center transition-colors z-10`}
                         >
                             <X className="w-5 h-5 text-slate-600" />
                         </button>
@@ -1170,23 +1146,17 @@ export default function SimulationPage() {
                             </motion.div>
                             
                             <h2 className="text-3xl md:text-4xl font-black mb-3 relative z-10">
-                                {selectedLanguage === 'ar' ? '🎉 تهانينا! اكتمل التشخيص' :
-                                 selectedLanguage === 'fr' ? '🎉 Félicitations ! Diagnostic Terminé' :
-                                 '🎉 Congratulations! Diagnosis Complete'}
+                                {t.simulation.completionModal.congratulations}
                             </h2>
                             <p className="text-lg text-white/90 max-w-2xl mx-auto relative z-10">
-                                {selectedLanguage === 'ar' ? 'الآن يمكنك الوصول إلى جميع الخدمات المتاحة لتطوير مسارك المهني' :
-                                 selectedLanguage === 'fr' ? 'Vous avez maintenant accès à tous les services disponibles pour développer votre carrière' :
-                                 'You now have access to all available services to develop your career'}
+                                {t.simulation.completionModal.subtitle}
                             </p>
                         </div>
 
                         {/* Services Grid */}
                         <div className="p-8 md:p-12">
                             <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center uppercase tracking-wider">
-                                {selectedLanguage === 'ar' ? 'الخدمات المتاحة الآن' :
-                                 selectedLanguage === 'fr' ? 'Services Disponibles Maintenant' :
-                                 'Available Services Now'}
+                                {t.simulation.completionModal.title}
                             </h3>
 
                             <div className="grid md:grid-cols-2 gap-6">
@@ -1197,18 +1167,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.1 }}
                                     className="bg-linear-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <Target className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'محاكاة واقعية' :
-                                         selectedLanguage === 'fr' ? 'Simulations Réelles' :
-                                         'Real Simulations'}
+                                        {t.simulation.completionModal.services.simulations.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'تدرب على سيناريوهات واقعية لتطوير مهاراتك المهنية' :
-                                         selectedLanguage === 'fr' ? 'Entraînez-vous sur des scénarios réels pour développer vos compétences' :
-                                         'Practice real-world scenarios to develop your professional skills'}
+                                        {t.simulation.completionModal.services.simulations.desc}
                                     </p>
                                 </motion.div>
 
@@ -1219,18 +1185,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.2 }}
                                     className="bg-linear-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <Users className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'ورش تنفيذية' :
-                                         selectedLanguage === 'fr' ? 'Workshops Exécutifs' :
-                                         'Executive Workshops'}
+                                        {t.simulation.completionModal.services.workshops.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'ورش عمل متخصصة لتطوير المهارات القيادية والإدارية' :
-                                         selectedLanguage === 'fr' ? 'Ateliers spécialisés pour développer les compétences de leadership' :
-                                         'Specialized workshops to develop leadership and management skills'}
+                                        {t.simulation.completionModal.services.workshops.desc}
                                     </p>
                                 </motion.div>
 
@@ -1241,18 +1203,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.3 }}
                                     className="bg-linear-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <Brain className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'مستشار ذكاء اصطناعي' :
-                                         selectedLanguage === 'fr' ? 'Conseiller IA' :
-                                         'AI Advisor'}
+                                        {t.simulation.completionModal.services.aiAdvisor.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'احصل على نصائح مخصصة من مستشار ذكاء اصطناعي متقدم' :
-                                         selectedLanguage === 'fr' ? 'Obtenez des conseils personnalisés d\'un conseiller IA avancé' :
-                                         'Get personalized advice from an advanced AI advisor'}
+                                        {t.simulation.completionModal.services.aiAdvisor.desc}
                                     </p>
                                 </motion.div>
 
@@ -1263,18 +1221,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.4 }}
                                     className="bg-linear-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <BookOpen className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'قاعدة المعرفة' :
-                                         selectedLanguage === 'fr' ? 'Base de Connaissances' :
-                                         'Knowledge Base'}
+                                        {t.simulation.completionModal.services.knowledgeBase.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'مكتبة شاملة من الموارد والمقالات لتطوير معرفتك' :
-                                         selectedLanguage === 'fr' ? 'Bibliothèque complète de ressources et d\'articles pour développer vos connaissances' :
-                                         'Comprehensive library of resources and articles to expand your knowledge'}
+                                        {t.simulation.completionModal.services.knowledgeBase.desc}
                                     </p>
                                 </motion.div>
 
@@ -1285,18 +1239,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.5 }}
                                     className="bg-linear-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <FileText className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'مركز الموارد' :
-                                         selectedLanguage === 'fr' ? 'Centre de Ressources' :
-                                         'Resource Center'}
+                                        {t.simulation.completionModal.services.resourceCenter.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'أدوات ونماذج جاهزة لدعم تطورك المهني' :
-                                         selectedLanguage === 'fr' ? 'Outils et modèles prêts à l\'emploi pour soutenir votre développement' :
-                                         'Ready-to-use tools and templates to support your professional development'}
+                                        {t.simulation.completionModal.services.resourceCenter.desc}
                                     </p>
                                 </motion.div>
 
@@ -1307,18 +1257,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.6 }}
                                     className="bg-linear-to-br from-rose-50 to-pink-50 border-2 border-rose-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-rose-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-rose-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <MessageSquare className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'استشارة خبراء' :
-                                         selectedLanguage === 'fr' ? 'Consultation d\'Experts' :
-                                         'Expert Consultation'}
+                                        {t.simulation.completionModal.services.expertConsultation.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'تواصل مع خبراء متخصصين للحصول على إرشادات مخصصة' :
-                                         selectedLanguage === 'fr' ? 'Connectez-vous avec des experts pour obtenir des conseils personnalisés' :
-                                         'Connect with specialized experts for personalized guidance'}
+                                        {t.simulation.completionModal.services.expertConsultation.desc}
                                     </p>
                                 </motion.div>
 
@@ -1329,18 +1275,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.7 }}
                                     className="bg-linear-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <Map className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'خارطة الطريق المهنية' :
-                                         selectedLanguage === 'fr' ? 'Feuille de Route' :
-                                         'Career Roadmap'}
+                                        {t.simulation.completionModal.services.careerRoadmap.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'خطة مخصصة لتحقيق أهدافك المهنية خطوة بخطوة' :
-                                         selectedLanguage === 'fr' ? 'Plan personnalisé pour atteindre vos objectifs professionnels' :
-                                         'Personalized plan to achieve your career goals step by step'}
+                                        {t.simulation.completionModal.services.careerRoadmap.desc}
                                     </p>
                                 </motion.div>
 
@@ -1351,18 +1293,14 @@ export default function SimulationPage() {
                                     transition={{ delay: 0.8 }}
                                     className="bg-linear-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
                                 >
-                                    <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${dir === 'rtl' ? 'mr-0 ml-auto' : ''}`}>
                                         <Briefcase className="w-6 h-6 text-white" />
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 mb-2">
-                                        {selectedLanguage === 'ar' ? 'ملف مهني متقدم' :
-                                         selectedLanguage === 'fr' ? 'Portfolio Professionnel' :
-                                         'Professional Portfolio'}
+                                        {t.simulation.completionModal.services.portfolio.title}
                                     </h4>
                                     <p className="text-sm text-slate-600 leading-relaxed">
-                                        {selectedLanguage === 'ar' ? 'ملف شامل يعرض إنجازاتك ومهاراتك بشكل احترافي' :
-                                         selectedLanguage === 'fr' ? 'Portfolio complet présentant vos réalisations professionnellement' :
-                                         'Comprehensive portfolio showcasing your achievements professionally'}
+                                        {t.simulation.completionModal.services.portfolio.desc}
                                     </p>
                                 </motion.div>
                             </div>
@@ -1376,12 +1314,10 @@ export default function SimulationPage() {
                                     setShowCompletionModal(false);
                                     router.push('/dashboard');
                                 }}
-                                className="mt-10 w-full py-5 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-3"
+                                className={`mt-10 w-full py-5 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}
                             >
-                                {selectedLanguage === 'ar' ? 'انتقل إلى لوحة التحكم' :
-                                 selectedLanguage === 'fr' ? 'Aller au Tableau de Bord' :
-                                 'Go to Dashboard'}
-                                <ArrowRight className="w-5 h-5" />
+                                {t.simulation.completionModal.dashboardCTA}
+                                <ArrowRight className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                             </motion.button>
                         </div>
                     </motion.div>
@@ -1393,14 +1329,14 @@ export default function SimulationPage() {
 
     return (
         <>
-        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto w-full font-sans">
+        <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto w-full font-sans" dir={dir}>
             {/* Header Section */}
-            <div className="mb-4 flex flex-col items-center text-center gap-4 px-4 shrink-0 relative">
+            <div className={`mb-4 flex flex-col items-center text-center gap-4 px-4 shrink-0 relative ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                 <button 
                     onClick={() => router.push('/assessment/role-suggestions')}
-                    className="absolute left-0 top-2 p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+                    className={`absolute ${dir === 'rtl' ? 'right-0' : 'left-0'} top-2 p-2 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm`}
                 >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                 </button>
 
                 <motion.div 
@@ -1411,10 +1347,10 @@ export default function SimulationPage() {
                     <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-blue-400 rounded-2xl blur opacity-20"></div>
                     <div className="relative bg-white/50 backdrop-blur-sm px-8 py-3 rounded-2xl border border-slate-200/60 shadow-sm">
                         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1 tracking-tight">
-                            Role <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">Simulation</span>
+                            {t.simulation.title}
                         </h1>
-                        <p className="text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
-                            <span>Practice as:</span>
+                        <p className={`text-slate-500 text-sm font-medium flex items-center justify-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                            <span>{t.simulation.practiceAs}:</span>
                             <span className="font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-100 text-xs uppercase tracking-wide">
                                 {selectedRole?.title}
                             </span>
@@ -1427,11 +1363,11 @@ export default function SimulationPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="flex flex-wrap justify-center items-center gap-4 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-2xl shadow-sm border border-slate-200 w-full md:w-auto"
+                    className={`flex flex-wrap justify-center items-center gap-4 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-2xl shadow-sm border border-slate-200 w-full md:w-auto ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}
                 >
                     {/* Progress */}
-                    <div className="flex items-center gap-3 pr-4 border-r border-slate-200">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scenario</span>
+                    <div className={`flex items-center gap-3 ${dir === 'rtl' ? 'pl-4 border-l' : 'pr-4 border-r'} border-slate-200 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.simulation.scenario}</span>
                         <div className="h-2 w-24 bg-slate-100 rounded-full overflow-hidden shrink-0">
                             <motion.div 
                                 className="h-full bg-linear-to-r from-purple-500 to-blue-500"
@@ -1454,10 +1390,10 @@ export default function SimulationPage() {
                     {/* Reset Button */}
                     <button 
                         onClick={handleResetSession}
-                        className="text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors pl-4 border-l border-slate-200"
+                        className={`text-xs font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors ${dir === 'rtl' ? 'pr-4 border-r' : 'pl-4 border-l'} border-slate-200`}
                     >
                         <RefreshCw className="w-3 h-3" />
-                        Reset
+                        {t.simulation.reset}
                     </button>
                 </motion.div>
             </div>
@@ -1475,25 +1411,25 @@ export default function SimulationPage() {
                             transition={{ delay: index * 0.1 }}
                             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className={`max-w-[90%] md:max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'} group`}>
+                            <div className={`max-w-[90%] md:max-w-[80%] ${message.role === 'user' ? (dir === 'rtl' ? 'order-1' : 'order-2') : (dir === 'rtl' ? 'order-2' : 'order-1')} group`}>
                                 {message.role === 'ai' && (
-                                    <div className="flex items-center gap-3 mb-2 ml-1">
+                                    <div className={`flex items-center gap-3 mb-2 ${dir === 'rtl' ? 'mr-1 flex-row-reverse' : 'ml-1'}`}>
                                         <div className="w-8 h-8 rounded-xl bg-linear-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20 text-white">
                                             <Brain className="w-4 h-4" />
                                         </div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Scenario Manager</span>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.simulation.aiScenarioManager}</span>
                                     </div>
                                 )}
 
                                 <div className={`relative p-5 md:p-6 shadow-sm border ${message.role === 'user'
-                                    ? 'bg-linear-to-br from-slate-900 to-slate-800 text-white rounded-3xl rounded-tr-none border-slate-700'
-                                    : 'bg-white text-slate-700 rounded-3xl rounded-tl-none border-slate-100'
+                                    ? `bg-linear-to-br from-slate-900 to-slate-800 text-white rounded-3xl ${dir === 'rtl' ? 'rounded-tl-none' : 'rounded-tr-none'} border-slate-700`
+                                    : `bg-white text-slate-700 rounded-3xl ${dir === 'rtl' ? 'rounded-tr-none' : 'rounded-tl-none'} border-slate-100`
                                     }`}>
-                                    <p className="leading-relaxed whitespace-pre-wrap text-[15px]">{message.content}</p>
+                                    <p className={`leading-relaxed whitespace-pre-wrap text-[15px] ${dir === 'rtl' ? 'text-right' : ''}`}>{message.content}</p>
                                     
                                     {/* Subtle shine effect for user bubbles */}
                                     {message.role === 'user' && (
-                                        <div className="absolute inset-0 rounded-3xl rounded-tr-none bg-linear-to-t from-white/5 to-transparent pointer-events-none" />
+                                        <div className={`absolute inset-0 rounded-3xl ${dir === 'rtl' ? 'rounded-tl-none' : 'rounded-tr-none'} bg-linear-to-t from-white/5 to-transparent pointer-events-none`} />
                                     )}
                                 </div>
 
@@ -1509,9 +1445,9 @@ export default function SimulationPage() {
                                                 <Award className="w-16 h-16 text-blue-600" />
                                             </div>
                                             
-                                            <div className="flex items-center gap-3 mb-4 relative z-10">
+                                            <div className={`flex items-center gap-3 mb-4 relative z-10 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                                 <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-black border border-blue-200">
-                                                    Score: {message.feedback.score}/10
+                                                    {t.simulation.score}: {message.feedback.score}/10
                                                 </div>
                                                 <div className="h-px flex-1 bg-blue-200"></div>
                                             </div>
@@ -1519,12 +1455,12 @@ export default function SimulationPage() {
                                             <div className="grid md:grid-cols-2 gap-4 relative z-10">
                                                 {message.feedback.strengths.length > 0 && (
                                                     <div className="bg-white/60 rounded-xl p-3 border border-blue-100">
-                                                        <p className="text-xs font-bold text-green-700 mb-2 uppercase tracking-wide flex items-center gap-1">
-                                                            <CheckCircle className="w-3 h-3" /> Strengths
+                                                        <p className={`text-xs font-bold text-green-700 mb-2 uppercase tracking-wide flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                            <CheckCircle className="w-3 h-3" /> {t.simulation.keyStrengths}
                                                         </p>
-                                                        <ul className="text-sm text-slate-600 space-y-1.5 ml-1">
+                                                        <ul className={`text-sm text-slate-600 space-y-1.5 ${dir === 'rtl' ? 'mr-1 text-right' : 'ml-1'}`}>
                                                             {message.feedback.strengths.map((s, i) => (
-                                                                <li key={i} className="flex items-start gap-2">
+                                                                <li key={i} className={`flex items-start gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                                                     <span className="block w-1 h-1 rounded-full bg-green-400 mt-2 shrink-0"></span>
                                                                     {s}
                                                                 </li>
@@ -1535,12 +1471,12 @@ export default function SimulationPage() {
                                                 
                                                 {message.feedback.improvements.length > 0 && (
                                                     <div className="bg-white/60 rounded-xl p-3 border border-blue-100">
-                                                        <p className="text-xs font-bold text-orange-700 mb-2 uppercase tracking-wide flex items-center gap-1">
-                                                            <Lightbulb className="w-3 h-3" /> To Improve
+                                                        <p className={`text-xs font-bold text-orange-700 mb-2 uppercase tracking-wide flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                            <Lightbulb className="w-3 h-3" /> {t.simulation.toImprove}
                                                         </p>
-                                                        <ul className="text-sm text-slate-600 space-y-1.5 ml-1">
+                                                        <ul className={`text-sm text-slate-600 space-y-1.5 ${dir === 'rtl' ? 'mr-1 text-right' : 'ml-1'}`}>
                                                             {message.feedback.improvements.map((s, i) => (
-                                                                <li key={i} className="flex items-start gap-2">
+                                                                <li key={i} className={`flex items-start gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                                                     <span className="block w-1 h-1 rounded-full bg-orange-400 mt-2 shrink-0"></span>
                                                                     {s}
                                                                 </li>
@@ -1553,7 +1489,7 @@ export default function SimulationPage() {
                                     </motion.div>
                                 )}
 
-                                <span className={`text-[10px] uppercase font-bold text-slate-300 mt-2 block px-2 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                                <span className={`text-[10px] uppercase font-bold text-slate-300 mt-2 block px-2 ${dir === 'rtl' ? (message.role === 'user' ? 'text-left' : 'text-right') : (message.role === 'user' ? 'text-right' : 'text-left')}`}>
                                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
@@ -1565,14 +1501,14 @@ export default function SimulationPage() {
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex justify-start"
+                            className={`flex ${dir === 'rtl' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-100 shadow-sm ml-4">
+                            <div className={`flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-100 shadow-sm ${dir === 'rtl' ? 'mr-4' : 'ml-4'} ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
                                 <span className="text-slate-500 text-sm font-medium">
                                     {retryCount > 0 
-                                        ? (selectedLanguage === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
-                                        : (selectedLanguage === 'ar' ? 'جاري تحليل إجابتك...' : 'Analyzing your response...')}
+                                        ? `${t.simulation.retrying} (${retryCount}/2)...`
+                                        : t.simulation.analyzingResponse}
                                 </span>
                             </div>
                         </motion.div>
@@ -1584,7 +1520,7 @@ export default function SimulationPage() {
                             animate={{ opacity: 1 }}
                             className="flex justify-center"
                         >
-                            <div className="flex items-center gap-2 bg-red-50 text-red-600 rounded-2xl p-3 border border-red-200 text-sm">
+                            <div className={`flex items-center gap-2 bg-red-50 text-red-600 rounded-2xl p-3 border border-red-200 text-sm ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <AlertCircle className="w-4 h-4" />
                                 <span>{lastError}</span>
                             </div>
@@ -1596,7 +1532,7 @@ export default function SimulationPage() {
 
                 {/* Input Area */}
                 <div className="bg-white border-t border-slate-100 p-4 md:p-6 shrink-0 relative z-20">
-                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                    <div className={`flex flex-col md:flex-row gap-4 items-end ${dir === 'rtl' ? 'md:flex-row-reverse' : ''}`}>
                         <div className="relative flex-1 w-full">
                             <textarea
                                 value={inputValue}
@@ -1607,21 +1543,22 @@ export default function SimulationPage() {
                                         handleSendMessage();
                                     }
                                 }}
-                                placeholder="Describe how you would handle this situation..."
+                                placeholder={t.simulation.placeholder}
                                 disabled={isLoading || simulationComplete}
                                 rows={2}
-                                className="w-full pl-6 pr-4 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium resize-none"
+                                className={`w-full ${dir === 'rtl' ? 'pr-6 pl-4 text-right' : 'pl-6 pr-4'} py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium resize-none`}
+                                dir={dir}
                             />
                         </div>
                         
                         <button
                             onClick={() => handleSendMessage()}
                             disabled={!inputValue.trim() || isLoading || simulationComplete}
-                            className="w-full md:w-auto px-8 py-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-purple-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                            className={`w-full md:w-auto px-8 py-4 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-purple-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}
                         >
-                            <Send className="w-5 h-5" />
-                            <span className="hidden md:inline">Submit Reponse</span>
-                            <span className="md:hidden">Submit</span>
+                            <Send className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                            <span className="hidden md:inline">{t.simulation.submit}</span>
+                            <span className="md:hidden">{t.simulation.submitShort}</span>
                         </button>
                     </div>
 

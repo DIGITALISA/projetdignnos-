@@ -73,6 +73,36 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // ✅ حفظ الوثائق المُولَّدة في MongoDB
+        const userId = body.userId;
+        if (userId && result.documents) {
+            try {
+                const connectDB = (await import('@/lib/mongodb')).default;
+                const Diagnosis = (await import('@/models/Diagnosis')).default;
+                await connectDB();
+
+                await Diagnosis.findOneAndUpdate(
+                    {
+                        $or: [
+                            { userId: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+                            { userId: userId.toString() }
+                        ]
+                    },
+                    {
+                        generatedDocuments: result.documents,
+                        currentStep: 'cv_generation',
+                        'completionStatus.cvGenerationComplete': true,
+                        updatedAt: new Date()
+                    },
+                    { upsert: false, new: true, sort: { updatedAt: -1 } }
+                );
+                console.log('✅ CV generation documents saved to MongoDB for user:', userId);
+            } catch (dbErr) {
+                console.error('❌ Failed to save CV docs to MongoDB:', dbErr);
+                // Don't block response — CV was generated, just not saved
+            }
+        }
+
         return NextResponse.json({
             success: true,
             documents: result.documents,

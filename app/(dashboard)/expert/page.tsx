@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Users, GraduationCap, HeartHandshake, Target, ArrowLeft, Bot } from "lucide-react";
+import Link from "next/link";
+import { Send, Loader2, Users, GraduationCap, HeartHandshake, Target, ArrowLeft, Bot, Lock } from "lucide-react";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
 type ExpertType = 'hr' | 'learning' | 'advice' | 'strategic';
@@ -13,7 +15,7 @@ interface Message {
 }
 
 export default function ExpertPage() {
-    const { t, language } = useLanguage();
+    const { t, language, dir } = useLanguage();
     const [selectedExpert, setSelectedExpert] = useState<ExpertType | null>(null);
     const [inputValues, setInputValues] = useState<Record<ExpertType, string>>({
         hr: "",
@@ -31,7 +33,15 @@ export default function ExpertPage() {
     });
 
     const [isLoading, setIsLoading] = useState(false);
+    const [userPlan, setUserPlan] = useState<string>("None");
+    const [userRole, setUserRole] = useState<string>("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        setUserPlan(profile.plan || "None");
+        setUserRole(profile.role || "");
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -174,8 +184,42 @@ export default function ExpertPage() {
 
     const activeExpertConfig = experts.find(e => e.id === selectedExpert);
 
+    const isFreeTier = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+
     return (
-        <div className="flex-1 flex flex-col h-[calc(100dvh-8rem)]">
+        <div className="flex-1 flex flex-col h-[calc(100dvh-8rem)] relative">
+            {/* Teaser Overlay for Free Tier */}
+            {isFreeTier && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-white/40 backdrop-blur-md rounded-2xl">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-[2.5rem] p-10 max-w-lg w-full shadow-2xl border border-slate-200 text-center relative overflow-hidden"
+                    >
+                        <div className="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <Lock className="w-10 h-10 text-blue-600" />
+                        </div>
+                        
+                        <h2 className="text-3xl font-black text-slate-900 mb-4">
+                            {dir === 'rtl' ? 'استشارة الخبراء مغلقة' : 'Expert Consultation Locked'}
+                        </h2>
+                        
+                        <p className="text-slate-600 font-medium leading-relaxed mb-8">
+                            {dir === 'rtl' 
+                                ? 'التواصل المباشر مع خبراء التوظيف والاستراتيجية متاح حصرياً لمشتركي الخطة الاحترافية. قم بالترقية الآن للحصول على توجيه شخصي لمسارك المهني.' 
+                                : 'Direct communication with recruitment and strategy experts is exclusive to Pro Plan members. Upgrade now to get personalized guidance for your career journey.'}
+                        </p>
+                        
+                        <Link 
+                            href="/subscription"
+                            className="block w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
+                        >
+                            {dir === 'rtl' ? 'فتح استشارة الخبراء' : 'Unlock Expert Consultation'}
+                        </Link>
+                    </motion.div>
+                </div>
+            )}
+
             {!selectedExpert ? (
                 /* Expert Selection View */
                 <div className="flex flex-col h-full overflow-y-auto">

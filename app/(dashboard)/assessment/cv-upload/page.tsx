@@ -22,6 +22,8 @@ import {
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useLanguage } from "@/components/providers/LanguageProvider";
+import { Language } from "@/lib/i18n/translations";
 
 const LANGUAGES = [
   { code: "en", name: "English", flag: "🇬🇧", nativeName: "English" },
@@ -149,8 +151,16 @@ export default function CVUploadPage() {
                     case "role_discovery":
                       router.push("/assessment/role-discovery");
                       return;
+                    case "role_discovery_complete":
+                      router.push("/assessment/role-suggestions");
+                      return;
                     case "role_selected":
+                    case "cv_generation":
                       router.push("/assessment/cv-generation");
+                      return;
+                    case "simulation_in_progress":
+                    case "simulation_complete":
+                      router.push("/assessment/simulation");
                       return;
                     case "completed":
                       router.push("/dashboard");
@@ -479,6 +489,17 @@ export default function CVUploadPage() {
       console.log("API Response:", result);
 
       if (!response.ok) {
+        if (result.error === 'ONE_ATTEMPT_LIMIT') {
+             const confirmUpgrade = confirm(selectedLanguage === 'ar' 
+                ? 'لقد استخدمت محاولتك المجانية الوحيدة. هل تريد الانتقال لصفحة الاشتراك لفتح محاولات غير محدودة؟' 
+                : 'You have already used your one free diagnostic attempt. Would you like to go to the subscription page to unlock unlimited attempts?');
+             if (confirmUpgrade) {
+                 router.push('/subscription');
+             }
+             setIsUploading(false);
+             return;
+        }
+
         const errorData = new Error(
           result.error || `Server error: ${response.status}`,
         ) as FileUploadError;
@@ -499,6 +520,14 @@ export default function CVUploadPage() {
         // Store analysis in localStorage for interview page
         localStorage.setItem("cvAnalysis", JSON.stringify(result.analysis));
         localStorage.setItem("selectedLanguage", selectedLanguage || "en");
+
+        // ✅ Update Trial Expiry in Profile
+        if (result.trialExpiry) {
+            const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+            const updatedProfile = { ...userProfile, trialExpiry: result.trialExpiry };
+            localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+            window.dispatchEvent(new Event("profileUpdated"));
+        }
 
         // Clear old progress to ensure fresh start
         localStorage.removeItem("roleSuggestions");
@@ -535,53 +564,63 @@ export default function CVUploadPage() {
   };
 
 
-  // Language Selection Screen
-  if (!selectedLanguage) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 md:p-12"
-        >
-          <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Globe className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-              Choose Your Language
-            </h1>
-            <p className="text-slate-500 text-lg">
-              Select your preferred language for CV analysis and feedback
-            </p>
-          </div>
+    const { setLanguage } = useLanguage();
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {LANGUAGES.map((lang) => (
-              <motion.button
-                key={lang.code}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedLanguage(lang.code)}
-                className="group relative p-6 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-2xl transition-all text-left overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+    const handleLanguageSelect = (langCode: string) => {
+        setSelectedLanguage(langCode);
+        setLanguage(langCode as Language);
+        localStorage.setItem('selectedLanguage', langCode);
+    };
 
-                <div className="relative flex items-center gap-4">
-                  <div className="text-5xl">{lang.flag}</div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-slate-900 mb-1">
-                      {lang.nativeName}
-                    </h3>
-                    <p className="text-sm text-slate-500">{lang.name}</p>
-                  </div>
-                  <div className="w-6 h-6 rounded-full border-2 border-slate-300 group-hover:border-blue-500 group-hover:bg-blue-500 flex items-center justify-center transition-all">
-                    <Check className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </div>
-              </motion.button>
-            ))}
-          </div>
+    // Language Selection Screen
+    if (!selectedLanguage) {
+        const platformLanguages = LANGUAGES.filter(l => l.code !== 'es');
+        
+        return (
+            <div className="flex-1 flex items-center justify-center p-8">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 md:p-12"
+                >
+                    <div className="text-center mb-10">
+                        <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <Globe className="w-10 h-10 text-white" />
+                        </div>
+                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+                            {selectedLanguage === 'ar' ? 'اختر لغتك' : selectedLanguage === 'fr' ? 'Choisissez votre langue' : 'Choose Your Language'}
+                        </h1>
+                        <p className="text-slate-500 text-lg">
+                            {selectedLanguage === 'ar' ? 'اختر اللغة المفضلة لتحليل سيرتك الذاتية وتلقي الملاحظات' : selectedLanguage === 'fr' ? 'Sélectionnez votre langue préférée pour l\'analyse du CV et les retours' : 'Select your preferred language for CV analysis and feedback'}
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {platformLanguages.map((lang) => (
+                            <motion.button
+                                key={lang.code}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleLanguageSelect(lang.code)}
+                                className="group relative p-6 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-2xl transition-all text-left overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                <div className="relative flex items-center gap-4">
+                                    <div className="text-5xl">{lang.flag}</div>
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold text-slate-900 mb-1">
+                                            {lang.nativeName}
+                                        </h3>
+                                        <p className="text-sm text-slate-500">{lang.name}</p>
+                                    </div>
+                                    <div className="w-6 h-6 rounded-full border-2 border-slate-300 group-hover:border-blue-500 group-hover:bg-blue-500 flex items-center justify-center transition-all">
+                                        <Check className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                </div>
+                            </motion.button>
+                        ))}
+                    </div>
 
           <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
             <p className="text-sm text-blue-800 text-center">

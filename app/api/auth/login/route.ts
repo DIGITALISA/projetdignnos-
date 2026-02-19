@@ -41,14 +41,8 @@ export async function POST(req: NextRequest) {
             }, { status: 403 });
         }
 
-        // Initialize trial period on FIRST LOGIN if it's a Trial User and expiry isn't set
-        if (user.role === "Trial User" && !user.trialExpiry) {
-            const duration = user.trialDurationHours || 1;
-            const expiry = new Date();
-            expiry.setHours(expiry.getHours() + duration);
-            user.trialExpiry = expiry;
-            await user.save();
-        }
+        // Trial period will be initialized on CV upload instead of login
+
 
         // Generate a secure session token
         const sessionToken = crypto.randomBytes(32).toString('hex');
@@ -73,9 +67,11 @@ export async function POST(req: NextRequest) {
 
         // Set secure HTTP-only cookies for middleware auth
         const isProduction = process.env.NODE_ENV === 'production';
+        const isLocalhost = req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
+        
         const cookieOptions = {
             httpOnly: true,
-            secure: isProduction,
+            secure: isProduction && !isLocalhost,
             sameSite: 'lax' as const,
             path: '/',
             maxAge: 60 * 60 * 24 * 7, // 7 days

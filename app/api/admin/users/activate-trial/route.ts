@@ -16,15 +16,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const duration = existingUser.trialDurationHours || 1; // 1 hour default
-        const expiry = new Date();
-        expiry.setHours(expiry.getHours() + duration);
+        const duration = existingUser.trialDurationHours || 0.25; 
+
 
         const user = await User.findByIdAndUpdate(userId, {
             status: "Active",
             role: "Trial User",
             isTrial: true
-            // trialExpiry is omitted here so it gets set on first login
+            // trialExpiry remains null until the user starts their CV upload
         }, { new: true });
 
         if (!user) {

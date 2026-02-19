@@ -8,7 +8,7 @@ function escapeRegExp(string: string) {
 
 export async function POST(request: NextRequest) {
     try {
-        const { userId, messages, results, currentScenario, totalScenarios, selectedRole, cvAnalysis } = await request.json();
+        const { userId, messages, results, currentScenario, totalScenarios, selectedRole, cvAnalysis, language } = await request.json();
 
         if (!userId) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
             userId: userId, 
             simulationConversation: messages,
             simulationResults: results,
+            currentStep: isComplete ? 'simulation_complete' : 'simulation_in_progress',
             updatedAt: new Date(),
             ...(selectedRole && { selectedRole }),
-            ...(cvAnalysis && { analysis: cvAnalysis })
+            ...(cvAnalysis && { analysis: cvAnalysis }),
+            ...(language && { language }),
         };
 
         if (diagnosis) {

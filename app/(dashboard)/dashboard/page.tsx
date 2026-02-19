@@ -20,7 +20,8 @@ import {
     Star,
     Calendar,
     BarChart3,
-    Layers
+    Layers,
+    Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -62,6 +63,8 @@ interface SimulationReport {
 export default function DashboardPage() {
     const { t, dir } = useLanguage();
     const [userName, setUserName] = useState("");
+    const [userRole, setUserRole] = useState("");
+    const [userPlan, setUserPlan] = useState("");
     const [hasStarted, setHasStarted] = useState(false);
     const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
     const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
@@ -84,6 +87,8 @@ export default function DashboardPage() {
                 if (profile?.fullName) {
                     setUserName(profile.fullName.split(' ')[0] || profile.fullName);
                 }
+                if (profile?.role) setUserRole(profile.role);
+                if (profile?.plan) setUserPlan(profile.plan);
                 if (profile?.createdAt) {
                     setJoinedDate(new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }));
                 }
@@ -204,7 +209,10 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.simulation,
             description: t.dashboard.journey.stages.simulationDesc,
-            status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked"),
+            // Lock for free tier even if diagnosis is complete
+            status: (userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
+                ? "locked" 
+                : (isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked")),
             icon: Zap,
             href: "/simulation",
             borderColor: "border-purple-200",
@@ -224,7 +232,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.library,
             description: t.dashboard.journey.stages.libraryDesc,
-            status: isDiagnosisComplete ? "in-progress" : "locked",
+            status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "in-progress" : "locked",
             icon: BookOpen,
             href: "/library",
             borderColor: "border-orange-200",
@@ -234,7 +242,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.expert,
             description: t.dashboard.journey.stages.expertDesc,
-            status: isDiagnosisComplete ? "in-progress" : "locked",
+            status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "in-progress" : "locked",
             icon: MessageSquare,
             href: "/expert",
             borderColor: "border-pink-200",
@@ -244,7 +252,7 @@ export default function DashboardPage() {
         {
             title: t.dashboard.journey.stages.strategicReport,
             description: t.dashboard.journey.stages.strategicReportDesc,
-            status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked"),
+            status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "completed" : "locked",
             icon: Shield,
             href: "/strategic-report",
             borderColor: "border-slate-700",
@@ -360,9 +368,32 @@ export default function DashboardPage() {
                                     </h3>
                                     <p className="text-sm text-slate-600 leading-relaxed">
                                         {isDiagnosisComplete
-                                            ? (dir === 'rtl' ? 'لقد أكملت التشخيص بالكامل. أنت الآن مستعد للمرحلة التالية من رحلتك!' : 'You have effectively completed the full diagnosis. You are now ready for the next stage of your journey!')
+                                            ? ((userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
+                                                ? (dir === 'rtl' 
+                                                    ? '⚠️ التشخيص الأولي مكتمل بنجاح! لقد كشفنا عن ثغرات حرجة. ملاحظة: هذا مجرد "تشويق"، التشخيص الحقيقي العيق (التقرير الاستراتيجي، تحليل التنافسية) يتطلب الترقية.' 
+                                                    : '⚠️ Initial Audit Complete! Critical gaps detected. Note: This is a "Teaser". The real deep diagnosis (Strategic Report, Competitive Analysis) requires an upgrade.')
+                                                : (dir === 'rtl' ? 'لقد أكملت التشخيص بالكامل. أنت الآن مستعد للمرحلة التالية من رحلتك!' : 'You have effectively completed the full diagnosis. You are now ready for the next stage of your journey!'))
                                             : (dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!')}
                                     </p>
+                                    {(userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") && isDiagnosisComplete && (
+                                        <div className="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+                                            <p className="text-[11px] font-bold text-indigo-700 flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4" />
+                                                {dir === 'rtl' ? 'ماذا ينتظرك في النسخة الكاملة؟' : 'What awaits you in the Full Version?'}
+                                            </p>
+                                            <ul className="mt-2 space-y-1">
+                                                <li className="text-[10px] text-indigo-600 flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3" /> {dir === 'rtl' ? 'خارطة طريق استراتيجية لـ 18 شهر' : '18-Month Strategic Roadmap'}
+                                                </li>
+                                                <li className="text-[10px] text-indigo-600 flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3" /> {dir === 'rtl' ? 'محاكاة واقعية للمواقف القيادية' : 'Real-world Leadership Simulations'}
+                                                </li>
+                                                <li className="text-[10px] text-indigo-600 flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3" /> {dir === 'rtl' ? 'تقرير الذكاء المهني الشامل (SCI)' : 'Comprehensive Career Intelligence (SCI)'}
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
                                     {selectedRole && (
                                         <div className={`flex items-center gap-2 mt-2 ${dir === 'rtl' ? 'flex-row-reverse justify-end' : ''}`}>
                                             <Target className="w-4 h-4 text-slate-400" />
