@@ -41,45 +41,15 @@ export default function MandateRequestsPage() {
             const res = await fetch("/api/admin/users", { cache: "no-store" });
             const data = await res.json();
             
-            // Mock data for demonstration if DB is empty
-            const mockRequests: MandateRequest[] = [
-                {
-                    _id: "demo1",
-                    fullName: "Ahmed Ben Ali",
-                    email: "ahmed.ali@example.com",
-                    whatsapp: "+216 99 123 456",
-                    mandateDuration: 6,
-                    mandateCurrency: "EUR",
-                    mandateAmount: 402,
-                    plannedPaymentDate: new Date(Date.now() + 86400000 * 2).toISOString(),
-                    status: "Pending",
-                    paymentStatus: "Unpaid",
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    _id: "demo2",
-                    fullName: "Sarah Dupont",
-                    email: "sarah.d@corporate.fr",
-                    whatsapp: "+33 6 12 34 56 78",
-                    mandateDuration: 12,
-                    mandateCurrency: "USD",
-                    mandateAmount: 711,
-                    plannedPaymentDate: new Date(Date.now() - 86400000).toISOString(),
-                    status: "Active",
-                    paymentStatus: "Paid",
-                    createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
-                }
-            ];
-
             if (Array.isArray(data)) {
                 const filtered = data.filter(u => 
                     u.mandateDuration || 
                     u.plan === "Executive" || 
                     u.plan === "Pro Essential"
                 );
-                setRequests(filtered.length > 0 ? filtered : mockRequests);
+                setRequests(filtered);
             } else {
-                setRequests(mockRequests);
+                setRequests([]);
             }
         } catch (error) {
             console.error("Error fetching mandate requests:", error);

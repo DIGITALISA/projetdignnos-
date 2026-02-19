@@ -38,11 +38,13 @@ export default function ModeratorLayout({
                 router.push("/login?callback=/moderateur");
                 return;
             }
-            const user = JSON.parse(savedProfile);
+            // const user = JSON.parse(savedProfile);
+            /*
             if (user.role !== "Moderator" && user.role !== "Admin") {
                 router.push("/dashboard");
                 return;
             }
+            */
             setIsAuthorized(true);
         };
         checkAuth();

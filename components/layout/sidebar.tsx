@@ -364,17 +364,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 </div>
                             </div>
                             <button
-                                onClick={() => {
-                                    // Clear everything
-                                    localStorage.clear();
-                                    sessionStorage.clear();
-                                    // Clear common cookies
-                                    document.cookie.split(";").forEach((c) => {
-                                        document.cookie = c
-                                            .replace(/^ +/, "")
-                                            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                                    });
-                                    window.location.replace('/login');
+                                onClick={async () => {
+                                    try {
+                                        await fetch('/api/auth/logout', { method: 'POST' });
+                                    } catch (e) {
+                                        console.error("Logout API failed", e);
+                                    } finally {
+                                        localStorage.clear();
+                                        sessionStorage.clear();
+                                        // Clear JS accessible cookies as fallback
+                                        document.cookie.split(";").forEach((c) => {
+                                            document.cookie = c
+                                                .replace(/^ +/, "")
+                                                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                                        });
+                                        window.location.href = '/login';
+                                    }
                                 }}
                                 className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group"
                                 title={t.sidebar.items.signOut}

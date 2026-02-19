@@ -55,43 +55,43 @@ By signing below, you authorize the commencement of the strategic advisory manda
             cards: {
                 diagnosis: {
                     title: "1. Strategic Role Audit",
-                    desc: "**Function:** Deep analysis of professional identity. \n**Action:** CV Audit vs. Target Market + Gap Diagnosis. \n**Result:** A precise maturity report identifying your immediate growth levers.",
-                    tags: ["Audit", "Gap Analysis"]
+                    desc: "**Function:** Mandatory professional DNA analysis. \n**Action:** All services are delivered *via* this diagnosis to ensure precision. \n**Result:** A core maturity report that dictates your entire personalized development path.",
+                    tags: ["Audit", "Mandatory Entry"]
                 },
                 simulation: {
-                    title: "2. Coordinated Simulations",
-                    desc: "**Function:** Real-time skill validation. \n**Action:** Crisis scenarios and strategic meetings with collaborative tools. \n**Result:** Objective evaluation of your performance under high pressure.",
-                    tags: ["Missions", "Leadership"]
+                    title: "2. Real-world Simulations",
+                    desc: "**Function:** Humanized Skill Validation. \n**Action:** 100% personalized role simulations with a human expert in a mimicked environment. \n**Result:** Objective evaluation of your performance under high-stakes conditions.",
+                    tags: ["Expert-Led", "Simulated Environment"]
                 },
                 training: {
                     title: "3. Executive Workshops",
-                    desc: "**Function:** Targeted and intensive development. \n**Action:** Mentorship sessions with international experts. \n**Result:** Mastering the tools and frameworks essential for leadership roles.",
-                    tags: ["Workshops", "Mentorship"]
+                    desc: "**Function:** Targeted Human Mentorship. \n**Action:** Live sessions with experts. Choose between group sessions (filtered by level) or individual units based on your diagnostic themes. \n**Result:** Practical mastery of specific skills suggested by your audit results.",
+                    tags: ["Human Expert", "Per-Unit Pricing"]
                 },
                 mentor: {
                     title: "4. Strategic AI Advisor",
-                    desc: "**Function:** 24/7 permanent accompaniment. \n**Action:** AI support for daily challenges + Personalized learning plan. \n**Result:** Continuous expert guidance to secure your decisions.",
-                    tags: ["24/7 Support", "AI Advisor"]
+                    desc: "**Function:** Permanent Intelligence Support. \n**Action:** Advanced AI advisor that uses your diagnostic data to provide personalized daily career advice. \n**Result:** Continuous expert guidance to secure every professional decision.",
+                    tags: ["AI Advisor", "Data-Driven"]
                 },
                 academy: {
-                    title: "5. Knowledge Center",
-                    desc: "**Function:** Library of advanced frameworks. \n**Action:** Access to global business cases and management methodologies. \n**Result:** Theoretical and strategic solidity aligned with global standards.",
-                    tags: ["Strategy", "Case Studies"]
+                    title: "5. Knowledge Base",
+                    desc: "**Function:** Core Intelligence Library. \n**Action:** Comprehensive access to global management resources, articles, and case studies. \n**Result:** Strong theoretical foundation aligned with international standards.",
+                    tags: ["Library", "Resources"]
                 },
                 library: {
-                    title: "6. Toolkits & Assets",
-                    desc: "**Function:** Immediate operational efficiency. \n**Action:** Ready-to-use strategy templates, reports, and action plans. \n**Result:** Production of high-quality professional deliverables in record time.",
-                    tags: ["Templates", "Productivity"]
+                    title: "6. Resource Center",
+                    desc: "**Function:** Expert human-curated tools. \n**Action:** Ready-to-use models and tools provided by your human animator to support your daily work and career. \n**Result:** Immediate operational efficiency with executive-grade assets.",
+                    tags: ["Human-Curated", "Toolkits"]
                 },
                 expert: {
                     title: "7. Expert Consultation",
-                    desc: "**Function:** Strategic second look. \n**Action:** Review of your critical projects by domain experts. \n**Result:** Drastic reduction of risks and validation of your directions.",
-                    tags: ["Expert View", "Validation"]
+                    desc: "**Function:** Human Authority Review. \n**Action:** Direct connection with specialized experts for tailored guidance and validation. \n**Result:** Drastic risk reduction and validation of your professional trajectory.",
+                    tags: ["Expert Access", "Validation"]
                 },
                 roadmap: {
-                    title: "8. 90-Day Roadmap",
-                    desc: "**Function:** Execution planning. \n**Action:** Visual timeline with specific and measurable milestones. \n**Result:** Total clarity on your goals and the exact steps to reach them.",
-                    tags: ["Roadmap", "Execution"]
+                    title: "8. Career Roadmap",
+                    desc: "**Function:** AI-Powered Execution Plan. \n**Action:** AI analysis document that maps your goals and suggests specific paid workshops to bridge identified weaknesses. \n**Result:** Total clarity on your 90-day objectives and the exact steps to reach them.",
+                    tags: ["AI Analysis", "Workshop Plan"]
                 }
             }
         },
@@ -170,7 +170,7 @@ By signing below, you authorize the commencement of the strategic advisory manda
                 { title: "CV Analysis Results", desc: "Honest feedback and comprehensive analysis of your CV accuracy and capabilities." },
                 { title: "Interview Evaluation Results", desc: "Data-driven results from your executive-level AI simulated interviews." },
                 { title: "Career Path Recommendations", desc: "Personalized roles and sectors perfectly aligned with your diagnosis results." },
-                { title: "Strategic CV & Recommendation", desc: "A re-engineered, high-impact CV and letter of recommendation based on your audit." }
+                { title: "Strategic CV & Recommendation", desc: "A re-engineered, high-impact CV and letter of recommendation including all diagnostics, analyses, and feedback from your journey." }
             ],
             officialTitle: "Advisory Portfolio & Expert Opinions",
             official: [
@@ -200,13 +200,13 @@ By signing below, you authorize the commencement of the strategic advisory manda
         corporate: {
             badge: "CORPORATE & HR SOLUTIONS",
             title: "Objective Decision Support",
-            desc: "We provide organizations with a free, objective Advisory Report. Based on the complete journey (Diagnosis, Simulations, Mentorship), we help you decide if a candidate is truly ready for a promotion or a new role.",
-            feature1_title: "Verdict of Readiness",
-            feature1_desc: "Clear 'Go/No-Go' recommendation for specific roles or internal promotions.",
+            desc: "We provide organizations with a secure verification system and objective Advisory Reports. Based on the complete diagnostic journey, we help you decide if a candidate is ready for a promotion or a new role.",
+            feature1_title: "Role & Promotion Posting",
+            feature1_desc: "Companies can post positions; our AI provides an objective analysis of candidates vs. role requirements.",
             feature2_title: "Objective Gap Analysis",
-            feature2_desc: "Direct mapping of strengths, weaknesses, and potential risks without bias.",
-            feature3_title: "Pre-boarding Roadmap",
-            feature3_desc: "Actionable steps to prepare the candidate or close critical gaps before they start.",
+            feature2_desc: "Direct mapping of strengths, weaknesses, and potential risks without bias, including expert feedback.",
+            feature3_title: "Candidate Verification",
+            feature3_desc: "Securely verify a participant's profile and progress within our certified protocol.",
             freeBadge: "FREE ADVISORY",
             inquiryForm: {
                 title: "Request Corporate Advisory",
@@ -258,8 +258,8 @@ By signing below, you authorize the commencement of the strategic advisory manda
             tagline: "Global Consulting & Training Excellence."
         },
         saleBanner: {
-            title: "Join Our Expert Team",
-            desc: "We are constantly looking for independent consultants, experts, and trainers in all fields with extensive experience. We also need independent animators who excel in the art of public speaking, explanation, and presentation.",
+            title: "Join Our Elite Expert Network",
+            desc: "We are actively recruiting top-tier consultants, strategic experts, and independent keynote speakers. If you master the art of high-level discourse and possess deep industry expertise, join our global mission.",
             cta: "Apply as an Expert",
             close: "Close"
         },
@@ -299,11 +299,13 @@ By signing below, you authorize the commencement of the strategic advisory manda
                 subtitle: "Rules of Engagement & Professional Standards",
                 description: "To maintain our standard of excellence, all consultants, experts, and partners must strictly adhere to the following conditions defined by the company.",
                 conditions: [
-                    "Compliance with global advisory and ethics standards.",
-                    "Strict confidentiality regarding all client data and proprietary methodologies.",
-                    "Active participation in continuous development and peer review processes.",
-                    "Commitment to the mutual interest of the firm and the professional network.",
-                    "Adherence to the formal contract and documented operating procedures."
+                    "All transactions must be strictly legal and comply with applicable tax laws and professional regulations.",
+                    "All work outputs, deliverables, and materials produced during the mission are the exclusive property of the company as part of the paid engagement.",
+                    "Only the company's official branding (logo and name) may be used on deliverables; inclusion of external logos or third-party advertising is strictly prohibited.",
+                    "Advertising or promoting external services or other companies during the performance of the mission is strictly forbidden.",
+                    "Communication with clients is restricted to the specific scope of the assigned mission; unauthorized professional contact is prohibited.",
+                    "Full protection of the company's intellectual property and technical assets is required, with a strict ban on use for personal gain.",
+                    "Any breach of these terms authorizes the company to take necessary legal and administrative measures, with automatic consent granted upon acceptance."
                 ],
                 agreement: "I have read the document and agree to follow all conditions strictly for our mutual benefit and continuous development.",
                 confirm: "Authorize Agreement"
@@ -517,23 +519,26 @@ By signing below, you authorize the commencement of the strategic advisory manda
                 continue: "Execute",
                 resume: "Return to Simulation",
                 progress: "Maturity",
-                accessWorkshop: "Protocol Materials"
+                accessWorkshop: "Protocol Materials",
+                viewResults: "Scientific Report",
+                viewHistory: "Diagnostic History",
+                restart: "Restart Diagnosis"
             },
             journey: {
                 title: "Your Leadership Journey",
                 stages: {
-                    diagnosis: "Career Assessment",
-                    diagnosisDesc: "Professional profile analysis and gap identification.",
-                    simulation: "Leadership Simulations",
-                    simulationDesc: "Crisis management and decision-making evaluation.",
+                    diagnosis: "Strategic Role Audit",
+                    diagnosisDesc: "Mandatory professional DNA analysis. All following services are tailored via this data.",
+                    simulation: "Expert simulations",
+                    simulationDesc: "100% personalized simulations with a human expert in a mimicked environment.",
                     training: "Executive Workshops",
-                    trainingDesc: "Tailored individual workshops and high-stakes coaching.",
-                    library: "Resources & Tools",
-                    libraryDesc: "Access to premium frameworks and toolkits.",
-                    expert: "Executive Network",
-                    expertDesc: "Connect with global leaders and mentors.",
-                    strategicReport: "Strategic Audit",
-                    strategicReportDesc: "Executive-grade career intelligence report."
+                    trainingDesc: "Live sessions with experts. Personalized workshops focused on your audit results.",
+                    library: "Resource Center",
+                    libraryDesc: "Expert human-curated tools and models to support your daily work and career.",
+                    expert: "Expert Network",
+                    expertDesc: "Direct connection with specialized experts for tailored guidance and validation.",
+                    strategicReport: "Full Diagnostic Report",
+                    strategicReportDesc: "AI-powered comprehensive career intelligence document with 18-month roadmap."
                 }
             },
             recommended: {
@@ -749,7 +754,7 @@ By signing below, you authorize the commencement of the strategic advisory manda
         },
         jobAlignment: {
                 title: "Strategic Role Alignment",
-                subtitle: "Verify your executive readiness for a specific new role or promotion.",
+                subtitle: "Our AI compares your initial diagnosis with the target job description to generate a comprehensive gap analysis report.",
                 form: {
                     type: "Audit Type",
                     newJob: "New Opportunity",
@@ -831,43 +836,43 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             cards: {
                 diagnosis: {
                     title: "1. Audit de Rôle Stratégique",
-                    desc: "**Fonction :** Analyse profonde de l'identité professionnelle. \n**Action :** Audit du CV vs Marché Cible + Diagnostic des écarts. \n**Résultat :** Un rapport de maturité précis identifiant vos leviers de croissance immédiats.",
-                    tags: ["Audit", "Gap Analysis"]
+                    desc: "**Fonction :** Analyse obligatoire de l'ADN professionnel. \n**Action :** Tous les services sont fournis *via* ce diagnostic pour garantir la précision. \n**Résultat :** Un rapport de maturité central qui dicte tout votre parcours de développement personnalisé.",
+                    tags: ["Audit", "Entrée Obligatoire"]
                 },
                 simulation: {
-                    title: "2. Simulations Coordonnées",
-                    desc: "**Fonction :** Validation des compétences en temps réel. \n**Action :** Scénarios de crise et réunions stratégiques avec outils collaboratifs. \n**Résultat :** Évaluation objective de votre performance sous haute pression.",
-                    tags: ["Missions", "Leadership"]
+                    title: "2. Simulations Réelles",
+                    desc: "**Fonction :** Validation des compétences humaine. \n**Action :** Simulations de rôle 100% personnalisées avec un expert humain en environnement simulé. \n**Résultat :** Évaluation objective de votre performance dans des conditions réelles.",
+                    tags: ["Expert Humain", "Environnement Simulé"]
                 },
                 training: {
                     title: "3. Workshops Exécutifs",
-                    desc: "**Fonction :** Développement ciblé et intensif. \n**Action :** Sessions de mentorat avec des experts internationaux. \n**Resultat :** Maîtrise des outils et frameworks indispensables pour les postes de direction.",
-                    tags: ["Workshops", "Mentorat"]
+                    desc: "**Fonction :** Mentorat humain ciblé. \n**Action :** Sessions en direct avec des experts. Choisissez entre sessions de groupe (filtrées par niveau) ou unités individuelles selon vos besoins. \n**Résultat :** Maîtrise pratique des compétences suggérées par les résultats de votre audit.",
+                    tags: ["Expert Humain", "Prix par Unité"]
                 },
                 mentor: {
-                    title: "4. Conseiller Stratégique",
-                    desc: "**Fonction :** Accompagnement permanent 24/7. \n**Action :** Support IA pour vos défis quotidiens + Plan d'apprentissage personnalisé. \n**Résultat :** Une guidance experte continue pour sécuriser vos décisions.",
-                    tags: ["24/7 Support", "IA Advisor"]
+                    title: "4. Conseiller Stratégique IA",
+                    desc: "**Fonction :** Support d'intelligence permanent. \n**Action :** IA avancée utilisant vos données de diagnostic pour fournir des conseils de carrière quotidiens personnalisés. \n**Résultat :** Une guidance experte continue pour sécuriser vos décisions.",
+                    tags: ["IA Advisor", "Basé sur les Données"]
                 },
                 academy: {
-                    title: "5. Centre de Connaissances",
-                    desc: "**Fonction :** Bibliothèque de frameworks avancés. \n**Action :** Accès aux cas d'affaires et méthodologies de gestion mondiales. \n**Résultat :** Solidité théorique et stratégique alignée sur les standards internationaux.",
-                    tags: ["Stratégie", "Études de Cas"]
+                    title: "5. Base de Connaissances",
+                    desc: "**Fonction :** Bibliothèque d'intelligence centrale. \n**Action :** Accès complet aux ressources de gestion mondiales, articles et études de cas. \n**Résultat :** Solidité théorique alignée sur les standards internationaux.",
+                    tags: ["Bibliothèque", "Ressources"]
                 },
                 library: {
-                    title: "6. Boîte à Outils & Assets",
-                    desc: "**Fonction :** Efficacité opérationnelle immédiate. \n**Action :** Templates de stratégies, rapports et plans d'action prêts à l'emploi. \n**Résultat :** Production de livrables professionnels de haute qualité en un temps record.",
-                    tags: ["Templates", "Productivity"]
+                    title: "6. Centre de Ressources",
+                    desc: "**Fonction :** Outils sélectionnés par des experts humains. \n**Action :** Modèles et outils prêts à l'emploi fournis par votre animateur humain pour soutenir votre travail quotidien. \n**Résultat :** Efficacité opérationnelle immédiate avec des assets de niveau exécutif.",
+                    tags: ["Curaté par Humains", "Boîte à Outils"]
                 },
                 expert: {
                     title: "7. Consultation d'Expert",
-                    desc: "**Fonction :** Second regard stratégique. \n**Action :** Révision de vos projets critiques par des experts du domaine. \n**Résultat :** Réduction drastique des risques et validation de vos orientations.",
-                    tags: ["Expert View", "Validation"]
+                    desc: "**Fonction :** Révision par autorité humaine. \n**Action :** Connexion directe avec des experts spécialisés pour une guidance et une validation sur mesure. \n**Résultat :** Réduction drastique des risques et validation de votre trajectoire professionnelle.",
+                    tags: ["Accès Expert", "Validation"]
                 },
                 roadmap: {
-                    title: "8. Feuille de Route 90 Jours",
-                    desc: "**Fonction :** Planification de l'exécution. \n**Action :** Chronologie visuelle avec jalons spécifiques et mesurables. \n**Résultat :** Clarté totale sur vos objectifs et les étapes exactes pour les atteindre.",
-                    tags: ["Roadmap", "Exécution"]
+                    title: "8. Feuille de Route de Carrière",
+                    desc: "**Fonction :** Plan d'exécution propulsé par l'IA. \n**Action :** Analyse IA cartographiant vos objectifs et suggérant des workshops payants spécifiques pour combler vos lacunes. \n**Résultat :** Clarté totale sur vos objectifs à 90 jours et les étapes exactes pour les atteindre.",
+                    tags: ["Analyse IA", "Plan de Workshops"]
                 }
             }
         },
@@ -903,7 +908,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             crisisLabel: "Scénario de Marché en Direct",
             features: [
                 "Ateliers de mentorat en direct et sessions d'experts spécialisés.",
-                "Développement sur mesure basé sur vos lacunes diagnostiquées.",
+                "Développement sur mesure basé sur votre diagnostic de lacunes.",
                 "Simulations à enjeux élevés pour booster votre valeur sur le marché mondial."
             ]
         },
@@ -974,15 +979,15 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             ledger: "ID de Dossier Conseil"
         },
         corporate: {
-            badge: "SOLUTIONS D'AIDE À LA DÉCISION",
-            title: "Expertise RH & Stratégique Objective",
-            desc: "Nous fournissons aux organisations un rapport d'avis indépendant et factuel. En croisant diagnostic IA et simulations réelles, nous validons avec précision si un talent est prêt pour une promotion critique ou un recrutement stratégique.",
-            feature1_title: "Verdict de Préparation",
-            feature1_desc: "Recommandation claire pour des rôles spécifiques ou des promotions internes.",
+            badge: "SOLUTIONS ENTREPRISES & RH",
+            title: "Support de Décision Objectif",
+            desc: "Nous fournissons aux organisations un système de vérification sécurisé et des rapports d'expertise objectifs. Basé sur le parcours complet, nous vous aidons à décider si un candidat est réellement prêt.",
+            feature1_title: "Publication de Postes & Promotions",
+            feature1_desc: "Les entreprises peuvent publier des postes ; notre IA fournit une analyse objective des candidats par rapport aux exigences.",
             feature2_title: "Analyse Objective des Écarts",
-            feature2_desc: "Cartographie directe des forces, faiblesses et risques potentiels, sans biais.",
-            feature3_title: "Roadmap de Pré-intégration",
-            feature3_desc: "Étapes concrètes pour préparer le candidat ou combler les lacunes critiques.",
+            feature2_desc: "Cartographie directe des forces, faiblesses et risques potentiels sans biais, avec avis d'experts.",
+            feature3_title: "Vérification de Candidat",
+            feature3_desc: "Vérifiez en toute sécurité le profil et la progression d'un participant au sein de notre protocole certifié.",
             freeBadge: "CONSEIL GRATUIT",
             inquiryForm: {
                 title: "Demander un Conseil Corporate",
@@ -1035,7 +1040,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
         },
         saleBanner: {
             title: "Rejoignez notre équipe d'experts",
-            desc: "Nous sommes constamment à la recherche de consultants, d'experts et de formateurs indépendants dans tous les domaines, dotés d'une grande expérience. Nous recherchons également des animateurs indépendants excellant dans l'art de la parole, de l'explication et de la présentation.",
+            desc: "Nous recrutons l'élite des consultants, experts stratégiques et maîtres de conférences indépendants. Si vous commandez l'art de l'éloquence et possédez une expertise de haut niveau, rejoignez notre réseau mondial pour transformer l'intelligence exécutive.",
             cta: "Postuler en tant qu'expert",
             close: "Fermer"
         },
@@ -1075,11 +1080,13 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 subtitle: "Règles d'Engagement et Standards Professionnels",
                 description: "Pour maintenir notre standard d'excellence, tous les consultants, experts et partenaires doivent strictement adhérer aux conditions suivantes définies par l'entreprise.",
                 conditions: [
-                    "Respect des standards mondiaux de conseil et d'éthique.",
-                    "Confidentialité stricte concernant toutes les données clients et méthodologies propriétaires.",
-                    "Participation active aux processus de développement continu et de revue par les pairs.",
-                    "Engagement envers l'intérêt mutuel du cabinet et du réseau professionnel.",
-                    "Respect du contrat formel et des procédures opérationnelles documentées."
+                    "Toutes les transactions doivent être conformes aux législations fiscales et aux réglementations professionnelles en vigueur.",
+                    "Tous les livrables, documents et supports produits durant la mission sont la propriété exclusive de la société dans le cadre de la prestation rémunérée.",
+                    "Seule l'identité visuelle de la société (logo et nom) doit être utilisée sur les supports ; toute publicité ou logo tiers est strictement interdit.",
+                    "Il est strictement interdit de promouvoir des services externes ou d'autres entreprises durant l'exécution de la mission.",
+                    "La communication avec les clients est strictement limitée au cadre de la mission confiée ; tout contact hors périmètre professionnel est interdit.",
+                    "Respect total de la propriété intellectuelle de la société et interdiction d'utiliser les ressources ou livrables à des fins personnelles.",
+                    "En cas de non-respect de ces termes, la société se réserve le droit d'engager toute procédure légale ou administrative nécessaire, acceptée d'office par l'expert."
                 ],
                 agreement: "J'ai lu le document et j'accepte de suivre strictement toutes les conditions pour notre bénéfice mutuel et un développement continu.",
                 confirm: "Autoriser l'Accord"
@@ -1293,23 +1300,26 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 continue: "Exécuter",
                 resume: "Retour à la Simulation",
                 progress: "Maturité",
-                accessWorkshop: "Matériels de Protocole"
+                accessWorkshop: "Matériels de Protocole",
+                viewResults: "Rapport Stratégique",
+                viewHistory: "Historique du Diagnostic",
+                restart: "Redémarrer le Diagnostic"
             },
             journey: {
                 title: "Votre Parcours de Leadership",
                 stages: {
-                    diagnosis: "Évaluation de Carrière",
-                    diagnosisDesc: "Analyse du profil professionnel et identification des lacunes.",
-                    simulation: "Simulations de Leadership",
-                    simulationDesc: "Évaluation de la gestion de crise et de la prise de décision.",
-                    training: "Workshops Individuels",
-                    trainingDesc: "Workshops de leadership et coaching individuel sur-mesure.",
-                    library: "Ressources & Outils",
-                    libraryDesc: "Accès aux cadres et outils premium.",
-                    expert: "Réseau Exécutif",
-                    expertDesc: "Connexion avec des leaders mondiaux et mentors.",
-                    strategicReport: "Audit Stratégique",
-                    strategicReportDesc: "Rapport d'intelligence de carrière de niveau exécutif."
+                    diagnosis: "Audit de Rôle Stratégique",
+                    diagnosisDesc: "Analyse obligatoire de l'ADN professionnel. Tous les services sont personnalisés via ces données.",
+                    simulation: "Simulations d'Experts",
+                    simulationDesc: "Simulations 100% personnalisées avec un expert humain en environnement simulé.",
+                    training: "Workshops Exécutifs",
+                    trainingDesc: "Sessions en direct avec des experts. Ateliers personnalisés basés sur vos résultats d'audit.",
+                    library: "Centre de Ressources",
+                    libraryDesc: "Outils et modèles sélectionnés par des experts pour soutenir votre travail quotidien.",
+                    expert: "Réseau d'Experts",
+                    expertDesc: "Connexion directe avec des experts spécialisés pour une guidance sur mesure.",
+                    strategicReport: "Rapport Diagnostic Complet",
+                    strategicReportDesc: "Document d'intelligence de carrière avec roadmap stratégique à 18 mois."
                 }
             },
             recommended: {
@@ -1524,8 +1534,8 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             }
         },
         jobAlignment: {
-                title: "Alignment Stratégique de Rôle",
-                subtitle: "Vérifiez votre préparation exécutive pour un nouveau rôle ou une promotion.",
+                title: "Alignement Stratégique de Rôle",
+                subtitle: "Notre IA compare votre diagnostic initial avec la description du poste pour générer un rapport d'analyse complet des écarts.",
                 form: {
                     type: "Type d'Audit",
                     newJob: "Nouvelle Opportunité",
@@ -1618,44 +1628,44 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             subtitle: "8 موديلات مصممة لتحليل وتطوير مسارك المهني بوضوح وفاعلية.",
             cards: {
                 diagnosis: {
-                    title: "1. Strategic Role Audit | تقييم التوافق الاستراتيجي",
-                    desc: "**الوظيفة:** تقييم مواءمة الكفاءات. \n**الأكشن:** مقارنة الوصف الوظيفي المستهدف مع نتائج التشخيص الأولي. \n**النتيجة:** تقرير تفصيلي يكشف مدى جاهزيتك للمنصب أو الترقية.",
-                    tags: ["توافق وظيفي", "تقرير تقييم"]
+                    title: "1. Strategic Role Audit | التدقيق والتشخيص",
+                    desc: "**الوظيفة:** تحليل الحمض النووي المهني الإلزامي. \n**الأكشن:** جميع الخدمات تُقدم *عبر* هذا التشخيص لضمان الدقة وتجنب العشوائية. \n**النتيجة:** تقرير نضج مركزي يحدد كامل مسار تطويرك الشخصي.",
+                    tags: ["تدقيق إلزامي", "نقطة البداية"]
                 },
                 simulation: {
-                    title: "2. Real-world Simulations",
-                    desc: "**الوظيفة:** اختبار المهارات العملية. \n**الأكشن:** خوض مواقف عمل واجتماعات واقعية في بيئة افتراضية. \n**النتيجة:** تقييم واضح لأدائك وقدرتك على اتخاذ القرار تحت الضغط.",
-                    tags: ["محاكاة", "أداء عملي"]
+                    title: "2. Real-world Simulations | محاكاة واقعية",
+                    desc: "**الوظيفة:** مصادقة المهارات بلمسة بشرية. \n**الأكشن:** محاكاة للأدوار مخصصة 100% مع خبير بشري في بيئة تحاكي الواقع. \n**النتيجة:** تقييم موضوعي لأدائك في ظل ظروف مهنية واقعية.",
+                    tags: ["خبير بشري", "نظام محاكاتي"]
                 },
                 training: {
-                    title: "3. Executive Workshops",
-                    desc: "**الوظيفة:** بناء مهارات محددة. \n**الأكشن:** ورش عمل مخصصة تركز فقط على جوانب التطوير المطلوبة لديك. \n**النتيجة:** إتقان أدوات القيادة الأساسية اللازمة لترقيتك القادمة.",
-                    tags: ["تطوير مهارات", "ورش عمل"]
+                    title: "3. Executive Workshops | ورش العمل التنفيذية",
+                    desc: "**الوظيفة:** توجيه بشري مستهدف. \n**الأكشن:** جلسات مباشرة مع خبراء؛ يمكنك الاختيار بين المجموعات (مفلترة حسب المستوى) أو الوحدات الفردية حسب السعر. \n**النتيجة:** إتقان عملي للمهارات المقترحة بناءً على نتائج تشخيصك.",
+                    tags: ["خبير بشري", "حسب التيمة"]
                 },
                 mentor: {
-                    title: "4. AI Advisor",
-                    desc: "**الوظيفة:** دعم مهني مستمر 24/7. \n**الأكشن:** مساعد ذكاء اصطناعي لتحديات العمل اليومية + خطة تعلم مخصصة. \n**النتيجة:** توجيه مستمر يساعدك على التطور يومياً والبقاء في المسار الصحيح.",
-                    tags: ["دعم 24/7", "مستشار ذكي"]
+                    title: "4. AI Advisor | مستشار الذكاء الاصطناعي",
+                    desc: "**الوظيفة:** دعم ذكاء مهني دائم. \n**الأكشن:** مستشار متقدم يستخدم بيانات تشخيصك لتقديم نصائح مهنية يومية مخصصة. \n**النتيجة:** توجيه مستمر يضمن صحة قراراتك المهنية في كل خطوة.",
+                    tags: ["مستشار ذكي", "مبني على البيانات"]
                 },
                 academy: {
-                    title: "5. Knowledge Base",
-                    desc: "**الوظيفة:** مركز المعرفة الاستراتيجية. \n**الأكشن:** الوصول لأهم منهجيات الإدارة وحالات دراسية واقعية. \n**النتيجة:** فهم قوي لاستراتيجيات الإدارة الحديثة والقيادة الفعالة.",
-                    tags: ["معرفة", "استراتيجية"]
+                    title: "5. Knowledge Base | قاعدة المعرفة",
+                    desc: "**الوظيفة:** مكتبة ذكاء شاملة. \n**الأكشن:** وصول كامل لموارد الإدارة العالمية والمقالات والدراسات لتطوير معرفتك. \n**النتيجة:** أساس نظري متين يتماشى مع أرقى المعايير الدولية.",
+                    tags: ["مكتبة", "موارد"]
                 },
                 library: {
-                    title: "6. Resource Center",
-                    desc: "**الوظيفة:** أدوات وموارد مهنية جاهزة. \n**الأكشن:** قوالب جاهزة للاستخدام (خطط، تقارير، نماذج عمل). \n**النتيجة:** سرعة في إنجاز المهام واحترافية عالية في مخرجات عملك اليومي.",
-                    tags: ["قوالب", "أدوات"]
+                    title: "6. Resource Center | مركز الموارد",
+                    desc: "**الوظيفة:** أدوات مهنية من إعداد خبراء بشريين. \n**الأكشن:** نماذج وأدوات جاهزة يقدمها لك الخبير المباشر (المنشط) لدعم عملك ومسيرتك ككل. \n**النتيجة:** كفاءة عملياتية فورية باستخدام أصول مهنية رفيعة المستوى.",
+                    tags: ["إعداد خبراء", "أدوات جاهزة"]
                 },
                 expert: {
-                    title: "7. Expert Consultation",
-                    desc: "**الوظيفة:** رأي استراتيجي خبير. \n**الأكشن:** مراجعة قراراتك ومشاريعك الهامة عبر خبير ذكاء اصطناعي متخصص. \n**النتيجة:** تقليل الأخطاء والحصول على منظور مهني في القضايا المعقدة.",
-                    tags: ["استشارة", "خبرة"]
+                    title: "7. Expert Consultation | استشارة الخبراء",
+                    desc: "**الوظيفة:** مراجعة السلطة البشرية. \n**الأكشن:** تواصل مباشر مع خبراء متخصصين للحصول على إرشادات وحلول مخصصة وموثقة. \n**النتيجة:** تقليل المخاطر بشكل جذري والمصادقة على توجهاتك المهنية.",
+                    tags: ["اتصال مباشر", "رأي خبير"]
                 },
                 roadmap: {
-                    title: "8. Career Roadmap",
-                    desc: "**الوظيفة:** تخطيط واضح للخطوات القادمة. \n**الأكشن:** جدول زمني مرئي بأهداف محددة لفترة 90 يوماً القادمة. \n**النتيجة:** وضوح تام لأهدافك المهنية والخطوات الدقيقة للوصول إليها.",
-                    tags: ["خارطة طريق", "تنفيذ"]
+                    title: "8. Career Roadmap | خارطة الطريق المهنية",
+                    desc: "**الوظيفة:** خطة تنفيذ مدعومة بالذكاء الاصطناعي. \n**الأكشن:** وثيقة تحليلية ترسم أهدافك وتقترح ورش عمل مخصصة (مدفوعة) لسد نقاط الضعف المكتشفة. \n**النتيجة:** وضوح تام لأهدافك ومسار واضح لبداية تطوير مهاراتك ومعرفتك.",
+                    tags: ["تحليل ذكي", "خطة ورش"]
                 }
             }
         },
@@ -1734,7 +1744,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 { title: "تقرير تحليل السيرة الذاتية (CV Analysis)", desc: "تحليل معمق لدقة سيرتك الذاتية وقدراتك مع ملاحظات صريحة من خبراء الذكاء الاصطناعي." },
                 { title: "نتائج تقييم المقابلات (Interview Evaluation)", desc: "نتائج مبنية على البيانات من مقابلات محاكاة لسيناريوهات القيادة رفيعة المستوى." },
                 { title: "توصيات المسار المهني (Career Path)", desc: "تحديد الأدوار والقطاعات الأكثر ملاءمة لك بناءً على نتائج تشخيصك الشامل." },
-                { title: "سيرة ذاتية ورسالة تزكية مطورة", desc: "إعادة هندسة سيرتك الذاتية وصياغة رسالة توصية قوية بناءً على تدقيق شامل لأدائك." }
+                { title: "سيرة ذاتية ورسالة تزكية مطورة", desc: "إعادة هندسة سيرتك الذاتية وصياغة رسالة توصية قوية تشمل كافة التحاليل والتعليقات الناتجة عن رحلتك." }
             ],
             officialTitle: "ملف الاستشارة ورأي الخبراء (صلاحية دائمة)",
             official: [
@@ -1764,13 +1774,13 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
         corporate: {
             badge: "حلول الشركات والموارد البشرية",
             title: "دعم القرار الاسترايتيجي الموضوعي",
-            desc: "نوفر للمؤسسات تقرير رأي استشاري مجاني وموضوعي. بناءً على رحلة المشارك الكاملة، نساعدكم في اتخاذ قرار ترقية أو توظيف مدروس ومبني على بيانات حقيقية.",
-            feature1_title: "حكم الجاهزية",
-            feature1_desc: "توصية واضحة ومباشرة حول مدى ملاءمة المرشح لمنصب أو ترقية محددة.",
+            desc: "نوفر للمؤسسات نظام تحقق آمن وتقارير استشارية موضوعية. بناءً على رحلة التشخيص الكاملة، نساعدكم في اتخاذ قرار ترقية أو توظيف مدروس ومبني على بيانات حقيقية.",
+            feature1_title: "نشر الوظائف والترقيات",
+            feature1_desc: "يمكن للشركات نشر الأدوار الوظيفية؛ ويقوم ذكاؤنا الاصطناعي بتقديم تحليل موضوعي للمرشحين مقابل المتطلبات.",
             feature2_title: "تحليل فجوات موضوعي",
-            feature2_desc: "رصد دقيق لنقاط القوة والضعف والمخاطر المحتملة بعيداً عن الانطباعات الشخصية.",
-            feature3_title: "خارطة طريق التجهيز",
-            feature3_desc: "خطوات ملموسة لسد الثغرات وتجهيز الشخص للمهمة الجديدة قبل البدء فيها.",
+            feature2_desc: "رصد دقيق لنقاط القوة والضعف والمخاطر المحتملة بعيداً عن الانحيازات، مع رأي الخبراء.",
+            feature3_title: "التحقق من المشاركين",
+            feature3_desc: "تحقق بأمان من بروفايل المشارك وتطوره ضمن بروتوكولنا المعتمد.",
             freeBadge: "استشارة مجانية",
             inquiryForm: {
                 title: "طلب استشارة للشركات",
@@ -1823,7 +1833,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
         },
         saleBanner: {
             title: "انضم إلى فريق خبرائنا",
-            desc: "نحن في بحث مستمر عن مستشارين، خبراء، ومدربين مستقلين في كافة المجالات وذوي خبرة كبيرة جداً. كما نبحث أيضاً عن مقدمين ومنشطين مستقلين يمتازون بفن المخاطبة والتفسير والتعريف.",
+            desc: "نستقطب نخبة المستشارين، الخبراء الاستراتيجيين، وأساتذة الخطابة المستقلين. إذا كنت تمتلك خبرة استثنائية وتتقن فن التفسير والتأثير القيادي، انضم إلى شبكتنا العالمية لهندسة مستقبل الذكاء التنفيذي.",
             cta: "سجل الآن كخبير",
             close: "إغلاق"
         },
@@ -1860,14 +1870,16 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             },
             infoPage: {
                 title: "شروط وأحكام الخبراء",
-                subtitle: "قواعد الاشتباك والمعايير المهنية",
-                description: "للحفاظ على معايير التميز لدينا، يجب على جميع المستشارين والخبراء والشركاء الالتزام الصارم بالشروط التالية التي تحددها الشركة.",
+                subtitle: "قواعد العمل والمعايير المهنية",
+                description: "لضمان جودة العمل واحترافية الخدمة، نطلب من كافة الخبراء والمستشارين الالتزام بالشروط التالية:",
                 conditions: [
-                    "الامتثال لمعايير الاستشارة والأخلاقيات العالمية.",
-                    "السرية التامة لجميع بيانات العملاء والمنهجيات الحصرية.",
-                    "المشاركة النشطة في عمليات التطوير المستمر ومراجعة الأقران.",
-                    "الالتزام بالمصلحة المشتركة للشركة وشبكة المحترفين.",
-                    "احترام العقد الرسمي ووثائق إجراءات التشغيل بحذافيرها."
+                    "يجب أن تكون كافة المعاملات قانونية وتخضع لتشريعات الضرائب والنظم المهنية السارية.",
+                    "كافة مخرجات العمل والوثائق والوسائط المنتجة خلال المهمة هي ملكية حصرية للشركة وتدخل ضمن نطاق المهمة الموكلة.",
+                    "الالتزام باستخدام الهوية البصرية (الشعار والاسم) الخاصة بالشركة حصراً في الوثائق، ويُمنع استخدام أي شعارات أو دعاية لجهات خارجية.",
+                    "يُمنع منعاً باتاً القيام بأي نشاط إشهاري أو ترويجي لخدمات أخرى أو شركات منافسة خلال فترة تنفيذ المهمة.",
+                    "يقتصر التواصل مع العملاء حصراً على إطار المهمة الموكلة، ويمنع أي تواصل مهني خارج هذا النطاق المعتمد.",
+                    "الالتزام الكامل بحماية الملكية الفكرية والأصول التقنية للشركة، ويُمنع استغلال الموارد أو المخرجات لأغراض شخصية.",
+                    "في حال الإخلال بأي من هذه الشروط، يحق للشركة اتخاذ كافة الإجراءات القانونية والإدارية اللازمة، وتعتبر الموافقة على هذه الشروط قبولاً تلقائياً لهذه الإجراءات."
                 ],
                 agreement: "لقد قرأت الوثيقة وأوافق على اتباع كافة الشروط بحذافيرها من أجل المصلحة المشتركة والتطوير الدائم.",
                 confirm: "الموافقة على الاتفاقية"
@@ -2081,23 +2093,26 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 continue: "تنفيذ",
                 resume: "العودة للمحاكاة",
                 progress: "مستوى النضج",
-                accessWorkshop: "موارد البروتوكول"
+                accessWorkshop: "موارد البروتوكول",
+                viewResults: "التقرير الاستراتيجي",
+                viewHistory: "سجل بروتوكول التشخيص",
+                restart: "إعادة التشخيص | Restart Diagnosis"
             },
             journey: {
                 title: "رحلتك القيادية",
                 stages: {
-                    diagnosis: "تقييم المسار المهني",
-                    diagnosisDesc: "تحليل الملف المهني وتحديد الفجوات.",
-                    simulation: "محاكاة القيادة",
-                    simulationDesc: "تقييم إدارة الأزمات واتخاذ القرارات.",
-                    training: "الورش العملية الفردية",
-                    trainingDesc: "ورش قيادية وكوتشينغ فردي مخصص على مقاسك.",
-                    library: "الموارد والأدوات",
-                    libraryDesc: "الوصول لأطر العمل والأدوات المتميزة.",
-                    expert: "شبكة القيادات",
-                    expertDesc: "التواصل مع قادة عالميين وموجهين.",
-                    strategicReport: "التدقيق الاستراتيجي",
-                    strategicReportDesc: "تقرير ذكاء المسار المهني من مستوى تنفيذي."
+                    diagnosis: "تدقيق الدور الاستراتيجي",
+                    diagnosisDesc: "تحليل الحمض النووي المهني الإلزامي. يتم تخصيص جميع الخدمات التالية عبر هذه البيانات.",
+                    simulation: "محاكاة الخبراء",
+                    simulationDesc: "محاكاة للأدوار مخصصة 100% مع خبير بشري في نظام محاكاتي واقعي.",
+                    training: "ورش العمل التنفيذية",
+                    trainingDesc: "جلسات مباشرة مع خبراء؛ ورش عمل مخصصة بناءً على نتائج تشخيصك.",
+                    library: "مركز الموارد",
+                    libraryDesc: "أدوات ونماذج جاهزة من إعداد خبراء لدعم عملك ومسيرتك اليومية.",
+                    expert: "شبكة الخبراء",
+                    expertDesc: "تواصل مباشر مع خبراء متخصصين للحصول على إرشادات وحلول مخصصة.",
+                    strategicReport: "التقرير التشخيصي الشامل",
+                    strategicReportDesc: "وثيقة ذكاء مهني مدعومة بالذكاء الاصطناعي مع خارطة طريق لـ 18 شهراً."
                 }
             },
             recommended: {
@@ -2313,7 +2328,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
         },
         jobAlignment: {
             title: "تقييم التوافق الاستراتيجي",
-            subtitle: "تحقق من جاهزيتك التنفيذية لمنصب جديد أو ترقية داخلية.",
+            subtitle: "يقوم الذكاء الاصطناعي بمقارنة نتائج تشخيصك الأولي مع متطلبات الوصف الوظيفي لإصدار تقرير تحليل فجوات شامل قبل التقديم.",
             form: {
                 type: "نوع التدقيق",
                 newJob: "فرصة عمل جديدة",

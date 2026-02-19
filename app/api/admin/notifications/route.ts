@@ -44,8 +44,15 @@ export async function GET() {
         cacheTimestamp = now;
         
         return NextResponse.json(result);
-    } catch {
-        return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        console.error("❌ Error fetching notifications:", error);
+        return NextResponse.json({ 
+            error: "Failed to fetch notifications",
+            details: errorMessage,
+            stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+        }, { status: 500 });
     }
 }
 

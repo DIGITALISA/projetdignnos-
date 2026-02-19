@@ -48,7 +48,18 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ 
             success: true, 
-            report: diagnosis.analysis.sciReport 
+            report: diagnosis.analysis.sciReport,
+            diagnosis: {
+                completionStatus: diagnosis.completionStatus || {},
+                currentStep: diagnosis.currentStep,
+                cvAnalysis: diagnosis.analysis,
+                interviewHistory: diagnosis.conversationHistory || [],
+                roleSuggestions: diagnosis.roleSuggestions || [],
+                selectedRole: diagnosis.selectedRole,
+                simulationResults: diagnosis.simulationResults || [],
+                generatedDocuments: diagnosis.generatedDocuments,
+                updatedAt: diagnosis.updatedAt
+            }
         });
 
     } catch (error) {

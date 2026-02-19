@@ -59,10 +59,5 @@ const DigitalProjectSchema = new Schema({
     timestamps: true,
 });
 
-if (models.DigitalProject) {
-    delete (models as Record<string, unknown>).DigitalProject;
-}
-
-const DigitalProject = model("DigitalProject", DigitalProjectSchema);
-
+const DigitalProject = models.DigitalProject || model("DigitalProject", DigitalProjectSchema);
 export default DigitalProject;

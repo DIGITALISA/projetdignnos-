@@ -89,9 +89,6 @@ const UserSchema = new Schema({
     selectedRole: {
         type: String,
     },
-    rawPassword: {
-        type: String,
-    },
     // Executive Mandate Fields
     mandateDuration: {
         type: Number, // In months
@@ -151,9 +148,5 @@ const UserSchema = new Schema({
     timestamps: true,
 });
 
-if (models.User) {
-    delete (models as Record<string, unknown>).User;
-}
-const User = model("User", UserSchema);
-
+const User = models.User || model("User", UserSchema);
 export default User;

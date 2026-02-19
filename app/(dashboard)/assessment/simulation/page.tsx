@@ -94,6 +94,7 @@ export default function SimulationPage() {
     const [retryCount, setRetryCount] = useState(0);
     const [lastError, setLastError] = useState<string | null>(null);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
+    const hasInitializedRef = useRef(false);
 
     const handleDownloadReport = async () => {
         if (!finalReport || !selectedRole) return;
@@ -289,6 +290,31 @@ export default function SimulationPage() {
         }
     };
 
+    const saveProgress = useCallback(async (currentMessages: Message[], currentResults: ScenarioResult[], scenarioIndex: number) => {
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const userId = userProfile.email || userProfile.fullName;
+        
+        if (!userId) return;
+
+        try {
+            await fetch('/api/simulation/progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId,
+                    messages: currentMessages,
+                    results: currentResults,
+                    currentScenario: scenarioIndex,
+                    totalScenarios,
+                    selectedRole,
+                    cvAnalysis
+                }),
+            });
+        } catch (error) {
+            console.error('Error saving progress:', error);
+        }
+    }, [totalScenarios, selectedRole, cvAnalysis]);
+
     const startSimulation = useCallback(async (role: Role, cv: CVAnalysis, language: string) => {
         setIsLoading(true);
         setLastError(null);
@@ -312,7 +338,7 @@ export default function SimulationPage() {
             console.log('[Simulation] Start result:', result);
 
             if (result.success) {
-                setMessages([
+                const initialMsgs: Message[] = [
                     {
                         role: 'ai',
                         content: result.welcomeMessage,
@@ -323,7 +349,10 @@ export default function SimulationPage() {
                         content: result.scenario,
                         timestamp: new Date(),
                     }
-                ]);
+                ];
+                setMessages(initialMsgs);
+                // Save initial scenario progress
+                saveProgress(initialMsgs, [], 1);
             } else {
                 setLastError(selectedLanguage === 'ar' ? 'فشل بدء المحاكاة' : 'Failed to start simulation');
             }
@@ -333,30 +362,7 @@ export default function SimulationPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedLanguage]);
-
-    const saveProgress = useCallback(async (currentMessages: Message[], currentResults: ScenarioResult[], scenarioIndex: number) => {
-        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-        const userId = userProfile.email || userProfile.fullName;
-        
-        if (!userId) return;
-
-        try {
-            await fetch('/api/simulation/progress', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId,
-                    messages: currentMessages,
-                    results: currentResults,
-                    currentScenario: scenarioIndex,
-                    totalScenarios
-                }),
-            });
-        } catch (error) {
-            console.error('Error saving progress:', error);
-        }
-    }, [totalScenarios]);
+    }, [selectedLanguage, saveProgress]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -427,6 +433,8 @@ export default function SimulationPage() {
             }
         };
 
+        if (hasInitializedRef.current) return;
+        hasInitializedRef.current = true;
         loadInitialData();
     }, [router, startSimulation]);
 
@@ -624,13 +632,21 @@ export default function SimulationPage() {
         try {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             
+            // Critical fallbacks for 400 errors
+            const finalRole = selectedRole || JSON.parse(localStorage.getItem('selectedRole') || 'null');
+            const finalCV = cvAnalysis || JSON.parse(localStorage.getItem('cvAnalysis') || 'null');
+
+            if (!finalRole || !finalCV) {
+                throw new Error("Missing role or CV data. Please refresh.");
+            }
+
             const completeResponse = await fetch('/api/simulation/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: userProfile.email,
-                    selectedRole,
-                    cvAnalysis,
+                    selectedRole: finalRole,
+                    cvAnalysis: finalCV,
                     scenarioResults,
                     language: selectedLanguage,
                 }),
@@ -712,6 +728,7 @@ export default function SimulationPage() {
     // Simulation Complete Screen
     if (simulationComplete && finalReport) {
         return (
+            <div className="simulation-completion-wrapper">
             <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6">
                 <div data-html2canvas-ignore>
                     <button
@@ -742,20 +759,32 @@ export default function SimulationPage() {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={handleDownloadReport}
-                                disabled={isDownloading}
-                                data-html2canvas-ignore
-                                className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all font-bold text-purple-700 shadow-sm active:scale-95"
-                            >
-                                {isDownloading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Download className="w-5 h-5" />
-                                )}
-                                {selectedLanguage === 'ar' ? 'تحميل التقرير PDF' :
-                                    selectedLanguage === 'fr' ? 'Télécharger le rapport PDF' : 'Download Report PDF'}
-                            </button>
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    onClick={() => setSimulationComplete(false)}
+                                    data-html2canvas-ignore
+                                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-bold text-slate-700 shadow-sm active:scale-95"
+                                >
+                                    <MessageSquare className="w-5 h-5 text-slate-400" />
+                                    {selectedLanguage === 'ar' ? 'مراجعة المحادثة' : 
+                                     selectedLanguage === 'fr' ? 'Revoir la conversation' : 'Review Chat History'}
+                                </button>
+
+                                <button
+                                    onClick={handleDownloadReport}
+                                    disabled={isDownloading}
+                                    data-html2canvas-ignore
+                                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all font-bold text-purple-700 shadow-sm active:scale-95"
+                                >
+                                    {isDownloading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Download className="w-5 h-5" />
+                                    )}
+                                    {selectedLanguage === 'ar' ? 'تحميل التقرير PDF' :
+                                        selectedLanguage === 'fr' ? 'Télécharger le rapport PDF' : 'Download Report PDF'}
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
 
@@ -1096,6 +1125,268 @@ export default function SimulationPage() {
                         </div>
                     )}
                 </div>
+            </div>
+
+        {/* 🎉 Completion Modal - Integrated into Report View */}
+        {showCompletionModal && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={() => {
+                        setShowCompletionModal(false);
+                        router.push('/dashboard');
+                    }}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        transition={{ type: "spring", duration: 0.5 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative text-left"
+                    >
+                        {/* Close Button */}
+                        <button
+                            onClick={() => {
+                                setShowCompletionModal(false);
+                                router.push('/dashboard');
+                            }}
+                            className="absolute top-6 right-6 w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center transition-colors z-10"
+                        >
+                            <X className="w-5 h-5 text-slate-600" />
+                        </button>
+
+                        {/* Header */}
+                        <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white p-8 md:p-12 rounded-t-3xl text-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20" />
+                            
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.2, type: "spring" }}
+                                className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 relative z-10"
+                            >
+                                <CheckCircle className="w-14 h-14 text-white" />
+                            </motion.div>
+                            
+                            <h2 className="text-3xl md:text-4xl font-black mb-3 relative z-10">
+                                {selectedLanguage === 'ar' ? '🎉 تهانينا! اكتمل التشخيص' :
+                                 selectedLanguage === 'fr' ? '🎉 Félicitations ! Diagnostic Terminé' :
+                                 '🎉 Congratulations! Diagnosis Complete'}
+                            </h2>
+                            <p className="text-lg text-white/90 max-w-2xl mx-auto relative z-10">
+                                {selectedLanguage === 'ar' ? 'الآن يمكنك الوصول إلى جميع الخدمات المتاحة لتطوير مسارك المهني' :
+                                 selectedLanguage === 'fr' ? 'Vous avez maintenant accès à tous les services disponibles pour développer votre carrière' :
+                                 'You now have access to all available services to develop your career'}
+                            </p>
+                        </div>
+
+                        {/* Services Grid */}
+                        <div className="p-8 md:p-12">
+                            <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center uppercase tracking-wider">
+                                {selectedLanguage === 'ar' ? 'الخدمات المتاحة الآن' :
+                                 selectedLanguage === 'fr' ? 'Services Disponibles Maintenant' :
+                                 'Available Services Now'}
+                            </h3>
+
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {/* Service 1: Real Simulations */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="bg-linear-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Target className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'محاكاة واقعية' :
+                                         selectedLanguage === 'fr' ? 'Simulations Réelles' :
+                                         'Real Simulations'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'تدرب على سيناريوهات واقعية لتطوير مهاراتك المهنية' :
+                                         selectedLanguage === 'fr' ? 'Entraînez-vous sur des scénarios réels pour développer vos compétences' :
+                                         'Practice real-world scenarios to develop your professional skills'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 2: Executive Workshops */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="bg-linear-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Users className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'ورش تنفيذية' :
+                                         selectedLanguage === 'fr' ? 'Workshops Exécutifs' :
+                                         'Executive Workshops'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'ورش عمل متخصصة لتطوير المهارات القيادية والإدارية' :
+                                         selectedLanguage === 'fr' ? 'Ateliers spécialisés pour développer les compétences de leadership' :
+                                         'Specialized workshops to develop leadership and management skills'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 3: AI Advisor */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    className="bg-linear-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Brain className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'مستشار ذكاء اصطناعي' :
+                                         selectedLanguage === 'fr' ? 'Conseiller IA' :
+                                         'AI Advisor'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'احصل على نصائح مخصصة من مستشار ذكاء اصطناعي متقدم' :
+                                         selectedLanguage === 'fr' ? 'Obtenez des conseils personnalisés d\'un conseiller IA avancé' :
+                                         'Get personalized advice from an advanced AI advisor'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 4: Knowledge Base */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="bg-linear-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <BookOpen className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'قاعدة المعرفة' :
+                                         selectedLanguage === 'fr' ? 'Base de Connaissances' :
+                                         'Knowledge Base'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'مكتبة شاملة من الموارد والمقالات لتطوير معرفتك' :
+                                         selectedLanguage === 'fr' ? 'Bibliothèque complète de ressources et d\'articles pour développer vos connaissances' :
+                                         'Comprehensive library of resources and articles to expand your knowledge'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 5: Resource Center */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="bg-linear-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <FileText className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'مركز الموارد' :
+                                         selectedLanguage === 'fr' ? 'Centre de Ressources' :
+                                         'Resource Center'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'أدوات ونماذج جاهزة لدعم تطورك المهني' :
+                                         selectedLanguage === 'fr' ? 'Outils et modèles prêts à l\'emploi pour soutenir votre développement' :
+                                         'Ready-to-use tools and templates to support your professional development'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 6: Expert Consultation */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.6 }}
+                                    className="bg-linear-to-br from-rose-50 to-pink-50 border-2 border-rose-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-rose-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <MessageSquare className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'استشارة خبراء' :
+                                         selectedLanguage === 'fr' ? 'Consultation d\'Experts' :
+                                         'Expert Consultation'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'تواصل مع خبراء متخصصين للحصول على إرشادات مخصصة' :
+                                         selectedLanguage === 'fr' ? 'Connectez-vous avec des experts pour obtenir des conseils personnalisés' :
+                                         'Connect with specialized experts for personalized guidance'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 7: Career Roadmap */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.7 }}
+                                    className="bg-linear-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Map className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'خارطة الطريق المهنية' :
+                                         selectedLanguage === 'fr' ? 'Feuille de Route' :
+                                         'Career Roadmap'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'خطة مخصصة لتحقيق أهدافك المهنية خطوة بخطوة' :
+                                         selectedLanguage === 'fr' ? 'Plan personnalisé pour atteindre vos objectifs professionnels' :
+                                         'Personalized plan to achieve your career goals step by step'}
+                                    </p>
+                                </motion.div>
+
+                                {/* Service 8: Professional Portfolio */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.8 }}
+                                    className="bg-linear-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Briefcase className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-2">
+                                        {selectedLanguage === 'ar' ? 'ملف مهني متقدم' :
+                                         selectedLanguage === 'fr' ? 'Portfolio Professionnel' :
+                                         'Professional Portfolio'}
+                                    </h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        {selectedLanguage === 'ar' ? 'ملف شامل يعرض إنجازاتك ومهاراتك بشكل احترافي' :
+                                         selectedLanguage === 'fr' ? 'Portfolio complet présentant vos réalisations professionnellement' :
+                                         'Comprehensive portfolio showcasing your achievements professionally'}
+                                    </p>
+                                </motion.div>
+                            </div>
+
+                            {/* CTA Button */}
+                            <motion.button
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.9 }}
+                                onClick={() => {
+                                    setShowCompletionModal(false);
+                                    router.push('/dashboard');
+                                }}
+                                className="mt-10 w-full py-5 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-3"
+                            >
+                                {selectedLanguage === 'ar' ? 'انتقل إلى لوحة التحكم' :
+                                 selectedLanguage === 'fr' ? 'Aller au Tableau de Bord' :
+                                 'Go to Dashboard'}
+                                <ArrowRight className="w-5 h-5" />
+                            </motion.button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
             </div>
         );
     }

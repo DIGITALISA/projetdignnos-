@@ -44,8 +44,7 @@ export async function POST(req: NextRequest) {
             status: "Pending",
             accountType: "Free",
             isTrial: true,
-            trialDurationHours: 1, // 1 hour for free trial
-            rawPassword: password, // Store the plain text code for admin visibility
+            trialDurationHours: 1,
             plan: "Free Trial",
             mandateDuration,
             mandateCurrency,

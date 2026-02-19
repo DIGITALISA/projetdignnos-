@@ -102,7 +102,10 @@ export default function InterviewPage() {
                             }
                         }
 
-                        if (data.currentStep === 'interview_complete' || data.currentStep === 'completed') {
+                        const params = new URLSearchParams(window.location.search);
+                        const isViewMode = params.get('view') === 'history';
+
+                        if (!isViewMode && (data.currentStep === 'interview_complete' || data.currentStep === 'completed')) {
                             // If we have messages, we might want to stay on page to show summary
                             // but if evaluate API already set currentStep, we should be in interviewComplete state
                             if (data.evaluation) {
@@ -111,6 +114,12 @@ export default function InterviewPage() {
                                 router.push('/assessment/results');
                                 return;
                             }
+                        }
+
+                        if (data.evaluation && isViewMode) {
+                            // In view mode, we might want to see the chat directly or the summary.
+                            // Let's default to summary but with the option to see chat.
+                            setInterviewComplete(true);
                         }
 
                         if (data.conversationHistory && data.conversationHistory.length > 0) {
@@ -253,8 +262,11 @@ export default function InterviewPage() {
     }, [messages.length, totalQuestions]);
 
     const handleProceedToResults = useCallback(async () => {
+        const params = new URLSearchParams(window.location.search);
+        const isViewMode = params.get('view') === 'history';
+
         if (interviewComplete) {
-            router.push('/assessment/results');
+            router.push(isViewMode ? '/assessment/results?view=history' : '/assessment/results');
             return;
         }
 

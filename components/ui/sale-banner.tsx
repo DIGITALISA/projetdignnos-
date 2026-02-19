@@ -12,12 +12,21 @@ export function SaleBanner() {
     const pathname = usePathname();
     const [isVisible, setIsVisible] = useState(false);
 
-    // Show after a short delay
+    // Show after a short delay and hide after 6 minutes
     useEffect(() => {
-        const timer = setTimeout(() => {
+        const showTimer = setTimeout(() => {
             setIsVisible(true);
         }, 1000);
-        return () => clearTimeout(timer);
+
+        // Auto-hide after 6 minutes (360,000ms)
+        const hideTimer = setTimeout(() => {
+            setIsVisible(false);
+        }, 360000);
+
+        return () => {
+            clearTimeout(showTimer);
+            clearTimeout(hideTimer);
+        };
     }, []);
 
     // ONLY show on landing/marketing pages
@@ -47,7 +56,10 @@ export function SaleBanner() {
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 className={`fixed bottom-6 ${dir === 'rtl' ? 'left-6' : 'right-6'} z-50 w-full max-w-sm`}
             >
-                <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800 shadow-2xl rounded-3xl p-6 overflow-hidden">
+                <div 
+                    onClick={() => setIsVisible(false)}
+                    className="relative cursor-pointer bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800 shadow-2xl rounded-3xl p-6 overflow-hidden"
+                >
                     <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600" />
                     <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/10 blur-[50px] rounded-full" />
 
@@ -75,7 +87,10 @@ export function SaleBanner() {
                         </p>
 
                         <Link href="/experts" className="w-full pt-2">
-                            <button className="w-full py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-slate-900/10">
+                            <button 
+                                onClick={() => setIsVisible(false)}
+                                className="w-full py-3.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-slate-900/10"
+                            >
                                 {t.saleBanner?.cta}
                                 <ArrowRight className={`w-3.5 h-3.5 ${dir === 'rtl' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} transition-transform`} />
                             </button>

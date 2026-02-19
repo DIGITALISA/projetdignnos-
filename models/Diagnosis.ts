@@ -114,14 +114,14 @@ const DiagnosisSchema = new Schema({
     simulationReport: Schema.Types.Mixed, // Final simulation performance report
     comprehensiveReport: String, // AI-generated comprehensive final report
     comprehensiveReportGeneratedAt: Date, // Timestamp for report generation
-    // حالة الإكمال لكل مرحلة
+    // Completion status — always an object (never a string)
     completionStatus: {
-        cvAnalysisComplete: { type: Boolean, default: false },
-        interviewComplete: { type: Boolean, default: false },
-        roleDiscoveryComplete: { type: Boolean, default: false },
-        roleSelected: { type: Boolean, default: false },
-        simulationComplete: { type: Boolean, default: false },
-        cvGenerationComplete: { type: Boolean, default: false },
+        cvAnalysisComplete:      { type: Boolean, default: false },
+        interviewComplete:       { type: Boolean, default: false },
+        roleDiscoveryComplete:   { type: Boolean, default: false },
+        roleSelected:            { type: Boolean, default: false },
+        simulationComplete:      { type: Boolean, default: false },
+        cvGenerationComplete:    { type: Boolean, default: false },
         strategicReportComplete: { type: Boolean, default: false },
     },
     liveSessions: [{

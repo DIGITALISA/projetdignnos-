@@ -87,9 +87,5 @@ const SimulationSchema = new Schema({
     timestamps: true,
 });
 
-if (models.Simulation) {
-    delete (models as Record<string, unknown>).Simulation;
-}
-const Simulation = model("Simulation", SimulationSchema);
-
+const Simulation = models.Simulation || model("Simulation", SimulationSchema);
 export default Simulation;

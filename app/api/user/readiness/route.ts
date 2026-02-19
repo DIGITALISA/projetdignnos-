@@ -49,9 +49,13 @@ export async function GET(req: Request) {
       status: "completed",
     }).lean();
 
-    const hasDiagnosis = !!diagnosis && (diagnosis as { currentStep: string }).currentStep === "completed";
-    const hasSCI = !!((diagnosis?.analysis as Record<string, unknown>)?.sciReport);
-    const hasCompletedSimulation = simulations.length > 0;
+    const hasDiagnosis = !!diagnosis && (
+        diagnosis.currentStep === "completed" || 
+        diagnosis.completionStatus?.strategicReportComplete || 
+        !!diagnosis.analysis?.sciReport
+    );
+    const hasSCI = !!((diagnosis?.analysis as Record<string, unknown>)?.sciReport) || !!diagnosis?.simulationReport;
+    const hasCompletedSimulation = simulations.length > 0 || !!diagnosis?.completionStatus?.simulationComplete;
     
     // PROGRESSIVE LOGIC (The "Hierarchy")
     // 1. Diagnosis must be done to see SCI

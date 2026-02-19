@@ -128,32 +128,51 @@ export default function CVUploadPage() {
                   );
                 }
 
-                // التوجيه بناءً على currentStep
-                switch (data.currentStep) {
-                  case "interview_in_progress":
-                    router.push("/assessment/interview");
-                    return;
-                  case "interview_complete":
-                    router.push("/assessment/results");
-                    return;
-                  case "role_discovery":
-                    router.push("/assessment/role-discovery");
-                    return;
-                  case "role_selected":
-                    router.push("/assessment/cv-generation");
-                    return;
-                  case "completed":
-                    router.push("/dashboard");
-                    return;
-                  case "analysis_complete":
-                    // عرض النتائج في هذه الصفحة
-                    if (data.cvAnalysis) {
-                      setAnalysisResult(data.cvAnalysis);
-                      setUploadComplete(true);
-                      setShowResults(true);
-                      setSelectedLanguage(data.language || "en");
-                    }
-                    break;
+                const params = new URLSearchParams(window.location.search);
+                const isViewMode = params.get('view') === 'history';
+
+                if (isViewMode && data.cvAnalysis) {
+                  setAnalysisResult(data.cvAnalysis as CVAnalysisResult);
+                  setShowResults(true);
+                  if (data.language) setSelectedLanguage(data.language);
+                }
+
+                // التوجيه بناءً على currentStep - فقط إذا لم نكن في وضع المشاهدة
+                if (!isViewMode) {
+                  switch (data.currentStep) {
+                    case "interview_in_progress":
+                      router.push("/assessment/interview");
+                      return;
+                    case "interview_complete":
+                      router.push("/assessment/results");
+                      return;
+                    case "role_discovery":
+                      router.push("/assessment/role-discovery");
+                      return;
+                    case "role_selected":
+                      router.push("/assessment/cv-generation");
+                      return;
+                    case "completed":
+                      router.push("/dashboard");
+                      return;
+                    case "analysis_complete":
+                      // عرض النتائج في هذه الصفحة
+                      if (data.cvAnalysis) {
+                        setAnalysisResult(data.cvAnalysis);
+                        setShowResults(true);
+                        setUploadComplete(true);
+                        setSelectedLanguage(data.language || "en");
+                      }
+                      return;
+                  }
+                } else {
+                  // في وضع المشاهدة، نعرض النتائج دائماً إذا وجدت
+                  if (data.cvAnalysis) {
+                    setAnalysisResult(data.cvAnalysis);
+                    setShowResults(true);
+                    setUploadComplete(true);
+                    setSelectedLanguage(data.language || "en");
+                  }
                 }
               }
             }
@@ -506,7 +525,13 @@ export default function CVUploadPage() {
   };
 
   const proceedToInterview = () => {
-    router.push("/assessment/interview");
+    const params = new URLSearchParams(window.location.search);
+    const isViewMode = params.get('view') === 'history';
+    if (isViewMode) {
+      router.push("/assessment/interview?view=history");
+    } else {
+      router.push("/assessment/interview");
+    }
   };
 
 

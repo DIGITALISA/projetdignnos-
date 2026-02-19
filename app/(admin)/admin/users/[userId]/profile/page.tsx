@@ -294,6 +294,35 @@ export default function UserProfileReview() {
         }
     };
 
+    // Reset ONLY diagnosis data — keeps certificates, recommendations, scorecard
+    const [isResettingDiagnosisOnly, setIsResettingDiagnosisOnly] = useState(false);
+    const handleResetDiagnosisOnly = async () => {
+        const confirmed = window.confirm(
+            `⚠️ RESET DIAGNOSIS ONLY\n\nThis will delete ONLY the diagnosis data for ${userData?.user?.fullName}:\n- CV Analysis\n- Interview Results\n- Simulation Data\n\n✅ Certificates, Recommendations & Scorecard will be PRESERVED.\n\nThe user can re-upload their CV and redo the diagnosis.\n\nContinue?`
+        );
+        if (!confirmed) return;
+
+        setIsResettingDiagnosisOnly(true);
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/reset-diagnosis-only`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ ' + data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Network error occurred');
+        } finally {
+            setIsResettingDiagnosisOnly(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -616,16 +645,37 @@ export default function UserProfileReview() {
 
                             {/* Quick Actions for Admin */}
                             <div className="pt-6 border-t border-slate-100 flex flex-col gap-3 w-full">
-                                {(userData?.user?.plan === "Pro Essential") && !userData?.user?.resetRequested && (
-                                    <button
-                                        onClick={() => handleResetAction('approve')}
-                                        disabled={isHandlingReset}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 text-slate-600 hover:bg-rose-50 hover:text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-slate-200 hover:border-rose-200 shadow-sm"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                        Force Progress Reset
-                                    </button>
-                                )}
+
+                                {/* Button 1: Reset Diagnosis Only — keeps certificates */}
+                                <button
+                                    onClick={handleResetDiagnosisOnly}
+                                    disabled={isResettingDiagnosisOnly}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-amber-500 text-white hover:bg-amber-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-200 active:scale-95"
+                                >
+                                    {isResettingDiagnosisOnly ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                                    🔄 Reset Diagnosis Only
+                                </button>
+                                <p className="text-[9px] text-center text-amber-600 font-bold uppercase tracking-widest -mt-1">
+                                    Keeps certificates &amp; documents ✔️
+                                </p>
+
+                                {/* Button 2: Full Reset — deletes everything */}
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm(`⚠️ FULL RESET\n\nThis will permanently delete ALL data for ${userData.user?.fullName}:\n- CV Analysis\n- Interview Results\n- Simulation Data\n- Certificates\n- Recommendations\n\nAre you absolutely sure?`)) {
+                                            handleResetAction('approve');
+                                        }
+                                    }}
+                                    disabled={isHandlingReset}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-600 text-white hover:bg-rose-700 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-200 active:scale-95"
+                                >
+                                    {isHandlingReset ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                                    🗑️ Full Reset (Delete Everything)
+                                </button>
+                                <p className="text-[9px] text-center text-rose-500 font-bold uppercase tracking-widest -mt-1">
+                                    Deletes ALL data including certificates ⚠️
+                                </p>
+
                                 <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-200">
                                     Send Notification
                                 </button>

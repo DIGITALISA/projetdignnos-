@@ -12,9 +12,15 @@ import {
     Clock,
     ArrowRight,
     CheckCircle2,
-    ChevronRight,
     Shield,
-    Calendar
+    RefreshCw,
+    Brain,
+    FileText,
+    ChevronRight,
+    Star,
+    Calendar,
+    BarChart3,
+    Layers
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -30,17 +36,43 @@ interface LiveSession {
     meetingLink: string;
 }
 
+interface DiagnosisData {
+    skills?: { technical?: string[]; soft?: string[]; gaps?: string[] };
+    overallScore?: number;
+    rank?: string;
+    readinessLevel?: number;
+    overview?: string;
+    strengths?: string[];
+    weaknesses?: string[];
+    immediateActions?: string[];
+    sciReport?: Record<string, unknown>;
+}
+
+interface InterviewEval {
+    seniorityLevel?: string;
+    executiveSummary?: string;
+    suggestedRoles?: string[];
+}
+
+interface SimulationReport {
+    overallPerformance?: { score?: number };
+    overallScore?: number;
+}
+
 export default function DashboardPage() {
     const { t, dir } = useLanguage();
     const [userName, setUserName] = useState("");
-    const [stats, setStats] = useState([
-        { label: t.dashboard.stats.skillsGained, value: "0", icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
-        { label: t.dashboard.stats.hoursLearned, value: "0", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
-        { label: t.dashboard.stats.certificates, value: "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
-    ]);
     const [hasStarted, setHasStarted] = useState(false);
-    const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
     const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
+    const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
+
+    // Real data states
+    const [cvAnalysis, setCvAnalysis] = useState<DiagnosisData | null>(null);
+    const [interviewEval, setInterviewEval] = useState<InterviewEval | null>(null);
+    const [selectedRole, setSelectedRole] = useState<string>("");
+    const [simulationReport, setSimulationReport] = useState<SimulationReport | null>(null);
+    const [hasSCI, setHasSCI] = useState(false);
+    const [joinedDate, setJoinedDate] = useState<string>("");
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -52,6 +84,9 @@ export default function DashboardPage() {
                 if (profile?.fullName) {
                     setUserName(profile.fullName.split(' ')[0] || profile.fullName);
                 }
+                if (profile?.createdAt) {
+                    setJoinedDate(new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }));
+                }
 
                 if (userId) {
                     const controller = new AbortController();
@@ -62,77 +97,64 @@ export default function DashboardPage() {
                             signal: controller.signal
                         });
                         clearTimeout(timeoutId);
-                        
                         const response = await res.json();
 
                         if (response.hasData && response.data) {
                             const data = response.data;
                             setHasStarted(true);
-                            if (data.liveSessions) setLiveSessions(data.liveSessions);
-                            
-                            // Check for completion status
+
                             if (data.completionStatus === 'complete' || data.currentStep === 'completed') {
                                 setIsDiagnosisComplete(true);
                             }
-
                             if (data.cvAnalysis) {
-                                const hasSCI = !!data.cvAnalysis.sciReport;
-                                setStats([
-                                    { label: t.dashboard.stats.skillsGained, value: String(data.cvAnalysis.skills?.technical?.length || 0), icon: Target, color: "blue", bg: "bg-blue-50", text: "text-blue-600" },
-                                    { label: t.dashboard.stats.hoursLearned, value: "0.5", icon: Clock, color: "purple", bg: "bg-purple-50", text: "text-purple-600" },
-                                    { label: t.dashboard.stats.certificates, value: hasSCI ? "1" : "0", icon: Award, color: "yellow", bg: "bg-yellow-50", text: "text-yellow-600" },
-                                ]);
-
+                                setCvAnalysis(data.cvAnalysis);
+                                setHasSCI(!!data.cvAnalysis.sciReport);
                                 localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
-                                if (data.interviewEvaluation) localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
-                                if (data.roleSuggestions) localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
-                                if (data.selectedRole) localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
-                                if (data.language) localStorage.setItem('selectedLanguage', data.language);
-
-                                fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`)
-                                    .then(readyRes => readyRes.json())
-                                    .then(readyData => {
-                                        if (readyData.success) {
-                                            if (profile.canAccessCertificates !== readyData.certReady || 
-                                                profile.canAccessRecommendations !== readyData.recReady ||
-                                                profile.plan !== readyData.plan) {
-                                                
-                                                const updatedProfile = {
-                                                    ...profile,
-                                                    canAccessCertificates: readyData.certReady,
-                                                    canAccessRecommendations: readyData.recReady,
-                                                    plan: readyData.plan
-                                                };
-                                                localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
-                                                window.dispatchEvent(new Event("profileUpdated"));
-                                            }
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.error("Failed to sync access flags in dashboard", err);
-                                    });
                             }
+                            if (data.interviewEvaluation) {
+                                setInterviewEval(data.interviewEvaluation);
+                                localStorage.setItem('interviewEvaluation', JSON.stringify(data.interviewEvaluation));
+                            }
+                            if (data.selectedRole) {
+                                setSelectedRole(typeof data.selectedRole === 'string' ? data.selectedRole : data.selectedRole?.title || '');
+                                localStorage.setItem('selectedRole', JSON.stringify(data.selectedRole));
+                            }
+                            if (data.simulationReport) {
+                                setSimulationReport(data.simulationReport);
+                            }
+                            if (data.liveSessions) setLiveSessions(data.liveSessions);
+                            if (data.language) localStorage.setItem('selectedLanguage', data.language);
+
+                            // Sync access flags
+                            fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`)
+                                .then(r => r.json())
+                                .then(readyData => {
+                                    if (readyData.success) {
+                                        if (profile.canAccessCertificates !== readyData.certReady ||
+                                            profile.canAccessRecommendations !== readyData.recReady ||
+                                            profile.plan !== readyData.plan) {
+                                            const updatedProfile = {
+                                                ...profile,
+                                                canAccessCertificates: readyData.certReady,
+                                                canAccessRecommendations: readyData.recReady,
+                                                plan: readyData.plan
+                                            };
+                                            localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+                                            window.dispatchEvent(new Event("profileUpdated"));
+                                        }
+                                    }
+                                })
+                                .catch(err => console.error("Failed to sync access flags", err));
                         }
                     } catch (fetchError: unknown) {
                         clearTimeout(timeoutId);
                         const isAbort = fetchError instanceof Error && fetchError.name === 'AbortError';
-                        if (isAbort) {
-                            console.warn('Dashboard data fetch timed out');
-                        } else {
-                            console.error("Failed to fetch progress data", fetchError);
-                        }
-                        const cvAnalysis = localStorage.getItem('cvAnalysis');
-                        if (cvAnalysis) {
-                            setHasStarted(true);
-                        }
+                        if (!isAbort) console.error("Failed to fetch progress data", fetchError);
+                        if (localStorage.getItem('cvAnalysis')) setHasStarted(true);
                     }
                 } else {
-                    const cvAnalysis = localStorage.getItem('cvAnalysis');
-                    if (cvAnalysis) {
-                        setHasStarted(true);
-                    }
+                    if (localStorage.getItem('cvAnalysis')) setHasStarted(true);
                 }
-
             } catch (e: unknown) {
                 console.error("Failed to load dashboard data", e);
             }
@@ -143,6 +165,31 @@ export default function DashboardPage() {
         return () => window.removeEventListener("profileUpdated", loadDashboardData);
     }, [t]);
 
+    const handleRestart = async () => {
+        const confirmMsg = dir === 'rtl'
+            ? '⚠️ إعادة التشخيص — هل أنت متأكد؟\n\nسيتم مسح جميع بيانات التشخيص الحالية (السيرة الذاتية، المقابلة، المحاكاة) وستبدأ من الصفر.\n\nاضغط "موافق" للمتابعة.'
+            : '⚠️ Restart Diagnosis — Are you sure?\n\nAll current diagnosis data (CV, interview, simulation) will be permanently cleared and you will start from scratch.\n\nClick OK to continue.';
+
+        if (confirm(confirmMsg)) {
+            localStorage.removeItem('cvAnalysis');
+            localStorage.removeItem('interviewEvaluation');
+            localStorage.removeItem('roleSuggestions');
+            localStorage.removeItem('selectedRole');
+            localStorage.removeItem('selectedLanguage');
+            setIsDiagnosisComplete(false);
+            setHasStarted(false);
+            window.location.href = '/assessment/cv-upload';
+        }
+    };
+
+    // Derived real stats
+    const technicalSkillsCount = cvAnalysis?.skills?.technical?.length || 0;
+    const softSkillsCount = cvAnalysis?.skills?.soft?.length || 0;
+    const totalSkills = technicalSkillsCount + softSkillsCount;
+    const overallScore = cvAnalysis?.overallScore || cvAnalysis?.readinessLevel || 0;
+    const simScore = simulationReport?.overallPerformance?.score || simulationReport?.overallScore || 0;
+    const seniorityLevel = interviewEval?.seniorityLevel || (dir === 'rtl' ? 'في انتظار التقييم' : 'Pending Assessment');
+
     const steps = [
         {
             title: t.dashboard.journey.stages.diagnosis,
@@ -150,8 +197,9 @@ export default function DashboardPage() {
             status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "in-progress"),
             icon: Target,
             href: "/assessment/cv-upload",
-            color: "bg-blue-50 text-blue-600",
-            borderColor: "border-blue-200"
+            borderColor: "border-blue-200",
+            iconColor: "text-blue-600",
+            bgColor: "bg-blue-50"
         },
         {
             title: t.dashboard.journey.stages.simulation,
@@ -159,8 +207,9 @@ export default function DashboardPage() {
             status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked"),
             icon: Zap,
             href: "/simulation",
-            color: "bg-purple-50 text-purple-600",
-            borderColor: "border-purple-200"
+            borderColor: "border-purple-200",
+            iconColor: "text-purple-600",
+            bgColor: "bg-purple-50"
         },
         {
             title: t.dashboard.journey.stages.training,
@@ -168,8 +217,9 @@ export default function DashboardPage() {
             status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: PlayCircle,
             href: "/training",
-            color: "bg-green-50 text-green-600",
-            borderColor: "border-slate-100"
+            borderColor: "border-green-200",
+            iconColor: "text-green-600",
+            bgColor: "bg-green-50"
         },
         {
             title: t.dashboard.journey.stages.library,
@@ -177,8 +227,9 @@ export default function DashboardPage() {
             status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: BookOpen,
             href: "/library",
-            color: "bg-orange-50 text-orange-600",
-            borderColor: "border-slate-100"
+            borderColor: "border-orange-200",
+            iconColor: "text-orange-600",
+            bgColor: "bg-orange-50"
         },
         {
             title: t.dashboard.journey.stages.expert,
@@ -186,8 +237,9 @@ export default function DashboardPage() {
             status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: MessageSquare,
             href: "/expert",
-            color: "bg-pink-50 text-pink-600",
-            borderColor: "border-slate-100"
+            borderColor: "border-pink-200",
+            iconColor: "text-pink-600",
+            bgColor: "bg-pink-50"
         },
         {
             title: t.dashboard.journey.stages.strategicReport,
@@ -195,128 +247,259 @@ export default function DashboardPage() {
             status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked"),
             icon: Shield,
             href: "/strategic-report",
-            color: "bg-slate-900 text-white",
-            borderColor: "border-slate-800"
+            borderColor: "border-slate-700",
+            iconColor: "text-white",
+            bgColor: "bg-slate-900"
         }
-    ];
-
-    const resources = [
-        { id: 1, title: "Advanced Leadership", type: "Video Course", duration: "45m", icon: PlayCircle, color: "blue" },
-        { id: 2, title: "Strategic Thinking", type: "Guide", duration: "15m read", icon: BookOpen, color: "purple" },
-        { id: 3, title: "Mock Interview", type: "Interactive", duration: "30m", icon: MessageSquare, color: "green" },
     ];
 
     return (
         <div dir={dir} className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 pb-24 md:pb-8">
-            {/* Welcome Section */}
+
+            {/* ── Welcome Header ── */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex flex-col md:flex-row md:items-end justify-between gap-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}
             >
-                <div className={dir === 'rtl' ? 'flex-1' : ''}>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-                        {t.dashboard.welcome}, {userName} {dir === 'rtl' ? '👋' : '👋'}
+                <div>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-1">
+                        {t.dashboard.welcome}, {userName} 👋
                     </h1>
-                    <p className="text-slate-500 text-sm sm:text-base md:text-lg max-w-2xl">
+                    <p className="text-slate-500 text-sm md:text-base">
                         {t.dashboard.subtitle}
+                        {joinedDate && <span className="ml-2 text-xs text-slate-400">· {dir === 'rtl' ? 'منذ' : 'Since'} {joinedDate}</span>}
                     </p>
                 </div>
-                {/* Only show "Top Learner" badge if they have actually done something */}
                 {hasStarted && (
-                    <div className={`flex items-center gap-2 bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-slate-200 shadow-sm w-fit ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
-                        <span className="font-semibold text-xs md:text-sm text-slate-700">{t.dashboard.topLearner}</span>
+                    <div className={`flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 w-fit ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <TrendingUp className="w-4 h-4 text-emerald-600" />
+                        <span className="font-semibold text-sm text-emerald-700">{t.dashboard.topLearner}</span>
                     </div>
                 )}
             </motion.div>
 
-            {/* Stats Grid - Mobile Optimized */}
-            <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                {stats.map((stat, index) => (
+            {/* ── Real Stats Grid ── */}
+            <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4`}>
+                {[
+                    {
+                        label: dir === 'rtl' ? 'المهارات المُحددة' : 'Skills Identified',
+                        value: hasStarted ? String(totalSkills) : '—',
+                        sub: hasStarted ? `${technicalSkillsCount} tech · ${softSkillsCount} soft` : (dir === 'rtl' ? 'ابدأ التشخيص' : 'Start diagnosis'),
+                        icon: Layers,
+                        bg: 'bg-blue-50', text: 'text-blue-600'
+                    },
+                    {
+                        label: dir === 'rtl' ? 'درجة الجاهزية' : 'Readiness Score',
+                        value: hasStarted && overallScore ? `${overallScore}%` : '—',
+                        sub: hasStarted ? (cvAnalysis?.rank || (dir === 'rtl' ? 'من التقييم' : 'From CV audit')) : (dir === 'rtl' ? 'في انتظار التحليل' : 'Pending analysis'),
+                        icon: BarChart3,
+                        bg: 'bg-purple-50', text: 'text-purple-600'
+                    },
+                    {
+                        label: dir === 'rtl' ? 'درجة المحاكاة' : 'Simulation Score',
+                        value: simScore ? `${simScore}/10` : '—',
+                        sub: simScore ? (dir === 'rtl' ? 'من المحاكاة الواقعية' : 'From live simulation') : (dir === 'rtl' ? 'لم تبدأ بعد' : 'Not started yet'),
+                        icon: Zap,
+                        bg: 'bg-amber-50', text: 'text-amber-600'
+                    },
+                    {
+                        label: dir === 'rtl' ? 'الوثائق المُنجزة' : 'Documents Ready',
+                        value: hasSCI ? '1' : '0',
+                        sub: hasSCI ? (dir === 'rtl' ? 'تقرير SCI جاهز' : 'SCI Report ready') : (dir === 'rtl' ? 'لا يوجد بعد' : 'None yet'),
+                        icon: Award,
+                        bg: 'bg-emerald-50', text: 'text-emerald-600'
+                    },
+                ].map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={`bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex sm:flex-col lg:flex-row items-center sm:items-start sm:text-left text-center gap-4 ${dir === 'rtl' ? 'sm:text-right flex-row-reverse' : ''}`}
+                        transition={{ delay: index * 0.08 }}
+                        className={`bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow ${dir === 'rtl' ? 'text-right' : ''}`}
                     >
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.bg} ${stat.text}`}>
-                            <stat.icon className="w-6 h-6" />
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${stat.bg} ${stat.text}`}>
+                            <stat.icon className="w-5 h-5" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-2xl font-bold text-slate-900 truncate">{stat.value}</p>
-                            <p className="text-xs md:text-sm text-slate-500 font-medium leading-tight truncate">{stat.label}</p>
-                        </div>
+                        <p className="text-2xl font-black text-slate-900">{stat.value}</p>
+                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{stat.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{stat.sub}</p>
                     </motion.div>
                 ))}
             </div>
 
-            {/* Main Progress Section - Bento Style */}
+            {/* ── Main Grid: Current Focus + Journey ── */}
             <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-                {/* Left Col: Current Focus */}
+
+                {/* Current Focus */}
                 <motion.div
                     initial={{ opacity: 0, x: dir === 'rtl' ? 20 : -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm flex flex-col relative overflow-hidden group"
+                    className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm flex flex-col relative overflow-hidden"
                 >
                     {hasStarted ? (
                         <>
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100/50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
-                            <div className={`flex items-center justify-between mb-6 md:mb-8 relative z-10 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100/40 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                            <div className={`flex items-center justify-between mb-6 relative z-10 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                 <h2 className={`text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                     <Zap className="w-5 h-5 text-purple-600" />
                                     {t.dashboard.currentFocus.title}
                                 </h2>
-                                {!isDiagnosisComplete && (
-                                    <Link href="/simulation" className={`text-xs md:text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 group-hover:gap-2 transition-all ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                        {t.dashboard.currentFocus.continue}
-                                        <ArrowRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                                    </Link>
-                                )}
                             </div>
 
-                            <div className={`flex-1 ${isDiagnosisComplete ? 'bg-linear-to-br from-green-50 to-emerald-50 border-green-100' : 'bg-linear-to-br from-purple-50 to-white border-purple-100/50'} rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 md:gap-8 border relative ${dir === 'rtl' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
-                                <div className="relative z-10 flex-1 space-y-3 md:space-y-4 w-full">
-                                    <span className={`inline-block px-3 py-1 ${isDiagnosisComplete ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'} text-[10px] md:text-xs font-bold rounded-full uppercase tracking-wider`}>
+                            <div className={`flex-1 ${isDiagnosisComplete ? 'bg-linear-to-br from-green-50 to-emerald-50 border-green-100' : 'bg-linear-to-br from-purple-50 to-white border-purple-100/50'} rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 border relative ${dir === 'rtl' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
+                                <div className="relative z-10 flex-1 space-y-3 w-full">
+                                    <span className={`inline-block px-3 py-1 ${isDiagnosisComplete ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'} text-[10px] font-bold rounded-full uppercase tracking-wider`}>
                                         {isDiagnosisComplete ? (dir === 'rtl' ? 'مكتمل' : 'Completed') : (dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress')}
                                     </span>
                                     <h3 className="text-xl md:text-2xl font-bold text-slate-900">
-                                        {isDiagnosisComplete ? 'Career Diagnosis Complete' : 'Career Diagnosis'}
+                                        {isDiagnosisComplete
+                                            ? (dir === 'rtl' ? 'التشخيص المهني مكتمل' : 'Career Diagnosis Complete')
+                                            : (dir === 'rtl' ? 'التشخيص المهني' : 'Career Diagnosis')}
                                     </h3>
-                                    <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                                    <p className="text-sm text-slate-600 leading-relaxed">
                                         {isDiagnosisComplete
                                             ? (dir === 'rtl' ? 'لقد أكملت التشخيص بالكامل. أنت الآن مستعد للمرحلة التالية من رحلتك!' : 'You have effectively completed the full diagnosis. You are now ready for the next stage of your journey!')
                                             : (dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!')}
                                     </p>
+                                    {selectedRole && (
+                                        <div className={`flex items-center gap-2 mt-2 ${dir === 'rtl' ? 'flex-row-reverse justify-end' : ''}`}>
+                                            <Target className="w-4 h-4 text-slate-400" />
+                                            <span className="text-xs font-semibold text-slate-500">
+                                                {dir === 'rtl' ? 'الدور المستهدف:' : 'Target Role:'} <span className="text-slate-800">{selectedRole}</span>
+                                            </span>
+                                        </div>
+                                    )}
+                                    {seniorityLevel && interviewEval && (
+                                        <div className={`flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse justify-end' : ''}`}>
+                                            <Star className="w-4 h-4 text-amber-400" />
+                                            <span className="text-xs font-semibold text-slate-500">
+                                                {dir === 'rtl' ? 'المستوى:' : 'Level:'} <span className="text-slate-800">{seniorityLevel}</span>
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="relative z-10 w-full sm:w-auto mt-2 sm:mt-0 shrink-0">
+
+                                <div className="relative z-10 w-full sm:w-auto shrink-0">
                                     {isDiagnosisComplete ? (
-                                        <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30">
-                                            <CheckCircle2 className="w-8 h-8 text-white" />
+                                        <div className="flex flex-col gap-3 min-w-[200px]">
+                                            <div className={`flex items-center gap-2 mb-1 justify-center sm:justify-start ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                                    <CheckCircle2 className="w-4 h-4 text-white" />
+                                                </div>
+                                                <span className="text-xs font-bold text-green-700 uppercase tracking-wider">
+                                                    {dir === 'rtl' ? 'مكتمل بنجاح' : 'Successfully Completed'}
+                                                </span>
+                                            </div>
+                                            <Link
+                                                href="/strategic-report"
+                                                className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm text-center flex items-center justify-center gap-2"
+                                            >
+                                                <TrendingUp className="w-4 h-4" />
+                                                {t.dashboard.currentFocus.viewResults}
+                                            </Link>
+                                            <Link
+                                                href="/strategic-report?tab=history"
+                                                className="w-full px-6 py-3 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 active:scale-95 transition-all text-sm text-center flex items-center justify-center gap-2"
+                                            >
+                                                <Clock className="w-4 h-4 text-indigo-600" />
+                                                {t.dashboard.currentFocus.viewHistory}
+                                            </Link>
+                                            <button
+                                                onClick={handleRestart}
+                                                className="w-full px-6 py-3 bg-white text-rose-600 border border-rose-200 rounded-xl font-black hover:bg-rose-50 active:scale-95 transition-all text-xs text-center flex items-center justify-center gap-2"
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                                {t.dashboard.currentFocus.restart}
+                                            </button>
                                         </div>
                                     ) : (
-                                        <Link href="/simulation" className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm md:text-base inline-block text-center whitespace-nowrap">
+                                        <Link href="/simulation" className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm inline-block text-center">
                                             {t.dashboard.currentFocus.continue}
                                         </Link>
                                     )}
                                 </div>
                             </div>
+
+                            {/* ── Real Diagnosis Summary ── */}
+                            {cvAnalysis && (
+                                <div className="mt-6 grid sm:grid-cols-2 gap-4">
+                                    {/* Strengths */}
+                                    {cvAnalysis.strengths && cvAnalysis.strengths.length > 0 && (
+                                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+                                            <p className={`text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <CheckCircle2 className="w-3 h-3" />
+                                                {dir === 'rtl' ? 'نقاط القوة' : 'Key Strengths'}
+                                            </p>
+                                            <ul className={`space-y-1.5 ${dir === 'rtl' ? 'text-right' : ''}`}>
+                                                {cvAnalysis.strengths.slice(0, 3).map((s, i) => (
+                                                    <li key={i} className="text-xs text-emerald-800 font-medium flex items-start gap-1.5">
+                                                        <span className="text-emerald-400 mt-0.5">▸</span>
+                                                        <span>{s}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {/* Gaps */}
+                                    {cvAnalysis.skills?.gaps && cvAnalysis.skills.gaps.length > 0 && (
+                                        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                                            <p className={`text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <Brain className="w-3 h-3" />
+                                                {dir === 'rtl' ? 'الفجوات المُحددة' : 'Identified Gaps'}
+                                            </p>
+                                            <ul className={`space-y-1.5 ${dir === 'rtl' ? 'text-right' : ''}`}>
+                                                {cvAnalysis.skills.gaps.slice(0, 3).map((g, i) => (
+                                                    <li key={i} className="text-xs text-amber-800 font-medium flex items-start gap-1.5">
+                                                        <span className="text-amber-400 mt-0.5">▸</span>
+                                                        <span>{g}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {/* Interview Summary */}
+                                    {interviewEval?.executiveSummary && (
+                                        <div className="sm:col-span-2 bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
+                                            <p className={`text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <FileText className="w-3 h-3" />
+                                                {dir === 'rtl' ? 'ملخص المقابلة' : 'Interview Summary'}
+                                            </p>
+                                            <p className="text-xs text-indigo-800 font-medium leading-relaxed line-clamp-3">
+                                                {interviewEval.executiveSummary}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {/* Immediate Actions */}
+                                    {cvAnalysis.immediateActions && cvAnalysis.immediateActions.length > 0 && (
+                                        <div className="sm:col-span-2 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                            <p className={`text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <ArrowRight className="w-3 h-3" />
+                                                {dir === 'rtl' ? 'الخطوات الفورية الموصى بها' : 'Recommended Immediate Actions'}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {cvAnalysis.immediateActions.slice(0, 4).map((action, i) => (
+                                                    <span key={i} className="text-[11px] px-3 py-1 bg-white border border-slate-200 rounded-full text-slate-700 font-semibold shadow-sm">
+                                                        {action}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </>
                     ) : (
                         <>
-                            {/* Empty State / Call to Action */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
-                            <div className={`flex flex-col items-center justify-center h-full text-center space-y-6 relative z-10 py-8`}>
+                            <div className="flex flex-col items-center justify-center h-full text-center space-y-6 relative z-10 py-12">
                                 <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
                                     <Target className="w-10 h-10 text-blue-600" />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                                        {dir === 'rtl' ? 'لنبدأ رحلتك المهنية' : 'Let\'s Start Your Career Journey'}
+                                        {dir === 'rtl' ? 'لنبدأ رحلتك المهنية' : "Let's Start Your Career Journey"}
                                     </h2>
                                     <p className="text-slate-500 max-w-md mx-auto">
                                         {dir === 'rtl'
@@ -333,7 +516,7 @@ export default function DashboardPage() {
                     )}
                 </motion.div>
 
-                {/* Right Col: Timeline */}
+                {/* Journey Timeline */}
                 <motion.div
                     initial={{ opacity: 0, x: dir === 'rtl' ? -20 : 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -342,35 +525,36 @@ export default function DashboardPage() {
                 >
                     <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6">{t.dashboard.journey.title}</h2>
                     <div className="relative space-y-0">
-                        {/* Vertical Line */}
                         <div className={`absolute top-4 bottom-4 w-[2px] bg-slate-100 ${dir === 'rtl' ? 'right-[23px] md:right-[27px]' : 'left-[23px] md:left-[27px]'}`} />
-
                         {steps.map((step, idx) => (
-                            <div key={idx} className={`relative flex items-start gap-3 md:gap-4 pb-6 last:pb-0 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                {/* Status Indicator */}
-                                <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all ${step.status === 'completed' || step.status === 'in-progress' ? 'bg-white ' + step.borderColor : 'bg-slate-50 border-transparent text-slate-300'}`}>
-                                    {step.status === 'completed' ? (
-                                        <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
-                                    ) : (
-                                        <step.icon className={`w-5 h-5 md:w-6 md:h-6`} />
+                            <Link key={idx} href={step.status !== 'locked' ? step.href : '#'}>
+                                <div className={`relative flex items-start gap-3 md:gap-4 pb-5 last:pb-0 group ${dir === 'rtl' ? 'flex-row-reverse' : ''} ${step.status !== 'locked' ? 'cursor-pointer' : 'cursor-default'}`}>
+                                    <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all ${step.status === 'completed' ? 'bg-emerald-50 border-emerald-200' : step.status === 'in-progress' ? `${step.bgColor} ${step.borderColor}` : 'bg-slate-50 border-transparent'}`}>
+                                        {step.status === 'completed' ? (
+                                            <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-emerald-500" />
+                                        ) : (
+                                            <step.icon className={`w-5 h-5 md:w-6 md:h-6 ${step.status === 'locked' ? 'text-slate-300' : step.iconColor}`} />
+                                        )}
+                                    </div>
+                                    <div className="pt-1.5 md:pt-2 flex-1">
+                                        <h3 className={`font-bold text-sm md:text-base ${step.status === 'locked' ? 'text-slate-400' : 'text-slate-900 group-hover:text-blue-600 transition-colors'}`}>
+                                            {step.title}
+                                        </h3>
+                                        <p className="text-xs md:text-sm text-slate-400 leading-snug mt-0.5">
+                                            {step.description}
+                                        </p>
+                                    </div>
+                                    {step.status !== 'locked' && (
+                                        <ChevronRight className={`w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors mt-3 shrink-0 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                                     )}
                                 </div>
-
-                                <div className="pt-1.5 md:pt-2">
-                                    <h3 className={`font-bold text-sm md:text-base ${step.status === 'locked' ? 'text-slate-400' : 'text-slate-900'}`}>
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-xs md:text-sm text-slate-400 leading-snug mt-0.5">
-                                        {step.description}
-                                    </p>
-                                </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </motion.div>
             </div>
 
-            {/* Live Sessions Section - New */}
+            {/* ── Live Sessions ── */}
             {liveSessions.length > 0 && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -380,7 +564,6 @@ export default function DashboardPage() {
                 >
                     <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-[120px] -mr-48 -mt-48" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 blur-[100px] -ml-32 -mb-32" />
-                    
                     <div className={`relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                         <div className="space-y-4">
                             <div className={`flex items-center gap-3 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
@@ -394,31 +577,30 @@ export default function DashboardPage() {
                             </h2>
                         </div>
                     </div>
-
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 relative z-10">
                         {liveSessions.map((session, idx) => (
                             <div key={idx} className={`bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-3xl hover:bg-white/10 transition-all group ${dir === 'rtl' ? 'text-right' : ''}`}>
                                 <div className={`flex items-center gap-4 mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
                                         <Clock size={24} />
                                     </div>
                                     <div>
                                         <h4 className="text-white font-bold text-lg">{session.title}</h4>
-                                        <p className="text-slate-400 text-xs font-medium">{t.dashboard.liveSessions.expert}: {session.expertName}</p>
+                                        <p className="text-slate-400 text-xs">{t.dashboard.liveSessions.expert}: {session.expertName}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-3 mb-8">
-                                    <div className={`flex items-center gap-3 text-slate-300 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-3 text-slate-300 text-sm ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                         <Calendar size={16} className="text-blue-400" />
                                         <span>{new Date(session.date).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}</span>
                                     </div>
-                                    <div className={`flex items-center gap-3 text-slate-300 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-3 text-slate-300 text-sm ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                         <Clock size={16} className="text-blue-400" />
                                         <span>{session.time}</span>
                                     </div>
                                 </div>
                                 {session.meetingLink && (
-                                    <a 
+                                    <a
                                         href={session.meetingLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -433,44 +615,131 @@ export default function DashboardPage() {
                 </motion.div>
             )}
 
-            {/* Recommended Section - Horizontal Scroll on Mobile */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className={dir === 'rtl' ? 'text-right' : ''}
-            >
-                <div className={`flex items-center justify-between mb-4 md:mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">{t.dashboard.recommended.title}</h2>
-                    <Link href="/library" className={`text-xs md:text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        {t.dashboard.recommended.seeAll}
-                        <ChevronRight className={`w-4 h-4 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                    </Link>
-                </div>
+            {/* ── Next Steps Panel (replaces fake "Prioritized for You") ── */}
+            {hasStarted && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className={dir === 'rtl' ? 'text-right' : ''}
+                >
+                    <div className={`flex items-center justify-between mb-4 md:mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+                            {dir === 'rtl' ? '🎯 خطواتك التالية' : '🎯 Your Next Steps'}
+                        </h2>
+                        <span className="text-xs text-slate-400 font-medium">
+                            {dir === 'rtl' ? 'بناءً على تشخيصك' : 'Based on your diagnosis'}
+                        </span>
+                    </div>
 
-                {/* Scroll Container */}
-                <div className={`flex overflow-x-auto pb-4 gap-4 -mx-4 px-4 md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0 scrollbar-none snap-x ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                    {resources.map((item) => (
-                        <div
-                            key={item.id}
-                            className={`min-w-[280px] md:min-w-0 bg-white p-5 rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-lg transition-all cursor-pointer group snap-center ${dir === 'rtl' ? 'text-right' : ''}`}
-                        >
-                            <div className={`flex items-start gap-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-${item.color}-50 text-${item.color}-600 group-hover:bg-${item.color}-600 group-hover:text-white transition-colors`}>
-                                    <item.icon className="w-6 h-6" />
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[
+                            {
+                                icon: Zap,
+                                color: 'purple',
+                                bg: 'bg-purple-50',
+                                border: 'border-purple-100',
+                                iconColor: 'text-purple-600',
+                                title: dir === 'rtl' ? '2. محاكاة الخبراء' : '2. Expert Simulations',
+                                desc: dir === 'rtl' ? 'محاكاة واقعية 100% مع خبير بشري لتقييم أدائك تحت الضغط.' : '100% personalized simulations with a human expert to evaluate your performance under pressure.',
+                                href: '/simulation',
+                                cta: dir === 'rtl' ? 'ابدأ المحاكاة' : 'Start Simulation',
+                                locked: !hasStarted
+                            },
+                            {
+                                icon: PlayCircle,
+                                color: 'green',
+                                bg: 'bg-green-50',
+                                border: 'border-green-100',
+                                iconColor: 'text-green-600',
+                                title: dir === 'rtl' ? '3. ورش العمل التنفيذية' : '3. Executive Workshops',
+                                desc: dir === 'rtl' ? 'جلسات مباشرة مع خبراء مخصصة بناءً على نتائج تشخيصك.' : 'Live sessions with experts, personalized based on your audit results.',
+                                href: '/training',
+                                cta: dir === 'rtl' ? 'استكشف الورش' : 'Explore Workshops',
+                                locked: !isDiagnosisComplete
+                            },
+                            {
+                                icon: Brain,
+                                color: 'indigo',
+                                bg: 'bg-indigo-50',
+                                border: 'border-indigo-100',
+                                iconColor: 'text-indigo-600',
+                                title: dir === 'rtl' ? '4. المستشار الاستراتيجي AI' : '4. AI Strategic Advisor',
+                                desc: dir === 'rtl' ? 'دعم مهني 24/7 مع مساعد ذكاء اصطناعي + خطة تعلم مخصصة.' : '24/7 professional support with an AI advisor + personalized learning plan.',
+                                href: '/mentor',
+                                cta: dir === 'rtl' ? 'تحدث مع المستشار' : 'Talk to Advisor',
+                                locked: false
+                            },
+                            {
+                                icon: BookOpen,
+                                color: 'orange',
+                                bg: 'bg-orange-50',
+                                border: 'border-orange-100',
+                                iconColor: 'text-orange-600',
+                                title: dir === 'rtl' ? '5. قاعدة المعرفة' : '5. Knowledge Base',
+                                desc: dir === 'rtl' ? 'أهم منهجيات الإدارة وحالات دراسية واقعية لتعزيز فهمك.' : 'Key management methodologies and real case studies to strengthen your understanding.',
+                                href: '/academy',
+                                cta: dir === 'rtl' ? 'استكشف المعرفة' : 'Explore Knowledge',
+                                locked: false
+                            },
+                            {
+                                icon: MessageSquare,
+                                color: 'pink',
+                                bg: 'bg-pink-50',
+                                border: 'border-pink-100',
+                                iconColor: 'text-pink-600',
+                                title: dir === 'rtl' ? '7. استشارة الخبراء' : '7. Expert Consultation',
+                                desc: dir === 'rtl' ? 'مراجعة قراراتك ومشاريعك الهامة عبر خبير متخصص.' : 'Review your key decisions and projects with a specialized expert.',
+                                href: '/expert',
+                                cta: dir === 'rtl' ? 'احجز استشارة' : 'Book Consultation',
+                                locked: !isDiagnosisComplete
+                            },
+                            {
+                                icon: Shield,
+                                color: 'slate',
+                                bg: 'bg-slate-900',
+                                border: 'border-slate-800',
+                                iconColor: 'text-white',
+                                title: dir === 'rtl' ? 'التقرير التشخيصي الشامل' : 'Full Diagnostic Report',
+                                desc: dir === 'rtl' ? 'وثيقة ذكاء مهني شاملة مع خارطة طريق 18 شهراً.' : 'Comprehensive career intelligence document with an 18-month strategic roadmap.',
+                                href: '/strategic-report',
+                                cta: dir === 'rtl' ? 'عرض التقرير' : 'View Report',
+                                locked: !isDiagnosisComplete,
+                                dark: true
+                            },
+                        ].map((item, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 + idx * 0.06 }}
+                                className={`rounded-2xl border p-5 flex flex-col gap-3 ${item.dark ? 'bg-slate-900 border-slate-800' : `bg-white ${item.border}`} ${item.locked ? 'opacity-50' : 'hover:shadow-lg transition-shadow'}`}
+                            >
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.dark ? 'bg-white/10' : item.bg}`}>
+                                    <item.icon className={`w-5 h-5 ${item.dark ? 'text-white' : item.iconColor}`} />
                                 </div>
                                 <div className="flex-1">
-                                    <h4 className={`font-bold text-slate-900 group-hover:text-${item.color}-700 transition-colors`}>{item.title}</h4>
-                                    <div className={`flex items-center gap-2 mt-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                        <span className="text-xs font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{item.type}</span>
-                                        <span className="text-xs text-slate-400">• {item.duration}</span>
-                                    </div>
+                                    <h4 className={`font-bold text-sm mb-1 ${item.dark ? 'text-white' : 'text-slate-900'}`}>{item.title}</h4>
+                                    <p className={`text-xs leading-relaxed ${item.dark ? 'text-slate-400' : 'text-slate-500'}`}>{item.desc}</p>
                                 </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </motion.div>
+                                {item.locked ? (
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${item.dark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                        {dir === 'rtl' ? '🔒 يتطلب إكمال التشخيص' : '🔒 Requires diagnosis completion'}
+                                    </span>
+                                ) : (
+                                    <Link
+                                        href={item.href}
+                                        className={`flex items-center gap-1 text-xs font-black uppercase tracking-widest ${item.dark ? 'text-blue-400 hover:text-blue-300' : `${item.iconColor} hover:opacity-70`} transition-opacity`}
+                                    >
+                                        {item.cta}
+                                        <ArrowRight className={`w-3 h-3 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                                    </Link>
+                                )}
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 }

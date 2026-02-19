@@ -81,6 +81,16 @@ export default function ExpertRecruitmentPage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Manual validation for required fields
+        const requiredFields = ['fullName', 'email', 'phone', 'cvLink', 'videoLink'];
+        const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+        
+        if (missingFields.length > 0) {
+            alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
         setIsSubmitting(true);
         
         try {
@@ -97,11 +107,13 @@ export default function ExpertRecruitmentPage() {
                 setIsSubmitting(false);
                 setIsSuccess(true);
             } else {
-                alert("Failed to transmit application. Please try again.");
+                const data = await res.json();
+                alert(`Failed to transmit application: ${data.error || "Please try again."}`);
                 setIsSubmitting(false);
             }
         } catch (error) {
             console.error("Submission error:", error);
+            alert("A system error occurred. Please check your connection and try again.");
             setIsSubmitting(false);
         }
     };

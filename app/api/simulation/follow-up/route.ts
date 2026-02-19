@@ -4,7 +4,11 @@ import { generateFollowUpQuestion } from '@/lib/simulation';
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
+    const startTime = Date.now();
+    console.log('[API] /api/simulation/follow-up - Request received');
+
     try {
+        const body = await request.json();
         const {
             selectedRole,
             scenario,
@@ -12,17 +16,27 @@ export async function POST(request: NextRequest) {
             conversationHistory,
             language = 'en',
             questionNumber = 1
-        } = await request.json();
+        } = body;
+
+        console.log('[API] Request params:', {
+            hasRole: !!selectedRole,
+            roleTitle: selectedRole?.title,
+            hasScenario: !!scenario,
+            scenarioLength: scenario?.length,
+            hasResponse: !!userResponse,
+            responseLength: userResponse?.length,
+            historyLength: conversationHistory?.length,
+            language,
+            questionNumber
+        });
 
         if (!selectedRole || !scenario || !userResponse) {
+            console.error('[API] Missing required parameters');
             return NextResponse.json(
                 { error: 'Selected role, scenario, and user response are required' },
                 { status: 400 }
             );
         }
-
-        console.log('[Follow-up API] Generating follow-up question...');
-        console.log('[Follow-up API] Question number:', questionNumber);
 
         const result = await generateFollowUpQuestion(
             selectedRole,
@@ -33,25 +47,39 @@ export async function POST(request: NextRequest) {
             questionNumber
         );
 
+        const duration = Date.now() - startTime;
+        console.log(`[API] Follow-up generated in ${duration}ms`, {
+            success: result.success,
+            hasQuestion: !!result.followUpQuestion,
+            hasFocus: !!result.focusArea
+        });
+
         if (!result.success) {
-            console.error('[Follow-up API] Generation failed:', result.error);
+            console.error('[API] Follow-up generation failed:', result.error);
             return NextResponse.json(
                 { error: result.error },
                 { status: 500 }
             );
         }
 
-        console.log('[Follow-up API] Successfully generated follow-up question');
-
         return NextResponse.json({
             success: true,
             followUpQuestion: result.followUpQuestion,
             focusArea: result.focusArea,
         });
-    } catch (error) {
-        console.error('[Follow-up API] Unexpected error:', error);
+    } catch (error: unknown) {
+        const duration = Date.now() - startTime;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        
+        console.error(`[API] Error after ${duration}ms:`, error);
+        
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { 
+                error: 'Internal server error',
+                details: errorMessage,
+                stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+            },
             { status: 500 }
         );
     }

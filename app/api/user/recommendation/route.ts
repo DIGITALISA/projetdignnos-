@@ -19,21 +19,32 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        // Check if a recommendation already exists for this user (for future logic if needed)
-        // await Recommendation.findOne({ userId }).sort({ createdAt: -1 });
+        function escapeRegExp(string: string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
 
-        // If the user wants to regenerate or if none exists, we proceed.
-        // For simplicity, let's always generate a new one if requested via POST, 
-        // but the frontend can use GET to just fetch the latest.
+        const userQuery = { 
+            $or: [
+                { userId: { $regex: new RegExp(`^${escapeRegExp(userId)}$`, 'i') } },
+                { userId: userId.toString() }
+            ]
+        };
 
         // Fetch completed courses (certificates)
-        const certificates = await Certificate.find({ userId });
+        const certificates = await Certificate.find(userQuery);
 
         // Fetch Diagnosis (Audit)
-        const diagnosis = await Diagnosis.findOne({ userId, currentStep: 'completed' });
+        // We look for any completed diagnosis or one with a report ready
+        const diagnosis = await Diagnosis.findOne({ 
+            ...userQuery,
+            $or: [{ currentStep: 'completed' }, { 'analysis.sciReport': { $exists: true } }]
+        }).sort({ updatedAt: -1 });
 
         // Fetch Simulations
-        const simulations = await Simulation.find({ userId, status: 'completed' });
+        const simulations = await Simulation.find({ 
+            ...userQuery,
+            status: 'completed' 
+        });
 
         if (!diagnosis) {
             return NextResponse.json(

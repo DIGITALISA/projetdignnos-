@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Lock, Zap, Phone, Star, Clock, CheckSquare, RotateCcw } from "lucide-react";
+import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Star, Clock, CheckSquare, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,6 @@ export default function ParticipantsManagement() {
         canAccessRecommendations?: boolean;
         canAccessScorecard?: boolean;
         canAccessSCI?: boolean;
-        rawPassword?: string;
         isDiagnosisComplete?: boolean;
         workshopAttestationRequested?: boolean;
         attestations?: Array<{ workshopTitle: string; issueDate: Date; referenceId: string; instructor?: string }>;
@@ -51,8 +50,7 @@ export default function ParticipantsManagement() {
         canAccessCertificates: false,
         canAccessRecommendations: false,
         canAccessScorecard: false,
-        canAccessSCI: false,
-        rawPassword: ""
+        canAccessSCI: false
     });
 
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -135,8 +133,7 @@ export default function ParticipantsManagement() {
             canAccessCertificates: !!user.canAccessCertificates,
             canAccessRecommendations: !!user.canAccessRecommendations,
             canAccessScorecard: !!user.canAccessScorecard,
-            canAccessSCI: !!user.canAccessSCI,
-            rawPassword: user.rawPassword || ""
+            canAccessSCI: !!user.canAccessSCI
         });
         setIsAddModalOpen(true);
     };
@@ -200,8 +197,7 @@ export default function ParticipantsManagement() {
             canAccessCertificates: false,
             canAccessRecommendations: false,
             canAccessScorecard: false,
-            canAccessSCI: false,
-            rawPassword: ""
+            canAccessSCI: false
         });
         setIsAddModalOpen(true);
     }
@@ -223,8 +219,7 @@ export default function ParticipantsManagement() {
                 canAccessCertificates: formData.canAccessCertificates,
                 canAccessRecommendations: formData.canAccessRecommendations,
                 canAccessScorecard: formData.canAccessScorecard,
-                canAccessSCI: formData.canAccessSCI,
-                rawPassword: formData.password || formData.rawPassword
+                canAccessSCI: formData.canAccessSCI
             };
 
             const res = await fetch("/api/admin/users", {
@@ -344,7 +339,7 @@ export default function ParticipantsManagement() {
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Asset Name</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Mandate Plan</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">WhatsApp</th>
-                                <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Access Code</th>
+
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Mandates</th>
                             </tr>
@@ -398,12 +393,7 @@ export default function ParticipantsManagement() {
                                             <span className="text-sm font-bold font-mono">{user.whatsapp || "No data"}</span>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center gap-2 text-slate-500">
-                                            <Lock size={14} className="text-blue-500" />
-                                            <span className="text-sm font-bold font-mono bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">{user.rawPassword || "N/A"}</span>
-                                        </div>
-                                    </td>
+
                                     <td className="px-8 py-5">
                                         <div className="flex flex-col gap-2">
                                             <span className={cn(
