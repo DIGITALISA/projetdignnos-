@@ -18,7 +18,8 @@ import {
     Play,
     Clock,
     Users,
-    Globe
+    Globe,
+    Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -44,6 +45,10 @@ interface RoadmapData {
     roadmapTitle: string;
     milestones: Milestone[];
     personalizedWorkshop?: PersonalizedWorkshop;
+    support?: {
+        adminEmail: string;
+        adminWhatsapp: string;
+    }
 }
 
 const IconMap: Record<string, typeof TrendingUp> = {
@@ -58,7 +63,7 @@ const IconMap: Record<string, typeof TrendingUp> = {
 };
 
 export default function RoadmapPage() {
-    useLanguage();
+    const { language } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -79,7 +84,10 @@ export default function RoadmapPage() {
 
             const data = await response.json();
             if (data.success) {
-                setRoadmap(data.roadmap);
+                setRoadmap({
+                    ...data.roadmap,
+                    support: data.support
+                });
                 // Load completed steps from localStorage
                 const savedProgress = localStorage.getItem(`roadmap_progress_${userId}`);
                 if (savedProgress) {
@@ -267,9 +275,28 @@ export default function RoadmapPage() {
                                 </div>
 
                                 <div className="pt-6 flex flex-col sm:flex-row items-center gap-6">
-                                    <button className="w-full sm:w-auto px-10 py-5 bg-slate-900 text-white rounded-[1.25rem] font-black uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-blue-600 transition-all duration-300 flex items-center justify-center gap-4 active:scale-95 group/btn">
-                                        <Zap size={20} className="fill-current group-hover:scale-110 transition-transform" /> طلب ورشة عمل فردية
-                                    </button>
+                                    <div className="flex flex-wrap gap-4">
+                                        <motion.a 
+                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            href={`mailto:${roadmap.support?.adminEmail || 'support@careerupgrade.ai'}`}
+                                            className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:bg-blue-600 transition-all shadow-[0_20px_40px_-10px_rgba(15,23,42,0.3)] hover:shadow-blue-500/40"
+                                        >
+                                            <Mail size={18} className="text-blue-400" /> {language === 'ar' ? 'طلب الورشة عبر الإيميل' : 'Request via Email'}
+                                        </motion.a>
+                                        
+                                        <motion.a 
+                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            href={`https://wa.me/${(roadmap.support?.adminWhatsapp || '+216XXXXXXXX').replace(/\D/g, '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-8 py-4 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:opacity-90 transition-all shadow-[0_20px_40px_-10px_rgba(37,211,102,0.3)]"
+                                        >
+                                            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.6 6.037L0 24l6.105-1.602a11.834 11.834 0 005.943 1.603h.005c6.634 0 12.048-5.414 12.048-12.05a11.78 11.78 0 00-3.588-8.517z"/></svg>
+                                            <span className="font-bold">WhatsApp</span>
+                                        </motion.a>
+                                    </div>
                                     <div className="flex flex-col items-center sm:items-start">
                                         <p className="text-xs font-black text-blue-600 uppercase tracking-widest animate-pulse" dir="rtl">
                                             * مخصص كلياً بناءً على التشخيص
@@ -441,16 +468,32 @@ export default function RoadmapPage() {
                                     نحن نضع نخبة خبرائنا تحت تصرفك لمساعدتك في تنفيذ خطة العمل وتطوير مسارك المهني بناءً على تشخيصك الخاص. استشاراتنا فردية ومخصصة لضمان أقصى درجات النجاح.
                                 </p>
                             </div>
-                            
-                            <div className="flex flex-col md:flex-row items-center gap-6 pt-4">
-                                <button className="w-full md:w-auto px-12 py-6 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(255,255,255,0.3)] hover:bg-blue-600 hover:text-white transition-all duration-500 flex items-center justify-center gap-4 group/btn overflow-hidden relative active:scale-95">
-                                    <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
-                                    <span className="relative z-10 flex items-center gap-3">
-                                        <Zap size={20} className="fill-current" /> تواصل مع المسؤول الآن
-                                    </span>
-                                </button>
-                                
-                                <div className="flex items-center gap-4 px-8 py-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors">
+                                                        <div className="flex flex-col md:flex-row items-center gap-6 pt-4">
+                                    <div className="flex flex-wrap gap-4">
+                                        <motion.a 
+                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            href={`mailto:${roadmap.support?.adminEmail || 'support@careerupgrade.ai'}`}
+                                            className="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] hover:bg-blue-600 hover:text-white transition-all active:scale-95 border border-white/10"
+                                        >
+                                            <Mail size={20} className="text-blue-600 group-hover:text-white" />
+                                            {language === 'ar' ? 'تواصل عبر البريد' : 'Contact via Email'}
+                                        </motion.a>
+                                        
+                                        <motion.a 
+                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            href={`https://wa.me/${(roadmap.support?.adminWhatsapp || '+216XXXXXXXX').replace(/\D/g, '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-10 py-5 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-4 shadow-[0_20px_40px_-10px_rgba(37,211,102,0.4)] hover:opacity-90 transition-all active:scale-95"
+                                        >
+                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.6 6.037L0 24l6.105-1.602a11.834 11.834 0 005.943 1.603h.005c6.634 0 12.048-5.414 12.048-12.05a11.78 11.78 0 00-3.588-8.517z"/></svg>
+                                            <span className="font-bold text-lg">WhatsApp</span>
+                                        </motion.a>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4 px-8 py-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors">
                                     <div className="flex -space-x-3">
                                         {[1, 2, 3].map(i => (
                                             <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-950 bg-slate-800 shadow-lg" />

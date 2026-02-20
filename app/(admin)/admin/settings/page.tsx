@@ -34,7 +34,10 @@ export default function AdminSettings() {
         SMTP_PORT: "587",
         SMTP_USER: "",
         SMTP_PASS: "",
-        SMTP_SECURE: "false"
+        SMTP_SECURE: "false",
+        // Support Contacts
+        adminEmail: "admin@careerupgrade.ai",
+        adminWhatsapp: "+21600000000"
     });
 
     const fetchConfig = async () => {
@@ -81,6 +84,7 @@ export default function AdminSettings() {
         { name: "Security & Access", icon: Lock },
         { name: "Branding", icon: Palette },
         { name: "Notifications", icon: Bell },
+        { name: "Support & Contact", icon: Mail },
         { name: "Storage & Cloud", icon: Cloud },
     ];
 
@@ -410,6 +414,36 @@ export default function AdminSettings() {
                                         <p className="text-xs font-semibold text-blue-800 flex items-center gap-2">
                                             <Sparkles size={14} />
                                             If keys are left empty here, the system will fallback to the keys defined in your environment variables (.env).
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === "Support & Contact" && (
+                                <div className="space-y-8">
+                                    <div className="space-y-6">
+                                        <SectionHeader icon={Mail} title="Administrator Contacts" color="blue" />
+                                        <p className="text-sm text-slate-500">Ces coordonnées seront affichées aux participants lorsqu&apos;ils auront besoin de contacter l&apos;administration (ex: page de simulation).</p>
+                                        <div className="grid grid-cols-1 gap-6">
+                                            <InputField 
+                                                label="Email de l'Administrateur" 
+                                                value={settings.adminEmail} 
+                                                type="email"
+                                                placeholder="admin@careerupgrade.ai"
+                                                onChange={(v) => setSettings({ ...settings, adminEmail: v })} 
+                                            />
+                                            <InputField 
+                                                label="Numéro WhatsApp (avec code pays)" 
+                                                value={settings.adminWhatsapp} 
+                                                placeholder="+216XXXXXXXX"
+                                                onChange={(v) => setSettings({ ...settings, adminWhatsapp: v })} 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                                        <p className="text-xs font-semibold text-blue-800 flex items-center gap-2">
+                                            <Sparkles size={14} />
+                                            Astuce : Utilisez un numéro WhatsApp valide pour permettre aux participants d&apos;ouvrir directement une conversation.
                                         </p>
                                     </div>
                                 </div>

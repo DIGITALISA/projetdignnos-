@@ -23,12 +23,20 @@ export async function GET(req: Request) {
         const requested = await Simulation.findOne({ ...userQuery, status: 'requested' });
         const completed = await Simulation.findOne({ ...userQuery, status: 'completed' }).sort({ createdAt: -1 });
 
+        const Config = (await import("@/models/Config")).default;
+        const adminConfigs = await Config.find({ key: { $in: ["adminEmail", "adminWhatsapp"] } });
+        const support = adminConfigs.reduce((acc: Record<string, string>, curr: { key: string; value: string }) => {
+            acc[curr.key] = curr.value;
+            return acc;
+        }, { adminEmail: "support@careerupgrade.ai", adminWhatsapp: "+216XXXXXXXX" });
+
         return NextResponse.json({
             hasActiveMission: !!activeMission,
-            mission: activeMission || completed, // Return completed if no active one for scorecard
+            mission: activeMission || completed, 
             proposals: proposals || [],
             hasPendingRequest: !!requested,
-            hasCompletedMission: !!completed
+            hasCompletedMission: !!completed,
+            support
         });
 
     } catch (error) {

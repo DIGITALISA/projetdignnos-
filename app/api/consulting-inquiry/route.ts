@@ -54,6 +54,23 @@ export async function POST(req: Request) {
             mandateAgreed: false
         });
 
+        // Add admin notification
+        try {
+            const baseUrl = req.url ? new URL(req.url).origin : '';
+            await fetch(`${baseUrl}/api/admin/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: "New Strategic Mandate",
+                    message: `A new strategic consulting request from ${fullName}.`,
+                    type: "mandate",
+                    read: false
+                })
+            });
+        } catch (notifierr) {
+            console.error("Failed to send admin notification:", notifierr);
+        }
+
         return NextResponse.json({ 
             success: true, 
             message: "Votre demande de consultation stratégique a été enregistrée. Notre équipe vous contactera sous 24h.",

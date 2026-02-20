@@ -165,7 +165,10 @@ export default function AdminDashboard() {
                                             "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
                                             activity.type === 'user_registration' ? "bg-blue-50 text-blue-600" :
                                             activity.type === 'diagnosis_complete' ? "bg-purple-50 text-purple-600" :
-                                            "bg-indigo-50 text-indigo-600"
+                                            activity.type === 'corporate_inquiry' ? "bg-indigo-50 text-indigo-600" :
+                                            activity.type === 'reset_request' ? "bg-red-50 text-red-600" :
+                                            activity.type === 'attestation_request' ? "bg-orange-50 text-orange-600" :
+                                            "bg-emerald-50 text-emerald-600"
                                         )}>
                                             {activity.icon === 'user' && <UserIcon size={20} />}
                                             {activity.icon === 'brain' && <Brain size={20} />}
@@ -200,9 +203,24 @@ export default function AdminDashboard() {
                         </h2>
                         <div className="space-y-8">
                             {[
-                                { label: "Total Simulations", value: stats?.totalSimulations || "0", color: "bg-blue-500" },
-                                { label: "Corporate Candidates", value: stats?.corporateReady || "0", color: "bg-green-500" },
-                                { label: "AI Response Time", value: "Sub 2s", color: "bg-indigo-500" },
+                                { 
+                                    label: "Total Simulations", 
+                                    value: stats?.totalSimulations || "0", 
+                                    color: "bg-blue-500",
+                                    percent: stats?.totalUsers > 0 ? Math.min((stats?.totalSimulations / stats?.totalUsers) * 100, 100) : 0 
+                                },
+                                { 
+                                    label: "Corporate Candidates", 
+                                    value: stats?.corporateReady || "0", 
+                                    color: "bg-green-500",
+                                    percent: stats?.totalUsers > 0 ? Math.min((stats?.corporateReady / stats?.totalUsers) * 100, 100) : 0
+                                },
+                                { 
+                                    label: "AI Response Time", 
+                                    value: "Sub 2s", 
+                                    color: "bg-indigo-500",
+                                    percent: 94
+                                },
                             ].map((s, i) => (
                                 <div key={i} className="space-y-3">
                                     <div className="flex justify-between text-xs tracking-widest font-black uppercase">
@@ -211,7 +229,7 @@ export default function AdminDashboard() {
                                     </div>
                                     <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                                         <div
-                                            style={{ width: '85%' }}
+                                            style={{ width: `${s.percent}%` }}
                                             className={cn("h-full rounded-full transition-all duration-1000", s.color)}
                                         />
                                     </div>

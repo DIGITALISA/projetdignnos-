@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
     const controller = new AbortController();
@@ -70,12 +71,12 @@ interface InterviewEvaluation {
 
 export default function RoleDiscoveryPage() {
     const router = useRouter();
+    const { language, t } = useLanguage();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [cvAnalysis, setCvAnalysis] = useState<CVAnalysisResult | null>(null);
     const [interviewEvaluation, setInterviewEvaluation] = useState<InterviewEvaluation | null>(null);
-    const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [totalQuestions] = useState(8); // Shorter interview focused on career goals
     const [discoveryComplete, setDiscoveryComplete] = useState(false);
@@ -136,13 +137,10 @@ export default function RoleDiscoveryPage() {
                     setCurrentQuestionIndex(1);
                 }, 1000);
             }
-        } catch (error: unknown) {
-            console.error('Error starting role discovery:', error);
-            setLastError(selectedLanguage === 'ar' ? 'فشل بدء كشف المسارات. يرجى المحاولة مرة أخرى.' : 'Failed to start discovery. Please try again.');
         } finally {
             setIsLoading(false);
         }
-    }, [selectedLanguage]);
+    }, []);
 
     useEffect(() => {
         const loadSession = async () => {
@@ -159,7 +157,6 @@ export default function RoleDiscoveryPage() {
                         
                         if (data.cvAnalysis) setCvAnalysis(data.cvAnalysis);
                         if (data.interviewEvaluation) setInterviewEvaluation(data.interviewEvaluation);
-                        if (data.language) setSelectedLanguage(data.language);
 
                         // If there is existing conversation, restore it
                         if (data.roleDiscoveryConversation && data.roleDiscoveryConversation.length > 0) {
@@ -196,22 +193,20 @@ export default function RoleDiscoveryPage() {
             // Fallback to localStorage
             const storedCV = localStorage.getItem('cvAnalysis');
             const storedEval = localStorage.getItem('interviewEvaluation');
-            const storedLanguage = localStorage.getItem('selectedLanguage');
 
             if (storedCV && storedEval) {
                 const cv = JSON.parse(storedCV);
                 const evalData = JSON.parse(storedEval);
                 setCvAnalysis(cv);
                 setInterviewEvaluation(evalData);
-                setSelectedLanguage(storedLanguage || 'en');
-                startRoleDiscovery(cv, evalData, storedLanguage || 'en');
+                startRoleDiscovery(cv, evalData, language || 'en');
             } else {
                 router.push('/assessment/cv-upload');
             }
         };
 
         loadSession();
-    }, [router, startRoleDiscovery]);
+    }, [router, startRoleDiscovery, language]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -258,7 +253,7 @@ export default function RoleDiscoveryPage() {
                         cvAnalysis,
                         interviewEvaluation,
                         conversationHistory: messages,
-                        language: selectedLanguage,
+                        language: language,
                         userId
                     }),
                 }, 90000);
@@ -271,7 +266,7 @@ export default function RoleDiscoveryPage() {
                 }
             } catch (error) {
                 console.error("Emergency discovery completion failed", error);
-                setLastError(selectedLanguage === 'ar' ? 'فشل كشف المسارات. يرجى المحاولة مرة أخرى.' : 'Discovery completion failed. Please try again.');
+                setLastError(language === 'ar' ? 'فشل كشف المسارات. يرجى المحاولة مرة أخرى.' : 'Discovery completion failed. Please try again.');
             } finally {
                 setIsLoading(false);
             }
@@ -308,7 +303,7 @@ export default function RoleDiscoveryPage() {
                         cvAnalysis,
                         interviewEvaluation,
                         conversationHistory: [...messages, userMessage],
-                        language: selectedLanguage,
+                        language: language,
                         userId
                     }),
                 }, 90000);
@@ -336,7 +331,7 @@ export default function RoleDiscoveryPage() {
                         cvAnalysis,
                         interviewEvaluation,
                         conversationHistory: [...messages, userMessage],
-                        language: selectedLanguage,
+                        language: language,
                         questionNumber: currentQuestionIndex + 1,
                         totalQuestions,
                     }),
@@ -359,12 +354,12 @@ export default function RoleDiscoveryPage() {
         } catch (error: unknown) {
             console.error('Role Discovery Error:', error);
             
-            let errorMsg = selectedLanguage === 'ar'
+            let errorMsg = language === 'ar'
                 ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
                 : "Connection error. Please try again.";
 
             if (error instanceof Error && error.name === 'AbortError') {
-                errorMsg = selectedLanguage === 'ar'
+                errorMsg = language === 'ar'
                     ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
                     : "The server is very slow right now, please try again.";
             }
@@ -384,7 +379,7 @@ export default function RoleDiscoveryPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [currentQuestionIndex, cvAnalysis, interviewEvaluation, messages, retryCount, selectedLanguage, totalQuestions, inputValue, isLoading]);
+    }, [currentQuestionIndex, cvAnalysis, interviewEvaluation, messages, retryCount, language, totalQuestions, inputValue, isLoading]);
 
     const handleSkipQuestion = useCallback(async (isRetry = false) => {
         if (isLoading) return;
@@ -396,7 +391,7 @@ export default function RoleDiscoveryPage() {
             'es': "Prefiero omitir esta pregunta.",
         };
 
-        const skipMessage = skipMessages[selectedLanguage] || skipMessages['en'];
+        const skipMessage = skipMessages[language] || skipMessages['en'];
 
         const userMessage: Message = {
             role: 'user',
@@ -423,7 +418,7 @@ export default function RoleDiscoveryPage() {
                         cvAnalysis,
                         interviewEvaluation,
                         conversationHistory: [...messages, userMessage],
-                        language: selectedLanguage,
+                        language: language,
                         userId
                     }),
                 }, 90000);
@@ -451,7 +446,7 @@ export default function RoleDiscoveryPage() {
                         cvAnalysis,
                         interviewEvaluation,
                         conversationHistory: [...messages, userMessage],
-                        language: selectedLanguage,
+                        language: language,
                         questionNumber: currentQuestionIndex + 1,
                         totalQuestions,
                     }),
@@ -474,12 +469,12 @@ export default function RoleDiscoveryPage() {
         } catch (error: unknown) {
             console.error('Skip Question Error:', error);
             
-            let errorMsg = selectedLanguage === 'ar'
+            let errorMsg = language === 'ar'
                 ? "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى."
                 : "Connection error. Please try again.";
 
             if (error instanceof Error && error.name === 'AbortError') {
-                errorMsg = selectedLanguage === 'ar'
+                errorMsg = language === 'ar'
                     ? "الخادم بطيء جداً حالياً، يرجى المحاولة مرة أخرى."
                     : "The server is very slow right now, please try again.";
             }
@@ -498,7 +493,7 @@ export default function RoleDiscoveryPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [currentQuestionIndex, cvAnalysis, interviewEvaluation, messages, retryCount, selectedLanguage, totalQuestions, isLoading]);
+    }, [currentQuestionIndex, cvAnalysis, interviewEvaluation, messages, retryCount, language, totalQuestions, isLoading]);
 
     // Discovery Complete Screen
     if (discoveryComplete) {
@@ -518,7 +513,7 @@ export default function RoleDiscoveryPage() {
                                 title="Back to Chat"
                             >
                                 <ArrowLeft className="w-6 h-6" />
-                                <span className="hidden sm:inline">Review Chat</span>
+                                <span className="hidden sm:inline">{t.roleDiscovery.reviewChat}</span>
                             </button>
                         </div>
 
@@ -536,9 +531,9 @@ export default function RoleDiscoveryPage() {
                             <Target className="w-12 h-12 text-white" />
                         </motion.div>
                         
-                        <h1 className="relative text-3xl md:text-4xl font-bold mb-3">Discovery Complete!</h1>
+                        <h1 className="relative text-3xl md:text-4xl font-bold mb-3">{t.roleDiscovery.completeTitle}</h1>
                         <p className="relative text-purple-100 text-lg max-w-lg mx-auto">
-                            We&apos;ve analyzed your potential. It&apos;s time to see where you truly belong.
+                            {t.roleDiscovery.completeSubtitle}
                         </p>
                     </div>
 
@@ -547,10 +542,10 @@ export default function RoleDiscoveryPage() {
                         <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
                             <h3 className="text-slate-900 font-semibold mb-2 flex items-center gap-2">
                                 <CheckCircle className="w-5 h-5 text-green-500" />
-                                What happens next?
+                                {t.roleDiscovery.nextTitle}
                             </h3>
                             <p className="text-slate-600 leading-relaxed text-sm md:text-base">
-                                Based on our conversation and your CV analysis, our AI has identified specific career roles that align with your unique strengths and aspirations.
+                                {t.roleDiscovery.nextDesc}
                             </p>
                         </div>
 
@@ -578,8 +573,7 @@ export default function RoleDiscoveryPage() {
                             >
                                 <Sparkles className="w-7 h-7 text-yellow-300" />
                                 <span>
-                                    {selectedLanguage === 'ar' ? 'كشف المسارات المهنية' : 
-                                     selectedLanguage === 'fr' ? 'Révéler les parcours' : 'Reveal Your Career Paths'}
+                                    {t.roleDiscovery.revealPaths}
                                 </span>
                                 <motion.div
                                     animate={{ x: [0, 5, 0] }}
@@ -715,8 +709,8 @@ export default function RoleDiscoveryPage() {
                                 <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
                                 <span className="text-slate-500 text-sm font-medium">
                                     {retryCount > 0 
-                                        ? (selectedLanguage === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
-                                        : (selectedLanguage === 'ar' ? 'جاري تحليل الأهداف المهنية...' : 'Analyzing career goals...')}
+                                        ? (language === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
+                                        : (language === 'ar' ? 'جاري تحليل الأهداف المهنية...' : 'Analyzing career goals...')}
                                 </span>
                             </div>
                         </motion.div>
@@ -747,7 +741,7 @@ export default function RoleDiscoveryPage() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                        placeholder={selectedLanguage === 'ar' ? "اكتب إجابتك هنا..." : "Type your answer here..."}
+                        placeholder={language === 'ar' ? "اكتب إجابتك هنا..." : "Type your answer here..."}
                         disabled={isLoading || discoveryComplete}
                         className="w-full flex-1 px-5 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-sm md:text-base font-medium"
                     />
@@ -760,9 +754,8 @@ export default function RoleDiscoveryPage() {
                         >
                             <ArrowRight className="w-4 h-4" />
                             <span className="hidden md:inline">
-                                {selectedLanguage === 'ar' ? 'تخطي' :
-                                    selectedLanguage === 'fr' ? 'Passer' :
-                                        selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
+                                {language === 'ar' ? 'تخطي' :
+                                    language === 'fr' ? 'Passer' : 'Skip'}
                             </span>
                         </button>
                         <button
@@ -772,9 +765,8 @@ export default function RoleDiscoveryPage() {
                         >
                             <Send className="w-4 h-4" />
                             <span className="hidden md:inline">
-                                {selectedLanguage === 'ar' ? 'إرسال' :
-                                    selectedLanguage === 'fr' ? 'Envoyer' :
-                                        selectedLanguage === 'es' ? 'Enviar' : 'Send'}
+                                {language === 'ar' ? 'إرسال' :
+                                    language === 'fr' ? 'Envoyer' : 'Send'}
                             </span>
                         </button>
                     </div>
@@ -800,8 +792,8 @@ export default function RoleDiscoveryPage() {
                             </>
                         ) : (
                             <>
-                                {selectedLanguage === 'ar' ? 'كشف المسارات المهنية' :
-                                    selectedLanguage === 'fr' ? 'Révéler les parcours' : 'Reveal Career Paths'}
+                                {language === 'ar' ? 'كشف المسارات المهنية' :
+                                    language === 'fr' ? 'Révéler les parcours' : 'Reveal Career Paths'}
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? 'bg-white/20' : 'bg-slate-200'}`}>
                                     <ArrowRight className={`w-5 h-5 ${discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
                                 </div>

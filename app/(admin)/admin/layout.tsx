@@ -23,7 +23,8 @@ import {
     Video,
     Building2,
     Zap,
-    UserPlus
+    UserPlus,
+    LayoutGrid
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -48,9 +49,11 @@ const adminSidebarItems = [
     { name: "Tools AI", icon: Wrench, href: "/admin/tools" },
     { name: "Workshop Manager", icon: PlayCircle, href: "/admin/training" },
     { name: "Live Briefings", icon: Video, href: "/admin/sessions" },
-    { name: "Corporate Inquiries", icon: Building2, href: "/admin/inquiries" },
+    { name: "Strategic Mandates", icon: Building2, href: "/admin/consulting" },
+    { name: "Corporate Inquiries", icon: Briefcase, href: "/admin/inquiries" },
     { name: "Library", icon: Library, href: "/admin/library" },
     { name: "Marketplace Hub", icon: Zap, href: "/admin/digitalization" },
+    { name: "Footer Manager", icon: LayoutGrid, href: "/admin/footer" },
     { name: "System Settings", icon: Settings, href: "/admin/settings" },
 ];
 

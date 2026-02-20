@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Diagnosis from '@/models/Diagnosis';
+import User from '@/models/User';
 
 /**
  * API للحصول على بيانات التقدم الكاملة للمستخدم
@@ -17,33 +18,34 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
         
-        // Find best matching diagnosis document
-        const docs = await Diagnosis.find({ 
-            $or: [
-                { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
-                { userId: userId.toString() }
-            ]
-        })
-        .sort({ updatedAt: -1 })
-        .lean();
+        // Find best matching diagnosis and user document
+        const [docs, user] = await Promise.all([
+            Diagnosis.find({ 
+                $or: [
+                    { userId: { $regex: new RegExp(`^${userId}$`, 'i') } },
+                    { userId: userId.toString() }
+                ]
+            }).sort({ updatedAt: -1 }).lean(),
+            User.findOne({ email: userId }).lean()
+        ]);
 
-        if (docs.length === 0) {
+        if (docs.length === 0 && !user) {
             return NextResponse.json({
                 hasData: false,
-                message: 'No diagnosis data found'
+                message: 'No data found'
             });
         }
 
-        // Prioritize documents with critical data (SCI Report > Selected Role > Recent)
-        const diagnosis = docs.find(d => !!d.analysis?.sciReport) || 
-                         docs.find(d => !!d.selectedRole) || 
-                         docs[0];
+        // Prioritize documents with critical data if multiple exist
+        const bestDoc = docs.find(d => !!d.analysis?.sciReport) || 
+                       docs.find(d => !!d.selectedRole) || 
+                       docs[0] || {};
 
-        let evaluation = diagnosis.interviewEvaluation;
+        let evaluation = bestDoc.interviewEvaluation;
         
         // --- DATA MIGRATION CHECK ---
         // If interview evaluation is missing in Diagnosis but might exist in legacy InterviewResult
-        if (!evaluation && (diagnosis.currentStep === 'interview_complete' || diagnosis.currentStep === 'completed')) {
+        if (!evaluation && (bestDoc.currentStep === 'interview_complete' || bestDoc.currentStep === 'completed')) {
             try {
                 const InterviewResult = (await import('@/models/InterviewResult')).default;
                 const legacyResult = await InterviewResult.findOne({ 
@@ -54,14 +56,14 @@ export async function GET(request: NextRequest) {
                 }).sort({ createdAt: -1 });
                 
                 if (legacyResult?.evaluation) {
-                    console.log(`[MIGRATION] Migrating InterviewResult for user ${userId} to Diagnosis`);
-                    
                     evaluation = legacyResult.evaluation;
                     
                     // SAVE back to Diagnosis for future consistency
-                    await Diagnosis.findByIdAndUpdate(diagnosis._id, {
-                        $set: { interviewEvaluation: evaluation }
-                    });
+                    if (bestDoc._id) {
+                        await Diagnosis.findByIdAndUpdate(bestDoc._id, {
+                            $set: { interviewEvaluation: evaluation }
+                        });
+                    }
                 }
             } catch (evalError) {
                 console.warn('[MIGRATION-SKIP] Could not migrate legacy interview data:', evalError);
@@ -69,38 +71,41 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
-            hasData: true,
+            hasData: !!bestDoc._id || !!user,
             data: {
                 // Analysis
-                cvAnalysis: diagnosis.analysis,
-                language: diagnosis.language || 'fr',
+                cvAnalysis: bestDoc.analysis,
+                language: bestDoc.language || 'fr',
                 
                 // Progress & Status
-                currentStep: diagnosis.currentStep,
-                completionStatus: diagnosis.completionStatus || {},
+                currentStep: bestDoc.currentStep,
+                completionStatus: bestDoc.completionStatus || {},
                 
                 // Interview
                 interviewEvaluation: evaluation,
-                conversationHistory: diagnosis.conversationHistory,
-                totalQuestions: diagnosis.totalQuestions,
+                conversationHistory: bestDoc.conversationHistory,
+                totalQuestions: bestDoc.totalQuestions,
                 
                 // Role Discovery
-                roleSuggestions: diagnosis.roleSuggestions,
-                selectedRole: diagnosis.selectedRole,
-                roleDiscoveryConversation: diagnosis.roleDiscoveryConversation,
+                roleSuggestions: bestDoc.roleSuggestions,
+                selectedRole: bestDoc.selectedRole,
+                roleDiscoveryConversation: bestDoc.roleDiscoveryConversation,
                 
                 // Documents & AI Reports
-                generatedDocuments: diagnosis.generatedDocuments,
-                cvGenerationConversation: diagnosis.cvGenerationConversation,
+                generatedDocuments: bestDoc.generatedDocuments,
+                cvGenerationConversation: bestDoc.cvGenerationConversation,
                 
                 // Simulation
-                simulationConversation: diagnosis.simulationConversation,
-                simulationResults: diagnosis.simulationResults,
-                simulationReport: diagnosis.simulationReport,
+                simulationConversation: bestDoc.simulationConversation,
+                simulationResults: bestDoc.simulationResults,
+                simulationReport: bestDoc.simulationReport,
+                
+                // Live Sessions (Prioritize User model as it's the most reliable source for account-level data)
+                liveSessions: user?.liveSessions || bestDoc.liveSessions || [],
                 
                 // Metadata
-                createdAt: diagnosis.createdAt,
-                updatedAt: diagnosis.updatedAt
+                createdAt: bestDoc.createdAt || user?.createdAt,
+                updatedAt: bestDoc.updatedAt || user?.updatedAt
             }
         });
 

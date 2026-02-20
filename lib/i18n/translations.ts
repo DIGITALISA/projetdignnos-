@@ -74,6 +74,14 @@ export const translations = {
             analyzingPaths: "Analyzing career paths...",
             failedPdf: "Failed to generate PDF report."
         },
+        roleDiscovery: {
+            completeTitle: "Discovery Complete!",
+            completeSubtitle: "We've analyzed your potential. It's time to see where you truly belong.",
+            nextTitle: "What happens next?",
+            nextDesc: "Based on our conversation and your CV analysis, our AI has identified specific career roles that align with your unique strengths and aspirations.",
+            reviewChat: "Review Chat",
+            revealPaths: "Reveal Career Paths"
+        },
         simulation: {
             title: "Executive Role Simulation",
             back: "Back",
@@ -147,6 +155,31 @@ export const translations = {
                 generatingReport: "Generating Report...",
                 generateButton: "Generate Comprehensive Report",
                 verifiedAssessment: "Verified Assessment"
+            },
+            noMissionProtocol: {
+                title: "Strategic Mission Allocation Protocol (DIGNNOS- Allocation)",
+                intro: "Your profile is currently under 'Mission Engineering'. We are designing a fully personalized 'Executive Role Simulation' where you will face real-world professional tasks and strategic challenges tailored to your career trajectory.",
+                features: [
+                    {
+                        title: "1. Scenario Design (24-72 hours)",
+                        desc: "The expert builds a 'Strategic Mission' context and assigns tactical tasks based on your deep diagnostic results."
+                    },
+                    {
+                        title: "2. Hyper-Personalized Simulation",
+                        desc: "The mission is designed exclusively for you. Group interactions are a specific module for learning 'Team Leadership' and collaborative execution."
+                    },
+                    {
+                        title: "3. Tactical Flexibility",
+                        desc: "Choose between a focused Individual Mission or a team-lead scenario. You control the mission scope and investment."
+                    },
+                    {
+                        title: "4. Mission Deployment (7 days)",
+                        desc: "Once your mission architecture is finalized, deployment starts within 7 days of confirmation."
+                    }
+                ],
+                noActiveTitle: "No Active Mission",
+                noActiveDesc: "Your profile is in the strategic processing phase. Below is the protocol for allocating your tailored simulation mission.",
+                premiumNote: "* Note: CareerUpgrade.AI mission is a premium service including live expert guidance and certified simulations."
             }
         },
         contract: {
@@ -992,6 +1025,14 @@ By signing below, you authorize the commencement of the strategic advisory manda
             analyzingPaths: "Analyse des parcours de carrière...",
             failedPdf: "Impossible de générer le rapport PDF."
         },
+        roleDiscovery: {
+            completeTitle: "Découverte Terminée !",
+            completeSubtitle: "Nous avons analysé votre potentiel. Il est temps de voir où vous appartenez vraiment.",
+            nextTitle: "Que se passe-t-il ensuite ?",
+            nextDesc: "Basé sur notre conversation et l'analyse de votre CV, notre IA a identifié des rôles de carrière spécifiques qui correspondent à vos forces et aspirations uniques.",
+            reviewChat: "Revoir le Chat",
+            revealPaths: "Révéler les parcours"
+        },
         simulation: {
             title: "Simulation de Rôle Exécutif",
             back: "Retour",
@@ -1065,6 +1106,31 @@ By signing below, you authorize the commencement of the strategic advisory manda
                 generatingReport: "Génération du rapport en cours...",
                 generateButton: "Générer le Rapport Complet",
                 verifiedAssessment: "Evaluation Certifiée"
+            },
+            noMissionProtocol: {
+                title: "Protocole d'Allocation des Missions Stratégiques (DIGNNOS- Allocation)",
+                intro: "Votre profil est actuellement en phase d'Ingénierie de Mission. Nous concevons une 'Simulation de Rôle Exécutif' personnalisée où vous ferez face à des tâches réelles et des défis stratégiques adaptés à votre trajectoire.",
+                features: [
+                    {
+                        title: "1. Conception de Scénario (24-72 heures)",
+                        desc: "L'expert construit un contexte de 'Mission Stratégique' et vous assigne des tâches tactiques basées sur vos résultats diagnostiques."
+                    },
+                    {
+                        title: "2. Simulation Hyper-Personnalisée",
+                        desc: "La mission est conçue exclusivement pour vous. Les interactions de groupe sont un module spécifique pour l'apprentissage de la 'Direction d'Équipe'."
+                    },
+                    {
+                        title: "3. Flexibilité Tactique",
+                        desc: "Choisissez entre une Mission Individuelle ciblée ou un scénario de leadership d'équipe. Vous contrôlez la portée de la mission."
+                    },
+                    {
+                        title: "4. Déploiement de la Mission (7 jours)",
+                        desc: "Une fois l'architecture de votre mission finalisée, le déploiement commence dans un délai de 7 jours après confirmation."
+                    }
+                ],
+                noActiveTitle: "Aucune Mission Active",
+                noActiveDesc: "Votre profil est en phase de traitement stratégique. Voici le protocole d'allocation de votre mission de simulation sur mesure.",
+                premiumNote: "* Note : La mission CareerUpgrade.AI est un service premium comprenant un accompagnement d'experts en direct."
             }
         },
         contract: {
@@ -1910,6 +1976,14 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
             analyzingPaths: "تحليل المسارات المهنية...",
             failedPdf: "فشل إنشاء تقرير PDF."
         },
+        roleDiscovery: {
+            completeTitle: "اكتمل الكشف!",
+            completeSubtitle: "لقد قمنا بتحليل إمكانياتك. حان الوقت لمعرفة المكان الذي تنتمي إليه حقاً.",
+            nextTitle: "ماذا سيحدث بعد ذلك؟",
+            nextDesc: "بناءً على محادثتنا وتحليل سيرتك الذاتية، حدد ذكاؤنا الاصطناعي أدواراً مهنية محددة تتوافق مع نقاط قوتك وتطلعاتك الفريدة.",
+            reviewChat: "مراجعة المحادثة",
+            revealPaths: "كشف المسارات المهنية"
+        },
         simulation: {
             title: "محاكاة الدور التنفيذي",
             back: "رجوع",
@@ -1983,6 +2057,31 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
                 generatingReport: "جاري إنشاء التقرير الشامل...",
                 generateButton: "إنشاء التقرير التشخيصي الشامل",
                 verifiedAssessment: "تقييم معتمد"
+            },
+            noMissionProtocol: {
+                title: "بروتوكول تخصيص المهمات الاستراتيجية (DIGNNOS- Mission Allocation)",
+                intro: "يخضع ملفك المهني حالياً لمرحلة 'هندسة المهمة' من قبل خبراء المجمع. نقوم بتصميم سيناريو 'وظيفة تنفيذية' مخصصة لك بالكامل، حيث ستواجه مهاماً وتحديات استراتيجية واقعية تتبع تطورك المهني.",
+                features: [
+                    {
+                        title: "1. تصميم السيناريو المهني (24-72 ساعة)",
+                        desc: "يقوم الخبير ببناء سياق 'مهمة استراتيجية' وتكليفك بمهام قيادية تخصصية بناءً على مخرجات تشخيصك المعمق."
+                    },
+                    {
+                        title: "2. المحاكاة الفردية المطلقة",
+                        desc: "المهمة مصممة حصرياً لك؛ التفاعلات مع المجموعات هي حالة خاصة لتعلم مهارات 'قيادة الفرق' والعمل الجماعي تحت الضغط."
+                    },
+                    {
+                        title: "3. التحكم في طبيعة المهمة",
+                        desc: "يمكنك اختيار مهمة فردية مركزة (Individual Mission) أو قيادة مجموعة مصغرة؛ أنت من يحدد مسار التحدي وتكاليف المهمة."
+                    },
+                    {
+                        title: "4. إطلاق العمل الميداني (7 أيام)",
+                        desc: "نلتزم بتثبيت المواعيد النهائية وإرسال دعوات إطلاق المهمة في غضون 7 أيام كحد أقصى من تاريخ التأكيد."
+                    }
+                ],
+                noActiveTitle: "لا توجد مهمة نشطة حالياً",
+                noActiveDesc: "ملفك المهني في مرحلة المعالجة الاستراتيجية. فيما يلي البروتوكول المتبع لتخصيص مهمتك المحاكاتية.",
+                premiumNote: "* ملاحظة: مهمة CareerUpgrade.AI هي خدمة ممتازة تتضمن مرافقة مباشرة من خبراء دوليين وشهادات أداء معتمدة."
             }
         },
         contract: {

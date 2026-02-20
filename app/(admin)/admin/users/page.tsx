@@ -11,7 +11,7 @@ export default function ParticipantsManagement() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
-    const [filterStatus, setFilterStatus] = useState<string>("All");
+    const [filterStatus, setFilterStatus] = useState<string>("Active");
 
     interface Participant {
         _id: string;
@@ -31,6 +31,7 @@ export default function ParticipantsManagement() {
         attestations?: Array<{ workshopTitle: string; issueDate: Date; referenceId: string; instructor?: string }>;
         workshopAccessRequests?: string[];
         resetRequested?: boolean;
+        memberId?: string;
     }
 
     interface Workshop {
@@ -50,7 +51,8 @@ export default function ParticipantsManagement() {
         canAccessCertificates: false,
         canAccessRecommendations: false,
         canAccessScorecard: false,
-        canAccessSCI: false
+        canAccessSCI: false,
+        memberId: ""
     });
 
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -133,7 +135,8 @@ export default function ParticipantsManagement() {
             canAccessCertificates: !!user.canAccessCertificates,
             canAccessRecommendations: !!user.canAccessRecommendations,
             canAccessScorecard: !!user.canAccessScorecard,
-            canAccessSCI: !!user.canAccessSCI
+            canAccessSCI: !!user.canAccessSCI,
+            memberId: user.memberId || ""
         });
         setIsAddModalOpen(true);
     };
@@ -197,7 +200,8 @@ export default function ParticipantsManagement() {
             canAccessCertificates: false,
             canAccessRecommendations: false,
             canAccessScorecard: false,
-            canAccessSCI: false
+            canAccessSCI: false,
+            memberId: ""
         });
         setIsAddModalOpen(true);
     }
@@ -219,7 +223,8 @@ export default function ParticipantsManagement() {
                 canAccessCertificates: formData.canAccessCertificates,
                 canAccessRecommendations: formData.canAccessRecommendations,
                 canAccessScorecard: formData.canAccessScorecard,
-                canAccessSCI: formData.canAccessSCI
+                canAccessSCI: formData.canAccessSCI,
+                memberId: formData.memberId
             };
 
             const res = await fetch("/api/admin/users", {
@@ -371,10 +376,17 @@ export default function ParticipantsManagement() {
                                             <div className="w-12 h-12 rounded-2xl bg-linear-to-tr from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center font-bold text-slate-600 uppercase">
                                                 {user.fullName?.charAt(0)}
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-900">{user.fullName}</p>
-                                                <p className="text-xs text-slate-500">{user.email}</p>
-                                            </div>
+                                             <div>
+                                                 <p className="text-sm font-bold text-slate-900">{user.fullName}</p>
+                                                 <div className="flex items-center gap-2">
+                                                     <p className="text-xs text-slate-500">{user.email}</p>
+                                                     {user.memberId && (
+                                                         <span className="text-[10px] font-black bg-slate-900 text-white px-1.5 py-0.5 rounded tracking-tighter">
+                                                             ID: {user.memberId}
+                                                         </span>
+                                                     )}
+                                                 </div>
+                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">
@@ -512,10 +524,14 @@ export default function ParticipantsManagement() {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name</label>
                                             <input required type="text" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email</label>
-                                            <input required type="email" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                                        </div>
+                                         <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email</label>
+                                             <input required type="email" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                                         </div>
+                                         <div className="space-y-2">
+                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Secret Access Code (ID)</label>
+                                             <input type="text" className="w-full px-5 py-3.5 bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-black text-white tracking-widest" value={formData.memberId} onChange={(e) => setFormData({ ...formData, memberId: e.target.value })} placeholder="Ex: MATC-2024-001" />
+                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password {editingUserId && "(Leave blank to keep)"}</label>
                                             <input required={!editingUserId} type="password" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />

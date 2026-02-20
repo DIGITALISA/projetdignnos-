@@ -12,6 +12,23 @@ export async function POST(req: Request) {
             status: 'Pending'
         });
 
+        // Add admin notification
+        try {
+            const baseUrl = req.url ? new URL(req.url).origin : '';
+            await fetch(`${baseUrl}/api/admin/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: "New Recruitment Asset",
+                    message: `A new ${body.role} application has been received from ${body.fullName}.`,
+                    type: "recruitment",
+                    read: false
+                })
+            });
+        } catch (notifierr) {
+            console.error("Failed to send admin notification:", notifierr);
+        }
+
         return NextResponse.json({ success: true, data: application }, { status: 201 });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";

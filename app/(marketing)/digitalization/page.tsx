@@ -12,6 +12,7 @@ import {
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { translations } from "@/lib/i18n/translations";
+import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
 
 type Translations = typeof translations.en;
 
@@ -155,6 +156,7 @@ export default function DigitalizationPage() {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [filter, setFilter] = useState<"all" | "basic" | "pro">("all");
     const [timeLeft, setTimeLeft] = useState<string>("");
+    const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
 
     useEffect(() => {
         if (!selectedProject || !selectedProject.auctionStartedAt) return;
@@ -424,7 +426,10 @@ export default function DigitalizationPage() {
                                                     </div>
                                                 )}
 
-                                                <button className="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl font-black text-lg transition-all shadow-xl shadow-blue-600/20">
+                                                <button 
+                                                    onClick={() => setIsInquiryModalOpen(true)}
+                                                    className="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl font-black text-lg transition-all shadow-xl shadow-blue-600/20"
+                                                >
                                                     {t.digitalization.marketplace.bidNow}
                                                 </button>
                                                 
@@ -444,7 +449,10 @@ export default function DigitalizationPage() {
                                                     <div className="text-blue-100 text-sm mb-1">{t.digitalization.marketplace.fixedPrice}</div>
                                                     <div className="text-5xl font-black">${selectedProject.price}</div>
                                                 </div>
-                                                <button className="w-full py-5 bg-white text-blue-600 rounded-2xl font-black text-xl hover:bg-slate-50 transition-all shadow-xl shadow-blue-700/50">
+                                                <button 
+                                                    onClick={() => setIsInquiryModalOpen(true)}
+                                                    className="w-full py-5 bg-white text-blue-600 rounded-2xl font-black text-xl hover:bg-slate-50 transition-all shadow-xl shadow-blue-700/50"
+                                                >
                                                     {t.digitalization.marketplace.buyNow}
                                                 </button>
                                             </div>
@@ -466,6 +474,11 @@ export default function DigitalizationPage() {
                     <span className="font-black text-2xl border-4 border-slate-900 px-4">ORBIT</span>
                 </div>
             </section>
+            
+            <ConsultingInquiryModal 
+                isOpen={isInquiryModalOpen}
+                onClose={() => setIsInquiryModalOpen(false)}
+            />
         </div>
     );
 }

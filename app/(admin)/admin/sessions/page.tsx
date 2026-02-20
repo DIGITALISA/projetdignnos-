@@ -59,7 +59,11 @@ export default function SessionsManagement() {
             const res = await fetch("/api/admin/users");
             const data = await res.json();
             if (Array.isArray(data)) {
-                setParticipants(data.filter(u => u.role !== 'Admin'));
+                setParticipants(data.filter(u => 
+                    u.role !== 'Admin' && 
+                    u.role !== 'Moderator' && 
+                    u.status === 'Active'
+                ));
             }
         } catch (error) {
             console.error("Failed to fetch users", error);

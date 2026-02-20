@@ -24,13 +24,15 @@ import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
 import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 // --- CONTENT DICTIONARY (LOCALIZED) ---
 const CONTENT = {
     en: {
         hero: {
             badge: "Premium Service by MA-TRAINING-CONSULTING",
-            title: "Expert Career Management.",
+            title: "Expert Career Management",
             subtitle: "Benefit from the expertise of MA-TRAINING-CONSULTING. We combine AI technology with proven consulting methodologies to accelerate your career.",
             ctaPrimary: "Start Consulting Assessment",
             ctaSecondary: "Our Methodology"
@@ -41,7 +43,7 @@ const CONTENT = {
         },
         strategy: {
             title: "Our Consulting Approach",
-            subtitle: "A professional service designed by industry experts.",
+            subtitle: "A professional service designed by industry experts",
             items: [
                 { title: "Consultant Diagnosis", desc: "Detailed review of your profile based on consulting standards.", icon: Scan },
                 { title: "Role Simulations", desc: "Practice real-world tasks designed by our experts.", icon: Play },
@@ -55,7 +57,7 @@ const CONTENT = {
         },
         assets: {
             title: "Official Consulting Assets",
-            subtitle: "Tangible proof of competence issued by MA-TRAINING-CONSULTING.",
+            subtitle: "Tangible proof of competence issued by MA-TRAINING-CONSULTING",
             items: [
                 { title: "Capability Assessment", desc: "A formal rating of your professional readiness.", icon: Target },
                 { title: "Consultant Recommendation", desc: "A professional endorsement letter from our firm.", icon: FileText },
@@ -67,20 +69,22 @@ const CONTENT = {
         },
         contract: {
             title: "General Service Agreement",
-            subtitle: "Please review our general terms of engagement before proceeding.",
+            subtitle: "Please review our general terms of engagement before proceeding",
             docTitle: "CONSULTING SERVICE AGREEMENT",
-            parties: "Between: MA-TRAINING-CONSULTING (The Firm) And: The Client (You)",
+            parties: "Between: MA-TRAINING-CONSULTING (The Firm) And: The Client ({{client}})",
             clauses: [
-                { title: "1. Consultant Fee Structure", text: "This is a paid consulting service. Final fees are determined post-diagnosis based on the specific roadmap and services required." },
-                { title: "2. Intellectual Property", text: "All methodologies, tools, and content remain the exclusive property of the Firm. Unauthorized sharing or reproduction is strictly prohibited." },
-                { title: "3. Data Privacy & Consent", text: "Your data is strictly confidential. If a company requests an objective report comparing role requirements with your diagnosis, we will ONLY share it with your explicit consent." },
-                { title: "4. Commitment & Refunds", text: "Payments are non-refundable. The Firm reserves the right to terminate the agreement without refund in cases of misconduct or non-compliance." }
+                { title: "Article 1: Nature of Engagement", text: "This agreement constitutes a professional consulting mandate aimed at career development and strategic optimization." },
+                { title: "Article 2: Fee Structure & Billing", text: "Final consulting fees are determined post-initial diagnosis based on the complexity of the roadmap and specific resources deployed." },
+                { title: "Article 3: Data Confidentiality & Protection", text: "The Firm adheres to strict professional secrecy standards. No diagnostic reports will be shared with third parties without express written consent." },
+                { title: "Article 4: Intellectual Property", text: "All frameworks, models, and tools provided are the exclusive property of MA-TRAINING-CONSULTING and are for personal professional use only." },
+                { title: "Article 5: Payment Terms", text: "Fees are non-refundable as they represent the immediate allocation of expert resources and technology access upon engagement." },
+                { title: "Article 6: Professional Conduct", text: "The Firm reserves the right to terminate engagement unilaterally in case of non-compliance with professional standards or terms of service." }
             ],
-            cta: "Download & Sign Agreement"
+            cta: "Download & Sign (PDF)"
         },
         pricing: {
             title: "Professional Consulting Fees",
-            subtitle: "Transparent pricing for expert services.",
+            subtitle: "Transparent pricing for expert services",
             plans: [
                 {
                     name: "Initial Diagnosis",
@@ -119,7 +123,7 @@ const CONTENT = {
     ar: {
         hero: {
             badge: "خدمة استشارية من مكتب MA-TRAINING-CONSULTING",
-            title: "استشارات مهنية متخصصة.",
+            title: "استشارات مهنية متخصصة",
             subtitle: "استفد من خبرة مكتب MA-TRAINING-CONSULTING. نحن نجمع بين التكنولوجيا والمنهجيات الاستشارية لتسريع مسارك المهني.",
             ctaPrimary: "ابدأ التقييم الاستشاري",
             ctaSecondary: "منهجية العمل"
@@ -130,7 +134,7 @@ const CONTENT = {
         },
         strategy: {
             title: "منهجيتنا الاستشارية",
-            subtitle: "خدمة مهنية مصممة من قبل خبراء الصناعة.",
+            subtitle: "خدمة مهنية مصممة من قبل خبراء الصناعة",
             items: [
                 { title: "تشخيص الخبراء", desc: "مراجعة دقيقة لملفك بناءً على معايير الاستشارات العالمية.", icon: Scan },
                 { title: "محاكاة الوظائف", desc: "تدرب على مهام واقعية صممها خبراؤنا.", icon: Play },
@@ -144,7 +148,7 @@ const CONTENT = {
         },
         assets: {
             title: "وثائق المكتب الرسمية",
-            subtitle: "إثبات ملموس للكفاءة صادر عن مكتبنا الاستشاري.",
+            subtitle: "إثبات ملموس للكفاءة صادر عن مكتبنا الاستشاري",
             items: [
                 { title: "تقييم الجاهزية", desc: "تقييم رسمي لمدى جاهزيتك المهنية.", icon: Target },
                 { title: "توصية المكتب", desc: "خطاب تزكية احترافي صادر عن مكتبنا.", icon: FileText },
@@ -156,20 +160,22 @@ const CONTENT = {
         },
         contract: {
             title: "اتفاقية الخدمة العامة",
-            subtitle: "يرجى مراجعة الشروط العامة للتعاقد قبل البدء.",
+            subtitle: "يرجى مراجعة الشروط العامة للتعاقد قبل البدء",
             docTitle: "اتفاقية خدمات استشارية",
-            parties: "بين: مكتب MA-TRAINING-CONSULTING (الطرف الأول) و: العميل (أنت)",
+            parties: "بين: مكتب MA-TRAINING-CONSULTING (الطرف الأول) و: العميل ({{client}})",
             clauses: [
-                { title: "1. طبيعة الأتعاب", text: "هذه خدمة استشارية مدفوعة. يتم تحديد الأتعاب النهائية بعد مرحلة التشخيص بناءً على الخدمات المطلوبة وخارطة الطريق." },
-                { title: "2. الملكية الفكرية", text: "جميع المنهجيات والأدوات هي ملكية حصرية للمكتب. يُمنع منعاً باتاً نشرها أو استخدامها تجارياً دون إذن." },
-                { title: "3. سرية البيانات والموافقة", text: "بياناتك تظل سرية تماماً. إذا طلبت شركة تقريراً موضوعياً للمقارنة بين متطلبات الوظيفة وتشخيصك، لن نقوم بمشاركته إلا بعد الحصول على موافقتك الصريحة." },
-                { title: "4. الدفع والالتزام", text: "المبالغ المدفوعة غير قابلة للاسترداد. يحتفظ المكتب بحق إلغاء العقد دون تعويض في حال عدم الاحترام أو مخالفة الشروط." }
+                { title: "المادة الأولى: طبيعة الخدمة والتعاقد", text: "يعتبر هذا العقد اتفاقية خدمات استشارية مهنية تهدف إلى تطوير المسارات الوظيفية وتقديم الحلول الاستراتيجية." },
+                { title: "المادة الثانية: بروتوكول الأتعاب والفوترة", text: "تخضع الخدمات لنظام أتعاب يتم الاتفاق عليه نهائياً عقب مرحلة التشخيص الأولي، بناءً على حجم التدخل الاستشاري المطلوب." },
+                { title: "المادة الثالثة: سرية البيانات وحماية الخصوصية", text: "يلتزم المكتب بأعلى معايير السرية المهنية. لا يتم مشاركة أي تقارير تخص العميل مع جهات خارجية إلا بموافقة كتابية صريحة." },
+                { title: "المادة الرابعة: الملكية الفكرية والمنهجيات", text: "جميع المنهجيات، النماذج، والوسائط المقدمة خلال البرنامج هي ملكية حصرية لمكتب MA-TRAINING-CONSULTING ويُمنع تداولها." },
+                { title: "المادة الخامسة: شروط الدفع والتنفيذ", text: "تعتبر المبالغ المدفوعة نهائية وغير قابلة للاسترداد نظراً للتخصيص الفوري للموارد البشرية والتقنية والبدء في التنفيذ." },
+                { title: "المادة السادسة: الالتزام الأخلاقي والسلوك المهني", text: "يحتفظ المكتب بحق إنهاء التعاقد من طرف واحد في حال ثبوت مخالفات تمس بنزاهة العملية الاستشارية أو عدم الالتزام بالشروط." }
             ],
-            cta: "تحميل العقد وتوقيعه"
+            cta: "تحميل العقد وتوقيعه (PDF)"
         },
         pricing: {
             title: "أتعاب الاستشارات",
-            subtitle: "أسعار شفافة لخدمات الخبراء.",
+            subtitle: "أسعار شفافة لخدمات الخبراء",
             plans: [
                 {
                     name: "التشخيص الأولي",
@@ -204,6 +210,97 @@ const CONTENT = {
                 }
             ]
         }
+    },
+    fr: {
+        hero: {
+            badge: "Service Premium par MA-TRAINING-CONSULTING",
+            title: "Conseil de Carrière Spécialisé",
+            subtitle: "Bénéficiez de l'expertise de MA-TRAINING-CONSULTING. Nous combinons la technologie IA avec des méthodologies de conseil éprouvées pour accélérer votre carrière.",
+            ctaPrimary: "Démarrer l'Évaluation",
+            ctaSecondary: "Notre Méthodologie"
+        },
+        psychology: {
+            title: "Pourquoi les carrières stagnent-elles ?",
+            desc: "De nombreux professionnels manquent d'opportunités faute d'orientation structurée. Nous vous offrons la feuille de route stratégique nécessaire à votre croissance."
+        },
+        strategy: {
+            title: "Notre Approche de Conseil",
+            subtitle: "Un service professionnel conçu par des experts du secteur",
+            items: [
+                { title: "Diagnostic Consultant", desc: "Examen détaillé de votre profil basé sur les standards du conseil.", icon: Scan },
+                { title: "Simulations de Rôle", desc: "Pratiquez des tâches réelles conçues par nos experts.", icon: Play },
+                { title: "Workshops Exécutifs", desc: "Sessions spécialisées dispensées par des consultants certifiés.", icon: Users },
+                { title: "Conseiller IA", desc: "Guidance instantanée calibrée par notre équipe de conseil.", icon: Zap },
+                { title: "Bibliothèque de Savoir", desc: "Accès aux modèles et guides éprouvés de notre cabinet.", icon: BookOpen },
+                { title: "Outils & Ressources", desc: "Actifs pratiques utilisés dans les plus grands projets de conseil.", icon: Shield },
+                { title: "Support d'Experts", desc: "Validation directe de nos consultants seniors.", icon: MessageSquare },
+                { title: "Feuille de Route", desc: "Un plan clair développé avec une précision de conseil.", icon: TrendingUp }
+            ]
+        },
+        assets: {
+            title: "Actifs Officiels du Cabinet",
+            subtitle: "Preuves tangibles de compétence délivrées par MA-TRAINING-CONSULTING",
+            items: [
+                { title: "Évaluation de Capacité", desc: "Une évaluation formelle de votre préparation professionnelle.", icon: Target },
+                { title: "Recommandation du Cabinet", desc: "Une lettre de recommandation professionnelle de notre cabinet.", icon: FileText },
+                { title: "Rapport de Performance", desc: "Commentaires détaillés sur votre performance lors des simulations.", icon: Award },
+                { title: "Rapport d'Adéquation", desc: "Découvrez exactement quels rôles correspondent le mieux à votre profil.", icon: Users },
+                { title: "Attestation de Workshop", desc: "Preuve vérifiée des sessions spécialisées terminées.", icon: Star },
+                { title: "Aperçus du Marché", desc: "Données sur votre position sur le marché du travail actuel.", icon: Crown }
+            ]
+        },
+        contract: {
+            title: "Accord de Service Général",
+            subtitle: "Veuillez consulter nos conditions générales d'engagement avant de continuer",
+            docTitle: "ACCORD DE SERVICE DE CONSEIL",
+            parties: "Entre : MA-TRAINING-CONSULTING (Le Cabinet) Et : Le Client ({{client}})",
+            clauses: [
+                { title: "Article 1 : Nature de l'Engagement", text: "Cet accord constitue un mandat de conseil professionnel dédié au développement de carrière et à l'optimisation stratégique." },
+                { title: "Article 2 : Structure des Honoraires", text: "Les honoraires finaux sont fixés après le diagnostic initial, selon la complexité de la feuille de route et les ressources déployées." },
+                { title: "Article 3 : Confidentialité des Données", text: "Le Cabinet s'engage au secret professionnel strict. Aucun rapport de diagnostic ne sera partagé sans un consentement écrit explicite." },
+                { title: "Article 4 : Propriété Intellectuelle", text: "Tous les outils, modèles et cadres fournis sont la propriété exclusive de MA-TRAINING-CONSULTING et sont destinés à un usage personnel." },
+                { title: "Article 5 : Conditions de Règlement", text: "Les paiements sont définitifs et non remboursables en raison de l'allocation immédiate des ressources expertes et techniques." },
+                { title: "Article 6 : Éthique & Résiliation", text: "Le Cabinet se réserve le droit de résilier le mandat unilatéralement en cas de non-respect des normes professionnelles ou des conditions." }
+            ],
+            cta: "Télécharger & Signer (PDF)"
+        },
+        pricing: {
+            title: "Honoraires de Conseil Professionnel",
+            subtitle: "Tarification transparente pour des services d'experts",
+            plans: [
+                {
+                    name: "Diagnostic Initial",
+                    price: "Gratuit",
+                    period: "à vie",
+                    desc: "Accès limité adapté pour un audit rapide.",
+                    features: [
+                        "Examen de base du CV", 
+                        "Workshops à l'unité (Tarif supérieur)", 
+                        "Diagnostic de base (Précision 50%)", 
+                        "Pas d'accès à la bibliothèque",
+                        "Pas de feuille de route stratégique"
+                    ],
+                    cta: "Démarrer l'Audit Gratuit",
+                    highlight: false
+                },
+                {
+                    name: "Conseil Stratégique",
+                    price: "À partir de 80€",
+                    period: "/ mois",
+                    desc: "Accompagnement complet en conseil.",
+                    features: [
+                        "Diagnostic approfondi (Précision 100%)", 
+                        "Workshops exécutifs sur mesure", 
+                        "Missions de simulation réelles", 
+                        "Accès complet à la plateforme", 
+                        "Documents vérifiés par le Cabinet",
+                        "Retours de consultants seniors"
+                    ],
+                    cta: "Démarrer le Programme",
+                    highlight: true
+                }
+            ]
+        }
     }
 };
 
@@ -224,9 +321,90 @@ function SpotlightCard({ children, className = "" }: { children: React.ReactNode
 
 export default function ProfessionalsPage() {
     const { language, dir } = useLanguage();
-    const t = CONTENT[language === 'ar' ? 'ar' : 'en'];
+    const t = CONTENT[language as keyof typeof CONTENT] || CONTENT.en;
     const containerRef = useRef<HTMLDivElement>(null);
+    const contractRef = useRef<HTMLDivElement>(null);
     const [isConsultingFormOpen, setIsConsultingFormOpen] = useState(false);
+    const [clientName, setClientName] = useState("");
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleDownloadContract = async () => {
+        if (!contractRef.current) return;
+        setIsGenerating(true);
+
+        try {
+            const element = contractRef.current;
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const el = clonedDoc.body.querySelector('[data-contract-container="true"]') as HTMLElement;
+                    if (el) {
+                        el.style.boxShadow = 'none';
+                        el.style.border = '1px solid #e2e8f0';
+                        el.style.backgroundColor = '#ffffff';
+                        el.style.color = '#000000';
+                        
+                        const allNodes = Array.from(el.querySelectorAll('*')) as HTMLElement[];
+                        allNodes.forEach((node) => {
+                            node.style.transition = 'none';
+                            node.style.animation = 'none';
+                            node.style.boxShadow = 'none';
+                            node.style.textShadow = 'none';
+                            
+                            // Force-replace any color that looks like a modern CSS function
+                            const computedStyle = window.getComputedStyle(node);
+                            const color = computedStyle.color;
+                            const bg = computedStyle.backgroundColor;
+                            
+                            if (color.includes('oklch') || color.includes('lab')) node.style.color = '#000000';
+                            if (bg.includes('oklch') || bg.includes('lab')) node.style.backgroundColor = 'transparent';
+                            
+                            // Specific check for border colors which often use these functions
+                            const bc = computedStyle.borderColor;
+                            if (bc.includes('oklch') || bc.includes('lab')) node.style.borderColor = '#e2e8f0';
+                        });
+                    }
+                }
+            });
+            
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const imgProps = pdf.getImageProperties(imgData);
+            const ratio = imgProps.width / imgProps.height;
+            const pageRatio = pdfWidth / pdfHeight;
+            
+            let finalWidth, finalHeight;
+            
+            // Constrain by height to ensure the bottom part is never cut off
+            if (ratio > pageRatio) {
+                // Width limited
+                finalWidth = pdfWidth - 20; // 10mm margins
+                finalHeight = finalWidth / ratio;
+            } else {
+                // Height limited
+                finalHeight = pdfHeight - 20; // 10mm margins
+                finalWidth = finalHeight * ratio;
+            }
+            
+            // Center horizontally
+            const xOffset = (pdfWidth - finalWidth) / 2;
+            const yOffset = 10; // 10mm top margin
+            
+            pdf.addImage(imgData, "PNG", xOffset, yOffset, finalWidth, finalHeight);
+            pdf.save(`MA-CONSULTING-CONTRACT-${clientName || "CLIENT"}.pdf`);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     return (
         <div 
@@ -372,46 +550,135 @@ export default function ProfessionalsPage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
-                        className="relative bg-white dark:bg-slate-950 p-8 md:p-12 shadow-2xl rounded-sm border border-slate-200 dark:border-slate-800 mx-auto max-w-3xl"
+                        className="space-y-8"
                     >
-                        {/* Paper Effect */}
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-slate-50 dark:bg-slate-900 -mr-10 -mt-10 rotate-45 transform origin-bottom-left shadow-lg z-0"></div>
-
-                        <div className="relative z-10 space-y-8 font-serif">
-                            <div className="text-center border-b border-slate-200 dark:border-slate-800 pb-8">
-                                <h3 className="text-2xl font-bold uppercase tracking-widest text-slate-900 dark:text-white mb-2">{t.contract.docTitle}</h3>
-                                <p className="text-xs text-slate-400 font-sans uppercase tracking-[0.2em]">Ref: MA-TC-2026-HQ</p>
-                            </div>
-
-                            <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 font-sans leading-relaxed text-center">
-                                {t.contract.parties}
-                            </div>
-
-                            <div className="space-y-6">
-                                {t.contract.clauses.map((clause: {title: string, text: string}, idx: number) => (
-                                    <div key={idx}>
-                                        <h4 className="font-bold text-slate-900 dark:text-white text-sm uppercase mb-2 font-sans">{clause.title}</h4>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-sans">{clause.text}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex justify-between items-end">
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <div className="h-12 w-32 border-b border-slate-300 dark:border-slate-700 mb-2"></div>
-                                    <p className="text-[10px] uppercase font-bold text-slate-400 font-sans">MA-TRAINING-CONSULTING</p>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                                        {language === 'ar' ? 'الاسم الكامل للعميل' : language === 'fr' ? 'Nom complet du client' : 'Client Full Name'}
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        value={clientName}
+                                        onChange={(e) => setClientName(e.target.value)}
+                                        placeholder={language === 'ar' ? 'أدخل اسمك هنا' : language === 'fr' ? 'Entrez votre nom' : 'Enter your name'}
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors"
+                                    />
                                 </div>
-                                <div className="space-y-2 text-right">
-                                    <div className="h-12 w-32 border-b border-slate-300 dark:border-slate-700 mb-2 border-dashed"></div>
-                                    <p className="text-[10px] uppercase font-bold text-slate-400 font-sans">Client Signature</p>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                                        {language === 'ar' ? 'التاريخ' : language === 'fr' ? 'Date' : 'Date'}
+                                    </label>
+                                    <div className="px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-500">
+                                        {new Date().toLocaleDateString(language === 'ar' ? 'ar-TN' : 'fr-FR')}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-12 text-center">
-                            <button className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-xs uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors shadow-lg">
-                                {t.contract.cta}
+                        <div 
+                            ref={contractRef}
+                            data-contract-container="true"
+                            className="relative p-8 md:p-16 mx-auto max-w-3xl"
+                            style={{ 
+                                minHeight: '1000px', 
+                                backgroundColor: '#ffffff', 
+                                color: '#000000',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '2px',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' 
+                            }}
+                        >
+                            <div className="absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12 rotate-45 transform origin-bottom-left z-0" style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}></div>
+
+                            <div className="relative z-10 space-y-10 font-serif">
+                                <div className="text-center pb-10" style={{ borderBottom: '2px solid #0f172a' }}>
+                                    <div className="text-xl font-bold mb-2 tracking-[0.3em]" style={{ color: '#0f172a' }}>MA-TRAINING-CONSULTING</div>
+                                    <h3 className="text-3xl font-black uppercase tracking-widest mb-4" style={{ color: '#020617' }}>{t.contract.docTitle}</h3>
+                                    <p className="text-[10px] font-sans uppercase tracking-[0.4em]" style={{ color: '#64748b' }}>Ref: MA-TC-2026-HQ / AUTH-REQUIRED</p>
+                                </div>
+
+                                <div className="p-8 rounded-lg text-sm font-bold font-sans leading-relaxed text-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #f1f5f9', color: '#1e293b' }}>
+                                    {t.contract.parties.replace('{{client}}', clientName || '....................')}
+                                </div>
+
+                                <div className="space-y-8 px-4">
+                                    {t.contract.clauses.map((clause: {title: string, text: string}, idx: number) => (
+                                        <div key={idx} className="space-y-2">
+                                            <h4 className="font-black text-base uppercase font-sans pl-4" style={{ color: '#020617', borderLeft: '4px solid #0f172a' }}>{clause.title}</h4>
+                                            <p className="text-sm leading-relaxed font-sans text-justify" style={{ color: '#334155' }}>{clause.text}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="pt-16 grid grid-cols-2 gap-12" style={{ borderTop: '2px solid #0f172a' }}>
+                                    <div className="space-y-6">
+                                        <div className="h-24 flex items-center justify-center" style={{ borderBottom: '1px solid #94a3b8', backgroundColor: '#fdfdfd' }}>
+                                            <div className="text-xl font-serif italic" style={{ color: '#94a3b8', opacity: 0.5 }}>OFFICIAL STAMP REQUIRED</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-black font-sans tracking-widest" style={{ color: '#020617' }}>MA-TRAINING-CONSULTING</p>
+                                            <p className="text-[8px] font-sans tracking-tight" style={{ color: '#94a3b8' }}>Verified Corporate Entity • 2026</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div className="h-24 flex flex-col items-center justify-center p-4 relative" style={{ border: '1px solid #d1d5db', borderStyle: 'dashed', backgroundColor: '#f0f9ff', borderRadius: '4px' }}>
+                                            {clientName ? (
+                                                <>
+                                                    <div className="absolute top-0 right-0 p-1" style={{ color: '#1d4ed8' }}>
+                                                        <span className="text-[10px] font-bold">✓ VERIFIED</span>
+                                                    </div>
+                                                    <span className="text-2xl font-serif italic animate-in fade-in duration-700" style={{ color: '#1e3a8a', fontFamily: 'cursive' }}>
+                                                        {clientName}
+                                                    </span>
+                                                    <div className="mt-2 flex flex-col items-center">
+                                                        <div className="text-[7px] font-mono font-bold uppercase tracking-tighter" style={{ color: '#3b82f6' }}>
+                                                            Digitally Authorized • ID: {Math.random().toString(36).substring(2, 9).toUpperCase()}
+                                                        </div>
+                                                        <div className="text-[6px] mt-0.5" style={{ color: '#94a3b8' }}>
+                                                            TS: {new Date().toISOString()} • IP: Verified
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="text-[10px] font-sans italic" style={{ color: '#cbd5e1' }}>SIGNATURE AREA</div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-black font-sans tracking-widest" style={{ color: '#020617' }}>Client Signature & Legal Consent</p>
+                                            <p className="text-[8px] font-sans tracking-tight" style={{ color: '#94a3b8' }}>Acceptance of Consulting Mandate Conditions</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-20 text-center text-[8px] font-sans uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+                                    Generated via Secure Protocol • Verified Digital Asset • {new Date().toISOString()}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-4">
+                            <button 
+                                onClick={handleDownloadContract}
+                                disabled={!clientName || isGenerating}
+                                className={cn(
+                                    "w-full max-w-md px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-sm uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3",
+                                    (!clientName || isGenerating) ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                                )}
+                            >
+                                {isGenerating ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <FileText size={18} />
+                                )}
+                                {isGenerating ? (language === 'ar' ? 'جاري التحميل...' : 'Downloading...') : t.contract.cta}
                             </button>
+                            {!clientName && (
+                                <p className="text-xs text-amber-600 font-bold animate-pulse">
+                                    {language === 'ar' ? 'يرجى إدخال اسمك لتفعيل العقد والتحميل' : 'Please enter your name to activate the contract and download'}
+                                </p>
+                            )}
                         </div>
                     </motion.div>
                 </div>

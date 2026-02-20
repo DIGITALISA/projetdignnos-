@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Briefcase, CheckCircle2, Clock, FileText, AlertCircle, Send, Target, PlayCircle, Loader2, Lock, ShieldCheck, Calendar, BarChart3 } from "lucide-react";
+import { Briefcase, CheckCircle2, Clock, FileText, AlertCircle, Send, Target, PlayCircle, Loader2, Lock, ShieldCheck, Calendar, BarChart3, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface MissionObjective {
     title: string;
@@ -34,9 +35,14 @@ interface MissionState {
     hasPendingRequest: boolean;
     mission: Mission | null;
     proposals: Mission[];
+    support?: {
+        adminEmail: string;
+        adminWhatsapp: string;
+    }
 }
 
 export default function SimulationPage() {
+    const { language, t } = useLanguage();
     const [isLoading, setIsLoading] = useState(true);
     const [missionState, setMissionState] = useState<MissionState>({
         hasActiveMission: false,
@@ -63,7 +69,8 @@ export default function SimulationPage() {
                 hasActiveMission: !!data.hasActiveMission,
                 hasPendingRequest: !!data.hasPendingRequest,
                 mission: data.mission,
-                proposals: data.proposals || []
+                proposals: data.proposals || [],
+                support: data.support
             });
 
             if (data.mission?.currentDraft) {
@@ -162,42 +169,101 @@ export default function SimulationPage() {
         (missionState.proposals?.some(p => userPool.purchasedItems?.includes(p._id)));
 
     // STATE 1: No Mission yet -> Choice / Request Flow
+    const protocol = t.simulation.noMissionProtocol;
     if (!missionState.hasActiveMission && !missionState.proposals.length) {
         return (
-            <div className="max-w-4xl mx-auto py-12 px-4 relative">
-                <div className="bg-white rounded-[2.5rem] p-6 md:p-16 text-center border border-slate-200 shadow-xl relative overflow-hidden">
+            <div className="max-w-6xl mx-auto py-12 px-4 relative space-y-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                <div className="bg-white rounded-[2.5rem] p-8 md:p-12 text-center border border-slate-200 shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-blue-600 to-purple-600" />
-                    <div className="absolute inset-0 bg-linear-to-r from-slate-900/90 to-slate-900/50 z-10" />
-                    <div className="w-20 h-20 md:w-24 md:h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
-                        <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
-                    </div>
-                    <h1 className="text-2xl md:text-4xl font-black text-slate-900 mb-4 md:mb-6 tracking-tight font-arabic" dir="rtl">لا توجد محاكاة نشطة حالياً</h1>
-                    <p className="text-base md:text-xl text-slate-600 mb-8 md:mb-10 leading-relaxed max-w-2xl mx-auto font-bold font-arabic" dir="rtl">
-                        ليس لديك أي محاكاة أو مهمة تدريبية مفعلة في الوقت الحالي. يرجى الاتصال بالمنظم (Administrator) إذا كنت ترغب في بدء حصص المحاكاة والتدريب المباشرة.
-                    </p>
-
-                    {isProEssential && !hasPaidForMission && (
-                        <div className="p-6 md:p-8 bg-amber-50 rounded-[2.5rem] border-2 border-amber-100 mb-8 max-w-lg mx-auto">
-                            <Lock className="w-8 h-8 text-amber-600 mx-auto mb-4" />
-                            <h3 className="text-lg font-black text-amber-900 mb-2 uppercase tracking-tight">Investissement Stratégique Requis</h3>
-                            <p className="text-amber-700 text-sm font-bold mb-6">
-                                En tant que membre <span className="underline">Pro Essential</span>, vous devez débloquer chaque session de simulation individuellement.
-                            </p>
-                            <button 
-                                onClick={() => alert("Redirecting to secure payment gateway...")}
-                                className="w-full py-4 bg-amber-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-amber-600/20 active:scale-95 transition-transform"
-                            >
-                                Débloquer ma Simulation (Tarif Exécutif)
-                            </button>
+                    
+                    <div className="relative z-20">
+                        <div className="w-20 h-20 md:w-24 md:h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8 shadow-inner">
+                            <ShieldCheck className="w-8 h-8 md:w-12 md:h-12 text-blue-600" />
                         </div>
-                    )}
+                        
+                        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+                            {protocol.title}
+                        </h1>
+                        
+                        <p className="text-lg md:text-xl text-slate-600 mb-12 leading-relaxed max-w-3xl mx-auto font-medium">
+                            {protocol.intro}
+                        </p>
 
-                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-700 font-black text-sm uppercase tracking-widest mb-4">
-                        <AlertCircle size={18} /> Premium Paid Service
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-right mb-12">
+                            {protocol.features.map((feature: { title: string; desc: string }, idx: number) => (
+                                <motion.div 
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-blue-200 hover:bg-white hover:shadow-lg transition-all"
+                                >
+                                    <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-4 mx-auto md:mx-0">
+                                        {idx === 0 ? <Clock size={24} /> : 
+                                         idx === 1 ? <Target size={24} /> : 
+                                         idx === 2 ? <BarChart3 size={24} /> : 
+                                         <Calendar size={24} />}
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-900 mb-3">{feature.title}</h3>
+                                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                        {feature.desc}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {isProEssential && !hasPaidForMission && (
+                            <div className="p-8 bg-amber-50 rounded-[2.5rem] border-2 border-amber-100 mb-8 max-w-xl mx-auto shadow-sm">
+                                <Lock className="w-10 h-10 text-amber-600 mx-auto mb-4" />
+                                <h3 className="text-xl font-black text-amber-900 mb-3 uppercase tracking-tight">
+                                    {language === 'fr' ? 'Investissement Stratégique Requis' : 
+                                     language === 'ar' ? 'استثمار استراتيجي مطلوب' : 'Strategic Investment Required'}
+                                </h3>
+                                <p className="text-amber-700 text-sm font-bold mb-6">
+                                    {language === 'fr' ? 'En tant que membre Pro Essential, vous devez débloquer chaque session de simulation individuellement.' : 
+                                     language === 'ar' ? 'بصفتك عضواً في Pro Essential، يجب عليك تفعيل كل جلسة محاكاة بشكل فردي.' : 'As a Pro Essential member, you must unlock each simulation session individually.'}
+                                </p>
+                                <button 
+                                    onClick={() => alert("Redirecting to secure payment gateway...")}
+                                    className="w-full py-4 bg-amber-600 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-amber-600/20 active:scale-95 transition-transform"
+                                >
+                                    {language === 'fr' ? 'Débloquer ma Simulation (Tarif Exécutif)' : 
+                                     language === 'ar' ? 'تفعيل المحاكاة (السعر التنفيذي)' : 'Unlock my Simulation (Executive Rate)'}
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="flex flex-col items-center gap-6 mt-8">
+                            <div className="flex flex-wrap justify-center gap-4 mb-4">
+                                {missionState.support?.adminEmail && (
+                                    <a 
+                                        href={`mailto:${missionState.support.adminEmail}`}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm"
+                                    >
+                                        <Mail size={18} className="text-blue-600" />
+                                        {language === 'ar' ? 'البريد الإلكتروني' : 'Email Support'}
+                                    </a>
+                                )}
+                                {missionState.support?.adminWhatsapp && (
+                                    <a 
+                                        href={`https://wa.me/${missionState.support.adminWhatsapp.replace(/\+/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-2xl font-bold hover:opacity-90 transition-all shadow-md"
+                                    >
+                                        <span className="font-bold">WhatsApp</span>
+                                    </a>
+                                )}
+                            </div>
+                            
+                            <div className="inline-flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">
+                                <AlertCircle size={18} className="text-blue-400" /> {language === 'ar' ? 'خدمة مدفوعة ممتازة' : 'Premium Paid Service'}
+                            </div>
+                            <p className="text-xs text-slate-400 font-bold max-w-md">
+                                {protocol.premiumNote}
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-sm text-slate-400 font-medium font-arabic">
-                        * ملاحظة: محاكاة CareerUpgrade.AI هي خدمة مدفوعة تتضمن حصصاً تدريبية مباشرة مع خبراء دوليين.
-                    </p>
                 </div>
             </div>
         );

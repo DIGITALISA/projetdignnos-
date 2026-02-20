@@ -60,6 +60,7 @@ export function Navbar() {
                             src="/logo-matc.png"
                             alt="MA-TRAINING-CONSULTING"
                             fill
+                            sizes="(max-width: 768px) 192px, 192px"
                             className="object-contain object-left"
                             priority
                         />

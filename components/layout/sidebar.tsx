@@ -20,7 +20,8 @@ import {
     Lock,
     CreditCard,
     TrendingUp,
-    BarChart3
+    BarChart3,
+    Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -33,7 +34,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
-    const { t, dir } = useLanguage();
+    const { t, dir, language, setLanguage } = useLanguage();
     const [userName, setUserName] = useState("User");
     const [userRole, setUserRole] = useState("");
     const [trialTimeLeft, setTrialTimeLeft] = useState<string | null>(null);
@@ -265,26 +266,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </AnimatePresence>
 
             <aside className={cn(
-                "fixed top-0 h-screen w-72 bg-white/80 backdrop-blur-xl border-slate-200/60 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none",
+                "fixed top-0 h-screen w-72 bg-white/80 backdrop-blur-xl border-slate-200/60 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none flex flex-col",
                 dir === 'rtl' ? "right-0 border-l" : "left-0 border-r",
                 isOpen ? "translate-x-0" : (dir === 'rtl' ? "translate-x-full" : "-translate-x-full")
             )}>
-                <div className="h-20 flex items-center justify-between px-7 border-b border-slate-100/80 bg-white/50">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:rotate-6 transition-transform duration-300">
-                            <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">CareerUpgrade</span>
-                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-blue-600 mt-1">AI Platform</span>
-                        </div>
+                <div className="h-24 shrink-0 flex items-center justify-between px-7 border-b border-slate-100/80 bg-linear-to-b from-white to-slate-50/50">
+                    <Link href="/" className="flex flex-col justify-center group py-2">
+                        <h1 className="font-black text-3xl tracking-tighter leading-none bg-linear-to-r from-blue-700 via-indigo-600 to-purple-600 bg-clip-text text-transparent select-none group-hover:scale-105 transition-transform origin-left">
+                            MATC
+                        </h1>
+                        <span className="text-[10px] font-bold text-slate-500 tracking-[0.15em] mt-1 uppercase">
+                            {dir === 'rtl' ? 'للاستشارات والتدريب' : 'Consulting & Training'}
+                        </span>
                     </Link>
                     <button onClick={onClose} className="md:hidden p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 outline-none">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pt-8 pb-32 px-4 space-y-8 custom-scrollbar h-full">
+                <div className="flex-1 overflow-y-auto pt-6 pb-8 px-4 space-y-8 custom-scrollbar">
                     {sidebarItems.map((group, idx) => (
                         <div key={idx} className="space-y-2">
                             <div className={cn("px-4 flex items-center justify-between mb-2", dir === 'rtl' && "flex-row-reverse")}>
@@ -339,7 +339,36 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     ))}
                 </div>
 
-                <div className="absolute bottom-0 w-full p-6 bg-linear-to-t from-white via-white to-transparent">
+                <div className="shrink-0 bg-white border-t border-slate-100 z-20">
+                    {/* Language Switcher */}
+                    <div className="px-6 pt-4 pb-2">
+                         <div className="flex items-center justify-between gap-2 mb-2 px-1">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <Globe size={12} />
+                                <span className={cn("text-[9px] font-black uppercase tracking-widest", dir === 'rtl' ? 'mr-1' : 'ml-1')}>
+                                    {dir === 'rtl' ? 'لغة الواجهة' : 'Language'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex p-1 bg-slate-50/50 rounded-lg border border-slate-100">
+                            {['en', 'fr', 'ar'].map((lang) => (
+                                <button
+                                    key={lang}
+                                    onClick={() => setLanguage(lang as "en" | "fr" | "ar")}
+                                    className={cn(
+                                        "flex-1 py-1.5 text-[10px] font-black rounded-md transition-all uppercase text-center",
+                                        language === lang 
+                                            ? "bg-white text-slate-900 shadow-sm border border-slate-200" 
+                                            : "text-slate-400 hover:text-slate-600"
+                                    )}
+                                >
+                                    {lang}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-6 pt-2">
                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
                         <div className={cn("flex items-center gap-3", dir === 'rtl' && "flex-row-reverse")}>
                             <div className="relative">
@@ -400,7 +429,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                     </div>
                 </div>
-            </aside>
-        </div>
-    );
+            </div>
+        </aside>
+    </div>
+);
 }

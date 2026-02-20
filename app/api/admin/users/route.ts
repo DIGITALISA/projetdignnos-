@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI } = body;
+        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, memberId } = body;
 
         if (!fullName || !email || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
             canAccessRecommendations: !!canAccessRecommendations,
             canAccessScorecard: !!canAccessScorecard,
             canAccessSCI: !!canAccessSCI,
+            memberId: memberId || undefined
         });
 
         return NextResponse.json(user, { status: 201 });
@@ -70,7 +71,7 @@ export async function PUT(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI } = body;
+        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, memberId } = body;
 
         if (!id) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -87,7 +88,8 @@ export async function PUT(req: NextRequest) {
             canAccessRecommendations: !!canAccessRecommendations,
             canAccessScorecard: !!canAccessScorecard,
             canAccessSCI: !!canAccessSCI,
-            paymentStatus: body.paymentStatus
+            paymentStatus: body.paymentStatus,
+            memberId: memberId
         };
 
         // Auto-upgrade role if plan is premium

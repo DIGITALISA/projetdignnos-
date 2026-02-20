@@ -43,7 +43,14 @@ export async function POST(req: Request) {
             profile?.expertNotes
         );
 
-        return NextResponse.json(roadmapData);
+        const Config = (await import("@/models/Config")).default;
+        const adminConfigs = await Config.find({ key: { $in: ["adminEmail", "adminWhatsapp"] } });
+        const support = adminConfigs.reduce((acc: Record<string, string>, curr: { key: string; value: string }) => {
+            acc[curr.key] = curr.value;
+            return acc;
+        }, { adminEmail: "support@careerupgrade.ai", adminWhatsapp: "+216XXXXXXXX" });
+
+        return NextResponse.json({ ...roadmapData, support });
     } catch (error) {
         console.error("Roadmap API error:", error);
         return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });

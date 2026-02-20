@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
@@ -29,7 +29,7 @@ interface Course {
 }
 
 export default function TrainingPage() {
-    const { dir } = useLanguage();
+    const { dir, language } = useLanguage();
     const [courses, setCourses] = useState<Course[]>([]);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +39,7 @@ export default function TrainingPage() {
     const [lockedParticipants, setLockedParticipants] = useState<Record<string, boolean>>({});
     const [pendingRequests, setPendingRequests] = useState<string[]>([]);
     const [diagnosisGaps, setDiagnosisGaps] = useState<string[]>([]);
+    const [support, setSupport] = useState<{ adminEmail: string, adminWhatsapp: string } | null>(null);
 
     const fetchUserRequests = async () => {
         const savedDiagnosis = localStorage.getItem("cvAnalysis");
@@ -98,9 +99,26 @@ export default function TrainingPage() {
         }
     };
 
+    const fetchSupport = async () => {
+        try {
+            const res = await fetch('/api/admin/config');
+            const data = await res.json();
+            if (data.success) {
+                const configMap = data.configs;
+                setSupport({
+                    adminEmail: configMap.adminEmail || "support@careerupgrade.ai",
+                    adminWhatsapp: configMap.adminWhatsapp || "+216XXXXXXXX"
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching support config:", error);
+        }
+    };
+
     useEffect(() => {
         fetchCourses();
         fetchUserRequests();
+        fetchSupport();
     }, []);
 
     const handleSelectCourse = (course: Course) => {
@@ -320,13 +338,41 @@ export default function TrainingPage() {
                         <div className="pt-6">
                             <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-xs uppercase tracking-widest">
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                {dir === 'rtl' ? 'بانتظام اكتمال التشخيص وتخصيص الجلسات' : 'Waiting for diagnosis completion and session customization'}
+                                {dir === 'rtl' ? 'بانتظار اكتمال التشخيص وتخصيص الجلسات' : 'Waiting for diagnosis completion and session customization'}
+                            </div>
+                        </div>
+
+                        {/* Support Buttons in Protocol View */}
+                        <div className="pt-10 flex flex-col items-center gap-4 border-t border-slate-100">
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                                {dir === 'rtl' ? 'هل تحتاج إلى موضوع محدد؟ تواصل معنا' : 'Need a specific topic? Contact us'}
+                            </p>
+                            <div className="flex flex-wrap justify-center gap-4">
+                                <motion.a 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    href={`mailto:${support?.adminEmail || 'support@careerupgrade.ai'}`}
+                                    className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-xl hover:bg-blue-600 transition-all"
+                                >
+                                    <Mail size={18} /> {dir === 'rtl' ? 'راسل الإدارة' : 'Email Support'}
+                                </motion.a>
+                                <motion.a 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    href={`https://wa.me/${(support?.adminWhatsapp || '+21600000000').replace(/\D/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-8 py-4 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-xl hover:opacity-90 transition-all"
+                                >
+                                    <span className="font-bold">WhatsApp</span>
+                                </motion.a>
                             </div>
                         </div>
                     </div>
                 </motion.div>
             ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="space-y-20">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {courses.map((course, index) => (
                         <motion.div
                             key={course._id}
@@ -563,6 +609,52 @@ export default function TrainingPage() {
                             </div>
                         </motion.div>
                     ))}
+                </div>
+
+                {/* Support Buttons below Courses Grid */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mt-20 p-12 bg-slate-900 rounded-[3rem] text-center space-y-8 shadow-2xl shadow-slate-900/40 border border-white/5 relative overflow-hidden group"
+                >
+                    <div className="absolute inset-0 bg-linear-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="relative z-10 space-y-6">
+                        <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto text-blue-400 border border-blue-500/20">
+                            <Sparkles size={32} />
+                        </div>
+                        <div className="space-y-4">
+                            <h2 className="text-3xl font-black text-white uppercase tracking-tight">
+                                {dir === 'rtl' ? 'هل تريد ورشة عمل مخصصة لفريقك؟' : 'Want a Custom Workshop for your Team?'}
+                            </h2>
+                            <p className="text-slate-400 max-w-2xl mx-auto font-medium text-lg leading-relaxed">
+                                {dir === 'rtl' 
+                                    ? 'نحن نوفر برامج تدريبية استراتيجية مخصصة حسب احتياجات الشركات والمجموعات. تواصل مع المسؤول المباشر لطلب عرض سعر وبرنامج مخصص.'
+                                    : 'We provide strategic training programs customized to corporate and group needs. Contact the administrator to request a quote and a tailor-made program.'}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-6 pt-4">
+                            <motion.a 
+                                whileHover={{ scale: 1.05, y: -5 }}
+                                whileTap={{ scale: 0.95 }}
+                                href={`mailto:${support?.adminEmail || 'support@careerupgrade.ai'}`}
+                                className="px-10 py-5 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-2xl hover:bg-blue-600 hover:text-white transition-all"
+                            >
+                                <Mail size={20} className="text-blue-600 group-hover:text-white" /> {dir === 'rtl' ? 'طلب عرض عبر الإيميل' : 'Request via Email'}
+                            </motion.a>
+                            <motion.a 
+                                whileHover={{ scale: 1.05, y: -5 }}
+                                whileTap={{ scale: 0.95 }}
+                                href={`https://wa.me/${(support?.adminWhatsapp || '+21600000000').replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-10 py-5 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-2xl hover:opacity-90 transition-all"
+                            >
+                                <span className="font-bold text-lg">WhatsApp</span>
+                            </motion.a>
+                        </div>
+                    </div>
+                </motion.div>
                 </div>
             )}
         </div>
