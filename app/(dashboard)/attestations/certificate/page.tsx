@@ -5,6 +5,7 @@ import { Download, Award, ShieldCheck, Printer, ArrowLeft, Sparkles, Building2, 
 import { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import Link from "next/link";
 
 import { useSearchParams } from "next/navigation";
@@ -65,6 +66,7 @@ export default function WorkshopAttestationPage() {
                 backgroundColor: "#ffffff",
                 logging: false,
                 onclone: (clonedDoc) => {
+                    sanitizeForHtml2Canvas(clonedDoc);
                     // 1. Remove stubborn link tags
                     const links = clonedDoc.getElementsByTagName('link');
                     while (links.length > 0) {
@@ -214,9 +216,36 @@ export default function WorkshopAttestationPage() {
                                     </div>
                                 </div>
 
-                                <div className="text-right space-y-4">
-                                    <div className="w-56 h-20 border-b border-slate-200 flex items-center justify-center italic text-slate-300 font-serif text-2xl">
-                                        Signature du Consultant
+                                <div className="text-right space-y-4 relative min-w-[240px]">
+                                    {/* Unified Validation Group (Signature over Stamp) */}
+                                    <div className="relative flex items-center justify-end py-6 pr-4">
+                                        {/* Company Stamp Base - Realistic CSS version */}
+                                        <div className="opacity-70 transform -rotate-12 transition-transform hover:rotate-0 duration-700">
+                                            <div className="w-52 h-26 border-[3px] rounded-xl flex flex-col items-center justify-center bg-white/50 backdrop-blur-[1px] shadow-sm relative overflow-hidden" 
+                                                 style={{ borderColor: '#1e3a8a', color: '#1e3a8a', fontFamily: 'serif' }}>
+                                                {/* Ink Bleed Effect Overlays */}
+                                                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none" />
+                                                
+                                                <p className="text-xl font-black uppercase tracking-tighter leading-none mb-1">Sté MA</p>
+                                                <p className="text-[11px] font-bold uppercase tracking-widest leading-none mb-2">Training Consulting</p>
+                                                <div className="w-4/5 h-[1.5px] bg-blue-900/40 my-1" />
+                                                <p className="text-[9px] font-bold leading-none mb-1">Tel: 44 172 264</p>
+                                                <p className="text-[9px] font-bold leading-none">MF: 1805031P/A/M/000</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Consultant Signature - Scrolled OVER the stamp with artistic offset */}
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-[40%] -translate-y-1/2 opacity-90 pointer-events-none transform -rotate-6 z-20">
+                                            <svg width="250" height="110" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#1e3a8a' }}>
+                                                {/* Primary Signature Path */}
+                                                <path d="M10 45C25 42 45 12 65 22C85 32 105 5 130 15M15 52C35 48 55 42 95 45" 
+                                                      stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" 
+                                                      className="drop-shadow-[0_2px_2px_rgba(30,58,138,0.3)]"/>
+                                                {/* Secondary Loop/Detail */}
+                                                <path d="M35 28C40 22 50 18 55 32C60 46 45 52 40 42C35 32 50 22 65 27" 
+                                                      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                                            </svg>
+                                        </div>
                                     </div>
                                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 max-w-xs leading-relaxed">
                                         Propriété intellectuelle exclusive de MA-TRAINING-CONSULTING.<br />

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
 
 const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
     const controller = new AbortController();
@@ -600,7 +601,7 @@ export default function RoleDiscoveryPage() {
                         title="Back to Assessment Results"
                     >
                         <ArrowLeft className="w-6 h-6" />
-                        <span className="hidden sm:inline">Back</span>
+                        <span className="hidden sm:inline">{t.roleDiscovery.back}</span>
                     </button>
                 </div>
 
@@ -611,23 +612,28 @@ export default function RoleDiscoveryPage() {
                             className="p-2 hover:bg-slate-100 rounded-full transition-colors group flex items-center gap-2 text-purple-600 font-bold"
                             title="Go to Role Suggestions"
                         >
-                            <span className="hidden sm:inline">Next</span>
+                            <span className="hidden sm:inline">{t.roleDiscovery.next}</span>
                             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
                 )}
 
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Career Path Discovery</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{t.roleDiscovery.title}</h1>
                     <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto">
-                        Let&apos;s explore your career goals and find the perfect roles for you.
+                        {t.roleDiscovery.subtitle}
                     </p>
+                </div>
+
+                {/* ── Next Stage Top Banner ── */}
+                <div className="w-full max-w-2xl">
+                    <StageProgressBanner stage="role-discovery" />
                 </div>
 
                 {/* Progress Indicator */}
                 <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
                     <div className="text-right">
-                        <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Progress</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">{t.roleDiscovery.progress}</p>
                         <p className="text-sm font-bold text-slate-700">{currentQuestionIndex} / {totalQuestions}</p>
                     </div>
                     
@@ -741,7 +747,7 @@ export default function RoleDiscoveryPage() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                        placeholder={language === 'ar' ? "اكتب إجابتك هنا..." : "Type your answer here..."}
+                        placeholder={t.roleDiscovery.placeholder}
                         disabled={isLoading || discoveryComplete}
                         className="w-full flex-1 px-5 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 text-sm md:text-base font-medium"
                     />
@@ -754,8 +760,7 @@ export default function RoleDiscoveryPage() {
                         >
                             <ArrowRight className="w-4 h-4" />
                             <span className="hidden md:inline">
-                                {language === 'ar' ? 'تخطي' :
-                                    language === 'fr' ? 'Passer' : 'Skip'}
+                                {t.roleDiscovery.skip}
                             </span>
                         </button>
                         <button
@@ -765,8 +770,7 @@ export default function RoleDiscoveryPage() {
                         >
                             <Send className="w-4 h-4" />
                             <span className="hidden md:inline">
-                                {language === 'ar' ? 'إرسال' :
-                                    language === 'fr' ? 'Envoyer' : 'Send'}
+                                {t.roleDiscovery.send}
                             </span>
                         </button>
                     </div>
@@ -792,8 +796,7 @@ export default function RoleDiscoveryPage() {
                             </>
                         ) : (
                             <>
-                                {language === 'ar' ? 'كشف المسارات المهنية' :
-                                    language === 'fr' ? 'Révéler les parcours' : 'Reveal Career Paths'}
+                                {discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? t.roleDiscovery.revealPaths : t.roleDiscovery.loading}
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? 'bg-white/20' : 'bg-slate-200'}`}>
                                     <ArrowRight className={`w-5 h-5 ${discoveryComplete || isTimeUnlocked || currentQuestionIndex >= 5 ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
                                 </div>
@@ -802,6 +805,15 @@ export default function RoleDiscoveryPage() {
                     </button>
                 </div>
             </div>
+
+            {/* ── Next Stage Full Teaser (when discovery complete) ── */}
+            {discoveryComplete && (
+                <NextStageTeaser
+                    stage="role-discovery"
+                    onNavigate={() => router.push('/assessment/role-suggestions')}
+                    visible={discoveryComplete}
+                />
+            )}
         </div>
     );
 }

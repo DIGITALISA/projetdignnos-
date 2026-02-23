@@ -5,7 +5,7 @@ import InterviewResult from '@/models/InterviewResult';
 
 export async function POST(request: NextRequest) {
     try {
-        const { userId, userName, language = 'en' } = await request.json();
+        const { userId, userName, language = 'en', question } = await request.json();
 
         if (!userId) {
             return NextResponse.json(
@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
         const result = await generateMentorGuidance(
             userProfile,
             interviewResult.evaluation,
-            language
+            language,
+            question
         );
 
         if (!result.success) {

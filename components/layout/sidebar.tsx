@@ -21,7 +21,10 @@ import {
     CreditCard,
     TrendingUp,
     BarChart3,
-    Globe
+    Globe,
+    Zap,
+    Crown,
+    Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -30,6 +33,20 @@ import { useLanguage } from "@/components/providers/LanguageProvider";
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
+}
+
+interface SidebarItem {
+    name: string;
+    icon: React.ElementType;
+    href: string;
+    isAI?: boolean;
+    isLive?: boolean;
+}
+
+interface SidebarGroup {
+    category: string;
+    icon: React.ElementType;
+    items: SidebarItem[];
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -46,45 +63,66 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [hasCompletedSimulation, setHasCompletedSimulation] = useState(false);
     const [hasScorecard, setHasScorecard] = useState(false);
 
-    const sidebarItems = [
+    const sidebarItems: SidebarGroup[] = [
         {
             category: t.sidebar.categories.main,
+            icon: Zap,
             items: [
                 { name: t.sidebar.items.overview, icon: LayoutDashboard, href: "/dashboard" },
             ]
         },
         {
-            category: t.sidebar.categories.journey,
+            category: t.sidebar.categories.diagnostic,
+            icon: Activity,
             items: [
                 { name: t.sidebar.items.diagnosis, icon: FileText, href: "/assessment/cv-upload" },
-                { name: t.sidebar.items.tools, icon: Users, href: "/simulation" },
-                { name: t.sidebar.items.training, icon: PlayCircle, href: "/training" },
-                { name: t.sidebar.items.mentor, icon: Sparkles, href: "/mentor" },
-                { name: t.sidebar.items.academy, icon: BookOpen, href: "/academy" },
-                { name: t.sidebar.items.library, icon: Library, href: "/library" },
-                { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert" },
-                { name: t.sidebar.items.roadmap, icon: TrendingUp, href: "/roadmap" },
             ]
         },
         {
-            category: t.sidebar.categories.achievements,
+            category: t.sidebar.categories.aiModules,
+            icon: Sparkles,
             items: [
-                { name: t.sidebar.items.certificates, icon: Award, href: "/certificate" },
+                { name: t.sidebar.items.mentor, icon: Sparkles, href: "/mentor", isAI: true },
+                { name: t.sidebar.items.academy, icon: BookOpen, href: "/academy", isAI: true },
+                { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert", isAI: true },
+                { name: t.sidebar.items.roadmap, icon: TrendingUp, href: "/roadmap", isAI: true },
+            ]
+        },
+        {
+            category: t.sidebar.categories.humanLed,
+            icon: Users,
+            items: [
+                { name: t.sidebar.items.training, icon: PlayCircle, href: "/training", isLive: true },
+                { name: t.sidebar.items.tools, icon: Users, href: "/simulation", isLive: true },
+                { name: t.sidebar.items.library, icon: Library, href: "/library" },
+            ]
+        },
+        {
+            category: t.sidebar.categories.strategicTools,
+            icon: BarChart3,
+            items: [
+                { name: t.sidebar.items.strategicReport, icon: BarChart3, href: "/strategic-report" },
+                { name: t.sidebar.items.jobAlignment, icon: Globe, href: "/job-alignment" },
+            ]
+        },
+        {
+            category: t.sidebar.categories.officialDocuments,
+            icon: Crown,
+            items: [
+                { name: t.sidebar.items.attestations, icon: Award, href: "/attestations" },
                 { name: t.sidebar.items.recommendation, icon: ShieldCheck, href: "/recommendation" },
-                { name: "Executive Scorecard", icon: BarChart3, href: "/performance-scorecard" },
-                { name: t.sidebar.items.jobAlignment, icon: Sparkles, href: "/job-alignment" },
-                { name: "Workshop Attestation", icon: Award, href: "/attestations" },
-                { name: t.sidebar.items.strategicReport, icon: Sparkles, href: "/strategic-report" },
+                { name: t.sidebar.items.certificates, icon: Award, href: "/certificate" },
             ]
         },
         {
             category: t.sidebar.categories.system,
+            icon: Settings,
             items: [
-                { name: "My Subscription", icon: CreditCard, href: "/subscription" },
+                { name: t.sidebar.items.subscription, icon: CreditCard, href: "/subscription" },
                 { name: t.sidebar.items.settings, icon: Settings, href: "/settings" },
                 // Admin/Moderator Link
                 ...(userRole === "Admin" || userRole === "Moderator" ? [
-                    { name: "Moderator Panel", icon: ShieldCheck, href: "/moderateur" }
+                    { name: t.sidebar.items.moderator, icon: ShieldCheck, href: "/moderateur" }
                 ] : [])
             ]
         }
@@ -156,7 +194,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             const now = new Date().getTime();
                             const diff = expiry - now;
                             if (diff <= 0) {
-                                setTrialTimeLeft("Expired");
+                                setTrialTimeLeft(t.sidebar.expired);
                                 setIsTrialExpired(true);
                             } else {
                                 const h = Math.floor(diff / (1000 * 60 * 60));
@@ -187,7 +225,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             window.removeEventListener("profileUpdated", loadProfile);
             if (intervalId) clearInterval(intervalId);
         };
-    }, []);
+    }, [t.sidebar.expired]);
 
     // Check if an item should be locked based on a progressive hierarchy
     const isLocked = (href: string) => {
@@ -235,9 +273,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             return !hasCompletedSimulation;
         }
 
-        // 6. STAGE 5 LOCK: Official Assets (Certificates & Recommendation)
+        // 6. STAGE 5 LOCK: Official Assets (Certificates, Recommendations, Attestations)
         // Needs Performance Scorecard / Expert Validation (Profile created)
-        if (href.startsWith("/certificate") || href.startsWith("/recommendation")) {
+        if (href.startsWith("/certificate") || href.startsWith("/recommendation") || href.startsWith("/attestations")) {
             if (isFreePlan) return true;
             return !hasScorecard;
         }
@@ -266,30 +304,34 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </AnimatePresence>
 
             <aside className={cn(
-                "fixed top-0 h-screen w-72 bg-white/80 backdrop-blur-xl border-slate-200/60 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none flex flex-col",
+                "fixed top-0 h-screen w-72 bg-white/90 backdrop-blur-2xl border-slate-200/60 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-[0_0_50px_-12px_rgba(0,0,0,0.1)] md:shadow-none flex flex-col select-none",
                 dir === 'rtl' ? "right-0 border-l" : "left-0 border-r",
                 isOpen ? "translate-x-0" : (dir === 'rtl' ? "translate-x-full" : "-translate-x-full")
             )}>
-                <div className="h-24 shrink-0 flex items-center justify-between px-7 border-b border-slate-100/80 bg-linear-to-b from-white to-slate-50/50">
+                <div className="h-24 shrink-0 flex items-center justify-between px-8 border-b border-slate-100/80 bg-linear-to-b from-white to-slate-50/30">
                     <Link href="/" className="flex flex-col justify-center group py-2">
-                        <h1 className="font-black text-3xl tracking-tighter leading-none bg-linear-to-r from-blue-700 via-indigo-600 to-purple-600 bg-clip-text text-transparent select-none group-hover:scale-105 transition-transform origin-left">
-                            MATC
-                        </h1>
-                        <span className="text-[10px] font-bold text-slate-500 tracking-[0.15em] mt-1 uppercase">
+                        <div className="flex items-center gap-2">
+                            <h1 className="font-black text-3xl tracking-tighter leading-none bg-linear-to-br from-slate-900 via-blue-900 to-slate-800 bg-clip-text text-transparent select-none group-hover:scale-[1.02] transition-transform origin-left">
+                                MATC
+                            </h1>
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse mt-1" />
+                        </div>
+                        <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] mt-1.5 uppercase opacity-80">
                             {dir === 'rtl' ? 'للاستشارات والتدريب' : 'Consulting & Training'}
                         </span>
                     </Link>
-                    <button onClick={onClose} className="md:hidden p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 outline-none">
+                    <button onClick={onClose} className="md:hidden p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-600 outline-none transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pt-6 pb-8 px-4 space-y-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto pt-8 pb-10 px-5 space-y-10 custom-scrollbar">
                     {sidebarItems.map((group, idx) => (
-                        <div key={idx} className="space-y-2">
-                            <div className={cn("px-4 flex items-center justify-between mb-2", dir === 'rtl' && "flex-row-reverse")}>
-                                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">{group.category}</h3>
-                                <div className={cn("h-px flex-1 bg-slate-100 opacity-50", dir === 'rtl' ? "mr-3" : "ml-3")} />
+                        <div key={idx} className="space-y-3">
+                            <div className={cn("px-3 flex items-center gap-2.5 opacity-40", dir === 'rtl' && "flex-row-reverse")}>
+                                <group.icon className="w-3 h-3 text-slate-500" />
+                                <h3 className="text-[9px] font-black text-slate-900 uppercase tracking-[0.25em] whitespace-nowrap">{group.category}</h3>
+                                <div className={cn("h-px flex-1 bg-slate-200", dir === 'rtl' ? "mr-1" : "ml-1")} />
                             </div>
 
                             <div className="space-y-1">
@@ -298,36 +340,65 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
 
                                     return (
-                                        <div key={item.href} className="relative group">
+                                        <div key={item.href} className="relative">
                                             {locked ? (
                                                 <div
                                                     className={cn(
-                                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 cursor-not-allowed opacity-60 text-slate-400 bg-slate-50/50",
+                                                        "flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[13px] font-bold transition-all duration-300 cursor-not-allowed opacity-40 grayscale text-slate-500",
                                                         dir === 'rtl' && "flex-row-reverse"
                                                     )}
                                                 >
-                                                    <div className="w-5 h-5 flex items-center justify-center">
-                                                        <Lock size={16} className="text-slate-300" />
-                                                    </div>
+                                                    <Lock size={14} strokeWidth={2.5} className="text-slate-400 shrink-0" />
                                                     <span className="flex-1">{item.name}</span>
                                                 </div>
                                             ) : (
                                                     <Link
                                                     href={item.href}
                                                     onClick={() => onClose()}
-                                                    prefetch={false} // Disable prefetch to stop log spam
+                                                    prefetch={false}
                                                     className={cn(
-                                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
-                                                        isActive ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50",
+                                                        "flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[13px] font-bold transition-all duration-300 group relative overflow-hidden",
+                                                        isActive 
+                                                            ? "bg-slate-900 text-white shadow-[0_10px_20px_-10px_rgba(15,23,42,0.3)]" 
+                                                            : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80",
                                                         dir === 'rtl' && "flex-row-reverse"
                                                     )}
                                                 >
-                                                    <div className={cn("relative z-10 w-5 h-5 flex items-center justify-center", isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600")}>
-                                                        <item.icon className="w-full h-full" />
+                                                    <div className={cn("relative z-10 shrink-0 transition-colors duration-300", isActive ? "text-blue-400" : "text-slate-400 group-hover:text-slate-900")}>
+                                                        <item.icon className="w-[18px] h-[18px]" strokeWidth={2.5} />
                                                     </div>
-                                                    <span className="relative z-10 flex-1">{item.name}</span>
+                                                    <span className="relative z-10 flex-1 truncate">{item.name}</span>
+                                                    
+                                                    {item.isAI && (
+                                                        <span className={cn(
+                                                            "relative z-10 text-[8px] font-black px-1.5 py-0.5 rounded-md border tracking-tighter",
+                                                            isActive 
+                                                                ? "bg-white/10 border-white/20 text-blue-300" 
+                                                                : "bg-blue-50 border-blue-100 text-blue-600"
+                                                        )}>
+                                                            AI
+                                                        </span>
+                                                    )}
+                                                    
+                                                    {item.isLive && (
+                                                        <span className={cn(
+                                                            "relative z-10 text-[8px] font-black px-1.5 py-0.5 rounded-md border tracking-tighter flex items-center gap-1",
+                                                            isActive 
+                                                                ? "bg-white/10 border-white/20 text-emerald-400" 
+                                                                : "bg-emerald-50 border-emerald-100 text-emerald-600"
+                                                        )}>
+                                                            <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                                            LIVE
+                                                        </span>
+                                                    )}
+
                                                     {isActive && (
-                                                        <motion.div layoutId="activeHighlight" className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600" initial={false} transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                                                        <motion.div 
+                                                            layoutId="sidebarActive"
+                                                            className="absolute inset-px rounded-[15px] bg-slate-900 z-0" 
+                                                            initial={false} 
+                                                            transition={{ type: "spring", stiffness: 400, damping: 35 }} 
+                                                        />
                                                     )}
                                                 </Link>
                                             )}
@@ -340,68 +411,55 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
 
                 <div className="shrink-0 bg-white border-t border-slate-100 z-20">
-                    {/* Language Switcher */}
-                    <div className="px-6 pt-4 pb-2">
-                         <div className="flex items-center justify-between gap-2 mb-2 px-1">
-                            <div className="flex items-center gap-2 text-slate-400">
-                                <Globe size={12} />
-                                <span className={cn("text-[9px] font-black uppercase tracking-widest", dir === 'rtl' ? 'mr-1' : 'ml-1')}>
-                                    {dir === 'rtl' ? 'لغة الواجهة' : 'Language'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex p-1 bg-slate-50/50 rounded-lg border border-slate-100">
-                            {['en', 'fr', 'ar'].map((lang) => (
+                    {/* Compact Language Selection */}
+                    <div className="px-6 py-3 border-b border-slate-50/50">
+                        <div className="flex p-0.5 bg-slate-50 rounded-lg border border-slate-100/60 items-center">
+                            {[
+                                { id: 'en', label: 'ENG' },
+                                { id: 'fr', label: 'FRA' },
+                                { id: 'ar', label: 'العربية' }
+                            ].map((lang) => (
                                 <button
-                                    key={lang}
-                                    onClick={() => setLanguage(lang as "en" | "fr" | "ar")}
+                                    key={lang.id}
+                                    onClick={() => setLanguage(lang.id as "en" | "fr" | "ar")}
                                     className={cn(
-                                        "flex-1 py-1.5 text-[10px] font-black rounded-md transition-all uppercase text-center",
-                                        language === lang 
-                                            ? "bg-white text-slate-900 shadow-sm border border-slate-200" 
-                                            : "text-slate-400 hover:text-slate-600"
+                                        "flex-1 py-1 text-[8px] font-black rounded-md transition-all uppercase tracking-tighter",
+                                        language === lang.id 
+                                            ? "text-blue-600 font-black" 
+                                            : "text-slate-400 hover:text-slate-600 hover:bg-white/50"
                                     )}
                                 >
-                                    {lang}
+                                    {lang.label}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    <div className="p-6 pt-2">
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
+                    <div className="p-4 px-6">
                         <div className={cn("flex items-center gap-3", dir === 'rtl' && "flex-row-reverse")}>
-                            <div className="relative">
-                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold border border-white shadow-sm overflow-hidden">
+                            <div className="relative shrink-0">
+                                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white text-[10px] font-black border border-white/10 shadow-sm overflow-hidden">
                                     {userName.charAt(0)}
                                 </div>
-                                <div className={cn("absolute -bottom-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full", dir === 'rtl' ? "-left-1" : "-right-1")} />
+                                <div className={cn("absolute -bottom-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full", dir === 'rtl' ? "-left-0.5" : "-right-0.5")} />
                             </div>
                             <div className={cn("flex-1 min-w-0", dir === 'rtl' ? "text-right" : "text-left")}>
                                 <div className="flex items-center gap-1.5 justify-between">
-                                    <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{userName}</p>
+                                    <p className="text-[11px] font-black text-slate-900 truncate tracking-tight uppercase">{userName}</p>
                                     <span className={cn(
-                                        "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border",
-                                        userPlan === "Pro Essential" ? "bg-blue-100 text-blue-700 border-blue-200" :
-                                                "bg-slate-100 text-slate-600 border-slate-200"
+                                        "px-1.5 py-1 rounded text-[7px] font-black uppercase tracking-tighter border leading-none",
+                                        userPlan === "Pro Essential" ? "bg-blue-600 text-white border-blue-700" :
+                                                "bg-slate-100 text-slate-500 border-slate-200"
                                     )}>
                                         {userPlan === "Pro Essential" ? "PRO" : "TRIAL"}
                                     </span>
                                 </div>
-                                <div className={cn("flex items-center gap-1.5 mt-0.5", dir === 'rtl' && "flex-row-reverse")}>
-                                    <span className={cn("w-1.5 h-1.5 rounded-full animate-pulse",
-                                        (userPlan === "Pro Essential") ? "bg-blue-500" :
-                                            isTrialExpired ? "bg-red-500" : "bg-amber-500"
-                                    )} />
-                                    <p className={cn(
-                                        "text-[10px] font-bold uppercase tracking-wider",
-                                        (userPlan === "Pro Essential") ? "text-blue-600" :
-                                            isTrialExpired ? "text-red-500" : "text-amber-600"
-                                    )}>
-                                        {(userPlan === "Pro Essential") ? t.sidebar.premium : 
-                                            `${isTrialExpired ? "Accès Limité" : "Essai : " + trialTimeLeft}`}
-                                    </p>
-                                </div>
+                                {trialTimeLeft && userPlan !== "Pro Essential" && (
+                                    <div className={cn("flex items-center gap-1 mt-1", dir === 'rtl' ? "flex-row-reverse" : "")}>
+                                        <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                                        <p className="text-[8px] font-black text-slate-500 tracking-tighter uppercase">{trialTimeLeft}</p>
+                                    </div>
+                                )}
                             </div>
                             <button
                                 onClick={async () => {
@@ -412,7 +470,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     } finally {
                                         localStorage.clear();
                                         sessionStorage.clear();
-                                        // Clear JS accessible cookies as fallback
                                         document.cookie.split(";").forEach((c) => {
                                             document.cookie = c
                                                 .replace(/^ +/, "")
@@ -421,16 +478,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                         window.location.href = '/login';
                                     }
                                 }}
-                                className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 group"
-                                title={t.sidebar.items.signOut}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all duration-300 group"
                             >
-                                <LogOut className={cn("w-4 h-4 transition-transform", dir === 'rtl' ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1")} />
+                                <LogOut className={cn("w-3.5 h-3.5", dir === 'rtl' ? "rotate-180" : "")} />
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </aside>
-    </div>
-);
+            </aside>
+        </div>
+    );
 }

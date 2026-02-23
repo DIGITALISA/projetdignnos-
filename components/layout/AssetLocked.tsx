@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldAlert, Lock, CheckCircle2, ChevronRight, PlayCircle, FileText, Sparkles } from "lucide-react";
+import { Lock, CheckCircle2, ChevronRight, PlayCircle, FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface AssetLockedProps {
     title: string;
@@ -15,6 +16,8 @@ interface AssetLockedProps {
 }
 
 export function AssetLocked({ title, description, readiness, isPremiumRequired = false }: AssetLockedProps) {
+    const { t } = useLanguage();
+    
     return (
         <div className="flex-1 p-4 md:p-10 max-w-5xl mx-auto space-y-12 bg-slate-50/30 min-h-screen flex flex-col items-center justify-center text-center">
             <motion.div
@@ -43,21 +46,21 @@ export function AssetLocked({ title, description, readiness, isPremiumRequired =
                     <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 max-w-xl mx-auto text-left space-y-6">
                         {isPremiumRequired ? (
                             <div className="text-center space-y-6 py-4">
-                                <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest">Mandat Stratégique Requis</h3>
+                                <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest">{t.assetLocked.mandateRequired}</h3>
                                 <p className="text-sm font-bold text-slate-600 leading-relaxed italic">
-                                    Cet Asset Officiel est réservé aux membres Professional, Executive et Elite. Votre mandat actuel (Free Trial) ne permet pas la génération de documents officiels.
+                                    {t.assetLocked.premiumOnlyDesc}
                                 </p>
                                 <Link
                                     href="/subscription"
                                     className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/20 active:scale-95"
                                 >
-                                    Consulter les Packs
+                                    {t.assetLocked.viewPlans}
                                     <ChevronRight size={16} />
                                 </Link>
                             </div>
                         ) : (
                                 <>
-                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest text-center">Unlock Requirement Status</h3>
+                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest text-center">{t.assetLocked.requirementStatus}</h3>
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between p-4 rounded-2xl bg-white shadow-sm border border-slate-100">
                                             <div className="flex items-center gap-4">
@@ -65,14 +68,14 @@ export function AssetLocked({ title, description, readiness, isPremiumRequired =
                                                     <FileText size={20} />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-slate-900">Career Diagnosis & Audit</span>
-                                                    <span className="text-[10px] text-slate-500 font-medium">Initial Strategic Baseline</span>
+                                                    <span className="text-sm font-bold text-slate-900">{t.assetLocked.diagnosisAudit}</span>
+                                                    <span className="text-[10px] text-slate-500 font-medium">{t.assetLocked.baseline}</span>
                                                 </div>
                                             </div>
                                             {readiness.hasDiagnosis ? (
                                                 <CheckCircle2 size={24} className="text-emerald-500" />
                                             ) : (
-                                                    <Link href="/assessment/cv-upload" className="text-[10px] font-black uppercase text-blue-600 hover:underline">Execute Now</Link>
+                                                    <Link href="/assessment/cv-upload" className="text-[10px] font-black uppercase text-blue-600 hover:underline">{t.assetLocked.executeNow}</Link>
                                                 )}
                                         </div>
 
@@ -82,14 +85,14 @@ export function AssetLocked({ title, description, readiness, isPremiumRequired =
                                                     <PlayCircle size={20} />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-slate-900">Strategic Simulations</span>
-                                                    <span className="text-[10px] text-slate-500 font-medium">Active Capability Verification</span>
+                                                    <span className="text-sm font-bold text-slate-900">{t.assetLocked.simulations}</span>
+                                                    <span className="text-[10px] text-slate-500 font-medium">{t.assetLocked.activeVerification}</span>
                                                 </div>
                                             </div>
                                             {readiness.hasSimulation ? (
                                                 <CheckCircle2 size={24} className="text-emerald-500" />
                                             ) : (
-                                                    <Link href="/simulation" className="text-[10px] font-black uppercase text-blue-600 hover:underline">Execute Now</Link>
+                                                    <Link href="/simulation" className="text-[10px] font-black uppercase text-blue-600 hover:underline">{t.assetLocked.executeNow}</Link>
                                                 )}
                                         </div>
                                     </div>
@@ -100,10 +103,10 @@ export function AssetLocked({ title, description, readiness, isPremiumRequired =
                     <div className="pt-4 flex flex-col items-center gap-4">
                         <div className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700/70 rounded-full font-bold text-[10px] uppercase tracking-tighter">
                             <Sparkles size={14} className="text-blue-500" />
-                            Official Assets are generated based on your entire platform performance.
+                            {t.assetLocked.generationNote}
                         </div>
                         <p className="text-[10px] text-slate-400 font-medium italic">
-                            * Once locked, your Executive Portfolio is built using AI analysis of your Audit results and Simulation scores.
+                            {t.assetLocked.portfolioNote}
                         </p>
                     </div>
                 </div>

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 
 interface ContractModalProps {
     isOpen: boolean;
@@ -58,6 +59,9 @@ export default function ContractModal({
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
+                onclone: (clonedDoc) => {
+                    sanitizeForHtml2Canvas(clonedDoc);
+                }
             });
 
             const imgData = canvas.toDataURL("image/png");

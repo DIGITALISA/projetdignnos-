@@ -63,7 +63,7 @@ const IconMap: Record<string, typeof TrendingUp> = {
 };
 
 export default function RoadmapPage() {
-    const { language } = useLanguage();
+    const { t, dir } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -129,7 +129,7 @@ export default function RoadmapPage() {
                         <TrendingUp size={16} className="text-blue-600" />
                     </div>
                 </div>
-                <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-[10px]">Architecting your career path...</p>
+                <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-[10px]">{t.roadmap.architecting}</p>
             </div>
         );
     }
@@ -137,21 +137,25 @@ export default function RoadmapPage() {
     if (!roadmap) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50/50">
+        <div className="min-h-screen bg-slate-50/50" dir={dir}>
             <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-16 pb-32">
             {/* Header */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pt-8 relative">
-                <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -ml-32 -mt-32 pointer-events-none" />
+            <header className={cn("flex flex-col lg:flex-row lg:items-center justify-between gap-8 pt-8 relative", dir === 'rtl' ? 'lg:flex-row-reverse' : '')}>
+                <div className={cn("absolute top-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -mt-32 pointer-events-none", dir === 'rtl' ? 'right-0 -mr-32' : 'left-0 -ml-32')} />
                 
-                <div className="space-y-4 relative z-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
-                        <Sparkles size={12} className="animate-pulse" /> AI Strategic Deployment
+                <div className={cn("space-y-4 relative z-10", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                    <div className={cn("inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-500/20", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                        <Sparkles size={12} className="animate-pulse" /> {t.roadmap.badge}
                     </div>
                     <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-950 tracking-tight leading-[0.9] uppercase">
-                        Career <span className="text-transparent bg-clip-text bg-linear-to-b from-blue-600 to-indigo-700">Roadmap</span>
+                        {dir === 'rtl' ? (
+                            <><span className="text-transparent bg-clip-text bg-linear-to-b from-blue-600 to-indigo-700">خارطة</span> الطريق</>
+                        ) : (
+                            <>Career <span className="text-transparent bg-clip-text bg-linear-to-b from-blue-600 to-indigo-700">Roadmap</span></>
+                        )}
                     </h1>
                     <p className="text-slate-500 font-medium max-w-xl text-xl leading-relaxed">
-                        Architecture of your professional evolution, engineered from your diagnostic DNA.
+                        {t.roadmap.subtitle}
                     </p>
                 </div>
 
@@ -161,8 +165,8 @@ export default function RoadmapPage() {
                         className="group relative px-8 py-4 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] active:scale-95 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                        <span className="relative z-10 flex items-center gap-3">
-                            <Zap size={16} className="fill-current group-hover:animate-bounce" /> Regenerate Strategy
+                        <span className={cn("relative z-10 flex items-center gap-3", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                            <Zap size={16} className="fill-current group-hover:animate-bounce" /> {t.roadmap.regenerate}
                         </span>
                     </button>
                 </div>
@@ -170,14 +174,14 @@ export default function RoadmapPage() {
 
             {/* Progress Summary */}
             <div className="grid lg:grid-cols-3 gap-8">
-                <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] flex flex-col gap-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 opacity-[0.05] rounded-full -mr-16 -mt-16 blur-2xl group-hover:opacity-10 transition-opacity" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Global Progress Status</p>
-                    <div className="flex items-baseline gap-3">
+                <div className={cn("bg-white p-10 rounded-[3rem] border border-slate-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] flex flex-col gap-6 relative overflow-hidden group", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                    <div className={cn("absolute top-0 w-32 h-32 bg-blue-50 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-10 transition-opacity", dir === 'rtl' ? 'left-0 -ml-16' : 'right-0 -mr-16')} />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.roadmap.progressStatus}</p>
+                    <div className={cn("flex items-baseline gap-3", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                         <span className="text-7xl font-black text-slate-950 tracking-tighter tabular-nums leading-none">
                             {Math.round((completedSteps.length / roadmap.milestones.length) * 100)}%
                         </span>
-                        <span className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Deployed</span>
+                        <span className="text-slate-400 font-black uppercase tracking-widest text-[10px]">{t.roadmap.deployed}</span>
                     </div>
                     <div className="space-y-2">
                         <div className="h-3 w-full bg-slate-100/80 rounded-full overflow-hidden p-0.5">
@@ -188,41 +192,41 @@ export default function RoadmapPage() {
                                 transition={{ duration: 1, ease: "easeOut" }}
                             />
                         </div>
-                        <div className="flex justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">
-                            <span>Diagnostic DNA</span>
-                            <span>Executive Mastery</span>
+                        <div className={cn("flex justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest px-1", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                            <span>{t.roadmap.diagnosticDna}</span>
+                            <span>{t.roadmap.executiveMastery}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-slate-950 p-10 rounded-[3rem] text-white flex flex-col justify-between relative overflow-hidden shadow-2xl group">
+                <div className={cn("lg:col-span-2 bg-slate-950 p-10 rounded-[3rem] text-white flex flex-col justify-between relative overflow-hidden shadow-2xl group", dir === 'rtl' ? 'text-right' : 'text-left')}>
                     {/* Background effects */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -mr-48 -mt-48 group-hover:bg-blue-600/20 transition-colors duration-700" />
+                    <div className={cn("absolute top-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -mt-48 group-hover:bg-blue-600/20 transition-colors duration-700", dir === 'rtl' ? 'left-0 -ml-48' : 'right-0 -mr-48')} />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
                     
                     <div className="relative z-10 space-y-4">
-                        <div className="flex items-center gap-3">
+                        <div className={cn("flex items-center gap-3", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-0">Active Strategy Mandate</p>
+                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-0">{t.roadmap.activeMandate}</p>
                         </div>
-                        <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tight leading-tight max-w-2xl" dir="rtl">
+                        <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tight leading-tight max-w-2xl">
                             {roadmap.roadmapTitle}
                         </h3>
                     </div>
-                    <div className="relative z-10 flex items-center justify-between mt-10 pt-10 border-t border-white/10">
-                        <div className="flex items-center gap-5">
-                            <div className="flex -space-x-3">
+                    <div className={cn("relative z-10 flex items-center justify-between mt-10 pt-10 border-t border-white/10", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                        <div className={cn("flex items-center gap-5", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                            <div className={cn("flex", dir === 'rtl' ? 'space-x-reverse -space-x-3' : '-space-x-3')}>
                                 {[1, 2, 3].map(i => (
                                     <div key={i} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-xs font-black hover:translate-y-[-4px] transition-transform">
                                         {i}
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hidden sm:block">Structural Lifecycle</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hidden sm:block">{t.roadmap.structuralLifecycle}</p>
                         </div>
                         <div className="flex gap-2">
                              <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-blue-400">
-                                AI Verified
+                                {t.roadmap.aiVerified}
                              </div>
                         </div>
                     </div>
@@ -241,48 +245,48 @@ export default function RoadmapPage() {
                     
                     <div className="relative bg-white border border-blue-100 rounded-[2.5rem] p-8 md:p-14 overflow-hidden shadow-2xl shadow-blue-900/5">
                         {/* Decorative Background Icon */}
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+                        <div className={cn("absolute top-0 p-12 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity", dir === 'rtl' ? 'left-0' : 'right-0')}>
                             <Users size={240} className="text-blue-900" />
                         </div>
                         
-                        <div className="relative z-10 flex flex-col xl:flex-row gap-12 xl:gap-20 items-center">
-                            <div className="flex-1 space-y-8 text-center xl:text-left">
+                        <div className={cn("relative z-10 flex flex-col xl:flex-row gap-12 xl:gap-20 items-center", dir === 'rtl' ? 'xl:flex-row-reverse' : '')}>
+                            <div className={cn("flex-1 space-y-8 text-center", dir === 'rtl' ? 'xl:text-right' : 'xl:text-left')}>
                                 <div className="space-y-4">
-                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-[0.2em] border border-blue-100">
-                                        <Sparkles size={14} className="animate-pulse" /> Recommandation Individuelle
+                                    <div className={cn("inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-[0.2em] border border-blue-100", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                        <Sparkles size={14} className="animate-pulse" /> {t.roadmap.workshopRecommendation}
                                     </div>
                                     <h3 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tight leading-tight">
                                         {roadmap.personalizedWorkshop.title}
                                     </h3>
-                                    <p className="text-xl text-slate-600 font-medium leading-[1.8]" dir="rtl">
+                                    <p className="text-xl text-slate-600 font-medium leading-[1.8]">
                                         {roadmap.personalizedWorkshop.description}
                                     </p>
                                 </div>
 
-                                <div className="flex flex-wrap justify-center xl:justify-start gap-5">
-                                    <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm transition-transform hover:-translate-y-1">
+                                <div className={cn("flex flex-wrap justify-center gap-5", dir === 'rtl' ? 'xl:justify-end' : 'xl:justify-start')}>
+                                    <div className={cn("flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm transition-transform hover:-translate-y-1", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                         <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
                                             <Clock size={20} />
                                         </div>
-                                        <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{roadmap.personalizedWorkshop.durationHours} Heures Intensives</span>
+                                        <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{roadmap.personalizedWorkshop.durationHours} {t.roadmap.hoursIntensive}</span>
                                     </div>
-                                    <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm transition-transform hover:-translate-y-1">
+                                    <div className={cn("flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm transition-transform hover:-translate-y-1", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                         <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600">
                                             <Users size={20} />
                                         </div>
-                                        <span className="text-sm font-black text-slate-800 uppercase tracking-tight">Session 100% Individuelle</span>
+                                        <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{t.roadmap.individualSession}</span>
                                     </div>
                                 </div>
 
-                                <div className="pt-6 flex flex-col sm:flex-row items-center gap-6">
-                                    <div className="flex flex-wrap gap-4">
+                                <div className={cn("pt-6 flex flex-col sm:flex-row items-center gap-6", dir === 'rtl' ? 'sm:flex-row-reverse' : '')}>
+                                    <div className={cn("flex flex-wrap gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                         <motion.a 
                                             whileHover={{ scale: 1.05, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
                                             href={`mailto:${roadmap.support?.adminEmail || 'support@careerupgrade.ai'}`}
-                                            className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:bg-blue-600 transition-all shadow-[0_20px_40px_-10px_rgba(15,23,42,0.3)] hover:shadow-blue-500/40"
+                                            className={cn("px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:bg-blue-600 transition-all shadow-[0_20px_40px_-10px_rgba(15,23,42,0.3)] hover:shadow-blue-500/40", dir === 'rtl' ? 'flex-row-reverse' : '')}
                                         >
-                                            <Mail size={18} className="text-blue-400" /> {language === 'ar' ? 'طلب الورشة عبر الإيميل' : 'Request via Email'}
+                                            <Mail size={18} className="text-blue-400" /> {t.roadmap.requestEmail}
                                         </motion.a>
                                         
                                         <motion.a 
@@ -291,32 +295,32 @@ export default function RoadmapPage() {
                                             href={`https://wa.me/${(roadmap.support?.adminWhatsapp || '+216XXXXXXXX').replace(/\D/g, '')}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="px-8 py-4 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:opacity-90 transition-all shadow-[0_20px_40px_-10px_rgba(37,211,102,0.3)]"
+                                            className={cn("px-8 py-4 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 hover:opacity-90 transition-all shadow-[0_20px_40px_-10px_rgba(37,211,102,0.3)]", dir === 'rtl' ? 'flex-row-reverse' : '')}
                                         >
                                             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.6 6.037L0 24l6.105-1.602a11.834 11.834 0 005.943 1.603h.005c6.634 0 12.048-5.414 12.048-12.05a11.78 11.78 0 00-3.588-8.517z"/></svg>
-                                            <span className="font-bold">WhatsApp</span>
+                                            <span className="font-bold">{t.roadmap.whatsapp}</span>
                                         </motion.a>
                                     </div>
-                                    <div className="flex flex-col items-center sm:items-start">
-                                        <p className="text-xs font-black text-blue-600 uppercase tracking-widest animate-pulse" dir="rtl">
-                                            * مخصص كلياً بناءً على التشخيص
+                                    <div className={cn("flex flex-col items-center", dir === 'rtl' ? 'sm:items-end' : 'sm:items-start')}>
+                                        <p className="text-xs font-black text-blue-600 uppercase tracking-widest animate-pulse">
+                                            {t.roadmap.customizedNote}
                                         </p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Architecturé Sur-Mesure</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.roadmap.surMesure}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="w-full xl:w-80 space-y-6">
                                 <div className="p-8 rounded-4xl bg-slate-50 border border-slate-100 shadow-inner relative overflow-hidden group/list">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+                                    <div className={cn("absolute top-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl", dir === 'rtl' ? 'left-0 -ml-16' : 'right-0 -mr-16')} />
                                     
-                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] text-center mb-6">Axes du Workshop</p>
+                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] text-center mb-6">{t.roadmap.workshopAxes}</p>
                                     <div className="space-y-3">
                                         {roadmap.personalizedWorkshop.focusAreas.map((area, aid) => (
                                             <motion.div 
                                                 key={aid}
-                                                whileHover={{ x: 5 }}
-                                                className="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-100 text-[11px] font-black text-slate-800 uppercase tracking-tight shadow-sm"
+                                                whileHover={{ x: dir === 'rtl' ? -5 : 5 }}
+                                                className={cn("flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-100 text-[11px] font-black text-slate-800 uppercase tracking-tight shadow-sm", dir === 'rtl' ? 'flex-row-reverse' : '')}
                                             >
                                                 <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
                                                 {area}
@@ -333,7 +337,7 @@ export default function RoadmapPage() {
             {/* Visual Roadmap / Diagram */}
             <div className="relative mt-8">
                 {/* Connection Line */}
-                <div className="absolute left-[39px] md:left-1/2 top-0 bottom-0 w-1 bg-slate-100 md:-translate-x-1/2 z-0" />
+                <div className={cn("absolute top-0 bottom-0 w-1 bg-slate-100 md:-translate-x-1/2 z-0", dir === 'rtl' ? 'right-[39px] md:right-1/2' : 'left-[39px] md:left-1/2')} />
 
                 <div className="space-y-12 relative z-10">
                     {roadmap.milestones.map((milestone, index) => {
@@ -363,18 +367,21 @@ export default function RoadmapPage() {
                                 {/* Content Card */}
                                 <div className={cn(
                                     "flex flex-col mt-6 md:mt-0 md:absolute md:top-1/2 md:-translate-y-1/2 w-full md:w-[calc(50%-60px)]",
-                                    isEven ? "md:right-[calc(50%+60px)]" : "md:left-[calc(50%+60px)] ml-20 md:ml-0"
+                                    isEven 
+                                        ? (dir === 'rtl' ? "md:left-[calc(50%+60px)] ml-20 md:ml-0" : "md:right-[calc(50%+60px)]") 
+                                        : (dir === 'rtl' ? "md:right-[calc(50%+60px)]" : "md:left-[calc(50%+60px)] ml-20 md:ml-0")
                                 )}>
                                     <motion.div 
-                                        initial={{ opacity: 0, x: isEven ? -20 : 20 }}
+                                        initial={{ opacity: 0, x: isEven ? (dir === 'rtl' ? 20 : -20) : (dir === 'rtl' ? -20 : 20) }}
                                         whileInView={{ opacity: 1, x: 0 }}
                                         onClick={() => setActiveMilestone(index)}
                                         className={cn(
                                             "p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl cursor-pointer hover:border-blue-300 transition-all group",
+                                            dir === 'rtl' ? 'text-right' : 'text-left',
                                             activeMilestone === index && "ring-2 ring-blue-500 ring-offset-4 shadow-2xl"
                                         )}
                                     >
-                                        <div className="flex items-center gap-3 mb-4">
+                                        <div className={cn("flex items-center gap-3 mb-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                             <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{milestone.label}</span>
                                             <div className="h-px flex-1 bg-slate-100" />
                                             {isCompleted && <CheckCircle2 size={16} className="text-green-500" />}
@@ -393,12 +400,12 @@ export default function RoadmapPage() {
                                                 className="space-y-6 overflow-hidden"
                                             >
                                                 <div className="space-y-3">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                        <Play size={10} className="text-blue-600" /> Action Items
+                                                    <p className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                                        <Play size={10} className={cn("text-blue-600", dir === 'rtl' ? 'rotate-180' : '')} /> {t.roadmap.actionItems}
                                                     </p>
                                                     <div className="grid gap-2">
                                                         {milestone.tasks.map((task, tid) => (
-                                                            <div key={tid} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-700">
+                                                            <div key={tid} className={cn("flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-700", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                                                                 {task}
                                                             </div>
@@ -407,15 +414,15 @@ export default function RoadmapPage() {
                                                 </div>
 
                                                 <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
-                                                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Expected Outcome</p>
-                                                    <p className="text-xs font-bold text-slate-700 italic">&quot;{milestone.expectedOutcome}&quot;</p>
+                                                    <p className={cn("text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1", dir === 'rtl' ? 'text-right' : 'text-left')}>{t.roadmap.expectedOutcome}</p>
+                                                    <p className={cn("text-xs font-bold text-slate-700 italic", dir === 'rtl' ? 'text-right' : 'text-left')}>&quot;{milestone.expectedOutcome}&quot;</p>
                                                 </div>
                                             </motion.div>
                                         )}
                                         
                                         {activeMilestone !== index && (
-                                            <div className="flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest">
-                                                Explore Phase <ChevronRight size={12} />
+                                            <div className={cn("flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                                {t.roadmap.explorePhase} <ChevronRight size={12} className={dir === 'rtl' ? 'rotate-180' : ''} />
                                             </div>
                                         )}
                                     </motion.div>
@@ -434,91 +441,91 @@ export default function RoadmapPage() {
                 className="mt-24 p-12 md:p-20 rounded-[4rem] bg-slate-950 text-white relative overflow-hidden border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] group"
             >
                 {/* Advanced Mesh Background */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] -mr-64 -mt-64 group-hover:bg-blue-600/30 transition-colors duration-700" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] -ml-64 -mb-64 group-hover:bg-indigo-600/30 transition-colors duration-700" />
+                <div className={cn("absolute top-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] -mt-64 group-hover:bg-blue-600/30 transition-colors duration-700", dir === 'rtl' ? 'left-0 -ml-64' : 'right-0 -mr-64')} />
+                <div className={cn("absolute bottom-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] -mb-64 group-hover:bg-indigo-600/30 transition-colors duration-700", dir === 'rtl' ? 'right-0 -mr-64' : 'left-0 -ml-64')} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
                 
-                <Trophy className="absolute top-[-40px] left-[-40px] w-96 h-96 opacity-5 -rotate-12 pointer-events-none group-hover:opacity-10 transition-opacity duration-700" />
+                <Trophy className={cn("absolute top-[-40px] w-96 h-96 opacity-5 -rotate-12 pointer-events-none group-hover:opacity-10 transition-opacity duration-700", dir === 'rtl' ? 'right-[-40px]' : 'left-[-40px]')} />
                 
-                <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+                <div className={cn("relative z-10 flex flex-col lg:flex-row items-center gap-12 lg:gap-24", dir === 'rtl' ? 'lg:flex-row-reverse' : '')}>
                     <div className="shrink-0 relative">
                         <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2.5rem] bg-linear-to-tr from-blue-600 to-indigo-700 flex items-center justify-center shadow-[0_20px_40px_-5px_rgba(37,99,235,0.4)] border border-white/30 rotate-6 group-hover:rotate-0 transition-transform duration-500">
                             <Award size={64} className="text-white drop-shadow-2xl" />
                         </div>
-                        <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-xl border border-slate-100 -rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                        <div className={cn("absolute -bottom-4 w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-xl border border-slate-100 group-hover:rotate-0 transition-transform duration-500", dir === 'rtl' ? '-left-4 rotate-12' : '-right-4 -rotate-12')}>
                             <ShieldCheck size={28} className="text-blue-600" />
                         </div>
                     </div>
 
-                    <div className="flex-1 space-y-8 text-center lg:text-left">
+                    <div className={cn("flex-1 space-y-8 text-center", dir === 'rtl' ? 'lg:text-right' : 'lg:text-left')}>
                         <div className="space-y-3">
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                                Accompagnement de Haut Niveau
+                            <div className={cn("inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                {t.roadmap.accompagnement}
                             </div>
                             <h3 className="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none bg-linear-to-b from-white to-white/60 bg-clip-text text-transparent">
-                                THE ULTIMATE VERTEX
+                                {t.roadmap.ultimateVertex}
                             </h3>
-                            <p className="text-blue-300/80 font-bold uppercase tracking-[0.3em] text-xs md:text-sm">Architecting Your Global Excellence</p>
+                            <p className="text-blue-300/80 font-bold uppercase tracking-[0.3em] text-xs md:text-sm">{t.roadmap.globalExcellence}</p>
                         </div>
                         
                         <div className="space-y-6 max-w-3xl">
                             <div className="p-8 md:p-10 rounded-[2.5rem] bg-white/3 border border-white/10 backdrop-blur-xl relative group/card">
                                 <div className="absolute inset-0 bg-linear-to-br from-blue-600/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity rounded-[2.5rem]" />
-                                <p className="text-xl md:text-2xl text-slate-100 font-medium leading-[1.8] relative z-10" dir="rtl">
-                                    نحن نضع نخبة خبرائنا تحت تصرفك لمساعدتك في تنفيذ خطة العمل وتطوير مسارك المهني بناءً على تشخيصك الخاص. استشاراتنا فردية ومخصصة لضمان أقصى درجات النجاح.
+                                <p className={cn("text-xl md:text-2xl text-slate-100 font-medium leading-[1.8] relative z-10", dir === 'rtl' ? 'text-right' : 'text-left')} dir={dir}>
+                                    {t.roadmap.supportMessage}
                                 </p>
                             </div>
-                                                        <div className="flex flex-col md:flex-row items-center gap-6 pt-4">
-                                    <div className="flex flex-wrap gap-4">
-                                        <motion.a 
-                                            whileHover={{ scale: 1.05, y: -2 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            href={`mailto:${roadmap.support?.adminEmail || 'support@careerupgrade.ai'}`}
-                                            className="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] hover:bg-blue-600 hover:text-white transition-all active:scale-95 border border-white/10"
-                                        >
-                                            <Mail size={20} className="text-blue-600 group-hover:text-white" />
-                                            {language === 'ar' ? 'تواصل عبر البريد' : 'Contact via Email'}
-                                        </motion.a>
-                                        
-                                        <motion.a 
-                                            whileHover={{ scale: 1.05, y: -2 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            href={`https://wa.me/${(roadmap.support?.adminWhatsapp || '+216XXXXXXXX').replace(/\D/g, '')}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-10 py-5 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-4 shadow-[0_20px_40px_-10px_rgba(37,211,102,0.4)] hover:opacity-90 transition-all active:scale-95"
-                                        >
-                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.6 6.037L0 24l6.105-1.602a11.834 11.834 0 005.943 1.603h.005c6.634 0 12.048-5.414 12.048-12.05a11.78 11.78 0 00-3.588-8.517z"/></svg>
-                                            <span className="font-bold text-lg">WhatsApp</span>
-                                        </motion.a>
-                                    </div>
+                            <div className={cn("flex flex-col md:flex-row items-center gap-6 pt-4", dir === 'rtl' ? 'md:flex-row-reverse' : '')}>
+                                <div className={cn("flex flex-wrap gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                    <motion.a 
+                                        whileHover={{ scale: 1.05, y: -2 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        href={`mailto:${roadmap.support?.adminEmail || 'support@careerupgrade.ai'}`}
+                                        className={cn("px-10 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] hover:bg-blue-600 hover:text-white transition-all active:scale-95 border border-white/10", dir === 'rtl' ? 'flex-row-reverse' : '')}
+                                    >
+                                        <Mail size={20} className="text-blue-600 group-hover:text-white" />
+                                        {t.roadmap.requestEmail}
+                                    </motion.a>
                                     
-                                    <div className="flex items-center gap-4 px-8 py-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors">
-                                    <div className="flex -space-x-3">
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-950 bg-slate-800 shadow-lg" />
-                                        ))}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Status Du Mandat</span>
-                                        <span className="text-sm font-bold text-white uppercase tracking-tight">
-                                            {completedSteps.length === roadmap.milestones.length 
-                                                ? "Roadmap Mastered" 
-                                                : `${roadmap.milestones.length - completedSteps.length} Phases à Franchir`}
-                                        </span>
-                                    </div>
+                                    <motion.a 
+                                        whileHover={{ scale: 1.05, y: -2 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        href={`https://wa.me/${(roadmap.support?.adminWhatsapp || '+216XXXXXXXX').replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={cn("px-10 py-5 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-4 shadow-[0_20px_40px_-10px_rgba(37,211,102,0.4)] hover:opacity-90 transition-all active:scale-95", dir === 'rtl' ? 'flex-row-reverse' : '')}
+                                    >
+                                        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.6 6.037L0 24l6.105-1.602a11.834 11.834 0 005.943 1.603h.005c6.634 0 12.048-5.414 12.048-12.05a11.78 11.78 0 00-3.588-8.517z"/></svg>
+                                        <span className="font-bold text-lg">{t.roadmap.whatsapp}</span>
+                                    </motion.a>
                                 </div>
+                                    
+                                <div className={cn("flex items-center gap-4 px-8 py-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                <div className={cn("flex", dir === 'rtl' ? 'space-x-reverse -space-x-3' : '-space-x-3')}>
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-950 bg-slate-800 shadow-lg" />
+                                    ))}
+                                </div>
+                                <div className={cn("flex flex-col", dir === 'rtl' ? 'items-end' : 'items-start')}>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">{t.roadmap.mandateStatus}</span>
+                                    <span className="text-sm font-bold text-white uppercase tracking-tight">
+                                        {completedSteps.length === roadmap.milestones.length 
+                                            ? t.roadmap.roadmapMastered 
+                                            : `${roadmap.milestones.length - completedSteps.length} ${t.roadmap.phasesToCross}`}
+                                    </span>
+                                </div>
+                            </div>
                             </div>
                         </div>
 
-                        <div className="pt-8 border-t border-white/5 flex items-center justify-center lg:justify-start gap-8 opacity-40">
-                            <div className="flex items-center gap-2 grayscale hover:grayscale-0 transition-all cursor-default">
+                        <div className={cn("pt-8 border-t border-white/5 flex items-center justify-center lg:justify-start gap-8 opacity-40", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                            <div className={cn("flex items-center gap-2 grayscale hover:grayscale-0 transition-all cursor-default", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                 <Globe size={16} />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">Global Standards</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest">{t.roadmap.globalStandards}</span>
                             </div>
-                            <div className="flex items-center gap-2 grayscale hover:grayscale-0 transition-all cursor-default">
+                            <div className={cn("flex items-center gap-2 grayscale hover:grayscale-0 transition-all cursor-default", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                 <ShieldCheck size={16} />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">Secured Privacy</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest">{t.roadmap.securedPrivacy}</span>
                             </div>
                         </div>
                     </div>

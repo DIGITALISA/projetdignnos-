@@ -44,6 +44,7 @@ export default function StrategicReportPage() {
     const [activeTab, setActiveTab] = useState<'report' | 'history'>('report');
     const [userPlan, setUserPlan] = useState<string>("None");
     const [userRole, setUserRole] = useState<string>("");
+    const [preparedDate] = useState(() => new Date().toLocaleDateString());
     
     // Access localized strings
     const sciT = t.sidebar.sciReport;
@@ -290,9 +291,28 @@ export default function StrategicReportPage() {
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Reference ID</p>
                             <p className="text-sm font-bold flex items-center gap-2"><Fingerprint size={14} className="text-blue-500" /> {report.header.referenceId}</p>
                         </div>
-                        <div>
+                        <div className="relative group">
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Prepared Date</p>
-                            <p className="text-sm font-bold flex items-center gap-2"><Calendar size={14} className="text-blue-500" /> {new Date().toLocaleDateString()}</p>
+                            <p className="text-sm font-bold flex items-center gap-2"><Calendar size={14} className="text-blue-500" /> {preparedDate}</p>
+                            
+                            {/* Company Stamp Overlay */}
+                            <div className="absolute -top-16 -right-12 opacity-80 pointer-events-none transform rotate-12 hidden md:block">
+                                <div className="relative">
+                                    {/* Consultant Signature Scribble - Enlarged and Overlapping */}
+                                    <div className="absolute inset-0 flex items-center justify-center z-20 transform -rotate-12 translate-x-6 -translate-y-6">
+                                        <svg width="200" height="80" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-600/70">
+                                            <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <div className="w-40 h-20 border-2 rounded-lg flex flex-col items-center justify-center bg-white/5 backdrop-blur-[1px] relative z-10" style={{ borderColor: '#3b82f6', color: '#3b82f6', fontFamily: 'serif' }}>
+                                        <p className="text-[10px] font-black uppercase tracking-tighter leading-none mb-0.5">Sté MA</p>
+                                        <p className="text-[6px] font-bold uppercase tracking-widest leading-none mb-1">Training Consulting</p>
+                                        <p className="text-[5px] font-bold leading-none mb-0.5">Tel: 44 172 264</p>
+                                        <p className="text-[5px] font-bold leading-none">MF: 1805031P/A/M/000</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Status</p>

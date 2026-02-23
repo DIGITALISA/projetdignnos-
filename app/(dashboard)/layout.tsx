@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Menu, Loader2 } from "lucide-react";
+import { Header } from "@/components/layout/header";
+import { Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
@@ -124,18 +125,9 @@ export default function DashboardLayout({
 
             {/* Main Content Area */}
             <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${dir === 'rtl' ? 'md:pr-72' : 'md:pl-72'}`}>
-
-                {/* Mobile Header */}
-                <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30">
-                    <button
-                        onClick={() => setIsSidebarOpen(true)}
-                        className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-                    >
-                        <Menu className="w-6 h-6" />
-                    </button>
-                    <span className="font-bold text-lg text-slate-900">CareerUpgrade</span>
-                    <div className="w-8 h-8 rounded-full bg-slate-200" /> {/* Placeholder for profile */}
-                </div>
+                
+                {/* Unified Header */}
+                <Header onOpenSidebar={() => setIsSidebarOpen(true)} />
 
                 {/* Main Content */}
                 <main className="flex-1 overflow-x-hidden">

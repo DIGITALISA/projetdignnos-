@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { useSearchParams } from "next/navigation";
 
 interface MentorContent {
     academyTitle: string;
@@ -58,7 +59,7 @@ interface MentorContent {
 }
 
 export default function MentorPage() {
-    const { dir } = useLanguage();
+    const { t, dir } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [content, setContent] = useState<MentorContent | null>(null);
@@ -68,15 +69,18 @@ export default function MentorPage() {
     const [showQuizResults, setShowQuizResults] = useState<Record<number, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [showSolution, setShowSolution] = useState(false);
+    const searchParams = useSearchParams();
+    const [interrogation, setInterrogation] = useState<string | null>(null);
 
     // Simulation/Game state
     const [currentChallenge, setCurrentChallenge] = useState(0);
     const [simChoices, setSimChoices] = useState<number[]>([]);
     const [showCons, setShowCons] = useState(false);
 
-    const generateMentorContent = async () => {
+    const generateMentorContent = async (customQuestion?: string) => {
         setGenerating(true);
         setError(null);
+        if (customQuestion) setInterrogation(customQuestion);
         try {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
@@ -91,7 +95,12 @@ export default function MentorPage() {
             const response = await fetch('/api/user/mentor', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, userName: userProfile.fullName, language })
+                body: JSON.stringify({ 
+                    userId, 
+                    userName: userProfile.fullName, 
+                    language,
+                    question: customQuestion 
+                })
             });
 
             const data = await response.json();
@@ -117,14 +126,18 @@ export default function MentorPage() {
     };
 
     useEffect(() => {
+        const q = searchParams.get('q');
+        if (q) {
+            generateMentorContent(q);
+        }
         setTimeout(() => setLoading(false), 800);
-    }, []);
+    }, [searchParams]);
 
     if (loading) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
                 <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />
-                <p className="text-slate-400 text-xs font-bold tracking-widest uppercase">Preparing Space...</p>
+                <p className="text-slate-400 text-xs font-bold tracking-widest uppercase">{t.mentor.preparing}</p>
             </div>
         );
     }
@@ -135,25 +148,31 @@ export default function MentorPage() {
             <div className="max-w-6xl mx-auto px-6 pt-16 pb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-blue-600 font-black text-[10px] tracking-widest uppercase">
+                        <div className={cn("flex items-center gap-2 text-blue-600 font-black text-[10px] tracking-widest uppercase", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                             <BrainCircuit size={16} />
-                            Academy
+                            {t.mentor.badge}
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 uppercase">
-                            {content?.academyTitle || "Smart Mentor"}
+                            {content?.academyTitle || t.mentor.title}
                         </h1>
+                        {interrogation && (
+                            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-2 rounded-xl w-fit">
+                                <Sparkles size={14} className="text-blue-600" />
+                                <span className="text-[11px] font-bold text-blue-700 uppercase tracking-tight">Interrogation: {interrogation}</span>
+                            </div>
+                        )}
                         <p className="text-slate-500 font-medium max-w-xl">
-                            A focused career path based on your diagnostic results. Simple, direct, and effective.
+                            {t.mentor.subtitle}
                         </p>
                     </div>
 
                     {!generating && (
                         <button
-                            onClick={generateMentorContent}
+                            onClick={() => generateMentorContent()}
                             className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black hover:bg-blue-600 transition-all flex items-center gap-3 shadow-lg active:scale-95"
                         >
-                            {content ? <Zap size={18} /> : <Play size={18} fill="white" />}
-                            {content ? "Regenerate Path" : "Start Path"}
+                            {content ? <Zap size={18} /> : <Play size={18} className={dir === 'rtl' ? 'rotate-180' : ''} fill="white" />}
+                            {content ? t.mentor.regeneratePath : t.mentor.startPath}
                         </button>
                     )}
                 </div>
@@ -169,7 +188,7 @@ export default function MentorPage() {
                         className="max-w-6xl mx-auto px-6 py-24 flex flex-col items-center justify-center"
                     >
                         <div className="w-16 h-16 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin mb-6" />
-                        <h2 className="text-xl font-bold text-slate-900">Building your custom modules...</h2>
+                        <h2 className="text-xl font-bold text-slate-900">{t.mentor.buildingModules}</h2>
                     </motion.div>
                 ) : !content ? (
                     <motion.div
@@ -183,8 +202,8 @@ export default function MentorPage() {
                                 <ScrollText size={32} />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-slate-900">Your Personalized Learning Path</h3>
-                                <p className="text-slate-500 max-w-md mx-auto">Click the button above to analyze your diagnostic results and generate your custom mentorship academy.</p>
+                                <h3 className="text-2xl font-black text-slate-900">{t.mentor.emptyTitle}</h3>
+                                <p className="text-slate-500 max-w-md mx-auto">{t.mentor.emptyDesc}</p>
                             </div>
                             {error && (
                                 <div className="text-red-500 font-bold text-sm bg-red-50 px-6 py-3 rounded-xl border border-red-100 italic">
@@ -202,7 +221,7 @@ export default function MentorPage() {
                     >
                         {/* Clean Navigation */}
                         <div className="flex overflow-x-auto gap-4 py-2 no-scrollbar border-b border-slate-100">
-                            {["modules", "simulation", "roadmap", "advice"].map((sec) => (
+                            {Object.keys(t.mentor.tabs).map((sec) => (
                                 <button
                                     key={sec}
                                     onClick={() => setActiveSection(sec)}
@@ -211,7 +230,7 @@ export default function MentorPage() {
                                         activeSection === sec ? "text-blue-600" : "text-slate-400 hover:text-slate-600"
                                     )}
                                 >
-                                    {sec}
+                                    {t.mentor.tabs[sec as keyof typeof t.mentor.tabs]}
                                     {activeSection === sec && (
                                         <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 rounded-full" />
                                     )}
@@ -255,9 +274,9 @@ export default function MentorPage() {
 
                                         {/* Practical Drill - Simplified */}
                                         <div className="p-8 rounded-3xl bg-slate-50 border border-slate-100 space-y-3">
-                                            <h4 className="flex items-center gap-2 font-black text-slate-900 text-sm uppercase tracking-widest">
+                                            <h4 className={cn("flex items-center gap-2 font-black text-slate-900 text-sm uppercase tracking-widest", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                                 <Target size={16} className="text-blue-600" />
-                                                Practical Drill
+                                                {t.mentor.drill}
                                             </h4>
                                             <p className="text-slate-600 font-bold italic">
                                                 &quot;{content.modules[activeModule].practicalExercise}&quot;
@@ -266,7 +285,7 @@ export default function MentorPage() {
 
                                         {/* Quiz - Simple list */}
                                         <div className="pt-12 border-t border-slate-100 space-y-10">
-                                            <h4 className="font-black text-xl text-slate-900 uppercase tracking-tight">Knowledge Audit</h4>
+                                            <h4 className="font-black text-xl text-slate-900 uppercase tracking-tight">{t.mentor.audit}</h4>
                                             {content.modules[activeModule].moduleQuiz.map((q, qIdx) => (
                                                 <div key={qIdx} className="space-y-6">
                                                     <p className="font-bold text-slate-900 text-lg">{qIdx + 1}. {q.question}</p>
@@ -305,7 +324,7 @@ export default function MentorPage() {
                                                 onClick={() => setShowQuizResults({ ...showQuizResults, [activeModule]: true })}
                                                 className="bg-blue-600 text-white px-8 py-3 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-blue-700 transition-all"
                                             >
-                                                Verify Answers
+                                                {t.mentor.verify}
                                             </button>
                                         </div>
                                     </div>
@@ -317,9 +336,9 @@ export default function MentorPage() {
                         {activeSection === "simulation" && (
                             <div className="max-w-4xl mx-auto space-y-16">
                                 <div className="text-center space-y-4">
-                                    <div className="inline-block px-4 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-lg">Operational Game</div>
+                                    <div className="inline-block px-4 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-lg">{t.mentor.tabs.simulation}</div>
                                     <h3 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">{content.gamifiedSimulation.title}</h3>
-                                    <p className="text-slate-500 font-bold uppercase text-xs tracking-[0.2em]">{content.gamifiedSimulation.mission}</p>
+                                    <p className="text-slate-500 font-bold uppercase text-xs tracking-[0.2em]">{t.mentor.mission}: {content.gamifiedSimulation.mission}</p>
                                 </div>
 
                                 <div className="space-y-8">
@@ -365,12 +384,12 @@ export default function MentorPage() {
                                                                 setCurrentChallenge(v => v + 1);
                                                                 setShowCons(false);
                                                             } else {
-                                                                alert("Simulation Completed.");
+                                                                setActiveSection("modules"); // Just move back as a placeholder for "end"
                                                             }
                                                         }}
-                                                        className="mt-6 flex items-center gap-2 text-white border-b border-white/20 pb-1 text-xs font-black uppercase tracking-widest hover:border-white transition-all"
+                                                        className={cn("mt-6 flex items-center gap-2 text-white border-b border-white/20 pb-1 text-xs font-black uppercase tracking-widest hover:border-white transition-all", dir === 'rtl' ? 'flex-row-reverse' : '')}
                                                     >
-                                                        {currentChallenge < content.gamifiedSimulation.challenges.length - 1 ? "Next Step" : "End Simulation"} <ArrowRight size={14} />
+                                                        {currentChallenge < content.gamifiedSimulation.challenges.length - 1 ? t.mentor.nextStep : t.mentor.endSim} <ArrowRight size={14} className={dir === 'rtl' ? 'rotate-180' : ''} />
                                                     </button>
                                                 </motion.div>
                                             )}
@@ -390,9 +409,9 @@ export default function MentorPage() {
                                     </div>
                                     <button
                                         onClick={() => setShowSolution(true)}
-                                        className="text-blue-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:gap-4 transition-all"
+                                        className={cn("text-blue-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:gap-4 transition-all", dir === 'rtl' ? 'flex-row-reverse' : '')}
                                     >
-                                        Reveal Expert Solution <ArrowRight size={16} />
+                                        {t.mentor.expertSolution} <ArrowRight size={16} className={dir === 'rtl' ? 'rotate-180' : ''} />
                                     </button>
                                 </div>
                             </div>
@@ -402,26 +421,26 @@ export default function MentorPage() {
                         {activeSection === "roadmap" && (
                             <div className="max-w-4xl mx-auto space-y-12">
                                 <div className="space-y-4 text-center">
-                                    <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">The Evolution Roadmap</h3>
-                                    <p className="text-slate-500">Step-by-step milestones to clear your identified gaps.</p>
+                                    <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">{t.mentor.roadmapTitle}</h3>
+                                    <p className="text-slate-500">{t.mentor.roadmapSubtitle}</p>
                                 </div>
                                 <div className="space-y-6">
                                     {content.actionPlan.map((plan, i) => (
-                                        <div key={i} className="flex gap-8 group">
+                                        <div key={i} className={cn("flex gap-8 group", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                             <div className="flex flex-col items-center">
                                                 <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black shadow-lg">
                                                     {i + 1}
                                                 </div>
                                                 {i < content.actionPlan.length - 1 && <div className="w-0.5 flex-1 bg-slate-100 my-4" />}
                                             </div>
-                                            <div className="pb-12 pt-1 flex-1">
-                                                <div className="flex items-center justify-between mb-4">
+                                            <div className={cn("pb-12 pt-1 flex-1", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                                                <div className={cn("flex items-center justify-between mb-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                                     <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">{plan.milestone}</h4>
                                                     <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-lg">{plan.timeframe}</span>
                                                 </div>
                                                 <div className="grid md:grid-cols-2 gap-4">
                                                     {plan.tasks.map((t, ti) => (
-                                                        <div key={ti} className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-600">
+                                                        <div key={ti} className={cn("flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-600", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                                             <CheckCircle2 size={16} className="text-blue-600 shrink-0" />
                                                             {t}
                                                         </div>
@@ -438,8 +457,8 @@ export default function MentorPage() {
                         {activeSection === "advice" && (
                             <div className="space-y-12">
                                 <div className="text-center space-y-4">
-                                    <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">The Expert Council</h3>
-                                    <p className="text-slate-500 font-medium">Non-public industry insights tailored to your profile.</p>
+                                    <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">{t.mentor.councilTitle}</h3>
+                                    <p className="text-slate-500 font-medium">{t.mentor.councilSubtitle}</p>
                                 </div>
                                 <div className="grid md:grid-cols-3 gap-8">
                                     {content.advice.map((adv, i) => (
@@ -474,23 +493,23 @@ export default function MentorPage() {
                         >
                             <button
                                 onClick={() => setShowSolution(false)}
-                                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
+                                className={cn("absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all", dir === 'rtl' ? 'left-6 right-auto' : 'right-6')}
                             >
                                 <X size={24} />
                             </button>
 
                             <div className="space-y-6">
-                                <div className="flex items-center gap-4">
+                                <div className={cn("flex items-center gap-4", dir === 'rtl' ? 'flex-row-reverse text-right' : '')}>
                                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
                                         <Sparkles className="text-blue-600" size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Expert Solution</h3>
+                                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">{t.mentor.expertSolution}</h3>
                                         <p className="text-sm text-slate-500 font-bold">Strategic Recommendation</p>
                                     </div>
                                 </div>
 
-                                <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className={cn("p-6 bg-slate-50 rounded-2xl border border-slate-100", dir === 'rtl' ? 'text-right' : '')}>
                                     <p className="text-lg text-slate-700 leading-relaxed font-medium">
                                         {content?.globalCaseStudy?.expertSolution}
                                     </p>
@@ -500,7 +519,7 @@ export default function MentorPage() {
                                     onClick={() => setShowSolution(false)}
                                     className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-blue-600 transition-colors shadow-lg shadow-slate-900/10"
                                 >
-                                    Close Analysis
+                                    {t.academy.closeViewer}
                                 </button>
                             </div>
                         </motion.div>

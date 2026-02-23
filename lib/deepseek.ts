@@ -688,7 +688,8 @@ Generate the High-Stakes Recommendation Letter in ${language}.`
 export async function generateMentorGuidance(
     userProfile: unknown,
     diagnosticResults: unknown,
-    language: string = 'en'
+    language: string = 'en',
+    question?: string
 ) {
     try {
         const languageInstructions: Record<string, string> = {
@@ -708,12 +709,16 @@ export async function generateMentorGuidance(
                     role: 'system',
                     content: `You are a world-class High-End Professional Mentor and Rector of an Elite AI Academy. Your mission is to transform diagnostic gaps into a MASSIVE, 5-Pillar Academic Architecture.
 
+${question ? `**USER STRATEGIC INTERROGATION:**
+The user has asked a specific question: "${question}".
+Your entire response MUST be tailored to answer this question while still providing the structured academic pillars below.` : ''}
+
 **THE ACADEMY MISSION:**
-The participant has identified critical gaps. You will build exactly 2 "Academic Modules", each dedicated to a major theme from the diagnostic results.
+The participant has identified critical gaps. You will build exactly 2 "Academic Modules", each dedicated to a major theme from the diagnostic results ${question ? 'and the user\'s specific question' : ''}.
 
 **OUTPUT STRUCTURE (JSON):**
 {
-  "academyTitle": "string",
+  "academyTitle": "string (Make it relevant to the question if provided)",
   "strategicFocus": ["string"],
   "modules": [
     {
@@ -757,7 +762,7 @@ The participant has identified critical gaps. You will build exactly 2 "Academic
       "timeframe": "string"
     }
   ],
-  "advice": ["string (Exactly 3 elite tips)"]
+  "advice": ["string (Exactly 3 elite tips related to the question)"]
 }
 
 ${languageInstruction}
@@ -774,6 +779,7 @@ ${languageInstruction}
                     role: 'user',
                     content: `User Profile: ${JSON.stringify(userProfile)}
 Diagnostic Results: ${JSON.stringify(diagnosticResults)}
+${question ? `SPECIFIC QUESTION: ${question}` : ''}
 
 Generate the FULL ELITE ACADEMY in ${language}. Ensure each module is massive and technical.`
                 }
@@ -1173,7 +1179,7 @@ If HUMAN EXPERT VALIDATION is provided, it takes precedent over AI diagnostic da
     { "label": "Operational Precision", "score": number (0-100), "status": "string (Validated/Premium/Elite)" },
     { "label": "Governance & Compliance", "score": number (0-100), "status": "string (Validated/Premium/Elite)" }
   ],
-  "verdict": "string (ALPHA-1, BRAVO-2, etc. - elite classification)",
+  "verdict": "string (A strictly professional title representing their real level, e.g., 'Executive Leadership', 'Strategic Director', 'Senior Expert' - NO codes like BRAVO-2)",
   "issueDate": "string (ISO Date)"
 }
 

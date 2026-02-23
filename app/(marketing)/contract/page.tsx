@@ -2,27 +2,23 @@
 
 import { motion } from "framer-motion";
 import {
-    FileText,
     Check,
     PenTool,
     Shield,
     ChevronRight,
     Loader2,
     Download,
-    Printer
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { Navbar } from "@/components/ui/navbar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
-import { useRouter } from "next/navigation";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 export default function ContractPage() {
     const { t, dir, language } = useLanguage();
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isSigned, setIsSigned] = useState(false);
     const contractRef = useRef<HTMLDivElement>(null);
@@ -36,6 +32,10 @@ export default function ContractPage() {
         signature: "",
         agreed: false
     });
+
+    const [mandateId] = useState(() => `MND-${Math.floor(Math.random() * 10000)}`);
+    const [secureHash] = useState(() => Math.random().toString(36).substring(7));
+    const [currentDate] = useState(() => new Date().toLocaleDateString());
 
     const isRtl = dir === 'rtl';
 
@@ -111,7 +111,7 @@ export default function ContractPage() {
                         </div>
                         <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                             <span className="text-xs text-slate-400 uppercase tracking-widest">Mandate ID</span>
-                            <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">MND-{Math.floor(Math.random() * 10000)}</span>
+                            <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{mandateId}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-xs text-slate-400 uppercase tracking-widest">Status</span>
@@ -129,17 +129,17 @@ export default function ContractPage() {
                             </div>
 
                             <div className="mb-8 flex justify-between text-sm font-mono pb-4" style={{ borderBottom: '1px solid #e2e8f0', color: '#0f172a' }}>
-                                <span>DATE: {new Date().toLocaleDateString()}</span>
-                                <span>ID: MND-{Math.floor(Math.random() * 10000)}</span>
+                                <span>DATE: {currentDate}</span>
+                                <span>ID: {mandateId}</span>
                             </div>
 
                             <div className="prose max-w-none mb-16 text-justify leading-relaxed font-serif">
                                 <ReactMarkdown
                                     components={{
-                                        p: ({ node, ...props }) => <p className="mb-4 text-sm leading-loose" style={{ color: '#1e293b' }} {...props} />,
-                                        strong: ({ node, ...props }) => <strong className="font-bold uppercase text-xs tracking-wide" style={{ color: '#000000' }} {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-4 mb-4 marker:font-bold" style={{ color: '#0f172a' }} {...props} />,
-                                        li: ({ node, ...props }) => <li className="pl-2" {...props} />
+                                        p: ({ ...props }) => <p className="mb-4 text-sm leading-loose" style={{ color: '#1e293b' }} {...props} />,
+                                        strong: ({ ...props }) => <strong className="font-bold uppercase text-xs tracking-wide" style={{ color: '#000000' }} {...props} />,
+                                        ol: ({ ...props }) => <ol className="list-decimal pl-4 space-y-4 mb-4 marker:font-bold" style={{ color: '#0f172a' }} {...props} />,
+                                        li: ({ ...props }) => <li className="pl-2" {...props} />
                                     }}
                                 >
                                     {t.contract.terms}
@@ -162,16 +162,27 @@ export default function ContractPage() {
                                 <div className="text-right">
                                     <p className="text-[10px] uppercase tracking-widest mb-4 font-bold" style={{ color: '#0f172a' }}>The Architecture</p>
                                     <p className="text-lg font-bold mb-2" style={{ color: '#0f172a' }}>Success Strategy Inc.</p>
-                                    <div className="h-20 flex items-end justify-end">
-                                        <div className="w-24 h-24 border-4 rounded-full flex items-center justify-center transform -rotate-12" style={{ borderColor: '#0f172a', opacity: 0.2 }}>
-                                            <span className="font-black text-xs uppercase" style={{ color: '#0f172a' }}>Official Seal</span>
+                                    <div className="h-28 flex items-end justify-end relative">
+                                        {/* Consultant Signature Scribble - Enlarged and Overlapping */}
+                                        <div className="absolute top-[-20px] right-[-30px] z-20 pointer-events-none transform -rotate-12 opacity-95">
+                                            <svg width="220" height="100" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#1e3a8a', opacity: 0.95 }}>
+                                                <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <div className="w-52 h-26 border-[3px] rounded-xl flex flex-col items-center justify-center transform -rotate-6 mb-4 relative z-10" style={{ borderColor: '#1e3a8a', color: '#1e3a8a', fontFamily: 'serif' }}>
+                                            <p className="text-xl font-black uppercase tracking-tighter leading-none mb-1">Sté MA</p>
+                                            <p className="text-[12px] font-bold uppercase tracking-widest leading-none mb-2">Training Consulting</p>
+                                            <p className="text-[10px] font-bold leading-none mb-0.5">Tel: 44 172 264</p>
+                                            <p className="text-[10px] font-bold leading-none">MF: 1805031P/A/M/000</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-20 text-center text-[10px] font-mono uppercase" style={{ color: '#94a3b8' }}>
-                                Generated by Success Strategy Protocol • Secure Hash {Math.random().toString(36).substring(7)}
+                                Generated by Success Strategy Protocol • Secure Hash {secureHash}
                             </div>
                         </div>
                     </div>
@@ -184,7 +195,7 @@ export default function ContractPage() {
         <div className={cn("min-h-screen bg-[#FDFDFD] dark:bg-[#050505] selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-black", language === 'ar' ? 'font-arabic' : 'font-sans')} dir={dir}>
             <Navbar />
 
-            <div className="fixed inset-0 opacity-[0.02] pointer-events-none z-[100]" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}></div>
+            <div className="fixed inset-0 opacity-[0.02] pointer-events-none z-100" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}></div>
 
             <main className="pt-32 pb-20 container mx-auto px-4 max-w-5xl">
                 <div className="text-center mb-16">
@@ -201,16 +212,16 @@ export default function ContractPage() {
 
                 <div className="grid lg:grid-cols-12 gap-8 items-start">
                     {/* Contract Preview - Left Side */}
-                    <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative">
-                        <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
+                    <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-4xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative">
+                        <div className="absolute top-0 w-full h-2 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600" />
                         <div className="p-8 md:p-12 h-[600px] overflow-y-auto custom-scrollbar">
                             <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed font-serif">
                                 <ReactMarkdown
                                     components={{
-                                        p: ({ node, ...props }) => <p className="mb-4 text-slate-600 dark:text-slate-300 leading-relaxed" {...props} />,
-                                        strong: ({ node, ...props }) => <strong className="font-bold text-slate-900 dark:text-white" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-2 mb-4 marker:text-slate-900 dark:marker:text-white" {...props} />,
-                                        li: ({ node, ...props }) => <li className="pl-1" {...props} />
+                                        p: ({ ...props }) => <p className="mb-4 text-slate-600 dark:text-slate-300 leading-relaxed" {...props} />,
+                                        strong: ({ ...props }) => <strong className="font-bold text-slate-900 dark:text-white" {...props} />,
+                                        ol: ({ ...props }) => <ol className="list-decimal pl-4 space-y-2 mb-4 marker:text-slate-900 dark:marker:text-white" {...props} />,
+                                        li: ({ ...props }) => <li className="pl-1" {...props} />
                                     }}
                                 >
                                     {t.contract.terms}
@@ -232,7 +243,7 @@ export default function ContractPage() {
 
                     {/* Input Form - Right Side */}
                     <div className="lg:col-span-5 space-y-6">
-                        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-lg relative">
+                        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-4xl border border-slate-200 dark:border-slate-800 shadow-lg relative">
                             <h3 className="text-xl font-serif font-medium mb-6 flex items-center gap-3">
                                 <span className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold">1</span>
                                 {t.contract.step1}

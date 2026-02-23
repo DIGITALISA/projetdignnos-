@@ -10,12 +10,14 @@ import {
     ArrowRight,
     Trophy,
     Award,
-    Zap
+    Zap,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 
 interface Session {
     id: number;
@@ -47,7 +49,7 @@ interface SlideDeck {
 type SelectedTheme = Theme & { sessions: Session[] };
 
 export default function AcademyPage() {
-    const { dir } = useLanguage();
+    const { t, dir } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [structure, setStructure] = useState<{ themes: Theme[] } | null>(null);
     const [selectedTheme, setSelectedTheme] = useState<SelectedTheme | null>(null);
@@ -110,7 +112,7 @@ export default function AcademyPage() {
         const button = document.getElementById('download-pdf-btn');
         if (button) {
             button.setAttribute('disabled', 'true');
-            button.innerText = 'Preparing PDF...';
+            button.innerText = t.academy.preparingPdf;
         }
 
         const language = localStorage.getItem('selectedLanguage') || 'fr';
@@ -164,7 +166,7 @@ export default function AcademyPage() {
                             <!-- Insight -->
                             <div style="flex: 1;">
                                 <div style="background-color: #eff6ff; border: 1px solid #dbeafe; border-radius: 20px; padding: 10mm; height: 100%; box-sizing: border-box;">
-                                    <h4 style="color: #1e3a8a; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 5mm 0;">Expert Interpretation</h4>
+                                    <h4 style="color: #1e3a8a; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 5mm 0;">${t.academy.expertInterpretation}</h4>
                                     <p style="color: #1e40af; font-size: 16px; font-weight: 700; line-height: 1.6; font-style: italic; margin: 0;">"${slide.expertInsight}"</p>
                                 </div>
                             </div>
@@ -174,7 +176,7 @@ export default function AcademyPage() {
                         <div style="background-color: #0f172a; color: white; padding: 8mm 20mm; margin: 0 -20mm -20mm -20mm; display: flex; justify-content: space-between; align-items: center; direction: ltr;">
                              <div style="display: flex; align-items: center; gap: 3mm;">
                                 <div style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></div>
-                                <span style="font-size: 10px; font-weight: bold; uppercase; letter-spacing: 2px; opacity: 0.8;">VISUAL: ${slide.visualKey}</span>
+                                <span style="font-size: 10px; font-weight: bold; uppercase; letter-spacing: 2px; opacity: 0.8;">${t.academy.visual}: ${slide.visualKey}</span>
                              </div>
                              <span style="font-size: 10px; opacity: 0.5; letter-spacing: 1px;">© MA-TRAINING CONSULTING</span>
                         </div>
@@ -185,7 +187,10 @@ export default function AcademyPage() {
                 const canvas = await html2canvas(container, {
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        sanitizeForHtml2Canvas(clonedDoc);
+                    }
                 });
 
                 const imgData = canvas.toDataURL('image/png');
@@ -202,7 +207,7 @@ export default function AcademyPage() {
         } finally {
             if (button) {
                 button.removeAttribute('disabled');
-                button.innerText = 'Download PDF';
+                button.innerText = t.academy.downloadPdf;
             }
         }
     };
@@ -215,7 +220,7 @@ export default function AcademyPage() {
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
                 <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Accessing Knowledge Archives...</p>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.academy.accessingArchives}</p>
             </div>
         );
     }
@@ -225,27 +230,31 @@ export default function AcademyPage() {
         <div className="flex-1 min-h-screen bg-slate-50/50 pb-20" dir={dir}>
             <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
                 {/* Header */}
-                <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="space-y-3">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-600 font-black text-[10px] uppercase tracking-widest">
+                <header className={cn("flex flex-col md:flex-row md:items-end justify-between gap-6", dir === 'rtl' ? 'md:flex-row-reverse' : '')}>
+                    <div className={cn("space-y-3", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                        <div className={cn("inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-600 font-black text-[10px] uppercase tracking-widest", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                             <Sparkles size={14} />
-                            AI-Powered Learning
+                            {t.academy.badge}
                         </div>
                         <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-none uppercase">
-                            Strategic <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">Resources</span>
+                            {dir === 'rtl' ? (
+                                <><span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">الموارد</span> الاستراتيجية</>
+                            ) : (
+                                <>Strategic <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">Resources</span></>
+                            )}
                         </h1>
                         <p className="text-slate-500 font-medium max-w-xl text-lg">
-                            Structured consulting frameworks generated specifically to bridge your diagnostic gaps.
+                            {t.academy.subtitle}
                         </p>
                     </div>
 
                     <button
                         onClick={fetchStructure}
                         disabled={loading}
-                        className="bg-slate-900 shadow-xl text-white px-8 py-4 rounded-2xl font-black hover:bg-blue-600 transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50"
+                        className={cn("bg-slate-900 shadow-xl text-white px-8 py-4 rounded-2xl font-black hover:bg-blue-600 transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50", dir === 'rtl' ? 'flex-row-reverse' : '')}
                     >
                         <Zap size={18} />
-                        Regenerate Resources
+                        {t.academy.regenerate}
                     </button>
                 </header>
 
@@ -262,24 +271,24 @@ export default function AcademyPage() {
                             {structure?.themes.map((theme) => (
                                 <div
                                     key={`ai-${theme.id}`}
-                                    className="group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden"
+                                    className={cn("group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden", dir === 'rtl' ? 'text-right' : 'text-left')}
                                     onClick={() => handleSelectTheme(theme)}
                                 >
                                     <div className="relative z-10 space-y-6">
-                                        <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
+                                        <div className={cn("w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500", dir === 'rtl' ? 'mr-0 ml-auto' : '')}>
                                             <Sparkles size={28} />
                                         </div>
                                         <div className="space-y-2">
-                                            <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">AI Personalized</div>
+                                            <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{t.academy.aiPersonalized}</div>
                                             <h3 className="text-2xl font-black text-slate-900 leading-tight">{theme.title}</h3>
                                             <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2">{theme.description}</p>
                                         </div>
-                                        <div className="flex items-center justify-between text-blue-600 font-black text-[10px] uppercase tracking-widest border-t border-slate-50 mt-4 pt-6">
-                                            <span>{theme.sessions.length} Modules</span>
-                                            <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+                                        <div className={cn("flex items-center justify-between text-blue-600 font-black text-[10px] uppercase tracking-widest border-t border-slate-50 mt-4 pt-6", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                            <span>{theme.sessions.length} {t.academy.modules}</span>
+                                            <ArrowRight size={16} className={cn("transition-transform", dir === 'rtl' ? 'group-hover:-translate-x-2 rotate-180' : 'group-hover:translate-x-2')} />
                                         </div>
                                     </div>
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 duration-700">
+                                    <div className={cn("absolute top-0 p-8 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 duration-700", dir === 'rtl' ? 'left-0' : 'right-0')}>
                                         <FileText size={100} />
                                     </div>
                                 </div>
@@ -295,15 +304,15 @@ export default function AcademyPage() {
                         >
                             <button
                                 onClick={() => setSelectedTheme(null)}
-                                className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest transition-colors mb-4"
+                                className={cn("flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest transition-colors mb-4", dir === 'rtl' ? 'flex-row-reverse' : '')}
                             >
-                                <ArrowLeft size={14} /> Back to Knowledge Center
+                                <ArrowLeft size={14} className={dir === 'rtl' ? 'rotate-180' : ''} /> {t.academy.back}
                             </button>
 
                             <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 md:p-16 space-y-12">
-                                <header className="space-y-4">
+                                <header className={cn("space-y-4", dir === 'rtl' ? 'text-right' : 'text-left')}>
                                     <div className="inline-block px-4 py-1.5 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl bg-blue-50 text-blue-600">
-                                        AI Generated
+                                        {t.academy.aiPersonalized}
                                     </div>
                                     <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none uppercase">{selectedTheme.title}</h2>
                                 </header>
@@ -313,16 +322,16 @@ export default function AcademyPage() {
                                     selectedTheme.sessions.map((session: Session, idx: number) => (
                                         <div
                                             key={session.id}
-                                            className="group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all"
+                                            className={cn("group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all", dir === 'rtl' ? 'md:flex-row-reverse' : '')}
                                         >
-                                            <div className="flex items-center gap-6">
+                                            <div className={cn("flex items-center gap-6", dir === 'rtl' ? 'flex-row-reverse text-right' : 'text-left')}>
                                                 <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
                                                     0{idx + 1}
                                                 </div>
                                                 <div className="space-y-1">
                                                     <h4 className="text-xl font-black text-slate-900 tracking-tight">{session.title}</h4>
-                                                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                                        <Trophy size={14} /> Level: {session.level}
+                                                    <div className={cn("flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                                        <Trophy size={14} /> {t.academy.level}: {session.level}
                                                     </div>
                                                 </div>
                                             </div>
@@ -332,6 +341,7 @@ export default function AcademyPage() {
                                                 disabled={generatingSlides === session.title}
                                                 className={cn(
                                                     "mt-6 md:mt-0 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all",
+                                                    dir === 'rtl' ? 'flex-row-reverse' : '',
                                                     generatingSlides === session.title
                                                         ? "bg-slate-200 text-slate-400 animate-pulse"
                                                         : "bg-slate-900 text-white hover:bg-blue-600 shadow-xl"
@@ -339,11 +349,11 @@ export default function AcademyPage() {
                                             >
                                                 {generatingSlides === session.title ? (
                                                     <>
-                                                        <Loader2 className="animate-spin" size={16} /> Generating...
+                                                        <Loader2 className="animate-spin" size={16} /> {t.academy.generating}
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <Sparkles size={16} /> Generate Framework
+                                                        <Sparkles size={16} /> {t.academy.generateFramework}
                                                     </>
                                                 )}
                                             </button>
@@ -364,13 +374,13 @@ export default function AcademyPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-100 bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
+                        className="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
                     >
                         <button
                             onClick={() => setCurrentSlides(null)}
-                            className="absolute top-10 right-10 text-white/50 hover:text-white transition-colors p-4 hover:bg-white/10 rounded-full"
+                            className={cn("absolute top-10 text-white/50 hover:text-white transition-colors p-4 hover:bg-white/10 rounded-full", dir === 'rtl' ? 'left-10' : 'right-10')}
                         >
-                            <ArrowLeft size={32} />
+                            <X size={32} />
                         </button>
 
                         <div className="w-full max-w-6xl px-6 h-full flex flex-col justify-center py-20">
@@ -381,23 +391,24 @@ export default function AcademyPage() {
                                     animate={{ opacity: 1, x: 0, scale: 1 }}
                                     exit={{ opacity: 0, x: -50, scale: 0.98 }}
                                     className="bg-white w-full min-h-[60vh] md:aspect-video rounded-4xl md:rounded-[4rem] shadow-2xl overflow-hidden flex flex-col"
+                                    dir={dir}
                                 >
                                     {/* Slide Content */}
-                                    <div className="p-6 md:p-12 h-full overflow-y-auto custom-scrollbar flex flex-col space-y-8">
+                                    <div className={cn("p-6 md:p-12 h-full overflow-y-auto custom-scrollbar flex flex-col space-y-8", dir === 'rtl' ? 'text-right' : 'text-left')}>
                                         <header className="space-y-4 shrink-0">
-                                            <div className="text-blue-600 font-black text-xs uppercase tracking-[0.3em] flex items-center justify-between">
-                                                <span>Slide {currentSlides.slides[activeSlide].slideNumber} / {currentSlides.slides.length}</span>
-                                                <span className="opacity-50 hidden md:inline-block">MA-TRAINING CONSULTING</span>
+                                            <div className={cn("text-blue-600 font-black text-xs uppercase tracking-[0.3em] flex items-center justify-between", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                                <span>{t.academy.slide} {currentSlides.slides[activeSlide].slideNumber} / {currentSlides.slides.length}</span>
+                                                <span className="opacity-50 hidden md:inline-block uppercase">MA-TRAINING CONSULTING</span>
                                             </div>
                                             <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-tight">
                                                 {currentSlides.slides[activeSlide].heading}
                                             </h2>
                                         </header>
 
-                                        <div className="grid md:grid-cols-2 gap-8 md:gap-12 pb-8">
+                                        <div className={cn("grid md:grid-cols-2 gap-8 md:gap-12 pb-8", dir === 'rtl' ? 'md:grid-cols-reverse' : '')}>
                                             <div className="space-y-4 md:space-y-6">
                                                 {currentSlides.slides[activeSlide].bullets.map((bullet, i) => (
-                                                    <div key={i} className="flex gap-4">
+                                                    <div key={i} className={cn("flex gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                                         <div className="w-2 h-2 rounded-full bg-blue-600 mt-2.5 shrink-0" />
                                                         <p className="text-lg md:text-xl text-slate-700 font-medium leading-relaxed">{bullet}</p>
                                                     </div>
@@ -407,15 +418,15 @@ export default function AcademyPage() {
                                             <div className="space-y-8">
                                                 <div className="p-6 md:p-8 bg-blue-50/80 rounded-3xl border border-blue-100 flex flex-col gap-4 relative group">
                                                     <div className="space-y-3">
-                                                        <h4 className="flex items-center gap-2 font-black text-blue-900 text-xs uppercase tracking-widest">
+                                                        <h4 className={cn("flex items-center gap-2 font-black text-blue-900 text-xs uppercase tracking-widest", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                                             <Sparkles size={16} className="text-blue-600" />
-                                                            Expert Interpretation
+                                                            {t.academy.expertInterpretation}
                                                         </h4>
                                                         <p className="text-blue-900 text-base md:text-lg font-bold leading-relaxed italic">
                                                             &quot;{currentSlides.slides[activeSlide].expertInsight}&quot;
                                                         </p>
                                                     </div>
-                                                    <div className="absolute bottom-4 right-4 opacity-5">
+                                                    <div className={cn("absolute bottom-4 opacity-5", dir === 'rtl' ? 'left-4' : 'right-4')}>
                                                         <Award size={80} />
                                                     </div>
                                                 </div>
@@ -424,27 +435,27 @@ export default function AcademyPage() {
                                     </div>
 
                                     {/* Visual Representation Bar */}
-                                    <div className="h-24 bg-slate-900 flex items-center px-12 justify-between">
-                                        <div className="flex items-center gap-3">
+                                    <div className={cn("h-24 bg-slate-900 flex items-center px-12 justify-between", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                        <div className={cn("flex items-center gap-3", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                             <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest truncate max-w-md">
-                                                Visual Concept: {currentSlides.slides[activeSlide].visualKey}
+                                                {t.academy.visualConcept}: {currentSlides.slides[activeSlide].visualKey}
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-4">
+                                        <div className={cn("flex items-center gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                             <button
                                                 disabled={activeSlide === 0}
                                                 onClick={() => setActiveSlide(v => v - 1)}
                                                 className="w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all disabled:opacity-20"
                                             >
-                                                <ArrowLeft size={18} />
+                                                <ArrowLeft size={18} className={dir === 'rtl' ? 'rotate-180' : ''} />
                                             </button>
                                             <button
                                                 disabled={activeSlide === currentSlides.slides.length - 1}
                                                 onClick={() => setActiveSlide(v => v + 1)}
                                                 className="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 transition-all disabled:opacity-20"
                                             >
-                                                <ArrowRight size={18} />
+                                                <ArrowRight size={18} className={dir === 'rtl' ? 'rotate-180' : ''} />
                                             </button>
                                         </div>
                                     </div>
@@ -452,24 +463,24 @@ export default function AcademyPage() {
                             </AnimatePresence>
 
                             {/* Viewer Controls Footer */}
-                            <div className="mt-12 flex items-center justify-between px-4">
-                                <div className="space-y-1">
+                            <div className={cn("mt-12 flex items-center justify-between px-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
+                                <div className={cn("space-y-1", dir === 'rtl' ? 'text-right' : 'text-left')}>
                                     <h5 className="text-white font-black text-2xl tracking-tighter uppercase">{currentSlides.title}</h5>
-                                    <p className="text-white/40 text-xs font-bold tracking-widest uppercase">Official AI-Generated Support v1.0</p>
+                                    <p className="text-white/40 text-xs font-bold tracking-widest uppercase">{t.academy.officialSupport}</p>
                                 </div>
-                                <div className="flex gap-4">
+                                <div className={cn("flex gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
                                     <button
                                         id="download-pdf-btn"
                                         onClick={handleDownloadDeck}
                                         className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        Download PDF
+                                        {t.academy.downloadPdf}
                                     </button>
                                     <button
                                         onClick={() => setCurrentSlides(null)}
                                         className="px-8 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
                                     >
-                                        Close Viewer
+                                        {t.academy.closeViewer}
                                     </button>
                                 </div>
                             </div>

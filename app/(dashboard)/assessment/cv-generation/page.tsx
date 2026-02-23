@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/components/providers/LanguageProvider";
+import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
 import { Send, Loader2, FileText, Mail, ArrowRight, ArrowLeft, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
@@ -80,6 +82,7 @@ const fetchWithTimeout = (url: string, options: RequestInit, timeout = 60000) =>
 
 export default function CVGenerationPage() {
     const router = useRouter();
+    const { t, language } = useLanguage();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -798,7 +801,7 @@ export default function CVGenerationPage() {
                         <CheckCircle className="w-12 h-12 text-green-600" />
                     </div>
                     <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
-                        {selectedLanguage === 'ar' ? 'تم إنشاء ملفك المهني بنجاح!' : 'Documents Generated Successfully!'}
+                        {language === 'ar' ? 'تم إنشاء وثائقك بنجاح!' : language === 'fr' ? 'Documents générés avec succès !' : 'Documents Generated Successfully!'}
                     </h1>
                     <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
                         {selectedLanguage === 'ar' ? 'سيرتك الذاتية ورسالة التحفيز المخصصة جاهزة الآن. يمكنك مراجعتها وتحميلها أدناه، أو الانتقال للمرحلة التالية.' : 'Your professional ATS-optimized CV and cover letter are ready. Preview them below or proceed to the next stage.'}
@@ -812,7 +815,7 @@ export default function CVGenerationPage() {
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-blue-600" />
-                                ATS-Optimized CV
+                                {t.cvGeneration.cvTitle}
                             </h2>
                             <button
                                 onClick={() => handleDownloadPDF(cvRef, `CV-${generatedDocuments.cv.personalDetails?.fullName?.replace(/\s+/g, '_') || 'Professional'}`)}
@@ -820,7 +823,7 @@ export default function CVGenerationPage() {
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-600/20 text-sm"
                             >
                                 {isExporting && isExporting.startsWith('CV-') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                Download PDF
+                                {t.cvGeneration.download} PDF
                             </button>
                         </div>
 
@@ -837,7 +840,7 @@ export default function CVGenerationPage() {
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                 <Mail className="w-5 h-5 text-purple-600" />
-                                Professional Cover Letter
+                                {t.cvGeneration.letterTitle}
                             </h2>
                             <button
                                 onClick={() => handleDownloadPDF(letterRef, 'Cover_Letter')}
@@ -845,7 +848,7 @@ export default function CVGenerationPage() {
                                 className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all font-bold shadow-lg shadow-purple-600/20 text-sm"
                             >
                                 {isExporting === 'Cover_Letter' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                Download PDF
+                                {t.cvGeneration.download} PDF
                             </button>
                         </div>
 
@@ -960,58 +963,16 @@ export default function CVGenerationPage() {
                 )}
 
                 <div className="flex flex-col items-center gap-6 pt-12 pb-16 border-t border-slate-100">
-                    <div className="text-center space-y-2">
-                        <div className="px-5 py-1.5 bg-purple-100 text-purple-700 rounded-full text-[10px] font-black uppercase tracking-[0.3em] inline-block shadow-sm">
-                            Next Strategic Stage
-                        </div>
-                    </div>
-
-                    <div className="relative group w-full flex justify-center">
-                        {/* Pulsing Background Glow */}
-                        <motion.div
-                            animate={{ 
-                                scale: [1, 1.1, 1],
-                                opacity: [0.3, 0.6, 0.3]
-                            }}
-                            transition={{ 
-                                duration: 2.5, 
-                                repeat: Infinity, 
-                                ease: "easeInOut" 
-                            }}
-                            className="absolute -inset-4 bg-linear-to-r from-purple-600 to-blue-600 rounded-[2.5rem] blur-3xl z-0 max-w-2xl w-full"
-                        />
-                        
-                        <motion.button
-                            onClick={() => {
+                    {/* ── Next Stage Teaser ── */}
+                    <div className="w-full mt-4">
+                        <NextStageTeaser
+                            stage="cv-generation"
+                            onNavigate={() => {
                                 localStorage.setItem('generatedDocuments', JSON.stringify(generatedDocuments));
                                 router.push('/assessment/simulation');
                             }}
-                            whileHover={{ scale: 1.05, y: -5 }}
-                            whileTap={{ scale: 0.96 }}
-                            className="relative z-10 w-full max-w-2xl px-12 py-8 bg-linear-to-r from-purple-600 via-indigo-600 to-blue-600 text-white rounded-4xl font-black text-3xl shadow-[0_20px_50px_rgba(79,70,229,0.3)] flex items-center justify-center gap-6 transition-all border border-white/20"
-                        >
-                            <Sparkles className="w-10 h-10 text-yellow-300 drop-shadow-lg" />
-                            <span className="tracking-tight">
-                                {selectedLanguage === 'ar' ? 'ابدأ محاكاة الدور الاستراتيجية' :
-                                 selectedLanguage === 'fr' ? 'Lancer la Simulation Stratégique' : 'Start Strategic Simulation'}
-                            </span>
-                            <motion.div
-                                animate={{ x: [0, 8, 0] }}
-                                transition={{ 
-                                    duration: 1.5, 
-                                    repeat: Infinity, 
-                                    ease: "easeInOut" 
-                                }}
-                                className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30"
-                            >
-                                <ArrowRight className="w-8 h-8" />
-                            </motion.div>
-                        </motion.button>
+                        />
                     </div>
-
-                    <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.4em] animate-pulse">
-                         {selectedLanguage === 'ar' ? 'انقر أعلاه للتحقق من كفاءتك في ظروف حقيقية' : 'Test your capabilities in real-world scenarios'}
-                    </p>
                 </div>
             </div>
         );
@@ -1028,6 +989,10 @@ export default function CVGenerationPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </button>
 
+                {/* ── Next Stage Top Banner ── */}
+                <div className="w-full mt-2">
+                    <StageProgressBanner stage="cv-generation" />
+                </div>
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1036,10 +1001,10 @@ export default function CVGenerationPage() {
                     <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-cyan-400 rounded-2xl blur opacity-20"></div>
                     <div className="relative bg-white/50 backdrop-blur-sm px-8 py-4 rounded-2xl border border-slate-200/60">
                         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
-                            Professional <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">CV Studio</span>
+                            {t.cvGeneration.title}
                         </h1>
                         <p className="text-slate-500 text-lg font-medium">
-                            Drafting high-impact documents for <span className="text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">{selectedRole?.title}</span>
+                            {t.cvGeneration.subtitle} <span className="text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">{selectedRole?.title}</span>
                         </p>
                     </div>
                 </motion.div>
@@ -1105,7 +1070,7 @@ export default function CVGenerationPage() {
                                         <div className="w-8 h-8 rounded-xl bg-linear-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white">
                                             <Sparkles className="w-4 h-4" />
                                         </div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Career Architect</span>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.cvGeneration.sidebar}</span>
                                     </div>
                                 )}
 
@@ -1135,7 +1100,7 @@ export default function CVGenerationPage() {
                         >
                             <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-100 shadow-sm ml-4">
                                 <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                                <span className="text-slate-500 text-sm font-medium">Drafting response...</span>
+                                <span className="text-slate-500 text-sm font-medium">{t.cvGeneration.loading}</span>
                             </div>
                         </motion.div>
                     )}
@@ -1188,7 +1153,7 @@ export default function CVGenerationPage() {
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage(false)}
-                                placeholder="Type your answer here..."
+                                placeholder={t.cvGeneration.placeholder}
                                 disabled={isLoading || generationComplete}
                                 className="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium"
                             />
@@ -1201,7 +1166,7 @@ export default function CVGenerationPage() {
                                 className="px-6 py-3 bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
                             >
                                 <ArrowRight className="w-4 h-4" />
-                                <span className="hidden md:inline">Skip</span>
+                                <span className="hidden md:inline">{t.cvGeneration.skip}</span>
                             </button>
                             <button
                                 onClick={() => handleSendMessage(false)}
@@ -1209,7 +1174,7 @@ export default function CVGenerationPage() {
                                 className="px-8 py-3 bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                             >
                                 <Send className="w-4 h-4" />
-                                <span className="hidden md:inline">Send Answer</span>
+                                <span className="hidden md:inline">{t.cvGeneration.send}</span>
                             </button>
                         </div>
                     </div>
@@ -1234,8 +1199,7 @@ export default function CVGenerationPage() {
                                 </>
                             ) : (
                                 <>
-                                    {selectedLanguage === 'ar' ? 'البدء في محاكاة الدور' :
-                                        selectedLanguage === 'fr' ? 'Commencer la simulation' : 'Start Role Simulation'}
+                                     {t.cvGeneration.proceed}
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${(generationComplete || currentQuestionIndex >= 8) ? 'bg-white/20' : 'bg-slate-200'}`}>
                                         <ArrowRight className={`w-5 h-5 ${(generationComplete || currentQuestionIndex >= 8) ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
                                     </div>
@@ -1257,15 +1221,8 @@ export default function CVGenerationPage() {
 // PREMIUM CV DOCUMENT COMPONENT
 function CVDocument({ data, language }: { data: CVData, language: string }) {
     const isAR = language === 'ar';
-
-    // Labels based on language
-    const labels: Record<string, Record<string, string>> = {
-        en: { summary: "Professional Summary", experience: "Professional Experience", education: "Education", skills: "Skills", tech: "Technical", tools: "Tools", soft: "Soft Skills", lang: "Languages", certs: "Certifications" },
-        fr: { summary: "Résumé Professionnel", experience: "Expérience Professionnelle", education: "Formation", skills: "Compétences", tech: "Techniques", tools: "Outils", soft: "Qualités", lang: "Langues", certs: "Certifications" },
-        ar: { summary: "الملخص المهني", experience: "الخبرة المهنية", education: "التعليم", skills: "المهارات", tech: "تقنية", tools: "أدوات", soft: "شخصية", lang: "اللغات", certs: "الشهادات" },
-    };
-
-    const t = labels[language] || labels.en;
+    const { t } = useLanguage();
+    const docT = t.cvDocument;
 
     return (
         <div id="printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-12 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
@@ -1286,7 +1243,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
             <div className="space-y-8">
                 {/* Summary */}
                 <section>
-                    <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{t.summary}</h2>
+                    <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{docT.summary}</h2>
                     <p className="leading-relaxed text-slate-700">{data.professionalSummary}</p>
                 </section>
 
@@ -1295,7 +1252,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
                     <div className="col-span-2 space-y-8">
                         {/* Experience */}
                         <section>
-                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.experience}</h2>
+                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{docT.experience}</h2>
                             <div className="space-y-6">
                                 {data.experience?.map((exp: Experience, i: number) => (
                                     <div key={i} className="relative">
@@ -1316,7 +1273,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
 
                         {/* Education */}
                         <section>
-                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.education}</h2>
+                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{docT.education}</h2>
                             <div className="space-y-4">
                                 {data.education?.map((edu: Education, i: number) => (
                                     <div key={i}>
@@ -1335,11 +1292,11 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
                     <div className="space-y-8">
                         {/* Skills */}
                         <section>
-                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{t.skills}</h2>
+                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{docT.skills}</h2>
 
                             <div className="space-y-4">
                                 <div>
-                                    <h3 className="text-xs font-bold text-blue-600 uppercase mb-2">{t.tech}</h3>
+                                    <h3 className="text-xs font-bold text-blue-600 uppercase mb-2">{docT.tech}</h3>
                                     <div className="flex flex-wrap gap-1">
                                         {data.skills?.technical?.map((s: string, i: number) => (
                                             <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100">{s}</span>
@@ -1347,7 +1304,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-bold text-purple-600 uppercase mb-2">{t.tools}</h3>
+                                    <h3 className="text-xs font-bold text-purple-600 uppercase mb-2">{docT.tools}</h3>
                                     <div className="flex flex-wrap gap-1">
                                         {data.skills?.tools?.map((s: string, i: number) => (
                                             <span key={i} className="px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded border border-purple-100">{s}</span>
@@ -1355,7 +1312,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-bold text-emerald-600 uppercase mb-2">{t.soft}</h3>
+                                    <h3 className="text-xs font-bold text-emerald-600 uppercase mb-2">{docT.soft}</h3>
                                     <div className="flex flex-wrap gap-1">
                                         {data.skills?.soft?.map((s: string, i: number) => (
                                             <span key={i} className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100">{s}</span>
@@ -1368,7 +1325,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
                         {/* Languages */}
                         {data.languages?.length > 0 && (
                             <section>
-                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{t.lang}</h2>
+                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{docT.lang}</h2>
                                 <div className="flex flex-wrap gap-2 text-sm text-slate-600">
                                     {data.languages.map((l: string, i: number) => (
                                         <span key={i}>{l}</span>
@@ -1380,7 +1337,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
                         {/* Certifications */}
                         {data.certifications?.length > 0 && (
                             <section>
-                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{t.certs}</h2>
+                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{docT.certs}</h2>
                                 <div className="space-y-2">
                                     {data.certifications.map((c: string, i: number) => (
                                         <div key={i} className="flex gap-2 text-sm text-slate-600">

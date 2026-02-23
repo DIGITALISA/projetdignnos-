@@ -65,7 +65,7 @@ Your mission: Generate a COMPREHENSIVE FINAL DIAGNOSTIC REPORT that synthesizes 
 5. **Next Steps & Professional Portfolio**: Using the AI Roadmap document and expert consultation to bridge gaps.
 6. **Final Consultative Verdict**: Clear recommendation for the career trajectory.
 
-Be specific, authoritative, and professional. Use formatting (bolding, lists) to make the roadmap stand out as a central "Success Strategy" (إستراتيجية النجاح).`
+Be authoritative, highly professional, and formal. This report is an official career advisory document representing MA-TRAINING-CONSULTING. Use clear headings, formal syntax, and ensure the roadmap is presented as a high-stakes strategic execution plan. Use bolding and lists to maintain clarity and impact. Structure it as a formal "Strategic Success Protocol" (بروتوكول النجاح الاستراتيجي).`
                 },
                 {
                     role: 'user',

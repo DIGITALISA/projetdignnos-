@@ -6,8 +6,9 @@ import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Award, FileText, Ta
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
-import { type Language } from "@/lib/i18n/translations";
+import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
 
 interface InterviewEvaluation {
     accuracyScore: number;
@@ -131,7 +132,7 @@ export default function ResultsPage() {
                                  <div style="font-size: 14px; color: #2563eb; font-weight: bold;">${t.results.verdict}: ${evaluation.verdict}</div>
                              </div>
                              <div style="text-align: center; padding: 15px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 120px;">
-                                 <div style="font-size: 12px; color: #64748b; text-transform: uppercase;">Overall Rating</div>
+                                 <div style="font-size: 12px; color: #64748b; text-transform: uppercase;">${t.results.overallRating}</div>
                                  <div style="font-size: 36px; font-weight: bold; color: #2563eb; line-height: 1;">${evaluation.overallRating}<span style="font-size: 14px; color: #94a3b8;">/10</span></div>
                              </div>
                          </div>
@@ -153,8 +154,8 @@ export default function ResultsPage() {
                         <!-- Level -->
                         <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: ${dir === 'rtl' ? 'right' : 'left'};">
                              <h3 style="margin: 0 0 15px 0; font-size: 16px;">${t.results.seniority}</h3>
-                             <div style="font-size: 24px; font-weight: bold; color: #4f46e5; margin-bottom: 5px;">${evaluation.seniorityLevel || 'Professional'}</div>
-                             <p style="font-size: 12px; color: #64748b; margin: 0;">Based on technical depth and strategic awareness.</p>
+                             <div style="font-size: 24px; font-weight: bold; color: #4f46e5; margin-bottom: 5px;">${evaluation.seniorityLevel || (dir === 'rtl' ? 'محترف' : 'Professional')}</div>
+                             <p style="font-size: 12px; color: #64748b; margin: 0;">${t.results.levelBasedOn}</p>
                         </div>
                     </div>
 
@@ -191,7 +192,7 @@ export default function ResultsPage() {
 
                     <!-- Footer -->
                     <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                        MA-TRAINING-CONSULTING • Confidential Evaluation Report
+                        MA-TRAINING-CONSULTING • ${t.results.confidentialReport}
                     </div>
                 </div>
             `;
@@ -204,7 +205,10 @@ export default function ResultsPage() {
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
-                windowWidth: 800
+                windowWidth: 800,
+                onclone: (clonedDoc) => {
+                    sanitizeForHtml2Canvas(clonedDoc);
+                }
             });
 
             // 4. Cleanup
@@ -254,6 +258,9 @@ export default function ResultsPage() {
 
     return (
         <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6" dir={dir}>
+            {/* ── Next Stage Top Banner ── */}
+            <StageProgressBanner stage="results" />
+
             <div ref={resultsRef} className="space-y-6">
                 {/* Header */}
                 <motion.div
@@ -503,7 +510,7 @@ export default function ResultsPage() {
                             </p>
                             <div className="bg-white rounded-lg p-3 border border-purple-200">
                                 <p className="text-sm text-slate-600">
-                                    💡 <strong>Tip:</strong> {t.results.tip}
+                                    💡 <strong>{dir === 'rtl' ? 'نصيحة:' : 'Tip:'}</strong> {t.results.tip}
                                 </p>
                             </div>
                         </div>
@@ -511,31 +518,8 @@ export default function ResultsPage() {
                 </motion.div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8" data-html2canvas-ignore>
-                <motion.button
-                    initial={{ scale: 1 }}
-                    animate={{ 
-                        scale: [1, 1.05, 1],
-                        boxShadow: [
-                            "0px 10px 15px -3px rgba(147, 51, 234, 0.3)",
-                            "0px 20px 25px -5px rgba(147, 51, 234, 0.5)",
-                            "0px 10px 15px -3px rgba(147, 51, 234, 0.3)"
-                        ]
-                    }}
-                    transition={{ 
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                    onClick={() => router.push('/assessment/role-discovery')}
-                    className="px-16 py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-xl transition-all shadow-xl shadow-purple-600/30 flex items-center justify-center gap-3"
-                >
-                    <Target className="w-6 h-6" />
-                    {t.results.continueDiscovery}
-                    <ArrowRight className={`w-6 h-6 ml-2 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                </motion.button>
-            </div>
+            {/* ── Next Stage Full Teaser ── */}
+            <NextStageTeaser stage="results" onNavigate={() => router.push('/assessment/role-discovery')} />
         </div>
     );
 }

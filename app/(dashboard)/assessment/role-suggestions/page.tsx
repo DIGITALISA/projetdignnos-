@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
 
 interface RoleSuggestion {
     title: string;
@@ -28,6 +29,7 @@ export default function RoleSuggestionsPage() {
     const [roleSuggestions, setRoleSuggestions] = useState<RoleSuggestion[]>([]);
     const [expandedRole, setExpandedRole] = useState<string | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [highlightSelection, setHighlightSelection] = useState(false);
 
     useEffect(() => {
         const loadProgress = async () => {
@@ -104,7 +106,7 @@ export default function RoleSuggestionsPage() {
                        </div>
                        <h1 style="font-size: 24px; color: #1e293b; margin: 0; font-weight: bold;">${rs.pageTitle}</h1>
                        <p style="color: #64748b; margin-top: 10px; font-size: 14px;">
-                           Generated for: Strategic Assessment • ${new Date().toLocaleDateString()}
+                           ${rs.generatedFor} • ${new Date().toLocaleDateString()}
                        </p>
                     </div>
 
@@ -133,7 +135,7 @@ export default function RoleSuggestionsPage() {
                     ` : ''}
 
                     <div style="margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                        © ${new Date().getFullYear()} MA-TRAINING-CONSULTING • AI Career Architecture System
+                        © ${new Date().getFullYear()} MA-TRAINING-CONSULTING • ${rs.aiArchitectureSystem}
                     </div>
                 </div>
             `;
@@ -170,7 +172,7 @@ export default function RoleSuggestionsPage() {
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`MA-TRAINING-Career-Path-Report.pdf`);
+            pdf.save(`${rs.pageTitle}.pdf`);
 
         } catch (error) {
             console.error("PDF generation failed:", error);
@@ -313,6 +315,9 @@ export default function RoleSuggestionsPage() {
                 </p>
             </motion.div>
 
+            {/* ── Next Stage Top Banner ── */}
+            <StageProgressBanner stage="role-suggestions" />
+
             {/* Results Wrapper for PDF Capture */}
             <div ref={resultsRef} className="space-y-8 p-1">
 
@@ -362,6 +367,7 @@ export default function RoleSuggestionsPage() {
                                     color="green"
                                     rs={rs}
                                     dir={dir}
+                                    highlight={highlightSelection}
                                 />
                             ))}
                         </div>
@@ -396,6 +402,7 @@ export default function RoleSuggestionsPage() {
                                     color="orange"
                                     rs={rs}
                                     dir={dir}
+                                    highlight={highlightSelection}
                                 />
                             ))}
                         </div>
@@ -423,6 +430,22 @@ export default function RoleSuggestionsPage() {
 
             </div>
 
+            {/* ── Next Stage Full Teaser ── */}
+            <NextStageTeaser
+                stage="role-suggestions"
+                onNavigate={() => {
+                    const selected = localStorage.getItem('selectedRole');
+                    if (!selected) {
+                        setHighlightSelection(true);
+                        // Scroll up to the roles container
+                        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                        setTimeout(() => setHighlightSelection(false), 2000);
+                    } else {
+                        router.push('/assessment/cv-generation');
+                    }
+                }}
+            />
+
         </div>
     );
 }
@@ -439,19 +462,20 @@ interface RoleCardProps {
     color: 'green' | 'orange';
     rs: RoleSuggestionsT;
     dir: string;
+    highlight?: boolean;
 }
 
-function RoleCard({ role, isExpanded, onToggle, onSelect, color, rs, dir }: RoleCardProps) {
+function RoleCard({ role, isExpanded, onToggle, onSelect, color, rs, dir, highlight }: RoleCardProps) {
     const colorClasses = {
         green: {
-            border: 'border-green-200',
+            border: highlight ? 'border-indigo-500 shadow-2xl' : 'border-green-200',
             bg: 'bg-green-50',
             badge: 'bg-green-100 text-green-700 border-green-200',
             button: 'bg-green-600 hover:bg-green-700',
             icon: 'text-green-600',
         },
         orange: {
-            border: 'border-orange-200',
+            border: highlight ? 'border-indigo-500 shadow-2xl' : 'border-orange-200',
             bg: 'bg-orange-50',
             badge: 'bg-orange-100 text-orange-700 border-orange-200',
             button: 'bg-orange-600 hover:bg-orange-700',
@@ -465,15 +489,25 @@ function RoleCard({ role, isExpanded, onToggle, onSelect, color, rs, dir }: Role
     const isLowMatch = role.matchPercentage < 50;
 
     const cardOpacity = isHighMatch ? 'opacity-100' : isMediumMatch ? 'opacity-75' : 'opacity-50';
-    const cardScale = isHighMatch ? 'scale-100' : 'scale-95';
-    const borderWidth = isHighMatch ? 'border-2' : 'border';
-    const shadowIntensity = isHighMatch ? 'hover:shadow-xl' : isMediumMatch ? 'hover:shadow-lg' : 'hover:shadow-md';
+    const borderWidth = (isHighMatch || highlight) ? 'border-2' : 'border';
+    const shadowIntensity = (isHighMatch || highlight) ? 'shadow-xl' : isMediumMatch ? 'hover:shadow-lg' : 'hover:shadow-md';
 
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`bg-white rounded-2xl ${borderWidth} ${colors.border} overflow-hidden transition-all ${shadowIntensity} ${cardOpacity} ${cardScale} relative`}
+            animate={{ 
+                opacity: 1, 
+                scale: highlight ? 1.02 : (isHighMatch ? 1 : 0.98),
+                x: highlight ? [0, -2, 2, -2, 2, 0] : 0,
+            }}
+            transition={{
+                duration: highlight ? 0.4 : 0.3,
+                x: {
+                    repeat: highlight ? 2 : 0,
+                    duration: 0.1
+                }
+            }}
+            className={`bg-white rounded-2xl ${borderWidth} ${colors.border} overflow-hidden transition-all ${shadowIntensity} ${cardOpacity} relative z-10`}
         >
             {/* High Match Badge */}
             {isHighMatch && (

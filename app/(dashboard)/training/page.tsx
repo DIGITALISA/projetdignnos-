@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { cn } from "@/lib/utils";
 
 interface Session {
     _id: string;
@@ -29,7 +30,7 @@ interface Course {
 }
 
 export default function TrainingPage() {
-    const { dir, language } = useLanguage();
+    const { t, dir } = useLanguage();
     const [courses, setCourses] = useState<Course[]>([]);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -138,14 +139,14 @@ export default function TrainingPage() {
                         onClick={() => setSelectedCourse(null)}
                         className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-4 group font-medium"
                     >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Back to Schedule
+                        <ArrowLeft className={cn("w-4 h-4 transition-transform", dir === 'rtl' ? "group-hover:translate-x-1 rotate-180" : "group-hover:-translate-x-1")} />
+                        {t.workshops.backToSchedule}
                     </button>
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">{selectedCourse.title}</h1>
                     <div className="flex items-center gap-4 text-slate-500 font-medium">
-                        <span className="flex items-center gap-1"><User size={16} /> Lead Consultant: {selectedCourse.instructor}</span>
+                        <span className="flex items-center gap-1"><User size={16} /> {t.workshops.leadConsultant}: {selectedCourse.instructor}</span>
                         <span>•</span>
-                        <span className="flex items-center gap-1"><Video size={16} /> {selectedCourse.sessions || 0} Recorded Sessions</span>
+                        <span className="flex items-center gap-1"><Video size={16} /> {selectedCourse.sessions || 0} {t.workshops.recordedSessions}</span>
                     </div>
                 </motion.div>
 
@@ -153,11 +154,11 @@ export default function TrainingPage() {
                     {isLoadingSessions ? (
                         <div className="py-20 text-center">
                             <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-4" />
-                            <p className="text-slate-500">Retrieving session archives...</p>
+                            <p className="text-slate-500">{t.workshops.loadingSessions}</p>
                         </div>
                     ) : sessions.length === 0 ? (
                         <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
-                            <p className="text-slate-400">No session recordings available for this workshop yet.</p>
+                            <p className="text-slate-400">{t.workshops.noRecordings}</p>
                         </div>
                     ) : (
                         <>
@@ -175,7 +176,7 @@ export default function TrainingPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-slate-900">{session.title}</h3>
-                                            <p className="text-xs text-slate-500">Recorded Session Replay</p>
+                                            <p className="text-xs text-slate-500">{t.workshops.replayDesc}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -186,7 +187,7 @@ export default function TrainingPage() {
                                             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition-all text-sm font-medium border border-slate-200 hover:border-blue-600"
                                         >
                                             <PlayCircle className="w-4 h-4" />
-                                            Watch Replay
+                                            {t.workshops.viewReplay}
                                         </a>
                                         <span className="text-xs text-slate-400 font-bold px-3 py-1 bg-slate-50 rounded-lg border border-slate-100">{session.duration}</span>
                                     </div>
@@ -195,8 +196,8 @@ export default function TrainingPage() {
 
                             <div className="mt-12 p-8 bg-slate-900 rounded-3xl text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-slate-900/20">
                                 <div>
-                                    <h2 className="text-2xl font-bold mb-2 text-white">Workshop Accreditation</h2>
-                                    <p className="text-slate-400">Completed all session replays? Claim your workshop participation certificate. Our consultant will review and grant access.</p>
+                                    <h2 className="text-2xl font-bold mb-2 text-white">{t.workshops.accreditationTitle}</h2>
+                                    <p className="text-slate-400">{t.workshops.accreditationDesc}</p>
                                 </div>
                                 <button
                                     onClick={async () => {
@@ -220,7 +221,7 @@ export default function TrainingPage() {
                                     }}
                                     className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg hover:bg-blue-500 transition-all"
                                 >
-                                    Claim Certificate
+                                    {t.workshops.claimCertificate}
                                 </button>
                             </div>
                         </>
@@ -233,9 +234,15 @@ export default function TrainingPage() {
     return (
         <div className="flex-1">
             <div className="mb-12">
-                <h1 className="text-4xl font-black mb-2 text-slate-900 tracking-tight uppercase">Executive <span className="text-blue-600">Workshops</span></h1>
+                <h1 className="text-4xl font-black mb-2 text-slate-900 tracking-tight uppercase" dir={dir}>
+                    {t.workshops.title.split(' ').map((word, i) => (
+                        i === t.workshops.title.split(' ').length - 1 
+                        ? <span key={i} className="text-blue-600"> {word}</span>
+                        : <span key={i}>{word}</span>
+                    ))}
+                </h1>
                 <p className="text-slate-500 text-lg font-medium">
-                    Join live interactive sessions with industry experts. Recordings available after the event.
+                    {t.workshops.subtitle}
                 </p>
             </div>
 
@@ -260,12 +267,10 @@ export default function TrainingPage() {
                         
                         <div className="space-y-4 max-w-2xl mx-auto">
                             <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
-                                {dir === 'rtl' ? 'بروتوكول تخصيص الورشات التنفيذية' : 'Executive Workshop Customization Protocol'}
+                                {t.workshops.protocol.title}
                             </h2>
                             <p className="text-slate-500 font-medium text-lg leading-relaxed">
-                                {dir === 'rtl' 
-                                    ? 'يتم الآن تحليل نتائج تشخيصك الشامل من قبل خبرائنا لتصميم ورشة عمل مطابقة تماماً لاحتياجاتك المهنية. نعتمد نهجاً دقيقاً لضمان أقصى استفادة.' 
-                                    : 'Our experts are currently analyzing your comprehensive diagnostic results to design a workshop that perfectly matches your professional needs.'}
+                                {t.workshops.protocol.desc}
                             </p>
                         </div>
 
@@ -276,12 +281,10 @@ export default function TrainingPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
-                                        {dir === 'rtl' ? 'مراجعة خبير بشري (24-72 ساعة)' : 'Human Expert Review (24-72h)'}
+                                        {t.workshops.protocol.expertReviewTitle}
                                     </h3>
                                     <p className="text-xs text-slate-500 font-bold leading-relaxed">
-                                        {dir === 'rtl' 
-                                            ? 'بعد قراءة التشخيص، يحدد الخبير الموديولات، الساعات، والأهداف التدريبية المخصصة لك بدقة.'
-                                            : 'After reviewing your diagnosis, an expert defines your modules, hours, and personalized training objectives.'}
+                                        {t.workshops.protocol.expertReviewDesc}
                                     </p>
                                 </div>
                             </div>
@@ -292,12 +295,10 @@ export default function TrainingPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
-                                        {dir === 'rtl' ? 'فلترة المجموعات المصغرة' : 'Micro-Group Filtering'}
+                                        {t.workshops.protocol.microGroupTitle}
                                     </h3>
                                     <p className="text-xs text-slate-500 font-bold leading-relaxed">
-                                        {dir === 'rtl' 
-                                            ? 'نجمعك مع مشاركين (بحد أقصى 5) لديهم نفس المستوى والاحتياجات لضمان جودة التفاعل.'
-                                            : 'We match you with participants (max 5) sharing the same professional level and needs for high-quality interaction.'}
+                                        {t.workshops.protocol.microGroupDesc}
                                     </p>
                                 </div>
                             </div>
@@ -308,12 +309,10 @@ export default function TrainingPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
-                                        {dir === 'rtl' ? 'تحكم مرن بالعدد والتكلفة' : 'Flexible Enrollment & Cost'}
+                                        {t.workshops.protocol.flexibleTitle}
                                     </h3>
                                     <p className="text-xs text-slate-500 font-bold leading-relaxed">
-                                        {dir === 'rtl' 
-                                            ? 'يمكنك الاختيار بين جلسة فردية أو مجموعة (2-3 أشخاص). كلما زاد عدد المجموعة، قلت التكلفة الفردية.'
-                                            : 'Choose between individual sessions or groups (2-3). Individual costs decrease as group size increases.'}
+                                        {t.workshops.protocol.flexibleDesc}
                                     </p>
                                 </div>
                             </div>
@@ -324,12 +323,10 @@ export default function TrainingPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="font-black text-slate-900 uppercase text-xs tracking-widest">
-                                        {dir === 'rtl' ? 'تأكيد الموعد النهائي (7 أيام)' : 'Final Scheduling (7 Days)'}
+                                        {t.workshops.protocol.schedulingTitle}
                                     </h3>
                                     <p className="text-xs text-slate-500 font-bold leading-relaxed">
-                                        {dir === 'rtl' 
-                                            ? 'بمجرد اكتمال المجموعة المطلوبة، يتم تثبيت مواعيد الجلسات بحد أقصى 7 أيام من تاريخ التأكيد.'
-                                            : 'Once the requested group is formed, session dates are finalized within a maximum of 7 days.'}
+                                        {t.workshops.protocol.schedulingDesc}
                                     </p>
                                 </div>
                             </div>
@@ -338,14 +335,14 @@ export default function TrainingPage() {
                         <div className="pt-6">
                             <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-xs uppercase tracking-widest">
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                {dir === 'rtl' ? 'بانتظار اكتمال التشخيص وتخصيص الجلسات' : 'Waiting for diagnosis completion and session customization'}
+                                {t.workshops.protocol.waitingStatus}
                             </div>
                         </div>
 
                         {/* Support Buttons in Protocol View */}
                         <div className="pt-10 flex flex-col items-center gap-4 border-t border-slate-100">
                             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                                {dir === 'rtl' ? 'هل تحتاج إلى موضوع محدد؟ تواصل معنا' : 'Need a specific topic? Contact us'}
+                                {t.workshops.protocol.contactManagement}
                             </p>
                             <div className="flex flex-wrap justify-center gap-4">
                                 <motion.a 
@@ -354,7 +351,7 @@ export default function TrainingPage() {
                                     href={`mailto:${support?.adminEmail || 'support@careerupgrade.ai'}`}
                                     className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-xl hover:bg-blue-600 transition-all"
                                 >
-                                    <Mail size={18} /> {dir === 'rtl' ? 'راسل الإدارة' : 'Email Support'}
+                                    <Mail size={18} /> {t.workshops.protocol.emailAdmin}
                                 </motion.a>
                                 <motion.a 
                                     whileHover={{ scale: 1.05 }}
@@ -392,7 +389,7 @@ export default function TrainingPage() {
                                     <div className="absolute top-4 left-4 z-20">
                                         <div className="bg-white/90 backdrop-blur-md text-amber-600 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-white/50 shadow-lg flex items-center gap-1.5">
                                             <Sparkles size={12} />
-                                            <span>Gap Fix Recommended</span>
+                                            <span>{t.workshops.gapFixBadge}</span>
                                         </div>
                                     </div>
                                 );
@@ -409,7 +406,7 @@ export default function TrainingPage() {
                                 <div className="absolute top-4 right-4 group-hover:scale-110 transition-transform z-20">
                                     <div className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-white/10 shadow-lg flex items-center gap-1.5">
                                         <Users size={12} />
-                                        <span>{(course.maxParticipants || 10) - (course.enrolled || 0)} Seats Left</span>
+                                        <span>{(course.maxParticipants || 10) - (course.enrolled || 0)} {t.workshops.seatsLeft}</span>
                                     </div>
                                 </div>
                                 </div>
@@ -425,7 +422,7 @@ export default function TrainingPage() {
                                             <User size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expert Consultant</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t.workshops.leadConsultant}</p>
                                             <p className="text-sm font-bold">{course.instructor}</p>
                                         </div>
                                     </div>
@@ -435,8 +432,8 @@ export default function TrainingPage() {
                                             <Calendar size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Session Date</p>
-                                            <p className="text-sm font-bold">{course.date || "To be arranged"}</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t.dashboard.liveSessions.date}</p>
+                                            <p className="text-sm font-bold">{course.date || t.dashboard.stats.noneYet}</p>
                                         </div>
                                     </div>
 
@@ -455,7 +452,7 @@ export default function TrainingPage() {
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-2">
                                                 <Users size={16} className="text-blue-600" />
-                                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Coming Soon</h3>
+                                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">{t.workshops.enrollmentHeader}</h3>
                                             </div>
 
                                             <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-1">
@@ -479,7 +476,7 @@ export default function TrainingPage() {
 
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Investment</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t.workshops.investment}</p>
                                                 <div className="flex items-baseline gap-1">
                                                     <span className="text-2xl font-black text-blue-600">
                                                         {Math.round((course.price || 0) / (numParticipants[course._id] || 1))}€
@@ -534,13 +531,13 @@ export default function TrainingPage() {
                                                     }}
                                                     className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-md"
                                                 >
-                                                    Confirm Seats
+                                                    {t.workshops.confirmSeats}
                                                 </button>
                                             ) : (
                                                 <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
                                                     <CheckCircle size={12} />
                                                     <span className="text-[10px] font-black uppercase tracking-widest">
-                                                        {pendingRequests.includes(course._id) ? "Requested" : "Reserved"}
+                                                        {pendingRequests.includes(course._id) ? t.workshops.requested : t.workshops.reserved}
                                                     </span>
                                                 </div>
                                             )}
@@ -566,11 +563,11 @@ export default function TrainingPage() {
                                         if (isAllowed && isOpen) {
                                             handleSelectCourse(course);
                                         } else if (pendingRequests.includes(course._id)) {
-                                            alert("Your access request is pending. Please wait for the consultant to approve.");
+                                            alert(t.workshops.alerts.pending);
                                         } else if (!isAllowed) {
-                                            alert("Access Denied. You are not enrolled. Please confirm your seats first.");
+                                            alert(t.workshops.alerts.denied);
                                         } else if (!isOpen) {
-                                            alert("This workshop session hasn't started yet. Please wait for the admin to open access.");
+                                            alert(t.workshops.alerts.notStarted);
                                         }
                                     }}
                                     className={`w-full py-4 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 group/btn ${(() => {
@@ -595,14 +592,14 @@ export default function TrainingPage() {
 
                                         if (isAllowed) {
                                             return course.isAccessOpen ? (
-                                                <>Access Workshop Area <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" /></>
+                                                <>{t.workshops.accessArea} <ArrowRight className={cn("w-5 h-5 transition-transform", dir === 'rtl' ? "group-hover/btn:-translate-x-1 rotate-180" : "group-hover/btn:translate-x-1")} /></>
                                             ) : (
-                                                <>Session Closed / Not Started <Clock className="w-4 h-4 ml-2" /></>
+                                                <>{t.workshops.sessionClosed} <Clock className="w-4 h-4 ml-2" /></>
                                             )
                                         } else if (pendingRequests.includes(course._id)) {
-                                            return <>Pending Approval <Clock className="w-4 h-4 ml-2" /></>
+                                            return <>{t.workshops.pendingApproval} <Clock className="w-4 h-4 ml-2" /></>
                                         } else {
-                                            return <>Access Locked <Lock className="w-4 h-4 ml-2" /></>
+                                            return <>{t.workshops.accessLocked} <Lock className="w-4 h-4 ml-2" /></>
                                         }
                                     })()}
                                 </button>
@@ -625,12 +622,10 @@ export default function TrainingPage() {
                         </div>
                         <div className="space-y-4">
                             <h2 className="text-3xl font-black text-white uppercase tracking-tight">
-                                {dir === 'rtl' ? 'هل تريد ورشة عمل مخصصة لفريقك؟' : 'Want a Custom Workshop for your Team?'}
+                                {t.workshops.teamPromoTitle}
                             </h2>
                             <p className="text-slate-400 max-w-2xl mx-auto font-medium text-lg leading-relaxed">
-                                {dir === 'rtl' 
-                                    ? 'نحن نوفر برامج تدريبية استراتيجية مخصصة حسب احتياجات الشركات والمجموعات. تواصل مع المسؤول المباشر لطلب عرض سعر وبرنامج مخصص.'
-                                    : 'We provide strategic training programs customized to corporate and group needs. Contact the administrator to request a quote and a tailor-made program.'}
+                                {t.workshops.teamPromoDesc}
                             </p>
                         </div>
                         <div className="flex flex-wrap justify-center gap-6 pt-4">
@@ -640,7 +635,7 @@ export default function TrainingPage() {
                                 href={`mailto:${support?.adminEmail || 'support@careerupgrade.ai'}`}
                                 className="px-10 py-5 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-2xl hover:bg-blue-600 hover:text-white transition-all"
                             >
-                                <Mail size={20} className="text-blue-600 group-hover:text-white" /> {dir === 'rtl' ? 'طلب عرض عبر الإيميل' : 'Request via Email'}
+                                <Mail size={20} className="text-blue-600 group-hover:text-white" /> {t.workshops.requestEmail}
                             </motion.a>
                             <motion.a 
                                 whileHover={{ scale: 1.05, y: -5 }}

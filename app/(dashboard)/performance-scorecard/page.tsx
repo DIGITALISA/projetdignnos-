@@ -298,11 +298,30 @@ export default function PerformanceScorecard() {
                         <p className="text-lg text-blue-100 font-medium leading-relaxed">
                             &ldquo;Participant demonstrated exceptional resilience during the critical phase of the simulation. Strategic decision-making remained objective despite high-pressure variables.&rdquo;
                         </p>
-                        <div className="pt-4 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/20 border border-white/20 flex items-center justify-center font-bold text-xs uppercase tracking-widest backdrop-blur-sm">AI</div>
-                            <div>
-                                <p className="text-xs font-black uppercase tracking-widest opacity-80">CareerUpgrade Intelligence System</p>
-                                <p className="text-[10px] font-bold opacity-60">Verified Analytics Engine v4.2</p>
+                        <div className="pt-4 flex items-center justify-between relative">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-white/20 border border-white/20 flex items-center justify-center font-bold text-xs uppercase tracking-widest backdrop-blur-sm">AI</div>
+                                <div>
+                                    <p className="text-xs font-black uppercase tracking-widest opacity-80">CareerUpgrade Intelligence System</p>
+                                    <p className="text-[10px] font-bold opacity-60">Verified Analytics Engine v4.2</p>
+                                </div>
+                            </div>
+                            
+                            {/* Company Stamp */}
+                            <div className="hidden md:block opacity-95 scale-100 transform -rotate-6 relative">
+                                {/* Consultant Signature Scribble - Enlarged and Overlapping */}
+                                <div className="absolute inset-0 flex items-center justify-center z-20 transform -rotate-12 translate-x-4 -translate-y-4">
+                                    <svg width="200" height="80" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white/90">
+                                        <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                </div>
+                                <div className="w-36 h-18 border-2 rounded-lg flex flex-col items-center justify-center bg-white/10 backdrop-blur-[1px] relative z-10" style={{ borderColor: '#ffffff', color: '#ffffff', fontFamily: 'serif' }}>
+                                    <p className="text-[10px] font-black uppercase tracking-tighter leading-none mb-0.5">Sté MA</p>
+                                    <p className="text-[6px] font-bold uppercase tracking-widest leading-none mb-1">Training Consulting</p>
+                                    <p className="text-[5px] font-bold leading-none mb-0.5">Tel: 44 172 264</p>
+                                    <p className="text-[5px] font-bold leading-none">MF: 1805031P/A/M/000</p>
+                                </div>
                             </div>
                         </div>
                     </div>

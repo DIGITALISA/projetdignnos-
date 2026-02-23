@@ -24,12 +24,12 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { Language } from "@/lib/i18n/translations";
+import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
 
 const LANGUAGES = [
   { code: "en", name: "English", flag: "🇬🇧", nativeName: "English" },
   { code: "fr", name: "French", flag: "🇫🇷", nativeName: "Français" },
   { code: "ar", name: "Arabic", flag: "🇸🇦", nativeName: "العربية" },
-  { code: "es", name: "Spanish", flag: "🇪🇸", nativeName: "Español" },
 ];
 
 // ✅ تعريف نوع بيانات تحليل السيرة الذاتية
@@ -60,6 +60,7 @@ interface CVAnalysisResult {
 
 export default function CVUploadPage() {
   const router = useRouter();
+  const { t, language, dir, setLanguage } = useLanguage();
   const resultsRef = useRef<HTMLDivElement>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -564,7 +565,7 @@ export default function CVUploadPage() {
   };
 
 
-    const { setLanguage } = useLanguage();
+
 
     const handleLanguageSelect = (langCode: string) => {
         setSelectedLanguage(langCode);
@@ -633,8 +634,399 @@ export default function CVUploadPage() {
     );
   }
 
+  // ─── Full Diagnostic Journey Data ────────────────────────────────────────────
+  const journeySteps = language === 'ar' ? [
+    {
+      id: "01", color: "blue", icon: "📄",
+      title: "رفع ملف السيرة الذاتية",
+      subtitle: "التدقيق الرقمي للملف",
+      desc: "ارفع سيرتك الذاتية وسيقوم الذكاء الاصطناعي بتحليل خبراتك ومهاراتك والفجوات المحتملة تلقائياً.",
+      duration: "دقيقتان",
+      status: "current"
+    },
+    {
+      id: "02", color: "purple", icon: "🎤",
+      title: "مقابلة التقييم التنفيذي",
+      subtitle: "التحقق الاستراتيجي",
+      desc: "محادثة استراتيجية مع خبير الذكاء الاصطناعي للتحقق المباشر من كفاءاتك عبر أسئلة تنفيذية عميقة.",
+      duration: "15-20 دقيقة",
+      status: "upcoming"
+    },
+    {
+      id: "03", color: "emerald", icon: "📊",
+      title: "نتائج التقييم",
+      subtitle: "تقرير الدقة والجاهزية",
+      desc: "تقرير شامل يقارن السيرة الذاتية بالواقع مع درجة الدقة وتحليل نقاط القوة والمبالغات المكتشفة.",
+      duration: "فوري",
+      status: "upcoming"
+    },
+    {
+      id: "04", color: "orange", icon: "🧭",
+      title: "اكتشاف المسار المهني",
+      subtitle: "تحديد الأهداف والطموحات",
+      desc: "محادثة لاستكشاف أهدافك المهنية وطموحاتك لتوجيه الذكاء الاصطناعي نحو الأدوار الأنسب لك.",
+      duration: "10 دقائق",
+      status: "upcoming"
+    },
+    {
+      id: "05", color: "pink", icon: "🎯",
+      title: "اقتراحات الأدوار",
+      subtitle: "الوظائف المتوافقة مع ملفك",
+      desc: "قائمة الأدوار الوظيفية المخصصة لك مصنفة بين الجاهزية الآنية والأهداف المستقبلية مع نسبة التوافق.",
+      duration: "فوري",
+      status: "upcoming"
+    },
+    {
+      id: "06", color: "cyan", icon: "✍️",
+      title: "إنشاء السيرة الذاتية الاحترافية",
+      subtitle: "CV + رسالة التغطية",
+      desc: "حوار مع مهندس المسار المهني الذكي لبناء سيرة ذاتية محترفة ورسالة تغطية مخصصة للدور المختار.",
+      duration: "15 دقيقة",
+      status: "upcoming"
+    },
+    {
+      id: "07", color: "amber", icon: "🏆",
+      title: "محاكاة الدور التنفيذي",
+      subtitle: "اختبار الأداء في بيئة محاكاة",
+      desc: "سيناريوهات تنفيذية حقيقية لقياس أداءك وتطوير مهاراتك في بيئة تحاكي دورك المهني المستهدف.",
+      duration: "30-45 دقيقة",
+      status: "upcoming"
+    },
+  ] : language === 'fr' ? [
+    {
+      id: "01", color: "blue", icon: "📄",
+      title: "Téléchargement du CV",
+      subtitle: "Audit numérique du profil",
+      desc: "Téléchargez votre CV et notre IA analyse automatiquement vos expériences, compétences et lacunes.",
+      duration: "2 minutes",
+      status: "current"
+    },
+    {
+      id: "02", color: "purple", icon: "🎤",
+      title: "Entretien d'évaluation exécutif",
+      subtitle: "Vérification stratégique",
+      desc: "Dialogue stratégique avec l'expert IA pour valider directement vos compétences via des questions de haut niveau.",
+      duration: "15-20 min",
+      status: "upcoming"
+    },
+    {
+      id: "03", color: "emerald", icon: "📊",
+      title: "Résultats de l'évaluation",
+      subtitle: "Rapport de précision",
+      desc: "Rapport complet comparant votre CV à la réalité avec score de précision et analyse des forces détectées.",
+      duration: "Instantané",
+      status: "upcoming"
+    },
+    {
+      id: "04", color: "orange", icon: "🧭",
+      title: "Découverte du parcours",
+      subtitle: "Objectifs et ambitions",
+      desc: "Conversation pour explorer vos objectifs afin de guider l'IA vers les rôles les plus adaptés à votre profil.",
+      duration: "10 minutes",
+      status: "upcoming"
+    },
+    {
+      id: "05", color: "pink", icon: "🎯",
+      title: "Recommandations de rôles",
+      subtitle: "Postes alignés avec votre profil",
+      desc: "Liste de rôles personnalisés classés en prêts maintenant et objectifs futurs avec pourcentage d'alignement.",
+      duration: "Instantané",
+      status: "upcoming"
+    },
+    {
+      id: "06", color: "cyan", icon: "✍️",
+      title: "Studio CV professionnel",
+      subtitle: "CV + Lettre de motivation",
+      desc: "Dialogue avec l'architecte de carrière IA pour créer un CV professionnel et une lettre adaptée au rôle choisi.",
+      duration: "15 minutes",
+      status: "upcoming"
+    },
+    {
+      id: "07", color: "amber", icon: "🏆",
+      title: "Simulation de rôle exécutif",
+      subtitle: "Test de performance en simulation",
+      desc: "Scénarios exécutifs réels pour mesurer votre performance et développer vos compétences dans votre rôle cible.",
+      duration: "30-45 min",
+      status: "upcoming"
+    },
+  ] : [
+    {
+      id: "01", color: "blue", icon: "📄",
+      title: "CV Upload & Parsing",
+      subtitle: "Digital Profile Audit",
+      desc: "Upload your resume and our AI automatically analyzes your experience, skills, and career gaps in depth.",
+      duration: "2 minutes",
+      status: "current"
+    },
+    {
+      id: "02", color: "purple", icon: "🎤",
+      title: "Executive Assessment Interview",
+      subtitle: "Strategic Verification",
+      desc: "Strategic dialogue with the AI expert to directly validate your competencies through high-level scenario questions.",
+      duration: "15-20 min",
+      status: "upcoming"
+    },
+    {
+      id: "03", color: "emerald", icon: "📊",
+      title: "Assessment Results",
+      subtitle: "Accuracy & Readiness Report",
+      desc: "Comprehensive report comparing your CV to reality with accuracy score and analysis of verified strengths.",
+      duration: "Instant",
+      status: "upcoming"
+    },
+    {
+      id: "04", color: "orange", icon: "🧭",
+      title: "Career Path Discovery",
+      subtitle: "Goals & Aspirations Chat",
+      desc: "Conversation to explore your professional goals to guide the AI toward the most suitable roles for your profile.",
+      duration: "10 minutes",
+      status: "upcoming"
+    },
+    {
+      id: "05", color: "pink", icon: "🎯",
+      title: "Role Recommendations",
+      subtitle: "Profile-Aligned Positions",
+      desc: "Personalized role list classified into ready-now and future goals, each with a match percentage score.",
+      duration: "Instant",
+      status: "upcoming"
+    },
+    {
+      id: "06", color: "cyan", icon: "✍️",
+      title: "Professional CV Studio",
+      subtitle: "CV + Cover Letter",
+      desc: "Dialogue with the AI Career Architect to build a professional CV and custom cover letter for your chosen role.",
+      duration: "15 minutes",
+      status: "upcoming"
+    },
+    {
+      id: "07", color: "amber", icon: "🏆",
+      title: "Executive Role Simulation",
+      subtitle: "Performance Testing",
+      desc: "Real executive scenarios to measure your performance and develop your skills in a simulated professional environment.",
+      duration: "30-45 min",
+      status: "upcoming"
+    },
+  ];
+
+  const colorMap: Record<string, { bg: string; border: string; badge: string; text: string; glow: string; line: string }> = {
+    blue:    { bg: "bg-blue-50",   border: "border-blue-500",   badge: "bg-blue-600 text-white",    text: "text-blue-600",   glow: "shadow-blue-500/20",   line: "bg-blue-300" },
+    purple:  { bg: "bg-purple-50", border: "border-purple-400", badge: "bg-purple-600 text-white",  text: "text-purple-600", glow: "shadow-purple-500/20", line: "bg-purple-300" },
+    emerald: { bg: "bg-emerald-50",border: "border-emerald-400",badge: "bg-emerald-600 text-white", text: "text-emerald-600",glow: "shadow-emerald-500/20",line: "bg-emerald-300" },
+    orange:  { bg: "bg-orange-50", border: "border-orange-400", badge: "bg-orange-500 text-white",  text: "text-orange-600", glow: "shadow-orange-500/20", line: "bg-orange-300" },
+    pink:    { bg: "bg-pink-50",   border: "border-pink-400",   badge: "bg-pink-600 text-white",    text: "text-pink-600",   glow: "shadow-pink-500/20",   line: "bg-pink-300" },
+    cyan:    { bg: "bg-cyan-50",   border: "border-cyan-400",   badge: "bg-cyan-600 text-white",    text: "text-cyan-600",   glow: "shadow-cyan-500/20",   line: "bg-cyan-300" },
+    amber:   { bg: "bg-amber-50",  border: "border-amber-400",  badge: "bg-amber-500 text-white",   text: "text-amber-600",  glow: "shadow-amber-500/20",  line: "bg-amber-300" },
+  };
+
   return (
     <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto">
+
+      {/* ═══ DIGNNOS Full Journey Section ══════════════════════════════════════ */}
+      <div className="mb-14 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-block px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest mb-4 border border-blue-100"
+        >
+          {t.diagnosticFlow.badge}
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="text-2xl md:text-4xl font-black text-slate-900 mb-3 uppercase tracking-tight"
+        >
+          {t.diagnosticFlow.title}
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="text-slate-500 text-lg max-w-2xl mx-auto mb-12"
+        >
+          {t.diagnosticFlow.subtitle}
+        </motion.p>
+
+        {/* ─── Journey Timeline Grid ──────────────────────────────────────── */}
+        <div className="relative max-w-6xl mx-auto px-2">
+
+          {/* Desktop: 4 + 3 layout */}
+          <div className="hidden md:block">
+            {/* Row 1 — Steps 01-04 */}
+            <div className="grid grid-cols-4 gap-0 mb-0 relative">
+              {journeySteps.slice(0, 4).map((step, idx) => {
+                const c = colorMap[step.color];
+                const isActive = step.status === "current";
+                return (
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
+                    className="relative flex flex-col items-center"
+                  >
+                    {/* Card */}
+                    <div className={`w-full mx-2 p-5 rounded-2xl border-2 transition-all duration-300 text-${dir === 'rtl' ? 'right' : 'left'} ${
+                      isActive
+                        ? `${c.bg} ${c.border} shadow-xl ${c.glow} scale-105 z-10`
+                        : "bg-white border-slate-100 hover:border-slate-200 hover:shadow-md"
+                    }`}>
+                      {/* Badge + Icon */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${
+                          isActive ? c.badge : "bg-slate-100 text-slate-500"
+                        }`}>
+                          {step.id}
+                        </div>
+                        <span className="text-2xl">{step.icon}</span>
+                        {isActive && (
+                          <span className={`ml-auto text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${c.badge}`}>
+                            {language === 'ar' ? 'أنت هنا' : language === 'fr' ? 'Vous êtes ici' : 'You are here'}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className={`font-bold text-sm mb-1 ${isActive ? "text-slate-900" : "text-slate-700"}`}>
+                        {step.title}
+                      </h3>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isActive ? c.text : "text-slate-400"}`}>
+                        {step.subtitle}
+                      </p>
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
+                        {step.desc}
+                      </p>
+                      <div className={`mt-3 text-[10px] font-bold flex items-center gap-1 ${isActive ? c.text : "text-slate-300"}`}>
+                        ⏱ {step.duration}
+                      </div>
+                    </div>
+
+                    {/* Connector line right → */}
+                    {idx < 3 && (
+                      <div className="absolute top-8 right-0 translate-x-1/2 w-full flex items-center justify-end pr-0 z-20 pointer-events-none" style={{top: "2.2rem"}}>
+                        <div className={`h-0.5 w-full max-w-[calc(100%-3rem)] ${idx === 0 ? "bg-blue-300" : "bg-slate-200"}`} />
+                        <ArrowRight className={`w-4 h-4 -ml-1 ${idx === 0 ? "text-blue-400" : "text-slate-300"}`} />
+                      </div>
+                    )}
+
+                    {/* Down connector on last of row 1 */}
+                    {idx === 3 && (
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-8 w-0.5 bg-slate-200" />
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Row 2 — Steps 05-07 (reversed for snake layout) */}
+            <div className="mt-8 grid grid-cols-4 gap-0">
+              {/* Empty cell to align with col 4 */}
+              <div className="col-start-4 relative">
+                {/* Up connector from row 1 col 4 */}
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 h-8 w-0.5 bg-slate-200" />
+              </div>
+
+              {/* Steps 07, 06, 05 in cols 4, 3, 2 (snake RTL direction) */}
+              {[...journeySteps.slice(4)].reverse().map((step, idx) => {
+                const colIdx = 2 - idx; // cols 2,1,0
+                return (
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (4 + idx) * 0.08 }}
+                    className="relative flex flex-col items-center"
+                    style={{ gridColumn: colIdx + 1, gridRow: 1 }}
+                  >
+                    <div className={`w-full mx-2 p-5 rounded-2xl border-2 transition-all duration-300 text-${dir === 'rtl' ? 'right' : 'left'} bg-white border-slate-100 hover:border-slate-200 hover:shadow-md`}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs bg-slate-100 text-slate-500">
+                          {step.id}
+                        </div>
+                        <span className="text-2xl">{step.icon}</span>
+                      </div>
+                      <h3 className="font-bold text-sm mb-1 text-slate-700">{step.title}</h3>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-400">{step.subtitle}</p>
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{step.desc}</p>
+                      <div className="mt-3 text-[10px] font-bold flex items-center gap-1 text-slate-300">
+                        ⏱ {step.duration}
+                      </div>
+                    </div>
+
+                    {/* Connector arrows (left ← direction for snake) */}
+                    {colIdx > 0 && (
+                      <div className="absolute top-8 left-0 -translate-x-1/2 z-20 pointer-events-none flex items-center" style={{top: "2.2rem"}}>
+                        <ArrowLeft className="w-4 h-4 text-slate-300" />
+                        <div className="h-0.5 w-full max-w-[calc(100%-1rem)] bg-slate-200" />
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile: Vertical list */}
+          <div className="md:hidden flex flex-col gap-4">
+            {journeySteps.map((step, idx) => {
+              const c = colorMap[step.color];
+              const isActive = step.status === "current";
+              return (
+                <motion.div
+                  key={step.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.06 }}
+                  className="relative flex gap-4 items-start"
+                >
+                  {/* Timeline dot */}
+                  <div className="flex flex-col items-center">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 z-10 ${
+                      isActive ? c.badge : "bg-slate-100 text-slate-500"
+                    }`}>
+                      {step.icon}
+                    </div>
+                    {idx < journeySteps.length - 1 && (
+                      <div className={`w-0.5 h-6 mt-1 ${isActive ? c.line : "bg-slate-200"}`} />
+                    )}
+                  </div>
+
+                  {/* Card */}
+                  <div className={`flex-1 p-4 rounded-xl border-2 mb-2 ${
+                    isActive
+                      ? `${c.bg} ${c.border} shadow-lg ${c.glow}`
+                      : "bg-white border-slate-100"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                        isActive ? c.badge : "bg-slate-100 text-slate-500"
+                      }`}>
+                        {step.id}
+                      </span>
+                      {isActive && (
+                        <span className={`text-[10px] font-black ${c.text}`}>
+                          ← {language === 'ar' ? 'أنت هنا' : language === 'fr' ? 'Vous êtes ici' : 'You are here'}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className={`font-bold text-sm mb-0.5 ${isActive ? "text-slate-900" : "text-slate-600"}`}>
+                      {step.title}
+                    </h3>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${isActive ? c.text : "text-slate-400"}`}>
+                      {step.subtitle}
+                    </p>
+                    <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
+                    <div className={`mt-2 text-[10px] font-bold ${isActive ? c.text : "text-slate-300"}`}>⏱ {step.duration}</div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Next Stage Banner (top of upload area) ── */}
+      <StageProgressBanner stage="cv-upload" />
+
       <AnimatePresence mode="wait">
         {!showResults ? (
           // Upload Section
@@ -650,17 +1042,16 @@ export default function CVUploadPage() {
                 <button
                   onClick={() => setSelectedLanguage(null)}
                   className="p-2 hover:bg-slate-100 rounded-full transition-colors group"
-                  title="Back to Language Selection"
+                  title={t.cvUpload.back}
                 >
                   <ArrowLeft className="w-6 h-6 text-slate-400 group-hover:text-blue-600" />
                 </button>
                 <div>
                   <h1 className="text-3xl font-bold mb-1 text-slate-900">
-                    Upload Your Resume
+                    {t.cvUpload.title}
                   </h1>
                   <p className="text-slate-500 text-lg">
-                    Our AI engine will analyze your experience, skills, and
-                    potential gaps.
+                    {t.cvUpload.subtitle}
                   </p>
                 </div>
               </div>
@@ -712,13 +1103,13 @@ export default function CVUploadPage() {
                         <UploadCloud className="w-10 h-10" />
                       </div>
                       <h3 className="text-xl font-bold text-slate-900 mb-2">
-                        Drag & Drop your resume
+                        {t.cvUpload.dragDrop}
                       </h3>
                       <p className="text-base text-slate-500">
-                        Supports PDF, DOCX, TXT (Max 500MB)
+                        {t.cvUpload.fileTypes}
                       </p>
                       <button className="mt-6 px-6 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium shadow-sm group-hover:border-blue-400 group-hover:text-blue-600 transition-colors">
-                        Browse Files
+                        {t.cvUpload.browse}
                       </button>
                     </motion.div>
                   )}
@@ -734,10 +1125,10 @@ export default function CVUploadPage() {
                         <Loader2 className="w-10 h-10 text-transparent" />
                       </div>
                       <h3 className="text-xl font-bold text-blue-600 mb-2">
-                        AI Analyzing Profile...
+                        {t.cvUpload.analyzing}
                       </h3>
                       <p className="text-base text-slate-500">
-                        Extracting skills, experience, and career insights.
+                        {t.cvUpload.extracting}
                       </p>
                       {fileName && (
                         <div className="mt-4 flex items-center gap-2 text-sm text-slate-600">
@@ -822,10 +1213,10 @@ export default function CVUploadPage() {
                             marginBottom: "8px",
                           }}
                         >
-                          CV Analysis Results
+                          {t.diagnosticFlow.resultsTitle}
                         </h1>
                         <p style={{ color: "#64748b" }}>
-                          Honest feedback from our AI HR Expert
+                          {t.diagnosticFlow.resultsSubtitle}
                         </p>
                       </div>
                     </div>
@@ -866,7 +1257,7 @@ export default function CVUploadPage() {
                               margin: 0,
                             }}
                           >
-                            Overall Score
+                            {t.diagnosticFlow.overallScoreLabel}
                           </p>
                           <p
                             style={{
@@ -910,7 +1301,7 @@ export default function CVUploadPage() {
                       ) : (
                         <Download className="w-4 h-4" />
                       )}
-                      {isDownloading ? "Generating..." : "Download Report"}
+                      {isDownloading ? (selectedLanguage === 'ar' ? "جاري الإنشاء..." : "Generating...") : t.diagnosticFlow.downloadReport}
                     </button>
                   </div>
                 </div>
@@ -963,7 +1354,7 @@ export default function CVUploadPage() {
                   <Target
                     style={{ width: "20px", height: "20px", color: "#9333ea" }}
                   />
-                  Profile Overview
+                  {t.diagnosticFlow.overviewLabel}
                 </h2>
                 <p style={{ color: "#475569", lineHeight: "1.6" }}>
                   {analysisResult?.overview}
@@ -1000,7 +1391,7 @@ export default function CVUploadPage() {
                     }}
                   >
                     <TrendingUp style={{ width: "20px", height: "20px" }} />
-                    Key Strengths
+                    {t.diagnosticFlow.strengthsLabel}
                   </h2>
                   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                     {analysisResult?.strengths?.map(
@@ -1052,7 +1443,7 @@ export default function CVUploadPage() {
                     }}
                   >
                     <TrendingDown style={{ width: "20px", height: "20px" }} />
-                    Critical Weaknesses
+                    {t.diagnosticFlow.weaknessesLabel}
                   </h2>
                   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                     {analysisResult?.weaknesses?.map(
@@ -1102,7 +1493,7 @@ export default function CVUploadPage() {
                     marginBottom: "16px",
                   }}
                 >
-                  Skills Assessment
+                  {t.diagnosticFlow.skillsLabel}
                 </h2>
                 <div
                   style={{
@@ -1238,7 +1629,7 @@ export default function CVUploadPage() {
                       marginBottom: "16px",
                     }}
                   >
-                    Experience
+                    {t.diagnosticFlow.experienceLabel}
                   </h2>
                   <div
                     style={{
@@ -1254,9 +1645,9 @@ export default function CVUploadPage() {
                         alignItems: "center",
                       }}
                     >
-                      <span style={{ color: "#475569" }}>Years:</span>
+                      <span style={{ color: "#475569" }}>{t.diagnosticFlow.yearsLabel}:</span>
                       <span style={{ fontWeight: "bold", color: "#0f172a" }}>
-                        {analysisResult?.experience?.years} years
+                        {analysisResult?.experience?.years} {t.diagnosticFlow.yearsSuffix}
                       </span>
                     </div>
                     <div
@@ -1300,7 +1691,7 @@ export default function CVUploadPage() {
                       marginBottom: "16px",
                     }}
                   >
-                    Education
+                    {t.diagnosticFlow.educationLabel}
                   </h2>
                   <div
                     style={{
@@ -1316,7 +1707,7 @@ export default function CVUploadPage() {
                         alignItems: "center",
                       }}
                     >
-                      <span style={{ color: "#475569" }}>Level:</span>
+                      <span style={{ color: "#475569" }}>{t.diagnosticFlow.levelLabel}:</span>
                       <span style={{ fontWeight: "bold", color: "#0f172a" }}>
                         {analysisResult?.education?.level}
                       </span>
@@ -1328,7 +1719,7 @@ export default function CVUploadPage() {
                         alignItems: "center",
                       }}
                     >
-                      <span style={{ color: "#475569" }}>Relevance:</span>
+                      <span style={{ color: "#475569" }}>{t.diagnosticFlow.relevanceLabel}:</span>
                       <span
                         style={{
                           fontWeight: "bold",
@@ -1489,31 +1880,9 @@ export default function CVUploadPage() {
               </div>
             </div>
 
-            {/* Action Buttons - Outside of PDF Capture */}
-            <div className="flex justify-center pt-8">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  scale: [1, 1.05, 1],
-                  boxShadow: [
-                    "0px 10px 15px -3px rgba(37, 99, 235, 0.2), 0px 4px 6px -2px rgba(37, 99, 235, 0.1)",
-                    "0px 20px 25px -5px rgba(37, 99, 235, 0.4), 0px 10px 10px -5px rgba(37, 99, 235, 0.2)",
-                    "0px 10px 15px -3px rgba(37, 99, 235, 0.2), 0px 4px 6px -2px rgba(37, 99, 235, 0.1)",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                onClick={proceedToInterview}
-                className="px-16 py-5 bg-blue-600 text-white rounded-2xl font-extrabold text-xl hover:bg-blue-700 transition-all flex items-center gap-3"
-              >
-                Continue to Interview
-                <ArrowRight className="w-7 h-7" />
-              </motion.button>
-            </div>
+            {/* ── Next Stage Full Teaser ── */}
+            <NextStageTeaser stage="cv-upload" onNavigate={proceedToInterview} />
+
           </motion.div>
         )}
       </AnimatePresence>

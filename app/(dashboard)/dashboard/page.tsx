@@ -22,7 +22,8 @@ import {
     BarChart3,
     Layers,
     Sparkles,
-    Mail
+    Mail,
+    Users
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -190,11 +191,7 @@ export default function DashboardPage() {
     }, [t]);
 
     const handleRestart = async () => {
-        const confirmMsg = dir === 'rtl'
-            ? '⚠️ إعادة التشخيص — هل أنت متأكد؟\n\nسيتم مسح جميع بيانات التشخيص الحالية (السيرة الذاتية، المقابلة، المحاكاة) وستبدأ من الصفر.\n\nاضغط "موافق" للمتابعة.'
-            : '⚠️ Restart Diagnosis — Are you sure?\n\nAll current diagnosis data (CV, interview, simulation) will be permanently cleared and you will start from scratch.\n\nClick OK to continue.';
-
-        if (confirm(confirmMsg)) {
+        if (confirm(t.dashboard.reboot.confirmTitle + "\n\n" + t.dashboard.reboot.confirmDesc)) {
             localStorage.removeItem('cvAnalysis');
             localStorage.removeItem('interviewEvaluation');
             localStorage.removeItem('roleSuggestions');
@@ -212,12 +209,15 @@ export default function DashboardPage() {
     const totalSkills = technicalSkillsCount + softSkillsCount;
     const overallScore = cvAnalysis?.overallScore || cvAnalysis?.readinessLevel || 0;
     const simScore = simulationReport?.overallPerformance?.score || simulationReport?.overallScore || 0;
-    const seniorityLevel = interviewEval?.seniorityLevel || (dir === 'rtl' ? 'في انتظار التقييم' : 'Pending Assessment');
+    const seniorityLevel = interviewEval?.seniorityLevel || t.dashboard.stats.pendingAnalysis;
 
     const steps = [
         {
+            stage: "1",
             title: t.dashboard.journey.stages.diagnosis,
             description: t.dashboard.journey.stages.diagnosisDesc,
+            objective: t.dashboard.journey.stages.diagnosisObj,
+            outcome: t.dashboard.journey.stages.diagnosisOutcome,
             status: isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "in-progress"),
             icon: Target,
             href: "/assessment/cv-upload",
@@ -226,9 +226,11 @@ export default function DashboardPage() {
             bgColor: "bg-blue-50"
         },
         {
+            stage: "2",
             title: t.dashboard.journey.stages.simulation,
             description: t.dashboard.journey.stages.simulationDesc,
-            // Lock for free tier even if diagnosis is complete
+            objective: t.dashboard.journey.stages.simulationObj,
+            outcome: t.dashboard.journey.stages.simulationOutcome,
             status: (userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
                 ? "locked" 
                 : (isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked")),
@@ -239,8 +241,11 @@ export default function DashboardPage() {
             bgColor: "bg-purple-50"
         },
         {
+            stage: "3",
             title: t.dashboard.journey.stages.training,
             description: t.dashboard.journey.stages.trainingDesc,
+            objective: t.dashboard.journey.stages.trainingObj,
+            outcome: t.dashboard.journey.stages.trainingOutcome,
             status: isDiagnosisComplete ? "in-progress" : "locked",
             icon: PlayCircle,
             href: "/training",
@@ -249,8 +254,11 @@ export default function DashboardPage() {
             bgColor: "bg-green-50"
         },
         {
+            stage: "4",
             title: t.dashboard.journey.stages.library,
             description: t.dashboard.journey.stages.libraryDesc,
+            objective: t.dashboard.journey.stages.libraryObj,
+            outcome: t.dashboard.journey.stages.libraryOutcome,
             status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "in-progress" : "locked",
             icon: BookOpen,
             href: "/library",
@@ -259,8 +267,11 @@ export default function DashboardPage() {
             bgColor: "bg-orange-50"
         },
         {
+            stage: "5",
             title: t.dashboard.journey.stages.expert,
             description: t.dashboard.journey.stages.expertDesc,
+            objective: t.dashboard.journey.stages.expertObj,
+            outcome: t.dashboard.journey.stages.expertOutcome,
             status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "in-progress" : "locked",
             icon: MessageSquare,
             href: "/expert",
@@ -269,8 +280,11 @@ export default function DashboardPage() {
             bgColor: "bg-pink-50"
         },
         {
+            stage: "6",
             title: t.dashboard.journey.stages.strategicReport,
             description: t.dashboard.journey.stages.strategicReportDesc,
+            objective: t.dashboard.journey.stages.strategicReportObj,
+            outcome: t.dashboard.journey.stages.strategicReportOutcome,
             status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "completed" : "locked",
             icon: Shield,
             href: "/strategic-report",
@@ -281,7 +295,7 @@ export default function DashboardPage() {
     ];
 
     return (
-        <div dir={dir} className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 pb-24 md:pb-8">
+        <div dir={dir} className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-10 pb-24 md:pb-8">
 
             {/* ── Welcome Header ── */}
             <motion.div
@@ -290,52 +304,52 @@ export default function DashboardPage() {
                 className={`flex flex-col md:flex-row md:items-end justify-between gap-4 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}
             >
                 <div>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-1">
-                        {t.dashboard.welcome}, {userName} 👋
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-2 tracking-tight">
+                        {t.dashboard.welcome}, <span className="text-blue-600">{userName}</span> 👋
                     </h1>
-                    <p className="text-slate-500 text-sm md:text-base">
+                    <p className="text-slate-500 text-base md:text-lg font-medium">
                         {t.dashboard.subtitle}
-                        {joinedDate && <span className="ml-2 text-xs text-slate-400">· {dir === 'rtl' ? 'منذ' : 'Since'} {joinedDate}</span>}
+                        {joinedDate && <span className="ml-2 text-xs text-slate-400 font-normal">· {t.dashboard.since} {joinedDate}</span>}
                     </p>
                 </div>
                 {hasStarted && (
-                    <div className={`flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 w-fit ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        <TrendingUp className="w-4 h-4 text-emerald-600" />
-                        <span className="font-semibold text-sm text-emerald-700">{t.dashboard.topLearner}</span>
+                    <div className={`flex items-center gap-2 bg-blue-600 px-6 py-2.5 rounded-2xl shadow-lg shadow-blue-200 w-fit ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <TrendingUp className="w-5 h-5 text-white" />
+                        <span className="font-bold text-sm text-white uppercase tracking-widest">{t.dashboard.topLearner}</span>
                     </div>
                 )}
             </motion.div>
 
             {/* ── Real Stats Grid ── */}
-            <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4`}>
+            <div className={`grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6`}>
                 {[
                     {
-                        label: dir === 'rtl' ? 'المهارات المُحددة' : 'Skills Identified',
+                        label: t.dashboard.stats.skillsIdentified,
                         value: hasStarted ? String(totalSkills) : '—',
-                        sub: hasStarted ? `${technicalSkillsCount} tech · ${softSkillsCount} soft` : (dir === 'rtl' ? 'ابدأ التشخيص' : 'Start diagnosis'),
+                        sub: hasStarted ? `${technicalSkillsCount} tech · ${softSkillsCount} soft` : t.dashboard.stats.startDiagnosis,
                         icon: Layers,
-                        bg: 'bg-blue-50', text: 'text-blue-600'
+                        bg: 'bg-blue-600/10', text: 'text-blue-600'
                     },
                     {
-                        label: dir === 'rtl' ? 'درجة الجاهزية' : 'Readiness Score',
+                        label: t.dashboard.stats.readinessScore,
                         value: hasStarted && overallScore ? `${overallScore}%` : '—',
-                        sub: hasStarted ? (cvAnalysis?.rank || (dir === 'rtl' ? 'من التقييم' : 'From CV audit')) : (dir === 'rtl' ? 'في انتظار التحليل' : 'Pending analysis'),
+                        sub: hasStarted ? (cvAnalysis?.rank || t.dashboard.stats.pendingAnalysis) : t.dashboard.stats.pendingAnalysis,
                         icon: BarChart3,
-                        bg: 'bg-purple-50', text: 'text-purple-600'
+                        bg: 'bg-purple-600/10', text: 'text-purple-600'
                     },
                     {
-                        label: dir === 'rtl' ? 'درجة المحاكاة' : 'Simulation Score',
+                        label: t.dashboard.stats.simulationScore,
                         value: simScore ? `${simScore}/10` : '—',
-                        sub: simScore ? (dir === 'rtl' ? 'من المحاكاة الواقعية' : 'From live simulation') : (dir === 'rtl' ? 'لم تبدأ بعد' : 'Not started yet'),
+                        sub: simScore ? t.dashboard.stats.simulationScore : t.dashboard.stats.notStartedYet,
                         icon: Zap,
-                        bg: 'bg-amber-50', text: 'text-amber-600'
+                        bg: 'bg-amber-600/10', text: 'text-amber-600'
                     },
                     {
-                        label: dir === 'rtl' ? 'الوثائق المُنجزة' : 'Documents Ready',
+                        label: t.dashboard.stats.documentsReady,
                         value: hasSCI ? '1' : '0',
-                        sub: hasSCI ? (dir === 'rtl' ? 'تقرير SCI جاهز' : 'SCI Report ready') : (dir === 'rtl' ? 'لا يوجد بعد' : 'None yet'),
+                        sub: hasSCI ? t.dashboard.stats.sciReportReady : t.dashboard.stats.noneYet,
                         icon: Award,
-                        bg: 'bg-emerald-50', text: 'text-emerald-600'
+                        bg: 'bg-emerald-600/10', text: 'text-emerald-600'
                     },
                 ].map((stat, index) => (
                     <motion.div
@@ -343,166 +357,317 @@ export default function DashboardPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.08 }}
-                        className={`bg-white p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow ${dir === 'rtl' ? 'text-right' : ''}`}
+                        className={`bg-white p-5 md:p-6 rounded-4xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group ${dir === 'rtl' ? 'text-right' : ''}`}
                     >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${stat.bg} ${stat.text}`}>
-                            <stat.icon className="w-5 h-5" />
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${stat.bg} ${stat.text}`}>
+                            <stat.icon className="w-6 h-6" />
                         </div>
-                        <p className="text-2xl font-black text-slate-900">{stat.value}</p>
-                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{stat.label}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">{stat.sub}</p>
+                        <p className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-2 font-medium">{stat.sub}</p>
                     </motion.div>
                 ))}
             </div>
 
-            {/* ── Main Grid: Current Focus + Journey ── */}
-            <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+            {/* ── Next Steps Grid (High-Priority Actions) ── */}
+            {hasStarted && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className={dir === 'rtl' ? 'text-right' : ''}
+                >
+                    <div className={`flex items-center justify-between mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                            {t.dashboard.nextSteps.title}
+                        </h2>
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-full font-black uppercase tracking-widest">
+                            {t.dashboard.nextSteps.basedOnDiagnosis}
+                        </span>
+                    </div>
 
-                {/* Current Focus */}
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        {[
+                            {
+                                icon: Zap,
+                                bg: 'bg-purple-50',
+                                iconColor: 'text-purple-600',
+                                title: t.dashboard.nextSteps.expertSimulations.title,
+                                desc: t.dashboard.nextSteps.expertSimulations.desc,
+                                href: '/simulation',
+                                cta: t.dashboard.nextSteps.expertSimulations.cta,
+                                locked: !hasStarted
+                            },
+                            {
+                                icon: PlayCircle,
+                                bg: 'bg-emerald-50',
+                                iconColor: 'text-emerald-600',
+                                title: t.dashboard.nextSteps.executiveWorkshops.title,
+                                desc: t.dashboard.nextSteps.executiveWorkshops.desc,
+                                href: '/training',
+                                cta: t.dashboard.nextSteps.executiveWorkshops.cta,
+                                locked: !isDiagnosisComplete
+                            },
+                            {
+                                icon: Brain,
+                                bg: 'bg-indigo-50',
+                                iconColor: 'text-indigo-600',
+                                title: t.dashboard.nextSteps.aiAdvisor.title,
+                                desc: t.dashboard.nextSteps.aiAdvisor.desc,
+                                href: '/mentor',
+                                cta: t.dashboard.nextSteps.aiAdvisor.cta,
+                                locked: false
+                            },
+                            {
+                                icon: BookOpen,
+                                bg: 'bg-orange-50',
+                                iconColor: 'text-orange-600',
+                                title: t.dashboard.nextSteps.knowledgeBase.title,
+                                desc: t.dashboard.nextSteps.knowledgeBase.desc,
+                                href: '/academy',
+                                cta: t.dashboard.nextSteps.knowledgeBase.cta,
+                                locked: false
+                            },
+                            {
+                                icon: MessageSquare,
+                                bg: 'bg-pink-50',
+                                iconColor: 'text-pink-600',
+                                title: t.dashboard.nextSteps.expertConsultation.title,
+                                desc: t.dashboard.nextSteps.expertConsultation.desc,
+                                href: '/expert',
+                                cta: t.dashboard.nextSteps.expertConsultation.cta,
+                                locked: !isDiagnosisComplete
+                            },
+                            {
+                                icon: Shield,
+                                bg: 'bg-slate-900',
+                                iconColor: 'text-white',
+                                title: t.dashboard.nextSteps.diagnosticReport.title,
+                                desc: t.dashboard.nextSteps.diagnosticReport.desc,
+                                href: '/strategic-report',
+                                cta: t.dashboard.nextSteps.diagnosticReport.cta,
+                                locked: !isDiagnosisComplete,
+                                dark: true
+                            },
+                        ].map((item, idx) => (
+                            <motion.div
+                                key={idx}
+                                whileHover={!item.locked ? { y: -5, transition: { duration: 0.2 } } : {}}
+                                className={`rounded-3xl border p-6 flex flex-col gap-4 transition-all ${item.dark ? 'bg-slate-900 border-slate-800' : `bg-white border-slate-100 shadow-sm`} ${item.locked ? 'opacity-50' : 'hover:shadow-xl hover:border-blue-100'}`}
+                            >
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.dark ? 'bg-white/10' : item.bg}`}>
+                                    <item.icon className={`w-6 h-6 ${item.dark ? 'text-white' : item.iconColor}`} />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className={`font-black text-base mb-1 ${item.dark ? 'text-white' : 'text-slate-900'}`}>{item.title}</h4>
+                                    <p className={`text-xs font-medium leading-relaxed ${item.dark ? 'text-slate-400' : 'text-slate-500'}`}>{item.desc}</p>
+                                </div>
+                                {item.locked ? (
+                                    <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${item.dark ? 'text-slate-600' : 'text-slate-300'}`}>
+                                        🔒 {t.dashboard.nextSteps.locked}
+                                    </span>
+                                ) : (
+                                    <Link
+                                        href={item.href}
+                                        className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] ${item.dark ? 'text-blue-400 hover:text-blue-300' : `${item.iconColor} hover:opacity-70`} transition-all`}
+                                    >
+                                        {item.cta}
+                                        <ArrowRight className={`w-3.5 h-3.5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                                    </Link>
+                                )}
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+
+            {/* ── Main Grid: Current Focus + Journey ── */}
+            <div className="grid lg:grid-cols-3 gap-8 md:gap-10">
+
+                {/* Operational Mandate (Current Focus) */}
                 <motion.div
                     initial={{ opacity: 0, x: dir === 'rtl' ? 20 : -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm flex flex-col relative overflow-hidden"
+                    className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 p-8 md:p-10 shadow-sm flex flex-col relative overflow-hidden"
                 >
                     {hasStarted ? (
                         <>
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100/40 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                            <div className={`flex items-center justify-between mb-6 relative z-10 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <h2 className={`text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                    <Zap className="w-5 h-5 text-purple-600" />
-                                    {t.dashboard.currentFocus.title}
-                                </h2>
+                            <div className="absolute top-0 right-0 w-80 h-80 bg-blue-100/30 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                            <div className={`flex items-center justify-between mb-8 relative z-10 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                <div>
+                                    <h2 className={`text-2xl font-black text-slate-900 flex items-center gap-3 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                                            <Zap className="w-6 h-6 text-yellow-400" />
+                                        </div>
+                                        {t.dashboard.currentFocus.title}
+                                    </h2>
+                                    <p className="text-slate-400 text-sm mt-1 font-medium">{t.dashboard.subtitle}</p>
+                                </div>
                             </div>
 
-                            <div className={`flex-1 ${isDiagnosisComplete ? 'bg-linear-to-br from-green-50 to-emerald-50 border-green-100' : 'bg-linear-to-br from-purple-50 to-white border-purple-100/50'} rounded-2xl p-5 md:p-8 flex flex-col sm:flex-row items-center gap-6 border relative ${dir === 'rtl' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
-                                <div className="relative z-10 flex-1 space-y-3 w-full">
-                                    <span className={`inline-block px-3 py-1 ${isDiagnosisComplete ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'} text-[10px] font-bold rounded-full uppercase tracking-wider`}>
-                                        {isDiagnosisComplete ? (dir === 'rtl' ? 'مكتمل' : 'Completed') : (dir === 'rtl' ? 'قيد التنفيذ' : 'In Progress')}
-                                    </span>
-                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900">
-                                        {isDiagnosisComplete
-                                            ? (dir === 'rtl' ? 'التشخيص المهني مكتمل' : 'Career Diagnosis Complete')
-                                            : (dir === 'rtl' ? 'التشخيص المهني' : 'Career Diagnosis')}
-                                    </h3>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        {isDiagnosisComplete
-                                            ? ((userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
-                                                ? (dir === 'rtl' 
-                                                    ? '⚠️ التشخيص الأولي مكتمل بنجاح! لقد كشفنا عن ثغرات حرجة. ملاحظة: هذا مجرد "تشويق"، التشخيص الحقيقي العيق (التقرير الاستراتيجي، تحليل التنافسية) يتطلب الترقية.' 
-                                                    : '⚠️ Initial Audit Complete! Critical gaps detected. Note: This is a "Teaser". The real deep diagnosis (Strategic Report, Competitive Analysis) requires an upgrade.')
-                                                : (dir === 'rtl' ? 'لقد أكملت التشخيص بالكامل. أنت الآن مستعد للمرحلة التالية من رحلتك!' : 'You have effectively completed the full diagnosis. You are now ready for the next stage of your journey!'))
-                                            : (dir === 'rtl' ? 'تم تحليل سيرتك الذاتية بنجاح. الخطوة التالية: ابدأ المحاكاة!' : 'Your CV analysis is complete. Next step: Start the simulation!')}
-                                    </p>
-                                    {(userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") && isDiagnosisComplete && (
-                                        <div className="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
-                                            <p className="text-[11px] font-bold text-indigo-700 flex items-center gap-2">
-                                                <Sparkles className="w-4 h-4" />
-                                                {dir === 'rtl' ? 'ماذا ينتظرك في النسخة الكاملة؟' : 'What awaits you in the Full Version?'}
-                                            </p>
-                                            <ul className="mt-2 space-y-1">
-                                                <li className="text-[10px] text-indigo-600 flex items-center gap-1">
-                                                    <CheckCircle2 className="w-3 h-3" /> {dir === 'rtl' ? 'خارطة طريق استراتيجية لـ 18 شهر' : '18-Month Strategic Roadmap'}
-                                                </li>
-                                                <li className="text-[10px] text-indigo-600 flex items-center gap-1">
-                                                    <CheckCircle2 className="w-3 h-3" /> {dir === 'rtl' ? 'محاكاة واقعية للمواقف القيادية' : 'Real-world Leadership Simulations'}
-                                                </li>
-                                                <li className="text-[10px] text-indigo-600 flex items-center gap-1">
-                                                    <CheckCircle2 className="w-3 h-3" /> {dir === 'rtl' ? 'تقرير الذكاء المهني الشامل (SCI)' : 'Comprehensive Career Intelligence (SCI)'}
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                    {selectedRole && (
-                                        <div className={`flex items-center gap-2 mt-2 ${dir === 'rtl' ? 'flex-row-reverse justify-end' : ''}`}>
-                                            <Target className="w-4 h-4 text-slate-400" />
-                                            <span className="text-xs font-semibold text-slate-500">
-                                                {dir === 'rtl' ? 'الدور المستهدف:' : 'Target Role:'} <span className="text-slate-800">{selectedRole}</span>
+                            <div className={`flex-1 ${isDiagnosisComplete ? 'bg-linear-to-br from-blue-50 to-white border-blue-100' : 'bg-linear-to-br from-slate-50 to-white border-slate-100'} rounded-3xl p-6 md:p-8 flex flex-col items-stretch gap-6 border relative ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+                                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                                    <div className="flex-1 space-y-3 w-full">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <span className={`inline-block px-4 py-1.5 ${isDiagnosisComplete ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'} text-[10px] font-black rounded-full uppercase tracking-widest shadow-sm`}>
+                                                {isDiagnosisComplete ? t.dashboard.diagnosisStatus.completed : t.dashboard.diagnosisStatus.inProgress}
                                             </span>
-                                        </div>
-                                    )}
-                                    {seniorityLevel && interviewEval && (
-                                        <div className={`flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse justify-end' : ''}`}>
-                                            <Star className="w-4 h-4 text-amber-400" />
-                                            <span className="text-xs font-semibold text-slate-500">
-                                                {dir === 'rtl' ? 'المستوى:' : 'Level:'} <span className="text-slate-800">{seniorityLevel}</span>
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="relative z-10 w-full sm:w-auto shrink-0">
-                                    {isDiagnosisComplete ? (
-                                        <div className="flex flex-col gap-3 min-w-[200px]">
-                                            <div className={`flex items-center gap-2 mb-1 justify-center sm:justify-start ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                                                    <CheckCircle2 className="w-4 h-4 text-white" />
-                                                </div>
-                                                <span className="text-xs font-bold text-green-700 uppercase tracking-wider">
-                                                    {dir === 'rtl' ? 'مكتمل بنجاح' : 'Successfully Completed'}
+                                            {isDiagnosisComplete && (
+                                                <span className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                                    <CheckCircle2 size={12} /> {t.dashboard.diagnosisStatus.successfullyCompleted}
                                                 </span>
-                                            </div>
-                                            <Link
-                                                href="/strategic-report"
-                                                className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm text-center flex items-center justify-center gap-2"
-                                            >
-                                                <TrendingUp className="w-4 h-4" />
-                                                {t.dashboard.currentFocus.viewResults}
-                                            </Link>
+                                            )}
+                                        </div>
+                                        <h3 className="text-2xl font-black text-slate-900 leading-tight">
+                                            {isDiagnosisComplete ? t.dashboard.diagnosisStatus.complete : t.dashboard.diagnosisStatus.pending}
+                                        </h3>
+                                        <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xl">
+                                            {isDiagnosisComplete
+                                                ? ((userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
+                                                    ? t.dashboard.diagnosisStatus.teaserDesc
+                                                    : t.dashboard.diagnosisStatus.readyNext)
+                                                : t.dashboard.diagnosisStatus.cvAnalysisComplete}
+                                        </p>
+
+                                        <div className={`flex flex-wrap items-center gap-3 pt-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                            {selectedRole && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-100 rounded-xl shadow-xs">
+                                                    <Target className="w-4 h-4 text-blue-600" />
+                                                    <span className="text-[10px] font-bold text-slate-700">
+                                                        {t.dashboard.sections.targetRole}: <span className="text-blue-700 font-black">{selectedRole}</span>
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {seniorityLevel && interviewEval && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-100 rounded-xl shadow-xs">
+                                                    <Star className="w-4 h-4 text-amber-500" />
+                                                    <span className="text-[10px] font-bold text-slate-700">
+                                                        {t.dashboard.sections.level}: <span className="text-amber-600 font-black">{seniorityLevel}</span>
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="shrink-0 w-full md:w-auto mt-4 md:mt-0">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-col gap-3 min-w-[200px]">
+                                            {isDiagnosisComplete && (
+                                                <Link
+                                                    href="/strategic-report"
+                                                    className="px-6 py-3.5 bg-slate-900 text-white rounded-xl font-black shadow-lg shadow-slate-900/10 hover:bg-slate-800 active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                                                >
+                                                    <FileText className="w-4 h-4 text-blue-400" />
+                                                    {t.dashboard.currentFocus.viewResults}
+                                                </Link>
+                                            )}
                                             <Link
                                                 href="/strategic-report?tab=history"
-                                                className="w-full px-6 py-3 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 active:scale-95 transition-all text-sm text-center flex items-center justify-center gap-2"
+                                                className="px-6 py-3.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-black hover:bg-slate-50 active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
                                             >
-                                                <Clock className="w-4 h-4 text-indigo-600" />
+                                                <Clock className="w-4 h-4 text-indigo-500" />
                                                 {t.dashboard.currentFocus.viewHistory}
                                             </Link>
                                             <button
                                                 onClick={handleRestart}
-                                                className="w-full px-6 py-3 bg-white text-rose-600 border border-rose-200 rounded-xl font-black hover:bg-rose-50 active:scale-95 transition-all text-xs text-center flex items-center justify-center gap-2"
+                                                className="px-6 py-3.5 text-rose-500 font-black border border-transparent hover:border-rose-100 hover:bg-rose-50 rounded-xl active:scale-95 transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
                                             >
-                                                <RefreshCw className="w-4 h-4" />
+                                                <RefreshCw className="w-3 h-3" />
                                                 {t.dashboard.currentFocus.restart}
                                             </button>
                                         </div>
-                                    ) : (
-                                        <Link href="/simulation" className="w-full sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all text-sm inline-block text-center">
-                                            {t.dashboard.currentFocus.continue}
-                                        </Link>
-                                    )}
+                                    </div>
                                 </div>
+
+                                {/* ── Professional Resource Guide ── */}
+                                <div className="mt-4 pt-6 border-t border-slate-100 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">
+                                            {t.dashboard.diagnosisStatus.moduleInfo.title}
+                                        </span>
+                                        <div className="h-px flex-1 bg-slate-100" />
+                                    </div>
+
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        <div className={`p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col gap-2 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+                                            <div className={`flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                                                <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Digital Intelligence</span>
+                                                <span className="ms-auto text-[8px] font-black px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full uppercase tracking-tighter">Auto-Activated</span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
+                                                {t.dashboard.diagnosisStatus.moduleInfo.aiDescription}
+                                            </p>
+                                        </div>
+
+                                        <div className={`p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl flex flex-col gap-2 ${dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+                                            <div className={`flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <Users className="w-3.5 h-3.5 text-white" />
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Executive Access</span>
+                                                <span className="ms-auto text-[8px] font-black px-2 py-0.5 bg-amber-500 text-white rounded-full uppercase tracking-tighter">Expert Scheduled</span>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
+                                                {t.dashboard.diagnosisStatus.moduleInfo.humanDescription}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {(userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") && isDiagnosisComplete && (
+                                    <div className="mt-4 p-4 bg-linear-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-lg text-white relative overflow-hidden group">
+                                        <Sparkles className="absolute top-2 right-2 w-8 h-8 text-white/10 -rotate-12 transition-transform group-hover:scale-125" />
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2 mb-1">
+                                                    <Shield className="w-3 h-3" />
+                                                    {t.dashboard.upsell.title}
+                                                </p>
+                                                <div className="flex gap-4">
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold">
+                                                        <CheckCircle2 className="w-3 h-3 text-blue-300" /> {t.dashboard.upsell.item1}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold">
+                                                        <CheckCircle2 className="w-3 h-3 text-blue-300" /> {t.dashboard.upsell.item2}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Link href="/subscription" className="shrink-0 px-4 py-2 bg-white text-indigo-700 rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-slate-50 transition-colors text-center">
+                                                Upgrade to Pro
+                                            </Link>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* ── Real Diagnosis Summary ── */}
                             {cvAnalysis && (
-                                <div className="mt-6 grid sm:grid-cols-2 gap-4">
-                                    {/* Strengths */}
+                                <div className="mt-8 grid sm:grid-cols-2 gap-6">
                                     {cvAnalysis.strengths && cvAnalysis.strengths.length > 0 && (
-                                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                                            <p className={`text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                                <CheckCircle2 className="w-3 h-3" />
-                                                {dir === 'rtl' ? 'نقاط القوة' : 'Key Strengths'}
+                                        <div className="bg-emerald-50/50 rounded-3xl p-6 border border-emerald-100/50">
+                                            <p className={`text-xs font-black text-emerald-600 uppercase tracking-widest mb-4 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <CheckCircle2 className="w-4 h-4" />
+                                                {t.dashboard.sections.strengths}
                                             </p>
-                                            <ul className={`space-y-1.5 ${dir === 'rtl' ? 'text-right' : ''}`}>
+                                            <ul className={`space-y-2.5 ${dir === 'rtl' ? 'text-right' : ''}`}>
                                                 {cvAnalysis.strengths.slice(0, 3).map((s, i) => (
-                                                    <li key={i} className="text-xs text-emerald-800 font-medium flex items-start gap-1.5">
-                                                        <span className="text-emerald-400 mt-0.5">▸</span>
+                                                    <li key={i} className="text-sm text-emerald-900 font-bold flex items-start gap-3">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
                                                         <span>{s}</span>
                                                     </li>
                                                 ))}
                                             </ul>
                                         </div>
                                     )}
-                                    {/* Gaps */}
                                     {cvAnalysis.skills?.gaps && cvAnalysis.skills.gaps.length > 0 && (
-                                        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
-                                            <p className={`text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                                <Brain className="w-3 h-3" />
-                                                {dir === 'rtl' ? 'الفجوات المُحددة' : 'Identified Gaps'}
+                                        <div className="bg-amber-50/50 rounded-3xl p-6 border border-amber-100/50">
+                                            <p className={`text-xs font-black text-amber-600 uppercase tracking-widest mb-4 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <Brain className="w-4 h-4" />
+                                                {t.dashboard.sections.gaps}
                                             </p>
-                                            <ul className={`space-y-1.5 ${dir === 'rtl' ? 'text-right' : ''}`}>
+                                            <ul className={`space-y-2.5 ${dir === 'rtl' ? 'text-right' : ''}`}>
                                                 {cvAnalysis.skills.gaps.slice(0, 3).map((g, i) => (
-                                                    <li key={i} className="text-xs text-amber-800 font-medium flex items-start gap-1.5">
-                                                        <span className="text-amber-400 mt-0.5">▸</span>
+                                                    <li key={i} className="text-sm text-amber-900 font-bold flex items-start gap-3">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
                                                         <span>{g}</span>
                                                     </li>
                                                 ))}
@@ -511,26 +676,26 @@ export default function DashboardPage() {
                                     )}
                                     {/* Interview Summary */}
                                     {interviewEval?.executiveSummary && (
-                                        <div className="sm:col-span-2 bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
-                                            <p className={`text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                                <FileText className="w-3 h-3" />
-                                                {dir === 'rtl' ? 'ملخص المقابلة' : 'Interview Summary'}
+                                        <div className="sm:col-span-2 bg-indigo-50/50 rounded-3xl p-6 border border-indigo-100/50">
+                                            <p className={`text-xs font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <FileText className="w-4 h-4" />
+                                                {t.dashboard.sections.interviewSummary}
                                             </p>
-                                            <p className="text-xs text-indigo-800 font-medium leading-relaxed line-clamp-3">
-                                                {interviewEval.executiveSummary}
+                                            <p className="text-sm text-indigo-900 font-medium leading-relaxed italic">
+                                                &ldquo;{interviewEval.executiveSummary}&rdquo;
                                             </p>
                                         </div>
                                     )}
                                     {/* Immediate Actions */}
                                     {cvAnalysis.immediateActions && cvAnalysis.immediateActions.length > 0 && (
-                                        <div className="sm:col-span-2 bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                                            <p className={`text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                                <ArrowRight className="w-3 h-3" />
-                                                {dir === 'rtl' ? 'الخطوات الفورية الموصى بها' : 'Recommended Immediate Actions'}
+                                        <div className="sm:col-span-2 bg-slate-50/50 rounded-3xl p-6 border border-slate-100/50">
+                                            <p className={`text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                                <ArrowRight className="w-4 h-4" />
+                                                {t.dashboard.sections.recommendedActions}
                                             </p>
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-wrap gap-3">
                                                 {cvAnalysis.immediateActions.slice(0, 4).map((action, i) => (
-                                                    <span key={i} className="text-[11px] px-3 py-1 bg-white border border-slate-200 rounded-full text-slate-700 font-semibold shadow-sm">
+                                                    <span key={i} className="text-xs px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold shadow-sm">
                                                         {action}
                                                     </span>
                                                 ))}
@@ -541,64 +706,112 @@ export default function DashboardPage() {
                             )}
                         </>
                     ) : (
-                        <>
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                            <div className="flex flex-col items-center justify-center h-full text-center space-y-6 relative z-10 py-12">
-                                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
-                                    <Target className="w-10 h-10 text-blue-600" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                                        {dir === 'rtl' ? 'لنبدأ رحلتك المهنية' : "Let's Start Your Career Journey"}
-                                    </h2>
-                                    <p className="text-slate-500 max-w-md mx-auto">
-                                        {dir === 'rtl'
-                                            ? 'الخطوة الأولى هي فهم مهاراتك. قم برفع سيرتك الذاتية ليقوم الذكاء الاصطناعي ببناء مسار مخصص لك.'
-                                            : 'The first step is understanding your skills. Upload your CV to let our AI build a personalized path for you.'}
-                                    </p>
-                                </div>
-                                <Link href="/assessment/cv-upload" className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 hover:scale-105 transition-all flex items-center gap-2">
-                                    {dir === 'rtl' ? 'ابدأ التشخيص الآن' : 'Start Diagnosis Now'}
-                                    <ArrowRight className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                                </Link>
+                        <div className="flex flex-col items-center justify-center py-16 text-center space-y-8">
+                             <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center">
+                                <Target className="w-12 h-12 text-blue-600 animate-pulse" />
                             </div>
-                        </>
+                            <div className="max-w-md space-y-3">
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                                    {t.dashboard.notStarted.title}
+                                </h2>
+                                <p className="text-slate-500 font-medium leading-relaxed">
+                                    {t.dashboard.notStarted.desc}
+                                </p>
+                            </div>
+                            <Link href="/assessment/cv-upload" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black shadow-2xl shadow-blue-600/30 hover:bg-blue-700 hover:scale-105 transition-all text-sm uppercase tracking-widest flex items-center gap-3">
+                                {t.dashboard.notStarted.cta}
+                                <ArrowRight className={`w-5 h-5 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
+                            </Link>
+                        </div>
                     )}
                 </motion.div>
 
-                {/* Journey Timeline */}
+                {/* Vertical Success Path (Leadership Journey) */}
                 <motion.div
                     initial={{ opacity: 0, x: dir === 'rtl' ? -20 : 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
-                    className={`bg-white rounded-3xl border border-slate-200 p-6 shadow-sm overflow-hidden h-fit ${dir === 'rtl' ? 'text-right' : ''}`}
+                    className={`bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden relative h-fit ${dir === 'rtl' ? 'text-right' : ''}`}
                 >
-                    <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6">{t.dashboard.journey.title}</h2>
-                    <div className="relative space-y-0">
-                        <div className={`absolute top-4 bottom-4 w-[2px] bg-slate-100 ${dir === 'rtl' ? 'right-[23px] md:right-[27px]' : 'left-[23px] md:left-[27px]'}`} />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
+                    <h2 className="text-2xl font-black text-white mb-8 tracking-tight flex items-center gap-3">
+                        <div className="w-2 h-8 bg-blue-600 rounded-full" />
+                        {t.dashboard.journey.title}
+                    </h2>
+                    
+                    <div className="relative space-y-8">
+                        {/* Timeline line */}
+                        <div className={`absolute top-0 bottom-0 w-px bg-slate-800 ${dir === 'rtl' ? 'right-6' : 'left-6'} top-6 bottom-6`} />
+
                         {steps.map((step, idx) => (
-                            <Link key={idx} href={step.status !== 'locked' ? step.href : '#'}>
-                                <div className={`relative flex items-start gap-3 md:gap-4 pb-5 last:pb-0 group ${dir === 'rtl' ? 'flex-row-reverse' : ''} ${step.status !== 'locked' ? 'cursor-pointer' : 'cursor-default'}`}>
-                                    <div className={`relative z-10 w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all ${step.status === 'completed' ? 'bg-emerald-50 border-emerald-200' : step.status === 'in-progress' ? `${step.bgColor} ${step.borderColor}` : 'bg-slate-50 border-transparent'}`}>
+                            <div key={idx} className="relative group">
+                                <Link 
+                                    href={step.status !== 'locked' ? step.href : '#'}
+                                    className={`flex items-start gap-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''} ${step.status === 'locked' ? 'cursor-default' : 'cursor-pointer hover:bg-white/5 p-4 -m-4 rounded-4xl transition-all'}`}
+                                >
+                                    {/* Stage Indicator */}
+                                    <div className={`relative z-10 w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 
+                                        ${step.status === 'completed' 
+                                            ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/40' 
+                                            : step.status === 'in-progress'
+                                                ? 'bg-slate-800 border-blue-500/50 text-blue-400 animate-pulse'
+                                                : 'bg-slate-950 border-slate-800 text-slate-700'}`}>
                                         {step.status === 'completed' ? (
-                                            <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-emerald-500" />
+                                            <CheckCircle2 size={24} />
                                         ) : (
-                                            <step.icon className={`w-5 h-5 md:w-6 md:h-6 ${step.status === 'locked' ? 'text-slate-300' : step.iconColor}`} />
+                                            <span className="font-black text-lg">{step.stage}</span>
                                         )}
                                     </div>
-                                    <div className="pt-1.5 md:pt-2 flex-1">
-                                        <h3 className={`font-bold text-sm md:text-base ${step.status === 'locked' ? 'text-slate-400' : 'text-slate-900 group-hover:text-blue-600 transition-colors'}`}>
-                                            {step.title}
-                                        </h3>
-                                        <p className="text-xs md:text-sm text-slate-400 leading-snug mt-0.5">
+
+                                    {/* Stage Content */}
+                                    <div className="flex-1 space-y-1">
+                                        <div className={`flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                            <h3 className={`font-black text-base transition-colors duration-300 ${step.status === 'locked' ? 'text-slate-600' : 'text-white group-hover:text-blue-400'}`}>
+                                                {step.title}
+                                            </h3>
+                                            {step.status === 'in-progress' && (
+                                                <span className="flex h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                                            )}
+                                        </div>
+                                        
+                                        <p className={`text-xs leading-relaxed font-medium transition-colors ${step.status === 'locked' ? 'text-slate-700' : 'text-slate-400'}`}>
                                             {step.description}
                                         </p>
+
+                                        {step.status !== 'locked' && (
+                                            <div className="overflow-hidden pt-2 space-y-3">
+                                                <div className="p-3 bg-white/5 rounded-xl border border-white/5 space-y-2 group-hover:border-white/10 transition-colors">
+                                                    <div className={`flex items-start gap-2 ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`}>
+                                                        <Sparkles size={12} className="text-blue-400 mt-0.5" />
+                                                        <div className="flex-1">
+                                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mb-1">
+                                                                {t.dashboard.journey.objectiveLabel}
+                                                            </p>
+                                                            <p className="text-[11px] text-slate-300 font-bold leading-snug">
+                                                                {step.objective}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`flex items-start gap-2 ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`}>
+                                                        <Award size={12} className="text-emerald-400 mt-0.5" />
+                                                        <div className="flex-1">
+                                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest leading-none mb-1">
+                                                                {t.dashboard.journey.outcomeLabel}
+                                                            </p>
+                                                            <p className="text-[11px] text-slate-300 font-bold leading-snug">
+                                                                {step.outcome}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="inline-flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] group-hover:text-blue-300 transition-colors">
+                                                    {t.dashboard.currentFocus.continue} <ArrowRight size={12} className={dir === 'rtl' ? 'rotate-180' : ''} />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    {step.status !== 'locked' && (
-                                        <ChevronRight className={`w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-colors mt-3 shrink-0 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                                    )}
-                                </div>
-                            </Link>
+                                </Link>
+                            </div>
                         ))}
                     </div>
                 </motion.div>
@@ -665,132 +878,6 @@ export default function DashboardPage() {
                 </motion.div>
             )}
 
-            {/* ── Next Steps Panel (replaces fake "Prioritized for You") ── */}
-            {hasStarted && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className={dir === 'rtl' ? 'text-right' : ''}
-                >
-                    <div className={`flex items-center justify-between mb-4 md:mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-                            {dir === 'rtl' ? '🎯 خطواتك التالية' : '🎯 Your Next Steps'}
-                        </h2>
-                        <span className="text-xs text-slate-400 font-medium">
-                            {dir === 'rtl' ? 'بناءً على تشخيصك' : 'Based on your diagnosis'}
-                        </span>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {[
-                            {
-                                icon: Zap,
-                                color: 'purple',
-                                bg: 'bg-purple-50',
-                                border: 'border-purple-100',
-                                iconColor: 'text-purple-600',
-                                title: dir === 'rtl' ? '2. محاكاة الخبراء' : '2. Expert Simulations',
-                                desc: dir === 'rtl' ? 'محاكاة واقعية 100% مع خبير بشري لتقييم أدائك تحت الضغط.' : '100% personalized simulations with a human expert to evaluate your performance under pressure.',
-                                href: '/simulation',
-                                cta: dir === 'rtl' ? 'ابدأ المحاكاة' : 'Start Simulation',
-                                locked: !hasStarted
-                            },
-                            {
-                                icon: PlayCircle,
-                                color: 'green',
-                                bg: 'bg-green-50',
-                                border: 'border-green-100',
-                                iconColor: 'text-green-600',
-                                title: dir === 'rtl' ? '3. ورش العمل التنفيذية' : '3. Executive Workshops',
-                                desc: dir === 'rtl' ? 'جلسات مباشرة مع خبراء مخصصة بناءً على نتائج تشخيصك.' : 'Live sessions with experts, personalized based on your audit results.',
-                                href: '/training',
-                                cta: dir === 'rtl' ? 'استكشف الورش' : 'Explore Workshops',
-                                locked: !isDiagnosisComplete
-                            },
-                            {
-                                icon: Brain,
-                                color: 'indigo',
-                                bg: 'bg-indigo-50',
-                                border: 'border-indigo-100',
-                                iconColor: 'text-indigo-600',
-                                title: dir === 'rtl' ? '4. المستشار الاستراتيجي AI' : '4. AI Strategic Advisor',
-                                desc: dir === 'rtl' ? 'دعم مهني 24/7 مع مساعد ذكاء اصطناعي + خطة تعلم مخصصة.' : '24/7 professional support with an AI advisor + personalized learning plan.',
-                                href: '/mentor',
-                                cta: dir === 'rtl' ? 'تحدث مع المستشار' : 'Talk to Advisor',
-                                locked: false
-                            },
-                            {
-                                icon: BookOpen,
-                                color: 'orange',
-                                bg: 'bg-orange-50',
-                                border: 'border-orange-100',
-                                iconColor: 'text-orange-600',
-                                title: dir === 'rtl' ? '5. قاعدة المعرفة' : '5. Knowledge Base',
-                                desc: dir === 'rtl' ? 'أهم منهجيات الإدارة وحالات دراسية واقعية لتعزيز فهمك.' : 'Key management methodologies and real case studies to strengthen your understanding.',
-                                href: '/academy',
-                                cta: dir === 'rtl' ? 'استكشف المعرفة' : 'Explore Knowledge',
-                                locked: false
-                            },
-                            {
-                                icon: MessageSquare,
-                                color: 'pink',
-                                bg: 'bg-pink-50',
-                                border: 'border-pink-100',
-                                iconColor: 'text-pink-600',
-                                title: dir === 'rtl' ? '7. استشارة الخبراء' : '7. Expert Consultation',
-                                desc: dir === 'rtl' ? 'مراجعة قراراتك ومشاريعك الهامة عبر خبير متخصص.' : 'Review your key decisions and projects with a specialized expert.',
-                                href: '/expert',
-                                cta: dir === 'rtl' ? 'احجز استشارة' : 'Book Consultation',
-                                locked: !isDiagnosisComplete
-                            },
-                            {
-                                icon: Shield,
-                                color: 'slate',
-                                bg: 'bg-slate-900',
-                                border: 'border-slate-800',
-                                iconColor: 'text-white',
-                                title: dir === 'rtl' ? 'التقرير التشخيصي الشامل' : 'Full Diagnostic Report',
-                                desc: dir === 'rtl' ? 'وثيقة ذكاء مهني شاملة مع خارطة طريق 18 شهراً.' : 'Comprehensive career intelligence document with an 18-month strategic roadmap.',
-                                href: '/strategic-report',
-                                cta: dir === 'rtl' ? 'عرض التقرير' : 'View Report',
-                                locked: !isDiagnosisComplete,
-                                dark: true
-                            },
-                        ].map((item, idx) => (
-                            <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.5 + idx * 0.06 }}
-                                className={`rounded-2xl border p-5 flex flex-col gap-3 ${item.dark ? 'bg-slate-900 border-slate-800' : `bg-white ${item.border}`} ${item.locked ? 'opacity-50' : 'hover:shadow-lg transition-shadow'}`}
-                            >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.dark ? 'bg-white/10' : item.bg}`}>
-                                    <item.icon className={`w-5 h-5 ${item.dark ? 'text-white' : item.iconColor}`} />
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className={`font-bold text-sm mb-1 ${item.dark ? 'text-white' : 'text-slate-900'}`}>{item.title}</h4>
-                                    <p className={`text-xs leading-relaxed ${item.dark ? 'text-slate-400' : 'text-slate-500'}`}>{item.desc}</p>
-                                </div>
-                                {item.locked ? (
-                                    <span className={`text-[10px] font-black uppercase tracking-widest ${item.dark ? 'text-slate-600' : 'text-slate-300'}`}>
-                                        {dir === 'rtl' ? '🔒 يتطلب إكمال التشخيص' : '🔒 Requires diagnosis completion'}
-                                    </span>
-                                ) : (
-                                    <Link
-                                        href={item.href}
-                                        className={`flex items-center gap-1 text-xs font-black uppercase tracking-widest ${item.dark ? 'text-blue-400 hover:text-blue-300' : `${item.iconColor} hover:opacity-70`} transition-opacity`}
-                                    >
-                                        {item.cta}
-                                        <ArrowRight className={`w-3 h-3 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
-                                    </Link>
-                                )}
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-
             {/* ── Support & Help Section ── */}
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -799,13 +886,11 @@ export default function DashboardPage() {
                 className="mt-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6"
             >
                 <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-1">
-                        {dir === 'rtl' ? 'مركز الدعم والمساندة' : 'Support & Help Center'}
+                     <h3 className="text-xl font-bold text-slate-900 mb-1">
+                        {t.dashboard.support.title}
                     </h3>
                     <p className="text-slate-500 text-sm">
-                        {dir === 'rtl' 
-                            ? 'هل لديك استفسار أو واجهت مشكلة؟ نحن هنا لمساعدتك في رحلتك المهنية.' 
-                            : 'Have a question or encountered an issue? We are here to help you in your career journey.'}
+                        {t.dashboard.support.subtitle}
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-4">
@@ -815,8 +900,8 @@ export default function DashboardPage() {
                         href={`mailto:${support?.adminEmail || 'support@careerupgrade.ai'}`}
                         className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg hover:bg-blue-600 transition-all"
                     >
-                        <Mail size={18} />
-                        {dir === 'rtl' ? 'تواصل معنا بالإيميل' : 'Contact via Email'}
+                         <Mail size={18} />
+                        {t.dashboard.support.contactEmail}
                     </motion.a>
                     <motion.a 
                         whileHover={{ scale: 1.05, y: -2 }}
@@ -829,7 +914,7 @@ export default function DashboardPage() {
                         <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                         </svg>
-                        WhatsApp
+                        {t.dashboard.support.contactWhatsapp}
                     </motion.a>
                 </div>
             </motion.div>

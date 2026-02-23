@@ -22,6 +22,7 @@ const fetchWithTimeout = async (resource: string, options: RequestInit = {}, tim
 };
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import ReactMarkdown from "react-markdown";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { type Language } from "@/lib/i18n/translations";
@@ -98,6 +99,7 @@ export default function SimulationPage() {
     const [lastError, setLastError] = useState<string | null>(null);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const hasInitializedRef = useRef(false);
+    const comprehensiveReportRef = useRef<HTMLDivElement>(null);
 
     const handleDownloadReport = async () => {
         if (!finalReport || !selectedRole) return;
@@ -195,9 +197,29 @@ export default function SimulationPage() {
                         <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569; white-space: pre-wrap;">${finalReport.recommendations}</p>
                     </div>
 
-                    <!-- Footer -->
-                    <div style="margin-top: 50px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                        MA-TRAINING-CONSULTING • Role Simulation & Capability Analysis
+                    <!-- Footer and Stamp -->
+                    <div style="margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; flex-direction: ${dir === 'rtl' ? 'row-reverse' : 'row'};">
+                        <div style="text-align: ${dir === 'rtl' ? 'right' : 'left'}; color: #64748b; font-size: 11px;">
+                            <p style="margin: 0; font-weight: bold; color: #0f172a;">${t.simulation.comprehensiveReport.verifiedAssessment}</p>
+                            <p style="margin: 5px 0 0 0;">MA-TRAINING-CONSULTING • AI CAREER ARCHITECTURE</p>
+                            <p style="margin: 2px 0 0 0;">${new Date().getFullYear()}</p>
+                        </div>
+                        
+                        <div style="position: relative; width: 160px; height: 80px;">
+                            <!-- Signature -->
+                            <div style="position: absolute; top: -20px; ${dir === 'rtl' ? 'right' : 'left'}: -10px; z-index: 20; transform: rotate(-5deg);">
+                                <svg width="140" height="60" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"/>
+                                    <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="#2563eb" stroke-width="2" stroke-linecap="round" style="opacity: 0.7;"/>
+                                </svg>
+                            </div>
+                            <!-- Stamp -->
+                            <div style="width: 120px; height: 60px; border: 2px solid #2563eb; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: serif; color: #2563eb; opacity: 0.8; transform: rotate(5deg);">
+                                <p style="margin: 0; font-size: 8px; font-weight: 900; text-transform: uppercase; line-height: 1;">Sté MA</p>
+                                <p style="margin: 2px 0; font-size: 5px; font-weight: bold; text-transform: uppercase; line-height: 1;">Training Consulting</p>
+                                <p style="margin: 0; font-size: 4px; font-weight: bold; line-height: 1;">Tel: 44 172 264 | MF: 1805031P/A/M/000</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -210,7 +232,10 @@ export default function SimulationPage() {
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
-                windowWidth: 800
+                windowWidth: 800,
+                onclone: (clonedDoc) => {
+                    sanitizeForHtml2Canvas(clonedDoc);
+                }
             });
 
             // 4. Cleanup
@@ -239,6 +264,53 @@ export default function SimulationPage() {
 
             pdf.save(`Simulation_Report_${selectedRole.title.replace(/\s+/g, '_')}.pdf`);
 
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert(t.simulation.failedDownloadPdf);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleDownloadComprehensivePDF = async () => {
+        if (!comprehensiveReport) return;
+        setIsDownloading(true);
+
+        try {
+            const container = comprehensiveReportRef.current;
+            if (!container) return;
+
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: "#ffffff",
+                onclone: (clonedDoc) => {
+                    sanitizeForHtml2Canvas(clonedDoc);
+                }
+            });
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position -= pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`Comprehensive_Report_${new Date().toISOString().split('T')[0]}.pdf`);
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert(t.simulation.failedDownloadPdf);
@@ -734,19 +806,18 @@ export default function SimulationPage() {
                     </button>
                 </div>
                 <div ref={resultsRef} id="simulation-results" className="space-y-6">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-linear-to-br from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 p-8"
+                    <div
+                        className="rounded-2xl border-2 border-purple-200 p-8"
+                        style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%)' }}
                     >
                         <div className={`flex flex-col md:flex-row items-center justify-between gap-6 ${dir === 'rtl' ? 'md:flex-row-reverse' : ''}`}>
                             <div className={`flex items-center gap-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                                    <Award className="w-10 h-10 text-purple-600" />
+                                <div className="w-20 h-20 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#f3e8ff' }}>
+                                    <Award className="w-10 h-10" style={{ color: '#9333ea' }} />
                                 </div>
                                 <div className={dir === 'rtl' ? 'text-right' : 'text-left'}>
                                     <h1 className="text-3xl font-bold text-slate-900 mb-1">{t.simulation.complete}</h1>
-                                    <p className="text-slate-600">{t.simulation.performanceReport} <span className="font-bold text-purple-600">{selectedRole?.title}</span></p>
+                                    <p className="text-slate-600">{t.simulation.performanceReport} <span className="font-bold" style={{ color: '#9333ea' }}>{selectedRole?.title}</span></p>
                                 </div>
                             </div>
 
@@ -775,27 +846,24 @@ export default function SimulationPage() {
                                 </button>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Overall Performance */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+                    <div
+                        className="bg-white rounded-2xl border border-slate-200 p-6"
                     >
                         <h2 className={`text-2xl font-bold text-slate-900 mb-6 ${dir === 'rtl' ? 'text-right' : ''}`}>{t.simulation.overallPerformance}</h2>
 
                         <div className="grid md:grid-cols-3 gap-6 mb-8">
-                            <div className="text-center p-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                            <div className="text-center p-6 rounded-2xl border border-blue-200" style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' }}>
                                 <div className="text-5xl font-black text-blue-600 mb-2">{finalReport.overallScore}</div>
                                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t.simulation.overallScore}</div>
                             </div>
-                            <div className="text-center p-6 bg-linear-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
+                            <div className="text-center p-6 rounded-2xl border border-green-200" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
                                 <div className="text-5xl font-black text-green-600 mb-2">{finalReport.readinessLevel}%</div>
                                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t.simulation.readiness}</div>
                             </div>
-                            <div className="text-center p-6 bg-linear-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
+                            <div className="text-center p-6 rounded-2xl border border-purple-200" style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #f3e8ff 100%)' }}>
                                 <div className="text-5xl font-black text-purple-600 mb-2">{(t.simulation.rankLabels as Record<string, string>)[finalReport.rank] || finalReport.rank}</div>
                                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t.simulation.rank}</div>
                             </div>
@@ -809,77 +877,73 @@ export default function SimulationPage() {
                                     <div key={skill} className="space-y-3" dir={dir}>
                                         <div className={`flex justify-between items-center ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                                             <span className="text-sm font-bold text-slate-700 capitalize">{skill.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                            <span className="text-sm font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{score}/10</span>
+                                            <span className="text-sm font-black px-2 py-0.5 rounded" style={{ color: '#2563eb', backgroundColor: '#eff6ff' }}>{score}/10</span>
                                         </div>
-                                        <div className="w-full bg-slate-100 rounded-full h-3 block shadow-inner">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${(score / 10) * 100}%` }}
-                                                className={`h-3 rounded-full transition-all duration-1000 ${dir === 'rtl' ? 'bg-linear-to-l' : 'bg-linear-to-r'} from-blue-500 to-blue-600`}
+                                        <div className="w-full bg-slate-100 rounded-full h-3 block">
+                                            <div
+                                                className="h-3 rounded-full transition-all duration-1000"
+                                                style={{ 
+                                                    width: `${(score / 10) * 100}%`,
+                                                    background: 'linear-gradient(to right, #3b82f6, #2563eb)'
+                                                }}
                                             />
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Key Strengths & Improvements */}
                     <div className="grid md:grid-cols-2 gap-6">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-white rounded-2xl border border-green-200 p-6 shadow-sm"
+                        <div
+                            className="bg-white rounded-2xl border p-6"
+                            style={{ borderColor: '#bcf2d6' }}
                         >
                             <div className={`flex items-center gap-2 mb-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <CheckCircle className="w-6 h-6 text-green-600" />
+                                <CheckCircle className="w-6 h-6" style={{ color: '#16a34a' }} />
                                 <h3 className="text-xl font-bold text-slate-900">{t.simulation.keyStrengths}</h3>
                             </div>
                             <ul className="space-y-3">
                                 {finalReport.keyStrengths?.map((strength: string, i: number) => (
-                                    <li key={i} className={`flex items-start gap-3 p-3 bg-green-50 rounded-xl text-slate-700 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`}>
-                                        <CheckCircle className={`w-4 h-4 text-green-500 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} />
+                                    <li key={i} className={`flex items-start gap-3 p-3 rounded-xl text-slate-700 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`} style={{ backgroundColor: '#f0fdf4' }}>
+                                        <CheckCircle className={`w-4 h-4 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} style={{ color: '#22c55e' }} />
                                         <span>{strength}</span>
                                     </li>
                                 ))}
                             </ul>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm"
+                        <div
+                            className="bg-white rounded-2xl border p-6"
+                            style={{ borderColor: '#fed7aa' }}
                         >
                             <div className={`flex items-center gap-2 mb-4 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <AlertCircle className="w-6 h-6 text-orange-600" />
+                                <AlertCircle className="w-6 h-6" style={{ color: '#ea580c' }} />
                                 <h3 className="text-xl font-bold text-slate-900">{t.simulation.areasGrowth}</h3>
                             </div>
                             <ul className="space-y-3">
                                 {finalReport.areasToImprove?.map((area: string, i: number) => (
-                                    <li key={i} className={`flex items-start gap-3 p-3 bg-orange-50 rounded-xl text-slate-700 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`}>
-                                        <AlertCircle className={`w-4 h-4 text-orange-500 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} />
+                                    <li key={i} className={`flex items-start gap-3 p-3 rounded-xl text-slate-700 text-sm font-medium ${dir === 'rtl' ? 'flex-row-reverse text-right' : ''}`} style={{ backgroundColor: '#fff7ed' }}>
+                                        <AlertCircle className={`w-4 h-4 shrink-0 mt-0.5 ${dir === 'rtl' ? 'ml-2' : ''}`} style={{ color: '#f97316' }} />
                                         <span>{area}</span>
                                     </li>
                                 ))}
                             </ul>
-                        </motion.div>
+                        </div>
                     </div>
 
                     {/* Recommendations */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl p-0.5"
+                    <div
+                        className="rounded-2xl p-0.5"
+                        style={{ background: 'linear-gradient(to right, #2563eb, #9333ea)' }}
                     >
                         <div className="bg-white rounded-[calc(1rem-2px)] p-8">
                             <div className={`flex items-center gap-3 mb-6 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                    <Lightbulb className="w-6 h-6 text-blue-600" />
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#dbeafe' }}>
+                                    <Lightbulb className="w-6 h-6" style={{ color: '#2563eb' }} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-900">{t.simulation.strategicRecommendations}</h3>
+                                <h3 className="text-2xl font-bold text-slate-900">{t.simulation.rankLabels && t.simulation.strategicRecommendations}</h3>
                             </div>
                             <div className="prose prose-slate max-w-none">
                                 <div className={`text-slate-700 leading-relaxed text-lg whitespace-pre-wrap ${dir === 'rtl' ? 'text-right' : ''}`}>
@@ -887,83 +951,82 @@ export default function SimulationPage() {
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
 
-                {/* Comprehensive Report Section */}
                 {comprehensiveReport && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="mt-8 relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-2xl"
+                    <div
+                        className="mt-8 relative overflow-hidden bg-white rounded-3xl border border-slate-200"
                     >
                         {/* Decorative Top Banner */}
-                        <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500" />
+                        <div data-html2canvas-ignore className="absolute top-0 left-0 w-full h-2" style={{ background: 'linear-gradient(to right, #6366f1, #a855f7, #ec4899)' }} />
                         
                         {/* Background Pattern/Watermark */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-indigo-50 to-purple-50 rounded-bl-full opacity-50 z-0" />
-                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-linear-to-tr from-blue-50 to-cyan-50 rounded-tr-full opacity-50 z-0" />
+                        <div data-html2canvas-ignore className="absolute top-0 right-0 w-64 h-64 rounded-bl-full z-0" style={{ background: 'linear-gradient(to bottom right, #f5f3ff, #eff6ff)', opacity: 0.5 }} />
+                        <div data-html2canvas-ignore className="absolute bottom-0 left-0 w-40 h-40 rounded-tr-full z-0" style={{ background: 'linear-gradient(to top right, #eff6ff, #ecfeff)', opacity: 0.5 }} />
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none select-none">
-                             <Award className="w-[600px] h-[600px] text-slate-900" />
+                             <Award className="w-[600px] h-[600px]" style={{ color: '#0f172a' }} />
                         </div>
 
-                        <div className="p-8 md:p-12 relative z-10">
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-100">
+                        <div ref={comprehensiveReportRef} className="p-8 md:p-12 relative z-10 bg-white">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 pb-6" style={{ borderBottom: '1px solid #f1f5f9' }}>
                                 <div className="flex items-center gap-5">
-                                    <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg text-white">
+                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white" style={{ backgroundColor: '#0f172a' }}>
                                         <Award className="w-8 h-8" />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl md:text-3xl font-black text-slate-900">
+                                        <h2 className="text-2xl md:text-3xl font-black" style={{ color: '#0f172a' }}>
                                             {t.simulation.comprehensiveReport.title}
                                         </h2>
-                                        <p className="text-slate-500 font-medium mt-1">
+                                        <p className="font-medium mt-1" style={{ color: '#64748b' }}>
                                             {t.simulation.comprehensiveReport.subtitle}
                                         </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => {
-                                        const blob = new Blob([comprehensiveReport], { type: 'text/plain' });
-                                        const url = URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `Comprehensive_Diagnosis_${new Date().toISOString().split('T')[0]}.txt`;
-                                        a.click();
-                                        URL.revokeObjectURL(url);
-                                    }}
-                                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all flex items-center gap-2 text-sm"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    <span>
-                                        {t.simulation.comprehensiveReport.exportToText}
-                                    </span>
-                                </button>
+                                <div data-html2canvas-ignore className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={handleDownloadComprehensivePDF}
+                                        disabled={isDownloading}
+                                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all flex items-center gap-2 text-sm shadow-lg shadow-indigo-200"
+                                    >
+                                        {isDownloading ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <Download className="w-4 h-4" />
+                                        )}
+                                        <span>
+                                            {t.simulation.downloadPdf}
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="prose prose-slate prose-lg max-w-none font-sans text-lg text-slate-700">
                                 <ReactMarkdown
                                     components={{
-                                        h1: ({ ...props }) => <h1 className="text-3xl md:text-4xl font-black text-center text-transparent bg-clip-text bg-linear-to-r from-indigo-700 to-purple-600 mb-10 pb-6 border-b-2 border-indigo-100" {...props} />,
-                                        h2: ({ ...props }) => <h2 className="text-xl md:text-2xl font-bold text-indigo-900 mt-12 mb-6 flex items-center gap-3 bg-indigo-50/80 p-5 rounded-2xl border-l-4 border-indigo-500 shadow-sm" {...props} />,
-                                        h3: ({ ...props }) => <h3 className="text-lg md:text-xl font-bold text-slate-800 mt-8 mb-4 border-b border-slate-200 pb-2 flex items-center gap-2" {...props} />,
-                                        p: ({ ...props }) => <p className="mb-6 leading-loose text-slate-700 text-[17px]" {...props} />,
-                                        ul: ({ ...props }) => <ul className="space-y-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-200/60 shadow-inner" {...props} />,
+                                        h1: ({ ...props }) => (
+                                            <div className="mb-10 pb-6 text-center" style={{ borderBottom: '2px solid #e0e7ff' }}>
+                                                <h1 className="text-3xl md:text-4xl font-black" style={{ color: '#3730a3' }} {...props} />
+                                            </div>
+                                        ),
+                                        h2: ({ ...props }) => <h2 className="text-xl md:text-2xl font-bold mt-12 mb-6 flex items-center gap-3 p-5 rounded-2xl" style={{ backgroundColor: '#f8fafc', color: '#1e1b4b', borderLeft: '4px solid #6366f1' }} {...props} />,
+                                        h3: ({ ...props }) => <h3 className="text-lg md:text-xl font-bold mt-8 mb-4 pb-2 flex items-center gap-2" style={{ color: '#1e293b', borderBottom: '1px solid #e2e8f0' }} {...props} />,
+                                        p: ({ ...props }) => <p className="mb-6 leading-loose text-[17px]" style={{ color: '#334155' }} {...props} />,
+                                        ul: ({ ...props }) => <ul className="space-y-4 mb-8 p-6 rounded-3xl border" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }} {...props} />,
                                         li: ({ ...props }) => (
                                             <li className="flex items-start gap-3" {...props}>
-                                                <span className="mt-2.5 w-2 h-2 rounded-full bg-indigo-600 shrink-0 shadow-sm shadow-indigo-500/30" />
+                                                <span className="mt-2.5 w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: '#4f46e5' }} />
                                                 <span className="flex-1 leading-relaxed">{props.children}</span>
                                             </li>
                                         ),
-                                        strong: ({ ...props }) => <strong className="font-bold text-indigo-900 bg-indigo-50/80 px-1.5 py-0.5 rounded-md mx-0.5 border border-indigo-100/50" {...props} />,
+                                        strong: ({ ...props }) => <strong className="font-bold px-1.5 py-0.5 rounded-md mx-0.5 border" style={{ color: '#1e1b4b', backgroundColor: '#eef2ff', borderColor: '#e0e7ff' }} {...props} />,
                                         blockquote: ({ ...props }) => (
                                             <div className="relative my-8 group">
-                                                <div className="absolute -left-2 top-0 bottom-0 w-1 bg-linear-to-b from-amber-400 to-orange-400 rounded-full" />
-                                                <blockquote className="italic text-slate-700 bg-amber-50/50 p-6 rounded-2xl border border-amber-100/50 pl-8 leading-relaxed" {...props} />
+                                                <div className="absolute -left-2 top-0 bottom-0 w-1 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+                                                <blockquote className="italic p-6 rounded-2xl border pl-8 leading-relaxed" style={{ color: '#334155', backgroundColor: '#fffbeb', borderColor: '#fef3c7' }} {...props} />
                                             </div>
                                         ),
-                                        hr: ({ ...props }) => <hr className="my-10 border-slate-200" {...props} />,
+                                        hr: ({ ...props }) => <hr className="my-10" style={{ borderColor: '#e2e8f0' }} {...props} />,
                                     }}
                                 >
                                     {comprehensiveReport || ''}
@@ -971,16 +1034,37 @@ export default function SimulationPage() {
                             </div>
                             
                             {/* Professional Footer */}
-                            <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                    <span>{t.simulation.comprehensiveReport.verifiedAssessment}</span>
+                            <div className="mt-12 pt-8 flex flex-col md:flex-row justify-between items-end gap-8" style={{ borderTop: '1px solid #f1f5f9' }}>
+                                <div className="flex flex-col gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+                                        <span>{t.simulation.comprehensiveReport.verifiedAssessment}</span>
+                                    </div>
+                                    <span>MA-TRAINING-CONSULTING • AI CAREER ARCHITECTURE</span>
+                                    <span>{new Date().getFullYear()}</span>
                                 </div>
-                                <span>MA-TRAINING-CONSULTING • AI CAREER ARCHITECTURE</span>
-                                <span>{new Date().getFullYear()}</span>
+
+                                <div className="relative group">
+                                    {/* Company Stamp & Signature Overlay */}
+                                    <div className="relative">
+                                        {/* Consultant Signature Scribble - Enlarged and Overlapping */}
+                                        <div className={`absolute inset-0 flex items-center justify-center z-20 transform -rotate-12 ${dir === 'rtl' ? '-translate-x-6' : 'translate-x-6'} -translate-y-6`}>
+                                            <svg width="180" height="70" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#2563eb', opacity: 0.7 }}>
+                                                <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            </svg>
+                                        </div>
+                                        <div className="w-36 h-18 border-2 rounded-lg flex flex-col items-center justify-center bg-white relative z-10" style={{ borderColor: '#3b82f6', color: '#3b82f6', fontFamily: 'serif' }}>
+                                            <p className="text-[9px] font-black uppercase tracking-tighter leading-none mb-0.5">Sté MA</p>
+                                            <p className="text-[6px] font-bold uppercase tracking-widest leading-none mb-1">Training Consulting</p>
+                                            <p className="text-[5px] font-bold leading-none mb-0.5">Tel: 44 172 264</p>
+                                            <p className="text-[5px] font-bold leading-none">MF: 1805031P/A/M/000</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 )}
 
                 {/* Action Button - Strategically enhanced to guide user */}
@@ -989,27 +1073,24 @@ export default function SimulationPage() {
                         <div className="relative w-full max-w-4xl group">
                             {/* Giant Pulsing Background Glow */}
                             {!isGeneratingReport && (
-                                <motion.div
-                                    animate={{ 
-                                        scale: [1, 1.05, 1],
-                                        opacity: [0.3, 0.6, 0.3]
+                                <div
+                                    className="absolute -inset-4 rounded-[3rem] blur-2xl z-0"
+                                    style={{ 
+                                        background: 'linear-gradient(to right, #4f46e5, #9333ea, #db2777)',
+                                        opacity: 0.4
                                     }}
-                                    transition={{ 
-                                        duration: 2, 
-                                        repeat: Infinity, 
-                                        ease: "easeInOut" 
-                                    }}
-                                    className="absolute -inset-4 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-[3rem] blur-2xl z-0"
                                 />
                             )}
                             
-                            <motion.button
+                            <button
                                 onClick={handleGenerateComprehensiveReport}
                                 disabled={isGeneratingReport}
                                 data-html2canvas-ignore
-                                whileHover={{ scale: 1.02, y: -5 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="relative z-10 w-full py-8 bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-[2.5rem] font-black text-2xl md:text-3xl transition-all shadow-[0_20px_50px_rgba(79,70,229,0.3)] hover:shadow-[0_30px_60px_rgba(79,70,229,0.5)] flex items-center justify-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-white/20"
+                                className="relative z-10 w-full py-8 text-white rounded-[2.5rem] font-black text-2xl md:text-3xl transition-all flex items-center justify-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-white/20"
+                                style={{ 
+                                    background: 'linear-gradient(to right, #4f46e5, #9333ea, #db2777)',
+                                    boxShadow: '0 20px 50px rgba(79,70,229,0.3)'
+                                }}
                             >
                                 {isGeneratingReport ? (
                                     <>
@@ -1033,7 +1114,7 @@ export default function SimulationPage() {
                                         </motion.div>
                                     </>
                                 )}
-                            </motion.button>
+                            </button>
                         </div>
                     ) : (
                         <div className="relative w-full max-w-4xl group">

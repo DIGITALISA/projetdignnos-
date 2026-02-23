@@ -1,420 +1,669 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, ShieldCheck, CheckCircle2, QrCode, Loader2, Award, Sparkles, Target, Zap } from "lucide-react";
+import {
+  Download,
+  ShieldCheck,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+  Target,
+  Zap,
+} from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import Image from "next/image";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 
 import { AssetLocked } from "@/components/layout/AssetLocked";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface Competency {
-    label: string;
-    status: string;
-    score: number;
+  label: string;
+  status: string;
+  score: number;
 }
 
 interface ReadinessStatus {
-    isReady: boolean;
-    hasDiagnosis: boolean;
-    hasSimulation: boolean;
-    certReady: boolean;
-    recReady: boolean;
+  isReady: boolean;
+  hasDiagnosis: boolean;
+  hasSimulation: boolean;
+  certReady: boolean;
+  recReady: boolean;
 }
 
 interface PerformanceProfile {
-    referenceId: string;
-    userName: string;
-    summary: string;
-    verdict: string;
-    competencies: Competency[];
-    createdAt: string;
+  referenceId: string;
+  userName: string;
+  summary: string;
+  verdict: string;
+  competencies: Competency[];
+  createdAt: string;
 }
 
 export default function CertificatePage() {
-    const certificateRef = useRef<HTMLDivElement>(null);
-    const [profile, setProfile] = useState<PerformanceProfile | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [isDownloading, setIsDownloading] = useState(false);
-    const [readiness, setReadiness] = useState<ReadinessStatus>({ isReady: false, hasDiagnosis: false, hasSimulation: false, certReady: false, recReady: false });
+  const { t, language, dir } = useLanguage();
+  const certificateRef = useRef<HTMLDivElement>(null);
+  const [profile, setProfile] = useState<PerformanceProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [readiness, setReadiness] = useState<ReadinessStatus>({
+    isReady: false,
+    hasDiagnosis: false,
+    hasSimulation: false,
+    certReady: false,
+    recReady: false,
+  });
 
-    const checkReadiness = async (userId: string) => {
-        try {
-            const res = await fetch(`/api/user/readiness?userId=${encodeURIComponent(userId)}`);
-            const data = await res.json();
-            if (data.success) {
-                setReadiness(data);
-                return data.certReady;
-            }
-        } catch (err) {
-            console.error("Readiness check error:", err);
-        }
-        return false;
-    };
-
-    const fetchProfile = async (identifier: string) => {
-        setIsLoading(true);
-        try {
-            const ready = await checkReadiness(identifier);
-            if (!ready) {
-                setIsLoading(false);
-                return;
-            }
-
-            const res = await fetch(`/api/user/performance-profile?userId=${encodeURIComponent(identifier)}`);
-            const data = await res.json();
-            if (data.success) {
-                setProfile(data.profile);
-            }
-        } catch (error) {
-            console.error("Error fetching profile:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleGenerate = async () => {
-        setIsGenerating(true);
-        try {
-            const savedProfile = localStorage.getItem("userProfile");
-            const { fullName, email } = JSON.parse(savedProfile || '{}');
-            const identifier = email || fullName;
-            const language = localStorage.getItem('selectedLanguage') || 'en';
-
-            const res = await fetch('/api/user/performance-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: identifier, userName: fullName, language })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setProfile(data.profile);
-            } else {
-                alert(data.error || "Generation failed");
-            }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const [userPlan, setUserPlan] = useState("None");
-
-    useEffect(() => {
-        const loadProfile = () => {
-            try {
-                const savedProfile = localStorage.getItem("userProfile");
-                if (savedProfile) {
-                    const parsed = JSON.parse(savedProfile);
-                    setUserPlan(parsed.plan || "None");
-                    const { fullName, email } = parsed;
-                    const identifier = email || fullName;
-                    if (identifier) {
-                        fetchProfile(identifier);
-                    }
-                } else {
-                    setIsLoading(false);
-                }
-            } catch (e) {
-                console.error("Failed to load profile", e);
-                setIsLoading(false);
-            }
-        };
-
-        loadProfile();
-        window.addEventListener("profileUpdated", loadProfile);
-        return () => window.removeEventListener("profileUpdated", loadProfile);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const handleDownload = async () => {
-        if (!certificateRef.current || !profile) return;
-
-        setIsDownloading(true);
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        try {
-            const canvas = await html2canvas(certificateRef.current, {
-                scale: 3,
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-                backgroundColor: "#ffffff",
-                onclone: (clonedDoc) => {
-                    // 1. Remove stubborn link tags
-                    const links = clonedDoc.getElementsByTagName('link');
-                    while (links.length > 0) {
-                        links[0].parentNode?.removeChild(links[0]);
-                    }
-
-                    // 2. Inject Safe Styles & Font
-                    const safeStyle = clonedDoc.createElement('style');
-                    safeStyle.innerHTML = `
-                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
-                        * { font-family: 'Tajawal', sans-serif !important; }
-                        .bg-white { background-color: #ffffff !important; }
-                        .text-slate-900 { color: #0f172a !important; }
-                        .text-slate-700 { color: #334155 !important; }
-                        .text-slate-500 { color: #64748b !important; }
-                        .text-blue-600 { color: #2563eb !important; }
-                        .border-blue-600 { border-color: #2563eb !important; }
-                        .font-black { font-weight: 900 !important; }
-                        .uppercase { text-transform: uppercase !important; }
-                    `;
-                    clonedDoc.head.appendChild(safeStyle);
-                }
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const margin = 10;
-            const contentWidth = pdfWidth - (margin * 2);
-            const contentHeight = pdfHeight - (margin * 2);
-            const imgProps = pdf.getImageProperties(imgData);
-            const ratio = imgProps.width / imgProps.height;
-
-            let w = contentWidth;
-            let h = contentWidth / ratio;
-
-            if (h > contentHeight) {
-                h = contentHeight;
-                w = contentHeight * ratio;
-            }
-
-            const x = margin + (contentWidth - w) / 2;
-            const y = margin + (contentHeight - h) / 2;
-
-            pdf.addImage(imgData, 'PNG', x, y, w, h);
-            pdf.save(`Executive-Performance-Profile-${profile.referenceId}.pdf`);
-        } catch (error: unknown) {
-            console.error("PDF generation failed:", error);
-            const err = error as Error;
-            alert(`Failed to generate PDF: ${err.message || "Unknown error"}`);
-        } finally {
-            setIsDownloading(false);
-        }
-    };
-
-    if (isLoading) {
-        return (
-            <div className="py-20 text-center flex flex-col items-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-6" />
-                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Retrieving Validated Credentials...</p>
-            </div>
-        );
+  const checkReadiness = async (userId: string) => {
+    try {
+      const res = await fetch(
+        `/api/user/readiness?userId=${encodeURIComponent(userId)}`,
+      );
+      const data = await res.json();
+      if (data.success) {
+        setReadiness(data);
+        return data.certReady;
+      }
+    } catch (err) {
+      console.error("Readiness check error:", err);
     }
+    return false;
+  };
 
-    if (!readiness.certReady || userPlan === "Free Trial" || userPlan === "None") {
-        return (
-            <AssetLocked
-                title="Executive Performance Profile"
-                description="Your Official Capability Profile is synthesized from your entire platform journey."
-                readiness={readiness}
-                isPremiumRequired={userPlan === "Free Trial" || userPlan === "None"}
-            />
-        );
+  const fetchProfile = async (identifier: string) => {
+    setIsLoading(true);
+    try {
+      const ready = await checkReadiness(identifier);
+      if (!ready) {
+        setIsLoading(false);
+        return;
+      }
+
+      const res = await fetch(
+        `/api/user/performance-profile?userId=${encodeURIComponent(identifier)}`,
+      );
+      const data = await res.json();
+      if (data.success) {
+        setProfile(data.profile);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const savedProfile = localStorage.getItem("userProfile");
+      const { fullName, email } = JSON.parse(savedProfile || "{}");
+      const identifier = email || fullName;
+      // Use the language from our context
+      const currentLanguage = language;
+
+      const res = await fetch("/api/user/performance-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: identifier,
+          userName: fullName,
+          language: currentLanguage,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfile(data.profile);
+      } else {
+        alert(data.error || "Generation failed");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const [userPlan, setUserPlan] = useState("None");
+
+  useEffect(() => {
+    const loadProfile = () => {
+      try {
+        const savedProfile = localStorage.getItem("userProfile");
+        if (savedProfile) {
+          const parsed = JSON.parse(savedProfile);
+          setUserPlan(parsed.plan || "None");
+          const { fullName, email } = parsed;
+          const identifier = email || fullName;
+          if (identifier) {
+            fetchProfile(identifier);
+          }
+        } else {
+          setIsLoading(false);
+        }
+      } catch (e) {
+        console.error("Failed to load profile", e);
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+    window.addEventListener("profileUpdated", loadProfile);
+    return () => window.removeEventListener("profileUpdated", loadProfile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleDownload = async () => {
+    if (!profile) return;
+    setIsDownloading(true);
+    
+    try {
+      console.log("PDF: Preparing high-res capture...");
+      const element = document.getElementById('certificate-content');
+      if (!element) throw new Error("Target element not found");
+
+      const scrollPos = window.scrollY;
+      window.scrollTo(0, 0);
+
+      const canvas = await html2canvas(element, {
+        scale: 2, // Stable high resolution
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 1400,
+        onclone: (clonedDoc) => {
+          // Use our utility for deep sanitization
+          sanitizeForHtml2Canvas(clonedDoc);
+          
+          const el = clonedDoc.getElementById('certificate-content');
+          if (el) {
+            el.style.width = '1400px';
+            el.style.padding = '80px';
+            el.style.margin = '0 auto';
+            el.style.borderRadius = '0';
+            el.style.boxShadow = 'none';
+            el.style.border = 'none';
+          }
+
+          // Force Horizontal Alignment for Header & Footer
+          clonedDoc.querySelectorAll('.flex-col.md\\:flex-row').forEach(node => {
+            const h = node as HTMLElement;
+            h.style.display = 'flex';
+            h.style.flexDirection = 'row';
+            h.style.justifyContent = 'space-between';
+            h.style.alignItems = 'center';
+            h.style.width = '100.5%';
+          });
+
+          // Nuke all decorative border artifacts that appear blue in PDF
+          clonedDoc.querySelectorAll('.border-double, .border-slate-200.p-1, .border-slate-100').forEach(n => {
+             (n as HTMLElement).style.setProperty('border', 'none', 'important');
+             (n as HTMLElement).style.setProperty('padding', '0', 'important');
+          });
+
+          // Ensure UI is hidden
+          clonedDoc.querySelectorAll('button, nav, .dashboard-sidebar, .sidebar').forEach(btn => {
+            (btn as HTMLElement).style.display = 'none';
+          });
+        }
+      });
+
+      window.scrollTo(0, scrollPos);
+
+      console.log("PDF: Image generated, saving...");
+      const imgData = canvas.toDataURL("image/png", 1.0);
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = pdfHeight - (margin * 2);
+
+      let finalW = contentWidth;
+      let finalH = (canvas.height * contentWidth) / canvas.width;
+
+      if (finalH > contentHeight) {
+        finalH = contentHeight;
+        finalW = (canvas.width * contentHeight) / canvas.height;
+      }
+
+      const x = margin + (contentWidth - finalW) / 2;
+      const y = margin + (contentHeight - finalH) / 2;
+
+      pdf.addImage(imgData, 'PNG', x, y, finalW, finalH, undefined, 'FAST');
+      pdf.save(`Executive-Performance-Profile-${profile.referenceId}.pdf`);
+      console.log("PDF: SUCCESS!");
+    } catch (err: unknown) {
+      console.error("PDF FAILURE:", err);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      alert(`Export Failed: ${msg}.`);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  if (isLoading) {
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 pb-20">
-            {/* Header & Generation */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
-                <div className="flex-1">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Executive Performance Profile</h2>
-                    <p className="text-slate-500 font-medium max-w-lg mt-1 font-arabic" dir="rtl">
-                        ملفك التنفيذي يتم إنشاؤه بناءً على كامل مسارك: التشخيص، الورشات، والمحاكاة مع الخبير.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleGenerate}
-                        disabled={isGenerating}
-                        className="flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
-                    >
-                        {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                        {profile ? "Regenerate Profile" : "Generate Profile"}
-                    </button>
-                    {profile && (
-                        <button
-                            onClick={handleDownload}
-                            disabled={isDownloading}
-                            className="flex items-center gap-3 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50"
-                        >
-                            {isDownloading ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-                            Export PDF
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {isGenerating && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-12 text-center space-y-4 bg-blue-50/50 rounded-[3rem] border border-blue-100 border-dashed"
-                >
-                    <div className="relative inline-block">
-                        <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
-                        <Zap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-black text-blue-900 font-arabic" dir="rtl">
-                        الذكاء الاصطناعي يقوم الآن بتحليل كامل مسارك...
-                    </h3>
-                    <p className="text-blue-600 text-sm font-bold uppercase tracking-[0.2em] animate-pulse">
-                        Synthesizing Diagnosis + Training + Simulation Data
-                    </p>
-                </motion.div>
-            )}
-
-            {/* Empty State */}
-            {!profile && !isGenerating && (
-                <div className="py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-100">
-                    <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-slate-300">
-                        <Target size={40} />
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-900 font-arabic" dir="rtl">لم يتم إنشاء ملف الأداء بعد</h3>
-                    <p className="text-slate-500 mt-2 max-w-sm mx-auto font-medium font-arabic" dir="rtl">
-                        اضغط على الزر أعلاه لتحليل بياناتك وإنتاج وثيقة الاعتماد التنفيذية الخاصة بك.
-                    </p>
-                </div>
-            )}
-
-            {/* Profile Display */}
-            {profile && !isGenerating && (
-                <div className="flex flex-col items-center">
-                    <div className="w-full max-w-6xl">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={profile.referenceId}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="relative p-1 bg-slate-200 rounded-[3.5rem] shadow-2xl"
-                                                            >
-                                    <div
-                                        ref={certificateRef}
-                                        className="relative w-full md:aspect-[1.414/1] bg-white rounded-4xl md:rounded-[3.4rem] flex flex-col p-8 md:p-20 overflow-hidden"
-                                        style={{
-                                            backgroundImage: "radial-gradient(circle at center, #ffffff 40%, #fcfcfc 100%)"
-                                        }}
-                                    >
-                                        {/* Security & Design Elements */}
-                                        <div className="absolute inset-4 md:inset-8 border-[0.5px] border-slate-200 pointer-events-none" />
-                                        <div className="absolute inset-6 md:inset-10 border-[3px] border-double border-slate-900/10 pointer-events-none" />
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none">
-                                            <ShieldCheck size={300} className="md:w-[600px] md:h-[600px]" />
-                                        </div>
-
-                                        <div className="relative z-10 h-full flex flex-col justify-between gap-8 md:gap-0">
-                                            {/* Header */}
-                                            <div className="flex flex-col md:flex-row justify-between items-start border-b-[0.5px] border-slate-200 pb-8 md:pb-12 gap-6 md:gap-0">
-                                                <div className="space-y-4">
-                                                    <h2 className="text-3xl md:text-5xl font-serif font-black tracking-tighter text-slate-900 uppercase leading-none">
-                                                        Strategic Capability Assessment
-                                                    </h2>
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">
-                                                        Comprehensive Analysis & Professional Readiness Evaluation
-                                                    </p>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="px-3 py-1 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
-                                                            Ref: {profile.referenceId}
-                                                        </div>
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                                        <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verification Active</div>
-                                                    </div>
-                                                </div>
-                                                <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-900 flex items-center justify-center text-white rounded-2xl md:rounded-[2.5rem] shadow-2xl shrink-0">
-                                                    <Award size={32} className="md:w-12 md:h-12" />
-                                                </div>
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 py-8 md:py-12">
-                                                <div className="col-span-1 md:col-span-8 space-y-6 md:space-y-10">
-                                                    <div className="space-y-4">
-                                                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Institutional Capability Analysis for</p>
-                                                        <h1 className="text-4xl md:text-7xl font-serif font-black text-slate-900 tracking-tight leading-none italic break-all">
-                                                            {profile.userName}
-                                                        </h1>
-                                                    </div>
-
-                                                    <p className="text-lg md:text-xl font-serif text-slate-700 leading-relaxed max-w-2xl font-medium border-l-4 border-blue-600 pl-6 md:pl-8">
-                                                        {profile.summary}
-                                                    </p>
-
-                                                    <div className="flex gap-4">
-                                                        <div className="px-6 md:px-8 py-3.5 bg-slate-900 text-white text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] rounded-xl self-start">
-                                                            Classification: {profile.verdict}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="col-span-1 md:col-span-4 bg-slate-50/80 border border-slate-100 rounded-3xl md:rounded-[3rem] p-6 md:p-10 space-y-8 md:space-y-10">
-                                                    <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900 border-b border-slate-200 pb-5">Core Competencies</h4>
-                                                    <div className="space-y-6 md:space-y-8">
-                                                        {profile.competencies?.map((item: Competency, i: number) => (
-                                                            <div key={i} className="space-y-3">
-                                                                <div className="flex justify-between items-end">
-                                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
-                                                                    <span className="text-[10px] md:text-xs font-black text-blue-700 uppercase tracking-tighter">{item.status}</span>
-                                                                </div>
-                                                                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                                                    <div className="h-full bg-slate-900 transition-all duration-1000" style={{ width: `${item.score}%` }} />
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                    <div className="pt-8 border-t border-slate-200">
-                                                        <div className="flex items-center gap-3 text-emerald-700">
-                                                            <CheckCircle2 size={18} />
-                                                            <span className="text-[11px] font-black uppercase tracking-[0.2em]">Verified Readiness</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Footer */}
-                                            <div className="flex flex-col md:flex-row md:items-end justify-between border-t-[0.5px] border-slate-200 pt-8 md:pt-12 gap-8 md:gap-0">
-                                                <div className="flex gap-12 md:gap-20">
-                                                    <div className="space-y-2">
-                                                        <p className="text-xl md:text-2xl font-serif font-black text-slate-900 border-b-2 border-slate-900 pb-2 mb-2 w-48">
-                                                            {new Date(profile.createdAt).toLocaleDateString()}
-                                                        </p>
-                                                        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Date of Attestation</p>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <div className="w-24 h-12 bg-slate-50 rounded-lg flex items-center justify-center mb-2 border border-slate-100">
-                                                            <QrCode size={32} className="opacity-20" />
-                                                        </div>
-                                                        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Digital Seal</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="text-left md:text-right">
-                                                    <p className="text-[8px] font-bold text-slate-300 uppercase tracking-[0.35em] leading-relaxed">
-                                                        THIS DOCUMENT IS GENERATED BY AI<br />
-                                                        BASED ON MULTI-STAGE SIMULATION DATA<br />
-                                                        AND VERIFIED TRAINING PERFORMANCE.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-                </div>
-            )}
-        </div>
+      <div className="py-20 text-center flex flex-col items-center">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-6" />
+        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
+          {t.performanceProfile.retrieving}
+        </p>
+      </div>
     );
+  }
+
+  if (
+    !readiness.certReady ||
+    userPlan === "Free Trial" ||
+    userPlan === "None"
+  ) {
+    return (
+      <AssetLocked
+        title={t.performanceProfile.title}
+        description={t.performanceProfile.subtitle}
+        readiness={readiness}
+        isPremiumRequired={userPlan === "Free Trial" || userPlan === "None"}
+      />
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 pb-20">
+      {/* Header & Generation */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
+        <div className="flex-1">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">
+            {t.performanceProfile.badge}
+          </h2>
+          <p
+            className="text-slate-500 font-medium max-w-lg mt-1 font-arabic"
+            dir={dir}
+          >
+            {t.performanceProfile.emptyStateDesc}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Sparkles size={16} />
+            )}
+            {profile ? t.performanceProfile.regenerate : t.performanceProfile.generate}
+          </button>
+          {profile && (
+            <button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="flex items-center gap-3 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50"
+            >
+              {isDownloading ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                <Download size={16} />
+              )}
+              {t.performanceProfile.exportPdf}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {isGenerating && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-12 text-center space-y-4 bg-blue-50/50 rounded-[3rem] border border-blue-100 border-dashed"
+        >
+          <div className="relative inline-block">
+            <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+            <Zap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 w-6 h-6" />
+          </div>
+          <h3
+            className="text-xl font-black text-blue-900"
+            dir={dir}
+          >
+            {t.performanceProfile.analyzing}
+          </h3>
+          <p className="text-blue-600 text-sm font-bold uppercase tracking-[0.2em] animate-pulse">
+            {t.performanceProfile.synthesisNote}
+          </p>
+        </motion.div>
+      )}
+
+      {/* Empty State */}
+      {!profile && !isGenerating && (
+        <div className="py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-100">
+          <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-slate-300">
+            <Target size={40} />
+          </div>
+          <h3
+            className="text-2xl font-black text-slate-900"
+            dir={dir}
+          >
+            {t.performanceProfile.emptyStateTitle}
+          </h3>
+          <p
+            className="text-slate-500 mt-2 max-w-sm mx-auto font-medium"
+            dir={dir}
+          >
+            {t.performanceProfile.emptyStateDesc}
+          </p>
+        </div>
+      )}
+
+      {/* Profile Display */}
+      {profile && !isGenerating && (
+        <div className="flex flex-col items-center">
+          <div className="w-full max-w-6xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={profile.referenceId}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative p-1 bg-slate-200 rounded-[3.5rem] shadow-2xl"
+              >
+                <div
+                  ref={certificateRef}
+                  id="certificate-content"
+                  dir={dir}
+                  className={`relative w-full md:aspect-[1.414/1] flex flex-col p-8 md:p-16 overflow-hidden ${dir === 'rtl' ? 'font-arabic' : ''}`}
+                  style={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "3.4rem",
+                    minHeight: "650px",
+                  }}
+                >
+                  {/* Security & Design Elements */}
+                  <div className="absolute inset-4 md:inset-8 border-[0.5px] border-slate-200 pointer-events-none" />
+                  <div className="absolute inset-6 md:inset-10 border-[3px] border-double border-slate-900/10 pointer-events-none" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] select-none pointer-events-none">
+                    <ShieldCheck
+                      size={300}
+                      className="md:w-[600px] md:h-[600px]"
+                    />
+                  </div>
+
+                  <div className="relative z-10 h-full flex flex-col justify-between gap-8 md:gap-0">
+                    {/* Header */}
+                    <div
+                      className="flex flex-col md:flex-row justify-between items-start pb-8 md:pb-12 gap-6 md:gap-0"
+                      style={{ borderBottom: "1px solid #e2e8f0" }}
+                    >
+                      <div className="space-y-4">
+                        <h2
+                          className="text-3xl md:text-5xl font-serif font-black tracking-tighter uppercase leading-none"
+                          style={{ color: "#0f172a" }}
+                        >
+                          {t.performanceProfile.title}
+                        </h2>
+                        <p
+                          className="text-[10px] font-black uppercase tracking-[0.3em] mt-2"
+                          style={{ color: "#94a3b8" }}
+                        >
+                          {t.performanceProfile.subtitle}
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="px-3 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-widest"
+                            style={{
+                              backgroundColor: "#f1f5f9",
+                              color: "#64748b",
+                            }}
+                          >
+                            {t.performanceProfile.ref}: {profile.referenceId}
+                          </div>
+                          <div
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: "#2563eb" }}
+                          />
+                          <div
+                            className="text-[10px] font-black uppercase tracking-widest"
+                            style={{ color: "#cbd5e1" }}
+                          >
+                            {t.performanceProfile.verificationActive}
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center bg-white rounded-2xl shadow-sm border border-slate-100 p-2 shrink-0 overflow-hidden relative"
+                      >
+                        <Image
+                          src="/logo-matc.png"
+                          alt="Company Logo"
+                          fill
+                          sizes="(max-width: 768px) 96px, 128px"
+                          className="object-contain p-2"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 py-8 md:py-12">
+                      <div className="col-span-1 md:col-span-8 space-y-6 md:space-y-10">
+                        <div className="space-y-4">
+                          <p
+                            className="text-[10px] font-black uppercase tracking-[0.4em]"
+                            style={{ color: "#94a3b8" }}
+                          >
+                            {t.performanceProfile.institutionalAnalysis}
+                          </p>
+                          <h1
+                            className="text-4xl md:text-7xl font-serif font-black tracking-tight leading-none italic break-all"
+                            style={{ color: "#0f172a" }}
+                          >
+                            {profile.userName}
+                          </h1>
+                        </div>
+
+                        <div
+                          className={`${dir === 'rtl' ? 'pr-6 md:pr-8 border-r-4' : 'pl-6 md:pl-8 border-l-4'}`}
+                          style={{ borderColor: "#2563eb" }}
+                        >
+                          <p
+                            className="text-base md:text-lg font-serif leading-relaxed max-w-2xl font-medium"
+                            style={{ color: "#334155" }}
+                          >
+                            {profile.summary}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <div
+                            className="px-6 md:px-8 py-3 text-white text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] rounded-xl self-start"
+                            style={{ backgroundColor: "#0f172a" }}
+                          >
+                            {t.performanceProfile.strategicLevel}: {profile.verdict}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className="col-span-1 md:col-span-4 border rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 space-y-6 md:space-y-8"
+                        style={{
+                          backgroundColor: "#f8fafc",
+                          borderColor: "#f1f5f9",
+                        }}
+                      >
+                        <h4
+                          className="text-[10px] font-black uppercase tracking-[0.3em] pb-4"
+                          style={{
+                            color: "#0f172a",
+                            borderBottom: "1px solid #e2e8f0",
+                          }}
+                        >
+                          {t.performanceProfile.coreCompetencies}
+                        </h4>
+                        <div className="space-y-4 md:space-y-6">
+                          {profile.competencies?.map(
+                            (item: Competency, i: number) => (
+                              <div key={i} className="space-y-2">
+                                <div className="flex justify-between items-end">
+                                  <span
+                                    className="text-[9px] font-bold uppercase tracking-widest"
+                                    style={{ color: "#94a3b8" }}
+                                  >
+                                    {item.label}
+                                  </span>
+                                  <span
+                                    className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter"
+                                    style={{ color: "#1d4ed8" }}
+                                  >
+                                    {item.status}
+                                  </span>
+                                </div>
+                                <div
+                                  className="h-1 rounded-full overflow-hidden"
+                                  style={{ backgroundColor: "#e2e8f0" }}
+                                >
+                                  <div
+                                    className="h-full transition-all duration-1000"
+                                    style={{
+                                      width: `${item.score}%`,
+                                      backgroundColor: "#0f172a",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                        <div className="pt-6 mt-auto border-t border-slate-100/50">
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center gap-2 mb-2 text-emerald-700/70">
+                              <CheckCircle2 size={12} />
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em]">
+                                {t.performanceProfile.verifiedReadiness}
+                              </span>
+                            </div>
+
+                            {/* Professional Validation Group - Signature OVER Stamp */}
+                            <div className="relative flex flex-col items-center justify-center py-4">
+                              {/* Company Stamp Base - Realistic CSS version */}
+                              <div id="company-stamp-container" className="opacity-70 transform -rotate-12 transition-transform hover:rotate-0 duration-700">
+                                <div
+                                  className="w-36 h-18 border-[3px] rounded-xl flex flex-col items-center justify-center bg-white/50 backdrop-blur-[1px] shadow-sm relative overflow-hidden"
+                                  style={{
+                                    borderColor: "#3b82f6",
+                                    color: "#3b82f6",
+                                    fontFamily: "serif",
+                                  }}
+                                >
+                                  {/* Ink Bleed Effect (CSS only to avoid CORS errors) */}
+                                  <div className="absolute inset-0 opacity-[0.03] bg-slate-900 pointer-events-none" />
+
+                                  <p className="text-[10px] font-black uppercase tracking-tighter leading-none mb-0.5">
+                                    Sté MA
+                                  </p>
+                                  <p className="text-[7px] font-bold uppercase tracking-widest leading-none mb-1">
+                                    Training Consulting
+                                  </p>
+                                  <div className="w-full h-px bg-blue-400/30 my-0.5" />
+                                  <p className="text-[5px] font-bold leading-none mb-0.5">
+                                    Tel: 44 172 264
+                                  </p>
+                                  <p className="text-[5px] font-bold leading-none">
+                                    MF: 1805031P/A/M/000
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Consultant Signature - Scrolled OVER the stamp with artistic offset */}
+                              <div className="absolute top-1/2 left-1/2 -translate-x-[45%] -translate-y-1/2 opacity-90 pointer-events-none transform -rotate-6 z-20">
+                                <svg
+                                  width="200"
+                                  height="85"
+                                  viewBox="0 0 150 60"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  style={{ color: "#1e3a8a" }}
+                                >
+                                  {/* Primary Signature Path */}
+                                  <path
+                                    d="M10 45C25 42 45 12 65 22C85 32 105 5 130 15M15 52C35 48 55 42 95 45"
+                                    stroke="currentColor"
+                                    strokeWidth="2.8"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="drop-shadow-[0_2px_2px_rgba(30,58,138,0.2)]"
+                                  />
+                                  {/* Secondary Loop/Detail */}
+                                  <path
+                                    d="M35 28C40 22 50 18 55 32C60 46 45 52 40 42C35 32 50 22 65 27"
+                                    stroke="currentColor"
+                                    strokeWidth="2.2"
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+
+                            <div className="w-20 h-px bg-slate-200 mb-1" />
+                            <p className="text-[7px] font-black uppercase tracking-[0.4em] text-slate-400">
+                            {t.performanceProfile.institutionalAuthority}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div
+                      className="flex flex-col md:flex-row md:items-end justify-between pt-6 md:pt-8 gap-8 md:gap-0"
+                      style={{ borderTop: "1px solid #e2e8f0" }}
+                    >
+                      <div className="flex gap-12 md:gap-16">
+                        <div className="space-y-1">
+                          <p
+                            className="text-[10px] md:text-xs font-serif font-black"
+                            style={{ color: "#0f172a" }}
+                          >
+                            {t.performanceProfile.dateOfAttestation}:{" "}
+                            {new Date(profile.createdAt).toLocaleDateString(language, {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
+                          </p>
+                          <p
+                            className="text-[8px] font-black uppercase tracking-[0.4em]"
+                            style={{ color: "#94a3b8" }}
+                          >
+                            {t.performanceProfile.recordsHash}: SEC-{profile.referenceId}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-left md:text-right">
+                        <p
+                          className="text-[8px] font-bold uppercase tracking-[0.35em] leading-relaxed"
+                          style={{ color: "#cbd5e1" }}
+                        >
+                          {t.performanceProfile.generationNote}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

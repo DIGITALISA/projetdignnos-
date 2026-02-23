@@ -366,16 +366,37 @@ export default function RecommendationPage() {
                                                     <ShieldCheck className="w-8 h-8 text-blue-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-black text-slate-900 text-lg uppercase tracking-tight">CareerUpgrade AI System</p>
-                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Validé par l&apos;algorithme DeepSeek Expert v2</p>
+                                                    <p className="font-black text-slate-900 text-lg uppercase tracking-tight">CareerUpgrade Executive Board</p>
+                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Expertisé & Approuvé par notre Comité de Consultants Senior</p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col items-center gap-2 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default group">
-                                                <div className="w-40 h-16 border-b-2 border-slate-200 flex items-center justify-center italic font-serif text-slate-400 text-lg group-hover:text-blue-600 group-hover:border-blue-200 transition-colors">
-                                                    Digital Signature
+                                            <div className="flex flex-col items-center gap-4 relative group min-w-[220px]">
+                                                {/* Unified Validation Group (Signature over Stamp) */}
+                                                <div className="relative flex items-center justify-center py-6">
+                                                    {/* Company Stamp - The Base */}
+                                                    <div className="opacity-80 transform -rotate-12">
+                                                        <div className="w-44 h-22 border-[3px] rounded-xl flex flex-col items-center justify-center bg-white shadow-sm" style={{ borderColor: '#3b82f6', color: '#3b82f6', fontFamily: 'serif' }}>
+                                                            <p className="text-[11px] font-black uppercase tracking-tighter leading-none mb-0.5">Sté MA</p>
+                                                            <p className="text-[8px] font-bold uppercase tracking-widest leading-none mb-1">Training Consulting</p>
+                                                            <p className="text-[6px] font-bold leading-none mb-0.5">Tel: 44 172 264</p>
+                                                            <p className="text-[6px] font-bold leading-none">MF: 1805031P/A/M/000</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Consultant Signature - Scrolled OVER the stamp */}
+                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-95 pointer-events-none transform -rotate-3 z-20">
+                                                        <svg width="240" height="100" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#1e3a8a' }}>
+                                                            <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                            <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                                        </svg>
+                                                    </div>
                                                 </div>
-                                                <span className="text-[9px] font-mono tracking-widest uppercase font-black text-slate-300">Security Verified via Blockchain Hash</span>
+
+                                                <div className="text-center group-hover:scale-105 transition-transform duration-300">
+                                                    <p className="font-serif italic text-slate-500 text-sm">Le Consultant en Stratégie de Carrière</p>
+                                                    <span className="text-[8px] font-mono tracking-widest uppercase font-black text-slate-300">Verified Blockchain Reference ID: {recommendation.referenceId || "OFFICIAL-AI-CERT"}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { Language } from "@/lib/i18n/translations";
+import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
 
 interface Message {
     role: 'ai' | 'user';
@@ -38,7 +39,7 @@ const fetchWithTimeout = async (resource: string, options: RequestInit = {}, tim
 
 export default function InterviewPage() {
     const router = useRouter();
-    const { setLanguage } = useLanguage();
+    const { t, setLanguage } = useLanguage();
     const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
@@ -326,7 +327,7 @@ export default function InterviewPage() {
         }
     }, [interviewComplete, isTimeUnlocked, currentQuestionIndex, router, cvAnalysis, messages, selectedLanguage]);
 
-    const processStep = useCallback(async (userMessage: Message, originalInput?: string, isRetry = false) => {
+    const processStep = useCallback(async (userMessage: Message, originalInput?: string) => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue("");
         setIsLoading(true);
@@ -434,12 +435,12 @@ export default function InterviewPage() {
 
             setLastError(errorMsg);
 
-            // Auto-retry once if it's not already a retry
-            if (!isRetry && retryCount < 2) {
-                console.log('Auto-retrying request...');
+            // Auto-retry up to 2 times
+            if (retryCount < 2) {
+                console.log(`Auto-retrying request (${retryCount + 1}/2)...`);
                 setRetryCount(prev => prev + 1);
                 setTimeout(() => {
-                    processStep(userMessage, originalInput, true);
+                    processStep(userMessage, originalInput);
                 }, 2000);
                 return;
             }
@@ -503,10 +504,10 @@ export default function InterviewPage() {
                             <Globe className="w-10 h-10 text-white" />
                         </div>
                         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-                            Choose Your Interview Language
+                            {t.interview.languageTitle}
                         </h1>
                         <p className="text-slate-500 text-lg">
-                            Select the language you&apos;re most comfortable with for the interview
+                            {t.interview.languageSubtitle}
                         </p>
                     </div>
 
@@ -559,7 +560,7 @@ export default function InterviewPage() {
                                 title="Back to Chat"
                             >
                                  <ArrowLeft className="w-6 h-6" />
-                                 <span className="hidden sm:inline">{selectedLanguage === 'ar' ? 'مراجعة المحادثة' : 'Review Chat'}</span>
+                                 <span className="hidden sm:inline">{t.interview.reviewChat}</span>
                             </button>
                         </div>
 
@@ -578,12 +579,10 @@ export default function InterviewPage() {
                         </motion.div>
                         
                         <h1 className="relative text-3xl font-bold mb-2">
-                            {selectedLanguage === 'ar' ? 'تم الانتهاء من التدقيق العاجل' : 'Urgent Audit Completed'}
+                            {t.interview.urgentAuditCompleted}
                         </h1>
                         <p className="relative text-indigo-100 text-lg">
-                            {selectedLanguage === 'ar' 
-                                ? 'لقد كشفنا عن ثغرات استراتيجية في ملفك. إليك التحليل الأولي' 
-                                : 'We have detected strategic gaps in your profile. Here is the initial analysis.'}
+                            {t.interview.detectedGaps}
                         </p>
                     </div>
 
@@ -591,9 +590,9 @@ export default function InterviewPage() {
                         {/* Quick Stats Grid */}
                         <div className="grid md:grid-cols-3 gap-4">
                             {[
-                                { label: selectedLanguage === 'ar' ? "دقة السيرة الذاتية" : "CV Accuracy", value: `${Number(finalEvaluation.accuracyScore)}%`, color: Number(finalEvaluation.accuracyScore) < 40 ? "text-red-600" : "text-blue-600", bg: "bg-slate-50 border-slate-100" },
-                                { label: selectedLanguage === 'ar' ? "الأسئلة" : "Questions", value: totalQuestions, color: "text-slate-600", bg: "bg-slate-50 border-slate-100" },
-                                { label: selectedLanguage === 'ar' ? "التقييم الأولي" : "Initial Rating", value: `${Number(finalEvaluation.overallRating)}/10`, color: Number(finalEvaluation.overallRating) < 4 ? "text-red-600" : "text-emerald-600", bg: "bg-slate-50 border-slate-100" }
+                                { label: t.interview.cvAccuracy, value: `${Number(finalEvaluation.accuracyScore)}%`, color: Number(finalEvaluation.accuracyScore) < 40 ? "text-red-600" : "text-blue-600", bg: "bg-slate-50 border-slate-100" },
+                                { label: t.interview.questions, value: totalQuestions, color: "text-slate-600", bg: "bg-slate-50 border-slate-100" },
+                                { label: t.interview.initialRating, value: `${Number(finalEvaluation.overallRating)}/10`, color: Number(finalEvaluation.overallRating) < 4 ? "text-red-600" : "text-emerald-600", bg: "bg-slate-50 border-slate-100" }
                             ].map((stat, i) => (
                                 <motion.div 
                                     key={i}
@@ -655,7 +654,7 @@ export default function InterviewPage() {
                             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
                                 <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
                                     <Sparkles className="w-5 h-5 text-amber-500" />
-                                    {selectedLanguage === 'ar' ? 'الملخص التنفيذي للمحترفين' : 'Executive Professional Summary'}
+                                    {t.interview.completeTitle}
                                 </h2>
                                 <p className="text-slate-700 leading-relaxed text-base italic">
                                     &ldquo;{String(finalEvaluation.summary)}&rdquo;
@@ -727,7 +726,7 @@ export default function InterviewPage() {
                         title="Back to CV Analysis"
                     >
                         <ArrowLeft className="w-6 h-6" />
-                        <span className="hidden sm:inline">Back</span>
+                        <span className="hidden sm:inline">{t.interview.back || 'Back'}</span>
                     </button>
                 </div>
                 
@@ -745,16 +744,21 @@ export default function InterviewPage() {
                 )}
 
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">AI Career Interview</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{t.interview.title}</h1>
                     <p className="text-sm md:text-base text-slate-500 max-w-2xl mx-auto">
-                        Answer honestly - we&apos;re verifying your CV and understanding your real capabilities.
+                        {t.interview.subtitle}
                     </p>
+                </div>
+
+                {/* ── Next Stage Top Banner ── */}
+                <div className="w-full max-w-2xl">
+                    <StageProgressBanner stage="interview" />
                 </div>
 
                 {/* Progress Indicator */}
                 <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
                     <div className="text-right">
-                        <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Progress</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">{t.interview.progress}</p>
                         <p className="text-sm font-bold text-slate-700">{currentQuestionIndex} / {totalQuestions}</p>
                     </div>
                     
@@ -808,7 +812,7 @@ export default function InterviewPage() {
                                         <div className="w-6 h-6 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
                                             <Sparkles className="w-3 h-3 text-white" />
                                         </div>
-                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">AI Strategic Expert</span>
+                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{t.interview.sidebar}</span>
                                     </div>
                                 )}
 
@@ -836,8 +840,8 @@ export default function InterviewPage() {
                                 <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
                                 <span className="text-slate-500 text-sm font-medium">
                                     {retryCount > 0 
-                                        ? (selectedLanguage === 'ar' ? `جاري إعادة المحاولة (${retryCount}/2)...` : `Retrying (${retryCount}/2)...`)
-                                        : (selectedLanguage === 'ar' ? 'جاري التحليل الاستراتيجي...' : 'Analysing strategic fit...')}
+                                        ? `${t.interview.retrying} (${retryCount}/2)...`
+                                        : t.interview.loading}
                                 </span>
                             </div>
                         </motion.div>
@@ -885,9 +889,7 @@ export default function InterviewPage() {
                         >
                             <ArrowRight className="w-4 h-4" />
                             <span className="hidden md:inline">
-                                {selectedLanguage === 'ar' ? 'تخطي' :
-                                    selectedLanguage === 'fr' ? 'Passer' :
-                                        selectedLanguage === 'es' ? 'Saltar' : 'Skip'}
+                                {t.interview.skip}
                             </span>
                         </button>
                         <button
@@ -897,9 +899,7 @@ export default function InterviewPage() {
                         >
                             <Send className="w-4 h-4" />
                             <span className="hidden md:inline">
-                                {selectedLanguage === 'ar' ? 'إرسال' :
-                                    selectedLanguage === 'fr' ? 'Envoyer' :
-                                        selectedLanguage === 'es' ? 'Enviar' : 'Send'}
+                                {t.interview.send}
                             </span>
                         </button>
                     </div>
@@ -922,15 +922,12 @@ export default function InterviewPage() {
                              <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
                                  <span>
-                                    {selectedLanguage === 'ar' ? 'جاري تقييم الأداء...' :
-                                     selectedLanguage === 'fr' ? 'Évaluation des performances...' :
-                                     selectedLanguage === 'es' ? 'Evaluando desempeño...' : 'Evaluating Performance...'}
+                                    {t.interview.loading}
                                  </span>
                              </>
                         ) : (
                             <>
-                                {selectedLanguage === 'ar' ? 'الانتقال إلى النتائج' :
-                                    selectedLanguage === 'fr' ? 'Passer aux résultats' : 'Proceed to Full Results'}
+                                {t.interview.revealResults}
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${interviewComplete || isTimeUnlocked || currentQuestionIndex >= 10 ? 'bg-white/20' : 'bg-slate-200'}`}>
                                     <ArrowRight className={`w-5 h-5 ${interviewComplete || isTimeUnlocked || currentQuestionIndex >= 10 ? 'translate-x-0 group-hover:translate-x-1' : ''} transition-transform`} />
                                 </div>
@@ -952,6 +949,17 @@ export default function InterviewPage() {
                     </div>
                 )}
             </div>
+
+            {/* ── Next Stage Teaser (shows when interview completes) ── */}
+            {interviewComplete && finalEvaluation && (
+                <div className="px-2 md:px-0 pb-4">
+                    <NextStageTeaser
+                        stage="interview"
+                        onNavigate={() => router.push('/assessment/results')}
+                        visible={interviewComplete && !!finalEvaluation}
+                    />
+                </div>
+            )}
 
         </div>
     );

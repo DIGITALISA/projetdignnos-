@@ -54,10 +54,10 @@ export default function ExpertPage() {
     // Initialize default messages if empty
     useEffect(() => {
         const initialMessages: Record<ExpertType, string> = {
-            hr: t.expert?.hrWelcome || "Hello! I am your HR & Recruitment Specialist. I can help you with job search strategies, interview prep, and salary negotiations. How can I assist you today?",
-            learning: t.expert?.learningWelcome || "Welcome! I am your Learning & Development Consultant. Ask me about courses, certifications, and skill acquisition strategies.",
-            advice: t.expert?.adviceWelcome || "Hello. I am your Professional Mentor. I'm here to offer advice on workplace dynamics, soft skills, and professional conduct.",
-            strategic: t.expert?.strategicWelcome || "Greetings. I am your Chief Career Strategy Officer. Let's plan your long-term career roadmap and strategic moves."
+            hr: t.expert.hrWelcome,
+            learning: t.expert.learningWelcome,
+            advice: t.expert.adviceWelcome,
+            strategic: t.expert.strategicWelcome
         };
 
         setHistories(prev => {
@@ -79,32 +79,32 @@ export default function ExpertPage() {
     const experts = [
         {
             id: 'hr' as ExpertType,
-            title: t.expert?.hrTitle || "HR & Recruitment",
-            description: t.expert?.hrDesc || "Expert in job market, interviews & contracts",
+            title: t.expert.hrTitle,
+            description: t.expert.hrDesc,
             icon: Users,
             color: "bg-blue-100 text-blue-600",
             gradient: "from-blue-500 to-indigo-600"
         },
         {
             id: 'learning' as ExpertType,
-            title: t.expert?.learningTitle || "Learning & Development",
-            description: t.expert?.learningDesc || "Guidance on skills, certifications & growth",
+            title: t.expert.learningTitle,
+            description: t.expert.learningDesc,
             icon: GraduationCap,
             color: "bg-emerald-100 text-emerald-600",
             gradient: "from-emerald-500 to-teal-600"
         },
         {
             id: 'advice' as ExpertType,
-            title: t.expert?.adviceTitle || "Professional Mentor",
-            description: t.expert?.adviceDesc || "Soft skills, leadership & workplace advice",
+            title: t.expert.adviceTitle,
+            description: t.expert.adviceDesc,
             icon: HeartHandshake,
             color: "bg-violet-100 text-violet-600",
             gradient: "from-violet-500 to-purple-600"
         },
         {
             id: 'strategic' as ExpertType,
-            title: t.expert?.strategicTitle || "Strategic Advisor",
-            description: t.expert?.strategicDesc || "Long-term career planning & roadmaps",
+            title: t.expert.strategicTitle,
+            description: t.expert.strategicDesc,
             icon: Target,
             color: "bg-amber-100 text-amber-600",
             gradient: "from-amber-500 to-orange-600"
@@ -170,7 +170,7 @@ export default function ExpertPage() {
             console.error('Chat error:', error);
             const errorMessage: Message = {
                 role: 'expert',
-                content: "I apologize, but I'm currently unable to respond. Please try again later.",
+                content: t.expert.errorResponse,
                 timestamp: new Date(),
             };
             setHistories(prev => ({
@@ -223,10 +223,10 @@ export default function ExpertPage() {
             {!selectedExpert ? (
                 /* Expert Selection View */
                 <div className="flex flex-col h-full overflow-y-auto">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-slate-900 mb-2">{t.expert?.selectionTitle || "Select Your Expert"}</h1>
-                        <p className="text-slate-500">
-                            {t.expert?.selectionSubtitle || "Choose a specialized AI expert to guide your career journey."}
+                    <div className="mb-8 p-8 bg-linear-to-r from-blue-600 to-indigo-700 rounded-3xl text-white shadow-xl shadow-blue-200">
+                        <h1 className="text-4xl font-black mb-3">{t.expert.selectionTitle}</h1>
+                        <p className="text-blue-100 text-lg font-medium">
+                            {t.expert.selectionSubtitle}
                         </p>
                     </div>
 
@@ -252,8 +252,8 @@ export default function ExpertPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="mt-6 flex items-center text-sm font-semibold text-blue-600 gap-2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0">
-                                    Start Consultation <Send className="w-4 h-4" />
+                                <div className="mt-6 flex items-center text-sm font-black text-blue-600 gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
+                                    {t.expert.startConsultation} <Send className="w-4 h-4" />
                                 </div>
                             </button>
                         ))}
@@ -275,7 +275,7 @@ export default function ExpertPage() {
                         <div>
                             <h2 className="text-xl font-bold text-slate-900">{activeExpertConfig?.title}</h2>
                             <p className="text-sm text-slate-500">
-                                AI Specialized in {activeExpertConfig?.title}
+                                {t.expert.specializedIn} {activeExpertConfig?.title}
                             </p>
                         </div>
                     </div>
@@ -317,7 +317,7 @@ export default function ExpertPage() {
                                             <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
                                                 <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />
                                             </div>
-                                            <span className="text-xs font-medium text-slate-400">Thinking...</span>
+                                            <span className="text-xs font-medium text-slate-400">{t.expert.thinking}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -335,8 +335,8 @@ export default function ExpertPage() {
                                 onChange={(e) => setInputValues(prev => ({ ...prev, [selectedExpert]: e.target.value }))}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                                 disabled={isLoading}
-                                placeholder={`Ask your ${activeExpertConfig?.title} expert...`}
-                                className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-900 disabled:opacity-50"
+                                placeholder={t.expert.askExpert.replace('{expert}', activeExpertConfig?.title || '')}
+                                className="flex-1 px-4 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 disabled:opacity-50 text-lg font-medium"
                             />
                             <button
                                 onClick={() => handleSend()}
