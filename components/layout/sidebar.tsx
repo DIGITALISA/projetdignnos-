@@ -24,7 +24,8 @@ import {
     Globe,
     Zap,
     Crown,
-    Activity
+    Activity,
+    Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -93,7 +94,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             icon: Users,
             items: [
                 { name: t.sidebar.items.training, icon: PlayCircle, href: "/training", isLive: true },
-                { name: t.sidebar.items.tools, icon: Users, href: "/simulation", isLive: true },
+                { name: t.sidebar.items.tools, icon: Target, href: "/simulation", isLive: true },
                 { name: t.sidebar.items.library, icon: Library, href: "/library" },
             ]
         },
@@ -101,8 +102,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             category: t.sidebar.categories.strategicTools,
             icon: BarChart3,
             items: [
-                { name: t.sidebar.items.strategicReport, icon: BarChart3, href: "/strategic-report" },
-                { name: t.sidebar.items.jobAlignment, icon: Globe, href: "/job-alignment" },
+                { name: t.sidebar.items.strategicReport, icon: BarChart3, href: "/strategic-report", isAI: true },
+                { name: t.sidebar.items.performanceScorecard, icon: TrendingUp, href: "/performance-scorecard", isAI: true },
+                { name: t.sidebar.items.jobAlignment, icon: Globe, href: "/job-alignment", isAI: true },
             ]
         },
         {
@@ -237,7 +239,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         const alwaysOpen = ["/dashboard", "/subscription", "/settings", "/assessment/cv-upload", "/assessment/cv-generation"];
         if (alwaysOpen.includes(href)) return false;
 
-        // 2. STAGE 1 LOCK: Everything requires starting diagnosis (CV Upload done)
+        // 2. PRO BYPASS: Unlock everything for paid users (Pro, Executive, etc.)
+        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
+        if (!isFreePlan) return false;
+
+        // 3. STAGE 1 LOCK: Everything requires starting diagnosis (CV Upload done)
         if (!hasStartedDiagnosis) {
              return true; 
         }
@@ -251,7 +257,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         // 4. STAGE 3 LOCK: Simulation & Job Alignment & Roadmap
         // Needs SCI to be generated (Strategic Intelligence)
         const strategicTools = ["/simulation", "/job-alignment", "/roadmap", "/mentor", "/academy", "/library", "/expert"];
-        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
         
         if (strategicTools.some((p: string) => href.startsWith(p))) {
             // Even if diagnostic is complete, if it's a FREE plan, we keep these locked to encourage upgrade
@@ -376,7 +381,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                                                 ? "bg-white/10 border-white/20 text-blue-300" 
                                                                 : "bg-blue-50 border-blue-100 text-blue-600"
                                                         )}>
-                                                            AI
+                                                            {language === 'en' ? 'AI' : 'IA'}
                                                         </span>
                                                     )}
                                                     

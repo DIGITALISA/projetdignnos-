@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Star, Clock, CheckSquare, RotateCcw } from "lucide-react";
+import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Star, Clock, CheckSquare, RotateCcw, LogIn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -187,6 +187,28 @@ export default function ParticipantsManagement() {
         }
     };
 
+    const handleImpersonate = async (userId: string, userName: string) => {
+        if (!confirm(`Enter into account: ${userName}? \n\nYou will be logged out as Admin and logged in as this user.`)) return;
+
+        try {
+            const res = await fetch("/api/admin/impersonate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                window.location.href = data.redirectUrl || "/dashboard";
+            } else {
+                alert(data.error || "Failed to impersonate");
+            }
+        } catch (error) {
+            console.error("Error impersonating:", error);
+            alert("An error occurred during impersonation");
+        }
+    };
+
     const openAddModal = () => {
         setEditingUserId(null);
         setFormData({
@@ -342,6 +364,7 @@ export default function ParticipantsManagement() {
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-100">
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Asset Name</th>
+                                <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Access Code</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Mandate Plan</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">WhatsApp</th>
 
@@ -378,16 +401,18 @@ export default function ParticipantsManagement() {
                                             </div>
                                              <div>
                                                  <p className="text-sm font-bold text-slate-900">{user.fullName}</p>
-                                                 <div className="flex items-center gap-2">
-                                                     <p className="text-xs text-slate-500">{user.email}</p>
-                                                     {user.memberId && (
-                                                         <span className="text-[10px] font-black bg-slate-900 text-white px-1.5 py-0.5 rounded tracking-tighter">
-                                                             ID: {user.memberId}
-                                                         </span>
-                                                     )}
-                                                 </div>
+                                                 <p className="text-xs text-slate-500">{user.email}</p>
                                              </div>
                                         </div>
+                                    </td>
+                                    <td className="px-8 py-5">
+                                        {user.memberId ? (
+                                            <span className="px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black text-[10px] tracking-widest border border-slate-800 shadow-sm">
+                                                {user.memberId}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-300 italic text-[10px]">No Access Code</span>
+                                        )}
                                     </td>
                                     <td className="px-8 py-5">
                                         <div className={cn(
@@ -447,6 +472,13 @@ export default function ParticipantsManagement() {
                                                     Activate Trial
                                                 </button>
                                             )}
+                                            <button 
+                                                onClick={() => handleImpersonate(user._id, user.fullName || "User")} 
+                                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" 
+                                                title="Entrer dans le compte (Login As) - الدخول للحساب"
+                                            >
+                                                <LogIn size={16} />
+                                            </button>
                                             <button onClick={() => handleEdit(user)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Edit Asset">
                                                 <Edit2 size={16} />
                                             </button>
@@ -529,7 +561,7 @@ export default function ParticipantsManagement() {
                                              <input required type="email" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                                          </div>
                                          <div className="space-y-2">
-                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Secret Access Code (ID)</label>
+                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Participant Access Code</label>
                                              <input type="text" className="w-full px-5 py-3.5 bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-black text-white tracking-widest" value={formData.memberId} onChange={(e) => setFormData({ ...formData, memberId: e.target.value })} placeholder="Ex: MATC-2024-001" />
                                          </div>
                                         <div className="space-y-2">

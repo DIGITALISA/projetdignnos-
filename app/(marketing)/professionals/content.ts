@@ -157,10 +157,10 @@ export const ECOSYSTEM_MODULES = {
     modules: [
       { icon: Sparkles, title: "AI Strategic Mentor", desc: "Your 24/7 executive advisor for instant career guidance and tactical support.", link: "/mentor" },
       { icon: Library, title: "Knowledge Archives", desc: "A vast vault of expert-curated frameworks, masterclasses, and strategic resources.", link: "/library" },
-      { icon: TrendingUp, title: "Strategic Roadmap", desc: "A dynamic, evolving development plan that adapts to your growth journey.", link: "/roadmap" },
-      { icon: MessageSquare, title: "Expert AI Consultation", desc: "Persona-based AI chats specialized in HR, Strategic Advice, and Learning Strategy.", link: "/expert" },
-      { icon: BarChart3, title: "Strategic Role Audit (SCI)", desc: "Deep-dive performance report benchmarking your readiness against global standards.", link: "/strategic-report" },
-      { icon: Globe, title: "Resource Vault", desc: "Access specialized industry tools and templates curated by senior consultants.", link: "/library" },
+      { icon: TrendingUp, title: "🚀 Strategic AI Roadmap", desc: "A dynamic, evolving development plan that adapts to your growth journey.", link: "/roadmap" },
+      { icon: MessageSquare, title: "🔥 AI Experts", desc: "Persona-based AI chats specialized in HR, Strategic Advice, and Learning Strategy.", link: "/expert" },
+      { icon: BarChart3, title: "AI Strategic Report (SCI)", desc: "Deep-dive performance report benchmarking your readiness against global standards.", link: "/strategic-report" },
+      { icon: Globe, title: "Resources", desc: "Access specialized industry tools and templates curated by senior consultants.", link: "/library" },
     ]
   },
   fr: {
@@ -170,10 +170,10 @@ export const ECOSYSTEM_MODULES = {
     modules: [
       { icon: Sparkles, title: "Mentor Stratégique IA", desc: "Votre conseiller exécutif 24/7 pour une orientation instantanée et un support tactique.", link: "/mentor" },
       { icon: Library, title: "Archives du Savoir", desc: "Un coffre-fort de frameworks, masterclasses et ressources stratégiques curatés.", link: "/library" },
-      { icon: TrendingUp, title: "Feuille de Route Stratégique", desc: "Un plan de développement dynamique qui s'adapte à votre progression.", link: "/roadmap" },
-      { icon: MessageSquare, title: "Consultation Expert IA", desc: "Chats IA spécialisés en RH, Conseil Stratégique et Stratégie d'Apprentissage.", link: "/expert" },
-      { icon: BarChart3, title: "Audit de Rôle Stratégique (SCI)", desc: "Rapport de performance mesurant votre préparation par rapport aux standards mondiaux.", link: "/strategic-report" },
-      { icon: Globe, title: "Coffre de Ressources", desc: "Accédez à des outils et modèles industriels spécialisés.", link: "/library" },
+      { icon: TrendingUp, title: "🚀 Roadmap Stratégique IA", desc: "Un plan de développement dynamique qui s'adapte à votre progression.", link: "/roadmap" },
+      { icon: MessageSquare, title: "🔥 Experts IA", desc: "Chats IA spécialisés en RH, Conseil Stratégique et Stratégie d'Apprentissage.", link: "/expert" },
+      { icon: BarChart3, title: "AI Strategic Report (SCI)", desc: "Rapport de performance mesurant votre préparation par rapport aux standards mondiaux.", link: "/strategic-report" },
+      { icon: Globe, title: "Ressources", desc: "Accédez à des outils et modèles industriels spécialisés.", link: "/library" },
     ]
   },
   ar: {
@@ -183,10 +183,10 @@ export const ECOSYSTEM_MODULES = {
     modules: [
       { icon: Sparkles, title: "المستشار الاستراتيجي الذكي", desc: "مستشارك التنفيذي المتاح 24/7 للتوجيه المهني الفوري والدعم التكتيكي.", link: "/mentor" },
       { icon: Library, title: "أرشيف المعرفة", desc: "خزنة ضخمة من المنهجيات والدروس المتقدمة والموارد الاستراتيجية الموثقة.", link: "/library" },
-      { icon: TrendingUp, title: "خارطة الطريق الاستراتيجية", desc: "خطة تطوير ديناميكية تتطور وتتكيف مع رحلة نموك المهني.", link: "/roadmap" },
-      { icon: MessageSquare, title: "استشارات الخبراء الذكية", desc: "حوارات متخصصة في الموارد البشرية، النصائح الاستراتيجية، واستراتيجيات التعلم.", link: "/expert" },
-      { icon: BarChart3, title: "تدقيق الدور الاستراتيجي (SCI)", desc: "تقرير أداء معمق يقيس جاهزيتك مقابل المعايير العالمية.", link: "/strategic-report" },
-      { icon: Globe, title: "خزنة الموارد", desc: "الوصول إلى أدوات ونماذج صناعية متخصصة منسقة من قبل كبار المستشارين.", link: "/library" },
+      { icon: TrendingUp, title: "🚀 خارطة الطريق الاستراتيجية", desc: "خطة تطوير ديناميكية تتطور وتتكيف مع رحلة نموك المهني.", link: "/roadmap" },
+      { icon: MessageSquare, title: "🔥 خبراء الذكاء الاصطناعي", desc: "حوارات متخصصة في الموارد البشرية، النصائح الاستراتيجية، واستراتيجيات التعلم.", link: "/expert" },
+      { icon: BarChart3, title: "تقرير استراتيجي IA (SCI)", desc: "تقرير أداء معمق يقيس جاهزيتك مقابل المعايير العالمية.", link: "/strategic-report" },
+      { icon: Globe, title: "الموارد", desc: "الوصول إلى أدوات ونماذج صناعية متخصصة منسقة من قبل كبار المستشارين.", link: "/library" },
     ]
   }
 };
@@ -199,8 +199,8 @@ export const HUMAN = {
     subtitle: "AI analyzes, but humans validate. Our senior consultants bring real-world wisdom to your transition.",
     items: [
       { icon: Users, badge: "Interactive Sessions", title: "Live Executive Workshops", desc: "Interactive group sessions focusing on leadership psychology, high-stakes negotiation, and real-time tactical decision making." },
-      { icon: Zap, badge: "The Mission", title: "DIGNNOS™ Simulation Missions", desc: "Senior experts provide realistic simulation scenarios where you operate in a high-pressure interactive work environment to prove your competence." },
-      { icon: Rocket, badge: "Execution", title: "Strategic Roadmap Support", desc: "Your dedicated expert accompanies you in co-creating your professional development roadmap, helping you activate and execute the strategy in the real market." },
+      { icon: Zap, badge: "The Mission", title: "DIGNNOS™ Strategic Missions", desc: "Senior experts provide realistic simulation scenarios where you operate in a high-pressure interactive work environment to prove your competence." },
+      { icon: Rocket, badge: "Execution", title: "🚀 Strategic AI Roadmap Support", desc: "Your dedicated expert accompanies you in co-creating your professional development roadmap, helping you activate and execute the strategy in the real market." },
       { icon: TrendingUp, badge: "Quality Audit", title: "Strategic Human Validation", desc: "Every AI-generated diagnostic is reviewed and nuanced by a senior human consultant to ensure contextual accuracy." },
     ]
   },
@@ -210,8 +210,8 @@ export const HUMAN = {
     subtitle: "L'IA analyse, mais l'humain valide. Nos consultants seniors apportent une sagesse concرète à votre transition.",
     items: [
       { icon: Users, badge: "Sessions Interactives", title: "Ateliers Exécutifs Live", desc: "Sessions de groupe interactives sur la psychologie du leadership, la négociation et la prise de décision tactique en temps réel." },
-      { icon: Zap, badge: "La Mission", title: "Missions de Simulation DIGNNOS™", desc: "Des experts seniors proposent des scénarios de simulation réalistes où vous opérez dans un environnement de travail interactif pour valider vos compétences." },
-      { icon: Rocket, badge: "Exécution", title: "Accompagnement de Feuille de Route", desc: "Votre expert dédié vous accompagne dans la co-création de votre feuille de route de développement, vous aidant à activer et exécuter la stratégie sur le marché réel." },
+      { icon: Zap, badge: "La Mission", title: "Missions Stratégiques DIGNNOS™", desc: "Des experts seniors proposent des scénarios de simulation réalistes où vous opérez dans un environnement de travail interactif pour valider vos compétences." },
+      { icon: Rocket, badge: "Exécution", title: "🚀 Accompagnement Roadmap Stratégique IA", desc: "Votre expert dédié vous accompagne dans la co-création de votre feuille de route de développement, vous aidant à activer et exécuter la stratégie sur le marché réel." },
       { icon: TrendingUp, badge: "Audit de Qualité", title: "Validation Humaine Stratégique", desc: "Chaque diagnostic généré par l'IA est revu et nuancé par un consultant senior pour garantir la pertinence contextuelle." },
     ]
   },
@@ -221,7 +221,7 @@ export const HUMAN = {
     subtitle: "الذكاء الاصطناعي يحلل، ولكن البشر يصدقون. مستشارونا الكبار يجلبون الحكمة الواقعية لرحلة تحولك.",
     items: [
       { icon: Users, badge: "جلسات تفاعلية", title: "ورش العمل التنفيذية المباشرة", desc: "جلسات جماعية تفاعلية تركز على علم نفس القيادة، التفاوض رفيع المستوى، واتخاذ القرار التكتيكي في الوقت الفعلي." },
-      { icon: Zap, badge: "المهمة", title: "مهام محاكاة DIGNNOS™", desc: "يقدم كبار الخبراء سيناريوهات محاكاة واقعية حيث تعمل في بيئة عمل تفاعلية تحت الضغط لإثبات كفاءتك القيادية." },
+      { icon: Zap, badge: "المهمة", title: "مهام DIGNNOS™ الاستراتيجية", desc: "يقدم كبار الخبراء سيناريوهات محاكاة واقعية حيث تعمل في بيئة عمل تفاعلية تحت الضغط لإثبات كفاءتك القيادية." },
       { icon: Rocket, badge: "التنفيذ", title: "دعم خارطة الطريق الاستراتيجية", desc: "يرافقك خبيرنا المخصص في صياغة خارطة طريق تطويرك المهني، ويعمل معك على تفعيل الاستراتيجية وتنفيذها في سوق العمل الفعلي." },
       { icon: TrendingUp, badge: "تدقيق الجودة", title: "التصديق البشري الاستراتيجي", desc: "كل تقرير تشخيصي ناتج عن الذكاء الاصطناعي يخضع للمراجعة والتدقيق من قبل مستشار بشري أول لضمان الدقة السياقية." },
     ]
@@ -311,7 +311,7 @@ export const ASSETS = {
       { icon: BarChart3, title: "DIGNNOS™ Diagnostic Report (SCI)", desc: "A comprehensive analysis of your strategic leadership merit and professional readiness." },
       { icon: FileText, title: "Executive Letter of Recommendation", desc: "A formal endorsement based on your verified performance during AI-led simulations." },
       { icon: Users, title: "Consulting Workshop Verification", desc: "Official proof of participation and high-level interaction in live executive sessions." },
-      { icon: TrendingUp, title: "Strategic Roadmap (18-Month Plan)", desc: "A detailed execution plan to close skill gaps and achieve your next career milestone." },
+      { icon: TrendingUp, title: "🚀 Strategic AI Roadmap (18-Month Plan)", desc: "A detailed execution plan to close skill gaps and achieve your next career milestone." },
       { icon: Shield, title: "Consulting Mandate (Verified)", desc: "The formal, legally-backed advisory agreement ensuring professional authority." },
       { icon: Target, title: "Executive Readiness Audit", desc: "A specialized audit report benchmarking your profile against global market standards." },
     ]
@@ -323,7 +323,7 @@ export const ASSETS = {
       { icon: BarChart3, title: "Rapport Diagnostic DIGNNOS™ (SCI)", desc: "Une analyse complète de votre mérite en leadership stratégique et préparation professionnelle." },
       { icon: FileText, title: "Lettre de Recommandation Exécutive", desc: "Un endossement formel basé sur vos performances vérifiées lors des simulations." },
       { icon: Users, title: "Vérification d'Atelier Stratégique", desc: "Preuve officielle de participation et d'interaction de haut niveau lors des sessions live." },
-      { icon: TrendingUp, title: "Feuille de Route (Plan 18 Mois)", desc: "Un plan d'exécution détaillé pour combler les écarts et atteindre vos objectifs." },
+      { icon: TrendingUp, title: "🚀 Roadmap Stratégique IA (Plan 18 Mois)", desc: "Un plan d'exécution détaillé pour combler les écarts et atteindre vos objectifs." },
       { icon: Shield, title: "Mandat de Conseil (Vérifié)", desc: "L'accord formel d'accompagnement garantissant l'autorité professionnelle." },
       { icon: Target, title: "Audit de Préparation Exécutive", desc: "Un rapport d'audit spécialisé comparant votre profil aux standards du marché mondial." },
     ]
@@ -335,7 +335,7 @@ export const ASSETS = {
       { icon: BarChart3, title: "تقرير التشخيص DIGNNOS™ (SCI)", desc: "تحليل شامل للجدارة القيادية والجاهزية المهنية الخاصة بك." },
       { icon: FileText, title: "خطاب توصية تنفيذي", desc: "تزكية رسمية بناءً على أدائك في محاكاة القيادة والذكاء الاصطناعي." },
       { icon: Users, title: "إثبات ورشة عمل استشارية", desc: "وثيقة رسمية للمشاركة والتفاعل عالي المستوى في الجلسات المباشرة." },
-      { icon: TrendingUp, title: "خارطة الطريق (خطة ١٨ شهر)", desc: "خطة تنفيذية مفصلة لسد الفجوات وتحقيق أهدافك المهنية القادمة." },
+      { icon: TrendingUp, title: "🚀 خارطة الطريق الاستراتيجية (خطة ١٨ شهر)", desc: "خطة تنفيذية مفصلة لسد الفجوات وتحقيق أهدافك المهنية القادمة." },
       { icon: Shield, title: "تفويض استشاري (موثق)", desc: "اتفاقية الاستشارة الرسمية التي تضمن المرجعية والسلطة المهنية." },
       { icon: Target, title: "تدقيق الجاهزية التنفيذية", desc: "تقرير تدقيق متخصص يقيس ملفك الشخصي مقابل المعايير العالمية." },
     ]
@@ -354,61 +354,78 @@ export const PRICING = {
         price: "Free",
         annualPrice: "Free",
         annualNote: "No credit card required",
-        period: "7 days",
+        period: "Fully Free",
         desc: "Test the power of AI diagnostics for your career.",
-        features: ["Initial CV Analysis", "AI Profile Preview", "Basic Career Discovery", "Community Access"],
-        notIncluded: ["Full Professional Roadmap", "Strategic Report (SCI)", "Expert Sessions"],
-        cta: "Try for Free",
+        features: [
+          "Free Professional Account & Alfaida Community Access",
+          "Initial CV Analysis with Preliminary Report",
+          "Workshop & Role Recommendations (Paid Choice)",
+          "🚀 Strategic AI Roadmap Report",
+          "Strategic Attestation with each paid workshop",
+          "Proof Document for each strategic mission"
+        ],
+        notIncluded: [
+          "Strategic Report (SCI)",
+          "Live Expert Workshops",
+          "24/7 AI Strategic Mentor",
+          "Knowledge Archives Access"
+        ],
+        cta: "Start Your Free Account",
         color: "slate",
         icon: "🌱"
       },
       {
         name: "Core AI Access",
-        price: "$49",
-        annualPrice: "$39/mo",
-        annualNote: "Billed annually ($468/yr)",
-        period: "/mo",
-        desc: "Full AI diagnostic & basic roadmap access.",
-        features: ["7-Stage AI Journey", "CV Generation", "Basic Roadmap", "Community Access"],
-        notIncluded: ["AI Strategic Mentor", "Strategic Report (SCI)", "Live Workshops"],
+        price: "$35",
+        annualPrice: "$120/yr",
+        annualNote: "Billed every 3 months ($140/yr total)",
+        period: "/ 3 months",
+        desc: "Strategic AI diagnostic & full ecosystem empowerment.",
+        features: [
+          "Complete Strategic CV Analysis with Reports",
+          "AI CV Architecture & Motivation Letter",
+          "AI Strategic Mentor & Expert AI Consultation",
+          "Advanced Knowledge Archives & Resources",
+          "🚀 Strategic AI Roadmap Report & Decision Review",
+          "Inlcudes all Discovery Trial features (Paid Workshops/Roles access)"
+        ],
+        notIncluded: [
+          "Executive Letter of Recommendation",
+          "DIGNNOS™ Executive Diploma",
+          "Dedicated Human Consultant"
+        ],
         cta: "Get Started",
         color: "blue",
         icon: "⚡"
       },
       {
         name: "Premium Mastery",
-        price: "$299",
-        annualPrice: "$239/mo",
-        annualNote: "Billed annually ($2,868/yr)",
-        period: "/mo",
+        price: "Strategic Quote",
+        annualPrice: "Variable",
+        annualNote: "Starts after expert diagnostic",
+        period: "Custom Duration",
         popular: true,
         highlight: true,
-        desc: "The complete AI ecosystem + live expert sessions.",
-        features: ["Everything in Core", "AI Strategic Mentor (24/7)", "Knowledge Archives access", "Live Executive Workshop", "1 Simulation Mission", "Strategic Report (SCI)"],
-        notIncluded: ["Unlimited Simulations", "Dedicated Consultant"],
-        cta: "Master Your Career",
+        desc: "Complete AI Ecosystem + Live Expert Sessions with Personalized Strategy.",
+        features: [
+          "Complete Strategic Analysis & Reality Repair Roadmap",
+          "Includes everything from Discovery & Core plans",
+          "Tactical Strategy Selection: Basic, Medium, or Advanced",
+          "Highest-Level Career Mentorship & Progress Tracking",
+          "All official documents, letters, & certifications included FREE",
+          "Final pricing & duration determined after expert analysis"
+        ],
+        notIncluded: [],
+        cta: "Request Strategic Audit",
         color: "indigo",
         icon: "💎"
       },
-      {
-        name: "Ultimate Partner",
-        price: "$1,200",
-        annualPrice: "$1,200",
-        annualNote: "Priority scheduling included",
-        period: "one-time",
-        desc: "Ongoing strategic partnership for leaders.",
-        features: ["Everything in Premium", "Unlimited Simulations", "Dedicated Senior Consultant", "Full Certification Suite", "DIGNNOS™ Executive Diploma"],
-        notIncluded: [],
-        cta: "Scale Your Legacy",
-        color: "amber",
-        icon: "🏆"
-      }
     ],
     extras: {
       title: "Strategic Add-ons",
       subtitle: "Customize your growth path with targeted expert interventions.",
       items: [
-        { name: "Single Simulation", desc: "High-pressure executive mission", price: "$99" },
+        { name: "Single Strategic Mission", desc: "High-pressure executive mission", price: "$99" },
         { name: "Deep Audit Session", desc: "1:1 with Senior Consultant", price: "$199" },
         { name: "CV Architecture", desc: "Professional ATS rewrite", price: "$79" },
       ]
@@ -429,61 +446,78 @@ export const PRICING = {
         price: "Gratuit",
         annualPrice: "Gratuit",
         annualNote: "Sans carte de crédit",
-        period: "7 jours",
+        period: "Totalement Gratuit",
         desc: "Testez la puissance du diagnostic IA pour votre carrière.",
-        features: ["Analyse CV Initiale", "Aperçu du Profil IA", "Découverte de Carrière", "Accès Communauté"],
-        notIncluded: ["Feuille de Route Pro", "Rapport Stratégique (SCI)", "Sessions Experts"],
+        features: [
+          "Ouverture de compte pro et accès communauté Alfaida",
+          "Analyse CV initiale avec rapport préliminaire",
+          "Suggestions de workshops et rôles (payants au choix)",
+          "🚀 Roadmap Stratégique IA Report",
+          "Attestation stratégique incluse avec chaque workshop",
+          "Document de preuve pour chaque mission stratégique"
+        ],
+        notIncluded: [
+          "Rapport Stratégique (SCI)",
+          "Ateliers d'Experts en Direct",
+          "Mentor Stratégique IA 24/7",
+          "Accès aux Archives du Savoir"
+        ],
         cta: "Essayer Gratuitement",
         color: "slate",
         icon: "🌱"
       },
       {
         name: "Accès IA Core",
-        price: "49€",
-        annualPrice: "39€/mois",
-        annualNote: "Facturé annuellement (468€/an)",
-        period: "/mois",
-        desc: "Diagnostic IA complet & accès feuille de route.",
-        features: ["Parcours IA en 7 Étapes", "Génération de CV", "Plan de Base", "Accès Communauté"],
-        notIncluded: ["Mentor Stratégique IA", "Rapport Stratégique (SCI)", "Workshops Live"],
+        price: "35€",
+        annualPrice: "120€/an",
+        annualNote: "Facturé tous les 3 mois (140€/an total)",
+        period: "/ 3 mois",
+        desc: "Diagnostic IA stratégique & puissance complète de l'écosystème.",
+        features: [
+          "Analyse CV stratégique complète avec rapports",
+          "Architecture CV & Lettre de Motivation IA",
+          "Mentor Stratégique IA & Consultation Expert IA",
+          "Archives du Savoir & Ressources",
+          "🚀 Roadmap Stratégique IA & Revue de Décisions",
+          "Inclus tout l'Essai Découverte (Accès Workshops/Rôles payants)"
+        ],
+        notIncluded: [
+          "Lettre de Recommandation Exécutive",
+          "Diplôme Exécutif DIGNNOS™",
+          "Consultant Humain Dédié"
+        ],
         cta: "Démarrer",
         color: "blue",
         icon: "⚡"
       },
       {
         name: "Premium Mastery",
-        price: "299€",
-        annualPrice: "239€/mois",
-        annualNote: "Facturé annuellement (2 868€/an)",
-        period: "/mois",
+        price: "Sur Devis",
+        annualPrice: "Variable",
+        annualNote: "Défini après diagnostic expert",
+        period: "Durée msurée",
         popular: true,
         highlight: true,
-        desc: "Écosystème IA complet + sessions experts en direct.",
-        features: ["Tout dans Core", "Mentor Stratégique IA (24/7)", "Archives du Savoir", "Workshop Exécutif Live", "1 Mission de Simulation", "Rapport Stratégique (SCI)"],
-        notIncluded: ["Simulations Illimitées", "Consultant Dédié"],
-        cta: "Maîtrisez Votre Carrière",
+        desc: "L'écosystème IA complet + sessions experts en direct avec stratégie personnalisée.",
+        features: [
+          "Analyse stratégique complète & feuille de route de réparation",
+          "Comprend absolument toutes les fonctionnalités Discovery & Core",
+          "Niveaux de Stratégie au choix : Basic, Medium ou Advanced",
+          "Mentorat de haut niveau & suivi continu de l'évolution",
+          "Tous les documents officiels, lettres & certifications inclus GRATUITEMENT",
+          "Prix final & durée fixés après analyse approfondie par les experts"
+        ],
+        notIncluded: [],
+        cta: "Demander l'Audit Stratégique",
         color: "indigo",
         icon: "💎"
       },
-      {
-        name: "Ultimate Partner",
-        price: "1 200€",
-        annualPrice: "1 200€",
-        annualNote: "Planification prioritaire incluse",
-        period: "paiement unique",
-        desc: "Partenariat stratégique continu pour leaders.",
-        features: ["Tout dans Premium", "Simulations Illimitées", "Consultant Senior Dédié", "Suite de Certification Complète", "Diplôme Exécutif DIGNNOS™"],
-        notIncluded: [],
-        cta: "Scalez Votre Héritage",
-        color: "amber",
-        icon: "🏆"
-      }
     ],
     extras: {
       title: "Compléments Stratégiques",
       subtitle: "Personnalisez votre parcours avec des interventions d'experts ciblées.",
       items: [
-        { name: "Simulation Unique", desc: "Mission exécutive haute pression", price: "99€" },
+        { name: "Mission Stratégique Unique", desc: "Mission exécutive haute pression", price: "99€" },
         { name: "Session d'Audit Profond", desc: "1:1 avec Consultant Senior", price: "199€" },
         { name: "Architecture CV", desc: "Réécriture ATS professionnelle", price: "79€" },
       ]
@@ -504,61 +538,78 @@ export const PRICING = {
         price: "مجاناً",
         annualPrice: "مجاناً",
         annualNote: "لا تتطلب بطاقة ائتمان",
-        period: "٧ أيام",
+        period: "مجانًا بالكامل",
         desc: "اختبر قوة التشخيص الذكي لمسارك المهني.",
-        features: ["تحليل السيرة الذاتية الأولي", "معاينة الملف الشخصي الذكي", "اكتشاف الأهداف الأساسية", "دخول المجتمع"],
-        notIncluded: ["خارطة الطريق المهنية", "التقرير الاستراتيجي (SCI)", "جلسات الخبراء"],
-        cta: "ابدأ التجربة مجاناً",
+        features: [
+          "فتح حساب مهني مجاني ودخول مجتمع الفايدة",
+          "تحليل أولي للسيرة الذاتية مع تقرير أولي",
+          "اقتراح ورش عمل وأدوار (مدفوعة حسب الاختيار)",
+          "🚀 خارطة الطريق الاستراتيجية (Roadmap)",
+          "شهادة استراتيجية (مع كل ورشة عمل مدفوعة)",
+          "وثيقة إثبات (مع كل مهمة استراتيجية)"
+        ],
+        notIncluded: [
+          "التقرير الاستراتيجي (SCI)",
+          "ورش العمل المباشرة مع الخبراء",
+          "المستشار الاستراتيجي الذكي 24/7",
+          "الوصول إلى أرشيف المعرفة"
+        ],
+        cta: "ابدأ حسابك المجاني",
         color: "slate",
         icon: "🌱"
       },
       {
         name: "الوصول الذكي الأساسي",
-        price: "$49",
-        annualPrice: "$39/شهر",
-        annualNote: "تُدفع سنوياً ($468/سنة)",
-        period: "/شهر",
-        desc: "التشخيص الذكي الكامل والوصول لخارطة الطريق.",
-        features: ["رحلة ذكية من 7 مراحل", "بناء السيرة الذاتية", "خارطة طريق أساسية", "دخول المجتمع"],
-        notIncluded: ["المستشار الذكي", "التقرير الاستراتيجي (SCI)", "ورش عمل مباشرة"],
+        price: "35€",
+        annualPrice: "120€/سنة",
+        annualNote: "تُدفع كل 3 أشهر (إجمالي 140€/سنة)",
+        period: "/ ٣ أشهر",
+        desc: "تشخيص استراتيجي متكامل وتمكين كامل للنظام البيئي.",
+        features: [
+          "تحليل استراتيجي متكامل ودقيق للسيرة الذاتية مع تقارير",
+          "هندسة السيرة الذاتية ورسالة التحفيز بالذكاء الاصطناعي",
+          "المستشار الاستراتيجي IA واستشارة الخبراء الذكية",
+          "أرشيف المعرفة المتقدم والموارد الاستراتيجية",
+          "🚀 خارطة الطريق الاستراتيجية ومراجعة القرارات الهامة",
+          "يشمل ميزات الباقة التجريبية (الوصول للورشات والأدوار)"
+        ],
+        notIncluded: [
+          "خطاب التوصية التنفيذي (Recommendation Letter)",
+          "دبلوم DIGNNOS™ التنفيذي",
+          "مستشار بشري مخصص"
+        ],
         cta: "ابدأ الآن",
         color: "blue",
         icon: "⚡"
       },
       {
         name: "بريميوم ماستري",
-        price: "$299",
-        annualPrice: "$239/شهر",
-        annualNote: "تُدفع سنوياً ($2,868/سنة)",
-        period: "/شهر",
+        price: "حسب الاستراتيجية",
+        annualPrice: "متغير",
+        annualNote: "تُحدد بعد التشخيص المعمق",
+        period: "باقة مخصصة",
         popular: true,
         highlight: true,
-        desc: "النظام البيئي المتكامل + جلسات الخبراء المباشرة.",
-        features: ["كل شيء في الأساسي", "المستشار الذكي (24/7)", "دخول أرشيف المعرفة", "ورشة عمل تنفيذية مباشرة", "مهمة محاكاة واحدة", "تقرير استراتيجي (SCI)"],
-        notIncluded: ["محاكاة غير محدودة", "مستشار مخصص"],
-        cta: "تمكّن من مسارك",
+        desc: "النظام البيئي المتكامل + جلسات الخبراء المباشرة باستراتيجية مخصصة.",
+        features: [
+          "تحليل استراتيجي شامل وخارطة طريق لإصلاح وتطوير الواقع المهني",
+          "تشمل جميع ميزات الباقتين التجريبية والأساسية بالكامل",
+          "اختيار مستوى الاستراتيجية: أساسي (Basic)، متوسط (Medium)، أو متقدم (Advanced)",
+          "تأطير وتوجيه مهني لأعلى المستويات مع متابعة دقيقة للتطور",
+          "جميع الوثائق الرسمية، خطابات التوصية، والشهادات مشمولة مجاناً",
+          "السعر النهائي والمدة يحددان بدقة بعد تحليل الخبراء للبروفيل"
+        ],
+        notIncluded: [],
+        cta: "اطلب التدقيق الاستراتيجي",
         color: "indigo",
         icon: "💎"
       },
-      {
-        name: "الشريك النهائي",
-        price: "$1,200",
-        annualPrice: "$1,200",
-        annualNote: "جدولة ذات أولوية مشمولة",
-        period: "دفعة واحدة",
-        desc: "شراكة استراتيجية مستمرة للقادة.",
-        features: ["كل شيء في بريميوم", "محاكاة غير محدودة", "مستشار أول مخصص", "مجموعة الشهادات الكاملة", "دبلوم DIGNNOS™ التنفيذي"],
-        notIncluded: [],
-        cta: "أطلق إرثك المهني",
-        color: "amber",
-        icon: "🏆"
-      }
     ],
     extras: {
       title: "إضافات استراتيجية",
       subtitle: "خصص مسار نموك عبر تدخلات الخبراء المستهدفة.",
       items: [
-        { name: "محاكاة واحدة", desc: "مهمة تنفيذية تحت الضغط", price: "$99" },
+        { name: "مهمة استراتيجية واحدة", desc: "مهمة تنفيذية تحت الضغط", price: "$99" },
         { name: "جلسة تدقيق معمق", desc: "1:1 مع مستشار أول", price: "$199" },
         { name: "هندسة السيرة الذاتية", desc: "إعادة كتابة مهنية متوافقة مع ATS", price: "$79" },
       ]

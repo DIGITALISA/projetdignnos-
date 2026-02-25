@@ -10,9 +10,8 @@ import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
 import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image-more";
 import { jsPDF } from "jspdf";
-import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import { HERO, PROBLEM, JOURNEY, ECOSYSTEM_MODULES, CORPORATE, HUMAN, BENEFITS, PRICING, ASSETS, FINAL_CTA, CONTRACT } from "./content";
 
 type Lang = "en" | "fr" | "ar";
@@ -57,7 +56,53 @@ export default function ProfessionalsPage() {
   const [isConsultingFormOpen, setIsConsultingFormOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [currency, setCurrency] = useState("EUR");
+  const [rates, setRates] = useState<Record<string, number>>({
+    TND: 3.42, EUR: 1, USD: 1.08, MAD: 11, DZD: 145, XOF: 655.957
+  });
+
+  const currencies = [
+    { code: "TND", symbol: "DT" },
+    { code: "EUR", symbol: "€" },
+    { code: "USD", symbol: "$" },
+    { code: "MAD", symbol: "DH" },
+    { code: "DZD", symbol: "DA" },
+    { code: "XOF", symbol: "CFA" },
+  ];
+
+  // Fetch real-time rates on mount
+  useState(() => {
+    fetch("https://open.er-api.com/v6/latest/EUR")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates) {
+          setRates(prev => ({
+            ...prev,
+            ...data.rates
+          }));
+        }
+      })
+      .catch(err => console.error("Rate fetch error:", err));
+  });
+
+  const getPrice = (baseEur: number) => {
+    const curr = currencies.find(c => c.code === currency) || currencies[1];
+    const currentRate = rates[curr.code] || 1;
+    const tndRate = rates["TND"] || 3.42;
+
+    // Core Plan specific logic (baseEur is 35 from previous implementation)
+    if (baseEur === 35) {
+      if (curr.code === "TND") return `120 ${curr.symbol} TTC`;
+      
+      // Calculate price based on 100 TND net value
+      // Price in target currency = (100 / TND_Rate) * Target_Currency_Rate
+      const priceNet = (100 / tndRate) * currentRate;
+      return `${Math.round(priceNet).toLocaleString()} ${curr.symbol}*`;
+    }
+
+    const converted = baseEur * currentRate;
+    return `${Math.round(converted).toLocaleString()} ${curr.symbol}*`;
+  };
 
   const [contractId] = useState(() => Math.random().toString(36).substring(2, 9).toUpperCase());
   const [authId] = useState(() => Math.random().toString(36).substring(2, 9).toUpperCase());
@@ -68,24 +113,96 @@ export default function ProfessionalsPage() {
     if (!contractRef.current) return;
     setIsGenerating(true);
     try {
-      const canvas = await html2canvas(contractRef.current, {
-        scale: 3, useCORS: true, backgroundColor: "#ffffff", logging: false, imageTimeout: 0, windowWidth: 1200,
-        onclone: (doc) => {
-          sanitizeForHtml2Canvas(doc);
-          const el = doc.body.querySelector('[data-contract-container="true"]') as HTMLElement;
-          if (el) { el.style.boxShadow = "none"; el.style.border = "1px solid #e2e8f0"; el.style.backgroundColor = "#ffffff"; el.style.color = "#000000"; }
-        },
+      await document.fonts.ready;
+      const original = contractRef.current;
+      const clone = original.cloneNode(true) as HTMLElement;
+      
+      // Setup clone off-screen
+      clone.style.position = "fixed";
+      clone.style.top      = "-9999px";
+      clone.style.left     = "-9999px";
+      clone.style.width    = `${original.offsetWidth}px`;
+      clone.style.height   = `${original.offsetHeight}px`;
+      clone.style.overflow = "visible";
+      document.body.appendChild(clone);
+
+      const unsupported = /oklch|oklab|lab\(|lch\(|hwb\(|color-mix/i;
+      const resolveColor = (raw: string): string => {
+        const tmp = document.createElement("span");
+        tmp.style.color = raw;
+        document.body.appendChild(tmp);
+        const resolved = getComputedStyle(tmp).color;
+        document.body.removeChild(tmp);
+        return resolved || "rgb(0,0,0)";
+      };
+
+      // Sanitize the clone
+      [clone, ...Array.from(clone.querySelectorAll("*"))].forEach(node => {
+        const el = node as HTMLElement;
+        const computed = getComputedStyle(el);
+        
+        // REMOVE BLUR FOR PDF: Find the stamp by ID and clear its filter
+        const stamp = clone.querySelector('#contract-stamp') as HTMLElement;
+        if (stamp) {
+          stamp.style.setProperty("filter", "none", "important");
+          stamp.style.setProperty("-webkit-filter", "none", "important");
+        }
+
+        el.style.setProperty("transition", "none", "important");
+        el.style.setProperty("animation", "none", "important");
+        el.style.setProperty("backdrop-filter", "none", "important");
+
+        (["color", "backgroundColor"] as const).forEach(key => {
+          const val = computed[key] as string;
+          if (val && unsupported.test(val)) {
+            el.style.setProperty(key.replace(/([A-Z])/g, "-$1").toLowerCase(), resolveColor(val), "important");
+          }
+        });
+
+        (["Top", "Right", "Bottom", "Left"] as const).forEach(side => {
+          const w = computed[`border${side}Width` as keyof CSSStyleDeclaration] as string;
+          if (!w || w === "0px") {
+            el.style.setProperty(`border-${side.toLowerCase()}-width`, "0px", "important");
+          } else {
+            const c = computed[`border${side}Color` as keyof CSSStyleDeclaration] as string;
+            if (c && unsupported.test(c)) el.style.setProperty(`border-${side.toLowerCase()}-color`, resolveColor(c), "important");
+          }
+        });
       });
-      const imgData = canvas.toDataURL("image/png");
+
+      const dataUrl = await domtoimage.toPng(clone, {
+        scale: 2,
+        bgcolor: "#ffffff",
+        width:  original.offsetWidth,
+        height: original.offsetHeight,
+      });
+      document.body.removeChild(clone);
+
+      const img = new window.Image();
+      img.src = dataUrl;
+      await new Promise<void>(resolve => { img.onload = () => resolve(); });
+
       const pdf = new jsPDF("p", "mm", "a4");
-      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
-      const r = canvas.width / canvas.height, pr = pw / ph;
-      let fw: number, fh: number;
-      if (r > pr) { fw = pw - 20; fh = fw / r; } else { fh = ph - 20; fw = fh * r; }
-      pdf.addImage(imgData, "PNG", (pw - fw) / 2, 10, fw, fh);
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      
+      const ratio = img.width / img.height;
+      let fw = pw - 20;
+      let fh = fw / ratio;
+      
+      if (fh > ph - 20) {
+        fh = ph - 20;
+        fw = fh * ratio;
+      }
+
+      pdf.addImage(dataUrl, "PNG", (pw - fw) / 2, 10, fw, fh);
       pdf.save(`MA-CONSULTING-CONTRACT-${clientName || "CLIENT"}.pdf`);
-    } catch (e) { console.error("PDF error:", e); }
-    finally { setIsGenerating(false); }
+    } catch (e) { 
+      console.error("PDF error:", e);
+      alert("Erreur lors de la génération du contrat.");
+    } finally { 
+      setIsGenerating(false); 
+    }
   };
 
   return (
@@ -362,19 +479,15 @@ export default function ProfessionalsPage() {
             <h2 className="text-4xl md:text-6xl font-serif text-slate-900 dark:text-white mt-4 mb-4">{pricing.title}</h2>
             <p className="text-xl text-slate-500 font-light mb-8">{pricing.subtitle}</p>
 
-            {/* Billing Toggle */}
-            <div className="inline-flex items-center gap-3 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800">
-              <button onClick={() => setBillingCycle("monthly")}
-                className={cn("px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all",
-                  billingCycle === "monthly" ? "bg-white dark:bg-slate-800 shadow-md text-slate-900 dark:text-white" : "text-slate-500")}>
-                {lang === "ar" ? "شهري" : lang === "fr" ? "Mensuel" : "Monthly"}
-              </button>
-              <button onClick={() => setBillingCycle("annual")}
-                className={cn("px-6 py-2.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all flex items-center gap-2",
-                  billingCycle === "annual" ? "bg-white dark:bg-slate-800 shadow-md text-slate-900 dark:text-white" : "text-slate-500")}>
-                {lang === "ar" ? "سنوي" : lang === "fr" ? "Annuel" : "Annual"}
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black">-20%</span>
-              </button>
+            {/* Currency Selector */}
+            <div className="inline-flex flex-wrap justify-center items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+              {currencies.map((curr) => (
+                <button key={curr.code} onClick={() => setCurrency(curr.code)}
+                  className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+                    currency === curr.code ? "bg-white dark:bg-slate-800 shadow-md text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-700")}>
+                  {curr.code}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -400,19 +513,13 @@ export default function ProfessionalsPage() {
                 <p className={cn("text-sm font-medium mb-6", plan.highlight ? "text-slate-400" : "text-slate-500")}>{plan.desc}</p>
 
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-5xl font-serif font-bold">
-                    {billingCycle === "annual" && plan.annualPrice ? plan.annualPrice.split("/")[0] : plan.price}
+                  <span className="text-4xl font-serif font-bold">
+                    {idx === 1 ? getPrice(35) : plan.price}
                   </span>
                   <span className={cn("text-sm", plan.highlight ? "text-slate-400" : "text-slate-400")}>
-                    {plan.period === "one-time" || plan.period === "دفعة واحدة" || plan.period === "paiement unique"
-                      ? plan.period
-                      : billingCycle === "annual" ? (lang === "ar" ? "/شهر" : "/mo") : plan.period}
+                    {plan.period}
                   </span>
                 </div>
-                {billingCycle === "annual" && plan.annualNote && (
-                  <p className="text-xs text-emerald-500 font-bold mb-6">{plan.annualNote}</p>
-                )}
-                {billingCycle === "monthly" && <div className="mb-6" />}
 
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f, fi) => (
@@ -450,12 +557,15 @@ export default function ProfessionalsPage() {
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{pricing.extras.title}</h3>
             <p className="text-sm text-slate-500 mb-6">{pricing.extras.subtitle}</p>
             <div className="grid md:grid-cols-3 gap-4">
-              {pricing.extras.items.map((ex, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <div><p className="font-bold text-slate-900 dark:text-white text-sm">{ex.name}</p><p className="text-xs text-slate-400">{ex.desc}</p></div>
-                  <span className="text-lg font-serif font-bold text-blue-600">{ex.price}</span>
-                </div>
-              ))}
+               {pricing.extras.items.map((ex, i) => {
+                 const basePrice = parseInt(ex.price.replace(/[^0-9]/g, "")) || 0;
+                 return (
+                   <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                     <div><p className="font-bold text-slate-900 dark:text-white text-sm">{ex.name}</p><p className="text-xs text-slate-400">{ex.desc}</p></div>
+                     <span className="text-lg font-serif font-bold text-blue-600">{getPrice(basePrice)}</span>
+                   </div>
+                 );
+               })}
             </div>
           </motion.div>
 
@@ -470,7 +580,14 @@ export default function ProfessionalsPage() {
                 </span>
               ))}
             </div>
-            <p className="text-xs text-slate-400 mt-4">{pricing.paymentNote}</p>
+            <div className="mt-6 space-y-2">
+              <p className="text-xs text-slate-400">{pricing.paymentNote}</p>
+              {currency !== "TND" && (
+                <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                  * {lang === "ar" ? "الأسعار المعروضة لا تشمل مصاريف التحويل البنكي (على حساب الحريف)" : lang === "fr" ? "Les prix affichés sont hors frais de transfert (à la charge du client)" : "Prices shown exclude transfer fees (responsibility of the client)"}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -525,7 +642,7 @@ export default function ProfessionalsPage() {
                           <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                       </div>
-                      <div className="absolute opacity-90 transform -rotate-12 z-10">
+                      <div id="contract-stamp" className="absolute opacity-90 transform -rotate-12 z-10 blur">
                         <div className="w-44 h-22 border-[3px] rounded-xl flex flex-col items-center justify-center" style={{ borderColor: "#1e3a8a", color: "#1e3a8a", fontFamily: "serif" }}>
                           <p className="text-lg font-black uppercase tracking-tighter leading-none mb-1">Sté MA</p>
                           <p className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Training Consulting</p>

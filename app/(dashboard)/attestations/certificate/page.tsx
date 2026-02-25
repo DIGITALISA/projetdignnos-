@@ -3,9 +3,8 @@
 import { motion } from "framer-motion";
 import { Download, Award, ShieldCheck, Printer, ArrowLeft, Sparkles, Building2, UserCheck, Calendar } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image-more";
 import jsPDF from "jspdf";
-import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import Link from "next/link";
 
 import { useSearchParams } from "next/navigation";
@@ -19,16 +18,15 @@ interface WorkshopData {
 
 export default function WorkshopAttestationPage() {
     const attestationRef = useRef<HTMLDivElement>(null);
-    const [isDownloading, setIsDownloading] = useState(false);
     const [workshop, setWorkshop] = useState<WorkshopData | null>(null);
     const searchParams = useSearchParams();
     const userId = searchParams.get("userId");
+    const dateParam = searchParams.get("date");
 
     useEffect(() => {
         const loadInfo = async () => {
             const activeWorkshopParam = searchParams.get("activeWorkshop");
             const refParam = searchParams.get("ref");
-            const dateParam = searchParams.get("date");
             
             let name = "M. Participant";
             if (userId) {
@@ -53,61 +51,133 @@ export default function WorkshopAttestationPage() {
         };
         
         loadInfo();
-    }, [userId, searchParams]);
+    }, [userId, searchParams, dateParam]);
+
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const handleDownload = async () => {
         if (!attestationRef.current || !workshop) return;
         setIsDownloading(true);
-
         try {
-            const canvas = await html2canvas(attestationRef.current, {
-                scale: 3,
-                useCORS: true,
-                backgroundColor: "#ffffff",
-                logging: false,
-                onclone: (clonedDoc) => {
-                    sanitizeForHtml2Canvas(clonedDoc);
-                    // 1. Remove stubborn link tags
-                    const links = clonedDoc.getElementsByTagName('link');
-                    while (links.length > 0) {
-                        links[0].parentNode?.removeChild(links[0]);
-                    }
+            await document.fonts.ready;
 
-                    // 2. Inject Safe Styles & Font
-                    const safeStyle = clonedDoc.createElement('style');
-                    safeStyle.innerHTML = `
-                        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-                        * { font-family: 'Playfair Display', serif !important; }
-                        .bg-white { background-color: #ffffff !important; }
-                        .text-slate-900 { color: #0f172a !important; }
-                        .text-slate-950 { color: #020617 !important; }
-                        .text-blue-600 { color: #2563eb !important; }
-                        .text-blue-700 { color: #1d4ed8 !important; }
-                        .font-black { font-weight: 900 !important; }
-                        .italic { font-style: italic !important; }
-                        .uppercase { text-transform: uppercase !important; }
-                    `;
-                    clonedDoc.head.appendChild(safeStyle);
+            const original = attestationRef.current;
+
+            // ── 1. Deep-clone the certificate element ──────────────────────────────
+            const clone = original.cloneNode(true) as HTMLElement;
+
+            // Position it off-screen so it renders but isn't visible
+            clone.style.position  = "fixed";
+            clone.style.top       = "-9999px";
+            clone.style.left      = "-9999px";
+            clone.style.width     = `${original.offsetWidth}px`;
+            clone.style.height    = `${original.offsetHeight}px`;
+            clone.style.overflow  = "visible";
+            document.body.appendChild(clone);
+
+            // ── 2. Walk every element in the clone + fix problematic styles ─────────
+            const unsupported = /oklch|oklab|lab\(|lch\(|hwb\(|color-mix/i;
+
+            const resolveColor = (raw: string): string => {
+                const tmp = document.createElement("span");
+                tmp.style.color = raw;
+                document.body.appendChild(tmp);
+                const resolved = getComputedStyle(tmp).color;
+                document.body.removeChild(tmp);
+                return resolved || "rgb(0,0,0)";
+            };
+
+            [clone, ...Array.from(clone.querySelectorAll("*"))].forEach(node => {
+                const el = node as HTMLElement;
+                const computed = getComputedStyle(el);
+
+                // Kill animations & backdrop blur (source of black rectangles)
+                el.style.setProperty("transition",          "none",  "important");
+                el.style.setProperty("animation",           "none",  "important");
+                el.style.setProperty("backdrop-filter",     "none",  "important");
+                el.style.setProperty("-webkit-backdrop-filter", "none", "important");
+
+                // Fix text & background colors
+                (["color", "backgroundColor", "outlineColor", "textDecorationColor"] as const).forEach(key => {
+                    const val = computed[key] as string;
+                    if (val && unsupported.test(val)) {
+                        const kebab = key.replace(/([A-Z])/g, "-$1").toLowerCase();
+                        el.style.setProperty(kebab, resolveColor(val), "important");
+                    }
+                });
+
+                // KEY FIX: For borders, only fix sides with actual width > 0
+                // Tailwind v4 sets border-style:solid on ALL elements (preflight)
+                // so if we set a border-color, it will appear even on 0-width sides!
+                (["Top", "Right", "Bottom", "Left"] as const).forEach(side => {
+                    const widthVal = computed[`border${side}Width` as keyof CSSStyleDeclaration] as string;
+                    if (!widthVal || widthVal === "0px") {
+                        // Explicitly hide this border side so it doesn't bleed
+                        el.style.setProperty(`border-${side.toLowerCase()}-width`, "0px", "important");
+                    } else {
+                        // There IS a real border here — resolve its color if needed
+                        const colorVal = computed[`border${side}Color` as keyof CSSStyleDeclaration] as string;
+                        if (colorVal && unsupported.test(colorVal)) {
+                            el.style.setProperty(
+                                `border-${side.toLowerCase()}-color`,
+                                resolveColor(colorVal),
+                                "important"
+                            );
+                        }
+                    }
+                });
+
+                // Outline — only keep if it has non-zero width
+                const outlineWidth = computed.outlineWidth;
+                if (!outlineWidth || outlineWidth === "0px") {
+                    el.style.setProperty("outline", "none", "important");
+                }
+
+                // Remove external background images (CORS taint)
+                const bg = computed.backgroundImage;
+                if (bg && bg !== "none" && (bg.includes("http://") || bg.includes("https://"))) {
+                    el.style.setProperty("background-image", "none", "important");
                 }
             });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
+
+            // ── 3. Capture with dom-to-image-more ─────────────────────────────────
+            const dataUrl = await domtoimage.toPng(clone, {
+                scale: 2,
+                bgcolor: "#ffffff",
+                width:   original.offsetWidth,
+                height:  original.offsetHeight,
             });
 
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            document.body.removeChild(clone);
+
+            // ── 4. Build A4 landscape PDF ──────────────────────────────────────────
+            const img = new Image();
+            img.src   = dataUrl;
+            await new Promise<void>(resolve => { img.onload = () => resolve(); });
+
+            const pdf   = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+            const pdfW  = pdf.internal.pageSize.getWidth();
+            const pdfH  = pdf.internal.pageSize.getHeight();
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, pdfW, pdfH, "F");
+
+            const ratio    = img.width  / img.height;
+            const pdfRatio = pdfW / pdfH;
+            let imgW = pdfW, imgH = pdfH;
+            if (ratio > pdfRatio) { imgH = pdfW / ratio; } else { imgW = pdfH * ratio; }
+
+            pdf.addImage(dataUrl, "PNG", (pdfW - imgW) / 2, (pdfH - imgH) / 2, imgW, imgH);
             pdf.save(`Attestation-Workshop-${workshop.referenceId}.pdf`);
-        } catch (error) {
-            console.error("Download failed:", error);
-            alert("Failed to generate PDF attestation.");
+
+        } catch (err) {
+            console.error("Download failed:", err);
+            alert("Échec de la génération du PDF. Veuillez réessayer.");
         } finally {
             setIsDownloading(false);
         }
     };
+
+
 
     if (!workshop) return null;
 
@@ -126,7 +196,7 @@ export default function WorkshopAttestationPage() {
                     <button
                         onClick={handleDownload}
                         disabled={isDownloading}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-950 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-3 bg-slate-950 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-60"
                     >
                         {isDownloading ? "Génération..." : "Exporter l'Attestation"}
                         <Download size={16} />

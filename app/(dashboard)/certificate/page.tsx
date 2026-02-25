@@ -11,10 +11,9 @@ import {
   Zap,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image-more";
 import jsPDF from "jspdf";
 import Image from "next/image";
-import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 
 import { AssetLocked } from "@/components/layout/AssetLocked";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -157,94 +156,84 @@ export default function CertificatePage() {
   }, []);
 
   const handleDownload = async () => {
-    if (!profile) return;
+    if (!certificateRef.current || !profile) return;
     setIsDownloading(true);
-    
     try {
-      console.log("PDF: Preparing high-res capture...");
-      const element = document.getElementById('certificate-content');
-      if (!element) throw new Error("Target element not found");
+      await document.fonts.ready;
+      const original = certificateRef.current;
+      const clone = original.cloneNode(true) as HTMLElement;
+      clone.style.position = "fixed";
+      clone.style.top      = "-9999px";
+      clone.style.left     = "-9999px";
+      clone.style.width    = `${original.offsetWidth}px`;
+      clone.style.height   = `${original.offsetHeight}px`;
+      clone.style.overflow = "visible";
+      document.body.appendChild(clone);
 
-      const scrollPos = window.scrollY;
-      window.scrollTo(0, 0);
+      const unsupported = /oklch|oklab|lab\(|lch\(|hwb\(|color-mix/i;
+      const resolveColor = (raw: string): string => {
+        const tmp = document.createElement("span");
+        tmp.style.color = raw;
+        document.body.appendChild(tmp);
+        const resolved = getComputedStyle(tmp).color;
+        document.body.removeChild(tmp);
+        return resolved || "rgb(0,0,0)";
+      };
 
-      const canvas = await html2canvas(element, {
-        scale: 2, // Stable high resolution
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: "#ffffff",
-        windowWidth: 1400,
-        onclone: (clonedDoc) => {
-          // Use our utility for deep sanitization
-          sanitizeForHtml2Canvas(clonedDoc);
-          
-          const el = clonedDoc.getElementById('certificate-content');
-          if (el) {
-            el.style.width = '1400px';
-            el.style.padding = '80px';
-            el.style.margin = '0 auto';
-            el.style.borderRadius = '0';
-            el.style.boxShadow = 'none';
-            el.style.border = 'none';
+      [clone, ...Array.from(clone.querySelectorAll("*"))].forEach(node => {
+        const el = node as HTMLElement;
+        const computed = getComputedStyle(el);
+        el.style.setProperty("transition", "none", "important");
+        el.style.setProperty("animation", "none", "important");
+        el.style.setProperty("backdrop-filter", "none", "important");
+        el.style.setProperty("-webkit-backdrop-filter", "none", "important");
+        (["color", "backgroundColor", "outlineColor"] as const).forEach(key => {
+          const val = computed[key] as string;
+          if (val && unsupported.test(val)) {
+            el.style.setProperty(key.replace(/([A-Z])/g, "-$1").toLowerCase(), resolveColor(val), "important");
           }
-
-          // Force Horizontal Alignment for Header & Footer
-          clonedDoc.querySelectorAll('.flex-col.md\\:flex-row').forEach(node => {
-            const h = node as HTMLElement;
-            h.style.display = 'flex';
-            h.style.flexDirection = 'row';
-            h.style.justifyContent = 'space-between';
-            h.style.alignItems = 'center';
-            h.style.width = '100.5%';
-          });
-
-          // Nuke all decorative border artifacts that appear blue in PDF
-          clonedDoc.querySelectorAll('.border-double, .border-slate-200.p-1, .border-slate-100').forEach(n => {
-             (n as HTMLElement).style.setProperty('border', 'none', 'important');
-             (n as HTMLElement).style.setProperty('padding', '0', 'important');
-          });
-
-          // Ensure UI is hidden
-          clonedDoc.querySelectorAll('button, nav, .dashboard-sidebar, .sidebar').forEach(btn => {
-            (btn as HTMLElement).style.display = 'none';
-          });
+        });
+        (["Top", "Right", "Bottom", "Left"] as const).forEach(side => {
+          const w = computed[`border${side}Width` as keyof CSSStyleDeclaration] as string;
+          if (!w || w === "0px") {
+            el.style.setProperty(`border-${side.toLowerCase()}-width`, "0px", "important");
+          } else {
+            const c = computed[`border${side}Color` as keyof CSSStyleDeclaration] as string;
+            if (c && unsupported.test(c)) el.style.setProperty(`border-${side.toLowerCase()}-color`, resolveColor(c), "important");
+          }
+        });
+        const bg = computed.backgroundImage;
+        if (bg && bg !== "none" && (bg.includes("http://") || bg.includes("https://"))) {
+          el.style.setProperty("background-image", "none", "important");
         }
       });
 
-      window.scrollTo(0, scrollPos);
-
-      console.log("PDF: Image generated, saving...");
-      const imgData = canvas.toDataURL("image/png", 1.0);
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4"
+      const dataUrl = await domtoimage.toPng(clone, {
+        scale: 2,
+        bgcolor: "#ffffff",
+        width:  original.offsetWidth,
+        height: original.offsetHeight,
       });
+      document.body.removeChild(clone);
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const contentWidth = pdfWidth - (margin * 2);
-      const contentHeight = pdfHeight - (margin * 2);
+      const img = new window.Image();
+      img.src = dataUrl;
+      await new Promise<void>(resolve => { img.onload = () => resolve(); });
 
-      let finalW = contentWidth;
-      let finalH = (canvas.height * contentWidth) / canvas.width;
-
-      if (finalH > contentHeight) {
-        finalH = contentHeight;
-        finalW = (canvas.width * contentHeight) / canvas.height;
-      }
-
-      const x = margin + (contentWidth - finalW) / 2;
-      const y = margin + (contentHeight - finalH) / 2;
-
-      pdf.addImage(imgData, 'PNG', x, y, finalW, finalH, undefined, 'FAST');
+      const pdf   = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pdfW  = pdf.internal.pageSize.getWidth();
+      const pdfH  = pdf.internal.pageSize.getHeight();
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(0, 0, pdfW, pdfH, "F");
+      const ratio    = img.width / img.height;
+      const pdfRatio = pdfW / pdfH;
+      let imgW = pdfW, imgH = pdfH;
+      if (ratio > pdfRatio) { imgH = pdfW / ratio; } else { imgW = pdfH * ratio; }
+      pdf.addImage(dataUrl, "PNG", (pdfW - imgW) / 2, (pdfH - imgH) / 2, imgW, imgH);
       pdf.save(`Executive-Performance-Profile-${profile.referenceId}.pdf`);
-      console.log("PDF: SUCCESS!");
-    } catch (err: unknown) {
+    } catch (err) {
       console.error("PDF FAILURE:", err);
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      alert(`Export Failed: ${msg}.`);
+      alert(`Export Failed: ${err instanceof Error ? err.message : "Unknown error"}.`);
     } finally {
       setIsDownloading(false);
     }

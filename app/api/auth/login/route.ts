@@ -13,14 +13,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
         }
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ 
+            $or: [
+                { email: email },
+                { memberId: email }
+            ]
+        });
 
         if (!user) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        // Check password using bcrypt
-        const isMatch = await bcrypt.compare(password, user.password);
+        // Check password: it can be either the hashed password OR the memberId itself (Access Code)
+        const isMatch = (await bcrypt.compare(password, user.password)) || (password === user.memberId);
         if (!isMatch) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
