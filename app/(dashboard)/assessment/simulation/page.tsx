@@ -1736,7 +1736,7 @@ export default function SimulationPage() {
                                 </div>
                                 <h4 className="text-lg font-bold text-slate-900 mb-2">
                                     {selectedLanguage === 'ar' ? 'محاكاة واقعية' :
-                                     selectedLanguage === 'fr' ? 'Simulations Réelles' :
+                                     selectedLanguage === 'fr' ? 'Missions Stratégiques' :
                                      'Real Simulations'}
                                 </h4>
                                 <p className="text-sm text-slate-600 leading-relaxed">

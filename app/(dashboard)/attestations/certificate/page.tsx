@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Download, Award, ShieldCheck, Printer, ArrowLeft, Sparkles, Building2, UserCheck, Calendar } from "lucide-react";
+import { ShieldCheck, Calendar, Download, Printer, ArrowLeft, Award, Sparkles, UserCheck } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import domtoimage from "dom-to-image-more";
 import jsPDF from "jspdf";
@@ -213,115 +213,125 @@ export default function WorkshopAttestationPage() {
                 >
                     <div
                         ref={attestationRef}
-                        className="relative w-[297mm] h-[210mm] bg-white text-slate-900 overflow-hidden flex flex-col p-16"
+                        className="relative w-[297mm] h-[210mm] bg-white text-slate-900 overflow-hidden flex flex-col p-20"
                         style={{
-                            backgroundImage: "radial-gradient(circle at center, #ffffff 40%, #f9fafb 100%)",
+                            backgroundImage: "radial-gradient(circle at center, #ffffff 0%, #fcfdfe 100%)",
                             fontFamily: "'Playfair Display', serif"
                         }}
                     >
+                        {/* Mesh Texture Overlay */}
+                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+                             style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/carbon-fibre.png')" }} />
+                        
                         {/* Ornamental Borders */}
-                        <div className="absolute inset-8 border-[0.5px] border-slate-300" />
-                        <div className="absolute inset-10 border-2 border-double border-slate-900/5" />
+                        <div className="absolute inset-10 border-[0.5px] border-slate-200" />
+                        <div className="absolute inset-12 border-2 border-double border-slate-950/5" />
                         
                         {/* Corner Accents */}
-                        <div className="absolute top-0 left-0 w-40 h-40 border-t-4 border-l-4 border-slate-900/10 rounded-tl-[4rem] -ml-4 -mt-4" />
-                        <div className="absolute bottom-0 right-0 w-40 h-40 border-b-4 border-r-4 border-slate-900/10 rounded-br-[4rem] -mr-4 -mb-4" />
+                        <div className="absolute top-4 left-4 w-48 h-48 border-t-[6px] border-l-[6px] border-slate-900/5 rounded-tl-[5rem]" />
+                        <div className="absolute bottom-4 right-4 w-48 h-48 border-b-[6px] border-r-[6px] border-slate-900/5 rounded-br-[5rem]" />
 
                         <div className="relative z-10 flex flex-col h-full items-center justify-between text-center">
                             {/* Header */}
-                            <div className="space-y-4">
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-white rotate-3 shadow-xl mb-4">
-                                        <Building2 size={32} />
+                            <div className="w-full flex flex-col items-center">
+                                <div className="relative group">
+                                    <div className="absolute -inset-4 bg-blue-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative mb-6">
+                                        <img src="/logo-matc.png" alt="MATC Logo" className="h-24 w-auto object-contain drop-shadow-sm" />
                                     </div>
-                                    <h4 className="text-slate-900 font-extrabold text-sm uppercase tracking-[0.5em]">MA-TRAINING-CONSULTING</h4>
-                                    <p className="text-blue-600/60 font-black text-[10px] uppercase tracking-[0.3em]">Cabinet de Conseil Stratégique</p>
+                                </div>
+                                <div className="space-y-1 text-center">
+                                    <h4 className="text-slate-900 font-black text-xs uppercase tracking-[0.6em] ml-2">MA-TRAINING-CONSULTING</h4>
+                                    <p className="text-blue-600/50 font-bold text-[9px] uppercase tracking-[0.4em]">Cabinet de Conseil Stratégique</p>
                                 </div>
                             </div>
 
                             {/* Main Content */}
-                            <div className="space-y-8">
-                                <div className="space-y-2">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400">Attestation de Participation</span>
-                                    <h1 className="text-6xl font-black text-slate-950 italic tracking-tight">Workshop Stratégique</h1>
+                            <div className="flex-1 flex flex-col justify-center items-center py-8">
+                                <div className="space-y-4 text-center">
+                                    <span className="text-[11px] font-black uppercase tracking-[0.8em] text-slate-300">Attestation de Participation</span>
+                                    <h1 className="text-7xl font-black text-slate-950 italic tracking-tight">Workshop Stratégique</h1>
                                 </div>
 
-                                <div className="max-w-2xl mx-auto space-y-6">
-                                    <p className="text-xl font-serif text-slate-500 leading-relaxed italic">
-                                        Le Cabinet MA-TRAINING-CONSULTING certifie par la présente la participation active de
-                                    </p>
-                                    <h2 className="text-5xl font-black text-slate-900 border-b-2 border-slate-900 inline-block pb-2 px-8">
-                                        {workshop.participantName}
-                                    </h2>
-                                    <p className="text-xl font-serif text-slate-600 leading-relaxed max-w-xl mx-auto italic mt-6">
-                                        À la Session Complète de Workshop intitulée :
-                                        <br />
-                                        <span className="font-black uppercase tracking-wider text-2xl not-italic block mt-2 text-blue-700">
+                                <div className="mt-12 space-y-10 text-center">
+                                    <div className="space-y-4">
+                                        <p className="text-lg font-serif text-slate-400 italic">
+                                            Le Cabinet MA-TRAINING-CONSULTING certifie par la présente la participation active de
+                                        </p>
+                                        <h2 className="text-6xl font-black text-slate-900 border-b-4 border-slate-950/10 inline-block pb-4 px-12 uppercase tracking-tighter">
+                                            {workshop.participantName}
+                                        </h2>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <p className="text-lg font-serif text-slate-500 italic">
+                                            À la Session Complète de Workshop intitulée :
+                                        </p>
+                                        <span className="font-black uppercase tracking-[0.15em] text-3xl block text-blue-700">
                                             « {workshop.title} »
                                         </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer (Metadata Only) */}
+                            <div className="w-full flex justify-between items-end pt-12 border-t border-slate-100">
+                                <div className="flex gap-16">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner">
+                                            <Calendar className="text-slate-400" size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Délivré le</p>
+                                            <p className="text-base font-black text-slate-900">{workshop.date}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner">
+                                            <ShieldCheck className="text-blue-500" size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Réf. Validation</p>
+                                            <p className="text-sm font-mono font-black text-slate-900 tracking-tight">{workshop.referenceId}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-300 max-w-xs leading-relaxed">
+                                        Propriété exclusive de MA-TRAINING-CONSULTING.
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Footer */}
-                            <div className="w-full flex justify-between items-end border-t border-slate-100 pt-12 text-left">
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                                            <Calendar className="text-slate-400" size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Délivré le</p>
-                                            <p className="text-lg font-bold text-slate-900">{workshop.date}</p>
+                            {/* Absolutely Positioned Stamp & Signature (Final precision alignment) */}
+                            <div className="absolute bottom-[0.5%] right-[1%] flex flex-col items-center gap-2 pointer-events-none group">
+                                <div className="relative flex items-center justify-center w-64 h-32">
+                                    {/* Company Stamp */}
+                                    <div className="opacity-80 transform -rotate-12 transition-transform group-hover:rotate-0 duration-700">
+                                        <div className="w-48 h-24 border-[3.5px] rounded-2xl flex flex-col items-center justify-center bg-white/40 backdrop-blur-[0.5px] shadow-sm relative overflow-hidden" 
+                                             style={{ borderColor: '#1e3a8a', color: '#1e3a8a', fontFamily: 'serif' }}>
+                                            <div className="absolute inset-0 opacity-[0.03] bg-slate-900 pointer-events-none" />
+                                            <p className="text-lg font-black uppercase tracking-tighter leading-none mb-0.5">Sté MA</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Training Consulting</p>
+                                            <div className="w-4/5 h-[1.5px] bg-blue-900/30 my-1" />
+                                            <p className="text-[8px] font-bold leading-none mb-1">Tel: 44 172 264</p>
+                                            <p className="text-[8px] font-bold leading-none">MF: 1805031P/A/M/000</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                                            <ShieldCheck className="text-blue-500" size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Réf. Validation</p>
-                                            <p className="text-sm font-mono font-bold text-slate-900">{workshop.referenceId}</p>
-                                        </div>
+
+                                    {/* Consultant Signature */}
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] opacity-95 pointer-events-none transform -rotate-6 z-20">
+                                        <svg width="240" height="100" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#1e3a8a' }}>
+                                            <path d="M10 45C25 42 45 12 65 22C85 32 105 5 130 15M15 52C35 48 55 42 95 45" 
+                                                  stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" 
+                                                  className="drop-shadow-[0_2px_3px_rgba(30,58,138,0.25)]"/>
+                                            <path d="M35 28C40 22 50 18 55 32C60 46 45 52 40 42C35 32 50 22 65 27" 
+                                                  stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                                        </svg>
                                     </div>
                                 </div>
-
-                                <div className="text-right space-y-4 relative min-w-[240px]">
-                                    {/* Unified Validation Group (Signature over Stamp) */}
-                                    <div className="relative flex items-center justify-end py-6 pr-4">
-                                        {/* Company Stamp Base - Realistic CSS version */}
-                                        <div className="opacity-70 transform -rotate-12 transition-transform hover:rotate-0 duration-700">
-                                            <div className="w-52 h-26 border-[3px] rounded-xl flex flex-col items-center justify-center bg-white/50 backdrop-blur-[1px] shadow-sm relative overflow-hidden" 
-                                                 style={{ borderColor: '#1e3a8a', color: '#1e3a8a', fontFamily: 'serif' }}>
-                                                {/* Ink Bleed Effect Overlays */}
-                                                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none" />
-                                                
-                                                <p className="text-xl font-black uppercase tracking-tighter leading-none mb-1">Sté MA</p>
-                                                <p className="text-[11px] font-bold uppercase tracking-widest leading-none mb-2">Training Consulting</p>
-                                                <div className="w-4/5 h-[1.5px] bg-blue-900/40 my-1" />
-                                                <p className="text-[9px] font-bold leading-none mb-1">Tel: 44 172 264</p>
-                                                <p className="text-[9px] font-bold leading-none">MF: 1805031P/A/M/000</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Consultant Signature - Scrolled OVER the stamp with artistic offset */}
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-[40%] -translate-y-1/2 opacity-90 pointer-events-none transform -rotate-6 z-20">
-                                            <svg width="250" height="110" viewBox="0 0 150 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#1e3a8a' }}>
-                                                {/* Primary Signature Path */}
-                                                <path d="M10 45C25 42 45 12 65 22C85 32 105 5 130 15M15 52C35 48 55 42 95 45" 
-                                                      stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" 
-                                                      className="drop-shadow-[0_2px_2px_rgba(30,58,138,0.3)]"/>
-                                                {/* Secondary Loop/Detail */}
-                                                <path d="M35 28C40 22 50 18 55 32C60 46 45 52 40 42C35 32 50 22 65 27" 
-                                                      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 max-w-xs leading-relaxed">
-                                        Propriété intellectuelle exclusive de MA-TRAINING-CONSULTING.<br />
-                                        Vérification autorisée via le code de référence unique.
-                                    </p>
-                                </div>
+                                <p className="text-[10px] font-serif italic text-slate-500 -mt-2">Le Consultant en Stratégie</p>
                             </div>
                         </div>
 

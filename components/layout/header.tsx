@@ -36,9 +36,6 @@ export function Header({ onOpenSidebar }: HeaderProps) {
 
     // Simple breadcrumb logic
     const getBreadcrumb = () => {
-        const parts = pathname.split('/').filter(p => p && p !== 'dashboard');
-        if (parts.length === 0) return t.sidebar.items.overview;
-        
         // Map common paths to readable names
         const pathMap: Record<string, string> = {
             'assessment': t.sidebar.categories.diagnostic,
@@ -53,8 +50,15 @@ export function Header({ onOpenSidebar }: HeaderProps) {
             'certificate': t.sidebar.items.certificates,
             'recommendation': t.sidebar.items.recommendation,
             'attestations': t.sidebar.items.attestations,
+            'attestations/certificate': t.sidebar.items.attestations,
         };
 
+        const cleanPath = pathname.replace(/^\/(dashboard\/?)?/, '');
+        if (pathMap[cleanPath]) return pathMap[cleanPath];
+
+        const parts = pathname.split('/').filter(p => p && p !== 'dashboard');
+        if (parts.length === 0) return t.sidebar.items.overview;
+        
         return pathMap[parts[parts.length - 1]] || parts[parts.length - 1];
     };
 

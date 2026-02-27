@@ -7,6 +7,8 @@ const PUBLIC_ROUTES = [
   "/api/verify-document",
   "/api/corporate-inquiry",
   "/api/recruitment",
+  "/api/expert-interview",
+  "/api/user/readiness",
   "/api/setup",
 ];
 

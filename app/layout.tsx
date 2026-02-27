@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "matrainingconsulting",
   description: "MA-TRAINING-CONSULTING provides AI-powered career diagnostic, professional simulations, and strategic talent evaluation for individuals and corporations.",
   keywords: ["MA-TRAINING-CONSULTING", "AI Career Coach", "Talent Intelligence", "Executive Simulation", "HR Strategic Report"],

@@ -708,6 +708,127 @@ By signing below, you authorize the commencement of the strategic advisory manda
       cta: "Apply as an Expert",
       close: "Close",
     },
+    expertCall: {
+      badge: "MA-TRAINING-CONSULTING – Call for Experts to Join a Complete Professional Path",
+      heroTitle: "Join a Complete Professional Path",
+      heroSubtitle:
+        "At MA-TRAINING-CONSULTING, we aim to develop a complete professional path for each participant through a system combining Artificial Intelligence, a Path Supervisor, and specialized experts.",
+      conceptTitle: "Project Concept",
+      conceptDesc:
+        "We develop the professional path of each participant, representing their complete professional dossier. This path allows us to understand the participant's skills, strengths, areas for improvement, and future professional goals.",
+      pillarsTitle: "The professional path is built on three main pillars:",
+      pillars: {
+        ai: {
+          title: "Artificial Intelligence",
+          desc: "Provides precise analysis and recommendations to support the work of experts.",
+        },
+        sup: {
+          title: "Path Supervisor (The Organizer)",
+          desc: "Filters participants and prepares reports intended for experts.",
+        },
+        exp: {
+          title: "Experts",
+          desc: "Provide practical guidance, strategies, and personalized workshops.",
+        },
+      },
+      phases: {
+        title: "Intelligence & Workshops",
+        subtitle: "A collaborative system for maximum precision.",
+        diag: {
+          title: "Diagnostic Phase (Diagnostic)",
+          desc: "The participant first completes the diagnostic via the AI system, offering a complete and objective view of their professional profile. It evaluates: Technical and practical skills, personal aptitudes, work style, and professional development needs.",
+        },
+        ws: {
+          title: "Workshops",
+          desc: "The path supervisor is responsible for filtering participants and preparing reports for experts. AI proposes workshop content, appropriate strategies, and provides feedback. The work is always collaborative.",
+        },
+      },
+      platform: {
+        title: "Advanced AI Platform",
+        desc: "We provide you with a comprehensive ecosystem supported by Artificial Intelligence that organizes your work, simplifies complex tasks, and serves as your professional cockpit.",
+        features: [
+          "Intelligent assistance in preparation and overall workflow organization",
+          "Comprehensive system providing support and feedback to simplify your work",
+          "Technical supervisors assisting with AI-driven organizational techniques",
+          "Real-time insights and smart automation for a seamless experience"
+        ]
+      },
+      communityNote: "The platform includes a community of experts to share experiences, improve the platform, and develop professional skills.",
+      role: {
+        badge: "Expert Role",
+        title: "Professional Reference & Practical Coach",
+        desc: "The expert guides the participant through a professional experience reflecting the real job market. They transform the simulation into a real practical experience, beyond theory.",
+        tasksTitle: "Practical Tasks of the Expert:",
+        tasks: [
+          {
+            title: "Guidance & Supervision",
+            text: "Explain missions and objectives clearly. Guide professional reflection.",
+          },
+          {
+            title: "Evaluation & Correction",
+            text: "Analyze work performed, correct errors, and provide clear, structured feedback.",
+          },
+          {
+            title: "Professional Strategy",
+            text: "Transmission of effective decision-making, difficulty management, and task prioritization.",
+          },
+          {
+            title: "Pressure Simulation",
+            text: "Role-play as manager, client, or supervisor to reproduce the real-world context.",
+          },
+        ],
+      },
+      stim: {
+        title: "Nature of the Simulation:",
+        intro: "Simulation of a real position including:",
+        list: [
+          "Scenario based on the reality of the position",
+          "Practical missions and challenges",
+          "Working as if the participant actually occupied the role",
+        ],
+      },
+      binome: {
+        title: "Dual-Expert Pairing (If necessary)",
+        desc: "Possible participation of a specialized technical expert and a soft skills expert. This complementarity allows for full technical and behavioral development.",
+      },
+      target: {
+        badge: "Final Objective",
+        title: "Acquire Professional Reflexes",
+        list: [
+          "Professional understanding of the position and its main missions",
+          "Acquisition of professional reflexes",
+          "Immediate readiness for the labor market",
+          "The experience is practical, not theoretical",
+        ],
+      },
+      conditions: {
+        title: "Participation Conditions for Experts",
+        list: [
+          "Continuous collaboration with supervisors and the AI system.",
+          "Engagement in project development and technical skill enhancement.",
+          "Acting as a freelancer representing MA-TRAINING-CONSULTING during each session.",
+          "Exclusive use of the system for the project (no personal use).",
+          "Contribution to project promotion (recommended).",
+          "Pedagogical materials belong to MA-TRAINING-CONSULTING; use only as directed.",
+          "Selection of one expert per field during the test phase.",
+        ],
+      },
+      pedag: {
+        title: "Pedagogical Materials",
+        desc: "The educational supports belong to MA-TRAINING-CONSULTING. They must be used exclusively to prepare workshops based on the diagnosis, and not in a random manner.",
+      },
+      benefits: {
+        title: "Benefits for Experts",
+        list: [
+          "Integrated AI + Supervisor + Expert system",
+          "Detailed reports prepared in advance for each participant",
+          "Intelligent AI suggestions to support workshops",
+          "Interactive community of experts for exchange",
+          "Opportunity to develop skills in a realistic practical environment",
+        ],
+      },
+      cta: "Join the Strategic Experience",
+    },
     recruit: {
       badge: "Recruitment 2026 Active",
       titlePre: "Architect the Future of",
@@ -2149,7 +2270,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
     missions: {
       badge: "Accompagnement et Mentorat d'Experts",
       title: "Missions Stratégiques",
-      desc: "Sur la base de votre diagnostic initial, nos experts mondiaux vous accompagnent lors de sessions en direct et de simulations réelles. Nous ciblons vos faiblesses et amplifions vos forces pour vous aligner sur le marché mondial.",
+      desc: "Sur la base de votre diagnostic initial, nos experts mondiaux vous accompagnent lors de sessions en direct et des Missions Stratégiques. Nous ciblons vos faiblesses et amplifions vos forces pour vous aligner sur le marché mondial.",
       stat: "Exécution sans risque",
       statDesc: "Mentorat d'experts en environnement sécurisé",
       crisisLabel: "Scénario de Marché en Direct",
@@ -2334,6 +2455,127 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
       desc: "Nous recrutons l'élite des consultants, experts stratégiques et maîtres de conférences indépendants. Si vous commandez l'art de l'éloquence et possédez une expertise de haut niveau, rejoignez notre réseau mondial pour transformer l'intelligence exécutive.",
       cta: "Postuler en tant qu'expert",
       close: "Fermer",
+    },
+    expertCall: {
+      badge: "Cabinet Conseil – Appel aux experts pour rejoindre un parcours professionnel complet",
+      heroTitle: "Rejoignez un Parcours Professionnel Complet",
+      heroSubtitle:
+        "Chez Cabinet Conseil, nous visons à développer un parcours professionnel complet pour chaque participant à travers un système combinant intelligence artificielle, superviseur du parcours et experts spécialisés.",
+      conceptTitle: "Concept du projet",
+      conceptDesc:
+        "Nous développons le parcours professionnel de chaque participant, qui représente son dossier professionnel complet. Ce parcours nous permet de comprendre les compétences du participant, ses points forts, les domaines à améliorer et ses objectifs professionnels futurs.",
+      pillarsTitle: "Le parcours professionnel repose sur trois piliers principaux :",
+      pillars: {
+        ai: {
+          title: "Intelligence artificielle",
+          desc: "Fournit des analyses précises et des recommandations pour soutenir le travail des experts.",
+        },
+        sup: {
+          title: "Superviseur du parcours (L’organisateur)",
+          desc: "Filtre les participants et prépare les rapports destinés aux experts.",
+        },
+        exp: {
+          title: "Experts",
+          desc: "Fournissent un accompagnement pratique, des stratégies et des ateliers personnalisés.",
+        },
+      },
+      phases: {
+        title: "Intelligence & Ateliers",
+        subtitle: "Un système collaboratif pour une précision maximale.",
+        diag: {
+          title: "Phase de diagnostic (Diagnostic)",
+          desc: "Le participant réalise d’abord le diagnostic via le système d’intelligence artificielle, offrant une vision complète et objective de son profil professionnel sans exposer de détails personnels sensibles. Le diagnostic évalue : Les compétences techniques et pratiques, Les aptitudes personnelles, Le style de travail, Les besoins de développement professionnel.",
+        },
+        ws: {
+          title: "Ateliers (Workshops)",
+          desc: "Le superviseur du parcours est responsable du filtrage des participants et de la préparation des rapports pour les experts. Ces rapports précisent les points clés et les compétences à développer. Le système assisté par l’IA propose le contenu des ateliers et les stratégies appropriées.",
+        },
+      },
+      platform: {
+        title: "Plateforme Numérique Avancée",
+        desc: "Nous mettons à votre disposition un écosystème complet soutenu par l'Intelligence Artificielle qui organise votre travail, simplifie vos tâches complexes et booste votre impact professionnel.",
+        features: [
+          "Assistance intelligente à la préparation et organisation du travail",
+          "Système complet offrant support et feedback pour simplifier vos missions",
+          "Accompagnement des superviseurs via des outils d'organisation IA",
+          "Analyses en temps réel et automatisation pour une expérience fluide"
+        ]
+      },
+      communityNote: "La plateforme inclut une communauté d’experts pour partager les expériences, améliorer la plateforme et développer les compétences professionnelles des experts.",
+      role: {
+        badge: "Rôle de l’expert",
+        title: "Référent professionnel et coach pratique",
+        desc: "L’expert guide le participant à travers une expérience professionnelle reflétant le marché réel du travail. Il transforme la simulation en expérience pratique réelle, au-delà de la théorie.",
+        tasksTitle: "Tâches pratiques de l’expert :",
+        tasks: [
+          {
+            title: "Orientation et supervision",
+            text: "Expliquer les missions et les objectifs clairement. Guider la réflexion professionnelle du participant.",
+          },
+          {
+            title: "Évaluation et correction",
+            text: "Analyser le travail effectué, corriger les erreurs et fournir un feedback clair et structuré.",
+          },
+          {
+            title: "Stratégie professionnelle",
+            text: "Transmission de la prise de décision efficace, gestion des difficultés et priorisation des tâches.",
+          },
+          {
+            title: "Simulation de pression",
+            text: "Jouer le rôle de manager, client ou responsable hiérarchique pour reproduire le contexte réel.",
+          },
+        ],
+      },
+      stim: {
+        title: "Nature de la stimulation :",
+        intro: "Simulation d’un poste réel incluant :",
+        list: [
+          "Scénario basé sur la réalité du poste",
+          "Missions et défis pratiques",
+          "Travail comme si le participant occupait réellement le poste",
+        ],
+      },
+      binome: {
+        title: "Travail en binôme (si nécessaire)",
+        desc: "Participation possible d’un expert technique spécialisé et d’un expert soft skills. Cette complémentarité permet au participant de développer ses compétences techniques et comportementales.",
+      },
+      target: {
+        badge: "Objectif final",
+        title: "Acquérir des réflexes professionnels",
+        list: [
+          "Comprendre le poste et ses missions principales",
+          "Acquérir des réflexes professionnels",
+          "Être immédiatement prêt pour le marché du travail",
+          "L’expérience est pratique et non théorique",
+        ],
+      },
+      conditions: {
+        title: "Conditions de participation pour les experts",
+        list: [
+          "Collaboration continue avec les superviseurs et le système d’IA.",
+          "Engagement dans le développement du projet et de ses compétences techniques.",
+          "L’expert agit en freelance et représente Cabinet Conseil lors de chaque session.",
+          "Utilisation exclusive du système pour le projet (interdiction d’usage personnel).",
+          "Contribution à la promotion et présentation du projet (recommandée).",
+          "Supports pédagogiques appartenant à Cabinet Conseil à utiliser selon le diagnostic.",
+          "Sélection d’un seul expert par domaine pendant la phase de test.",
+        ],
+      },
+      pedag: {
+        title: "Supports Pédagogiques",
+        desc: "Les supports pédagogiques appartiennent à Cabinet Conseil. Ils doivent être utilisés exclusivement pour préparer les ateliers selon le diagnostic, et non de manière aléatoire.",
+      },
+      benefits: {
+        title: "Avantages pour les experts",
+        list: [
+          "Système intégré combinant IA, superviseur et experts",
+          "Rapports détaillés préparés à l’avance pour chaque participant",
+          "Feedback et suggestions intelligentes pour soutenir les ateliers",
+          "Communauté d’experts interactive pour échanger des expériences",
+          "Opportunité de développer ses compétences dans un environnement réaliste",
+        ],
+      },
+      cta: "Rejoindre l’expérience Stratégique",
     },
     recruit: {
       badge: "Recrutement 2026 Actif",
@@ -3965,6 +4207,127 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
       desc: "نستقطب نخبة المستشارين، الخبراء الاستراتيجيين، وأساتذة الخطابة المستقلين. إذا كنت تمتلك خبرة استثنائية وتتقن فن التفسير والتأثير القيادي، انضم إلى شبكتنا العالمية لهندسة مستقبل الذكاء التنفيذي.",
       cta: "سجل الآن كخبير",
       close: "إغلاق",
+    },
+    expertCall: {
+      badge: "MA-TRAINING-CONSULTING – دعوة للخبراء للانضمام إلى مسار مهني متكامل",
+      heroTitle: "انضم إلى مسار مهني متكامل",
+      heroSubtitle:
+        "في MA-TRAINING-CONSULTING، نهدف إلى تطوير مسار مهني كامل لكل مشارك من خلال نظام يجمع بين الذكاء الاصطناعي، مشرف المسار، والخبراء المتخصصين.",
+      conceptTitle: "مفهوم المشروع",
+      conceptDesc:
+        "نقوم بتطوير المسار المهني لكل مشارك، والذي يمثل ملفه المهني الكامل. يتيح لنا هذا المسار فهم مهارات المشارك، نقاط قوته، مجالات التحسين وأهدافه المهنية المستقبلية.",
+      pillarsTitle: "يعتمد المسار المهني على ثلاث ركائز أساسية:",
+      pillars: {
+        ai: {
+          title: "الذكاء الاصطناعي",
+          desc: "يوفر تحليلات دقيقة وتوصيات لدعم عمل الخبراء.",
+        },
+        sup: {
+          title: "مشرف المسار (المنظم)",
+          desc: "يقوم بتصفية المشاركين وإعداد التقارير الموجهة للخبراء.",
+        },
+        exp: {
+          title: "الخبراء",
+          desc: "يقدمون مرافقة عملية، استراتيجيات، وورش عمل مخصصة.",
+        },
+      },
+      phases: {
+        title: "الذكاء والورشات",
+        subtitle: "نظام تعاوني لضمان أقصى درجات الدقة.",
+        diag: {
+          title: "مرحلة التشخيص",
+          desc: "يقوم المشارك أولاً بإجراء التشخيص عبر نظام الذكاء الاصطناعي، مما يوفر رؤية كاملة وموضوعية لملفه المهني دون الكشف عن تفاصيل شخصية حساسة. يقيم التشخيص: المهارات التقنية، السمات الشخصية، أسلوب العمل واحتياجات التطوير.",
+        },
+        ws: {
+          title: "الورشات (Workshops)",
+          desc: "المشرف هو المسؤول عن تصفية المشاركين وإعداد التقارير للخبراء. يقترح النظام المحتوى والعمل تعاوني دائماً.",
+        },
+      },
+      platform: {
+        title: "منصة رقمية متقدمة",
+        desc: "نضع بين يديك نظاماً متكاملاً مدعوماً بالذكاء الاصطناعي يسهل عليك العمل، ينظم مهامك، ويعزز من تأثيرك المهني كخبير.",
+        features: [
+          "مساعدة ذكية في التحضير وتنسيق العمل بشكل متكامل",
+          "نظام شامل يوفر الدعم والملاحظات (Feedback) لتسهيل مهامك",
+          "مشرفون تقنيون يدعمونك بتقنيات تنظيم واستراتيجيات ذكية",
+          "تحليلات فورية وأدوات ذكية تجعل تجربتك العملية أكثر سلاسة"
+        ]
+      },
+      communityNote: "تتضمن المنصة مجتمعاً للخبراء لتبادل الخبرات وتطوير المهارات المهنية.",
+      role: {
+        badge: "دور الخبير",
+        title: "مرجع مهني ومدرب عملي",
+        desc: "يوجه الخبير المشارك من خلال تجربة مهنية تعكس سوق العمل الحقيقي، محولاً المحاكاة إلى تجربة عملية حقيقية تتجاوز النظريات.",
+        tasksTitle: "المهام العملية للخبير:",
+        tasks: [
+          {
+            title: "التوجيه والإشراف",
+            text: "شرح المهام والأهداف بوضوح، وتوجيه التفكير المهني للمشارك.",
+          },
+          {
+            title: "التقييم والتصحيح",
+            text: "تحليل العمل المنجز، تصحيح الأخطاء، وتقديم تغذية راجعة مهيكلة.",
+          },
+          {
+            title: "الاستراتيجية المهنية",
+            text: "نقل تقنيات اتخاذ القرار الفعال، إدارة الصعوبات وترتيب الأولويات.",
+          },
+          {
+            title: "محاكاة الضغط",
+            text: "لعب دور المدير أو العميل لإعادة إنتاج السياق الحقيقي للمنصب.",
+          },
+        ],
+      },
+      stim: {
+        title: "طبيعة المحاكاة:",
+        intro: "محاكاة لمنصب حقيقي تشمل:",
+        list: [
+          "سيناريو مبني على واقع المنصب",
+          "مهام وتحديات عملية",
+          "العمل وكأن المشارك يشغل المنصب فعلياً",
+        ],
+      },
+      binome: {
+        title: "العمل في ثنائي (عند الحاجة)",
+        desc: "إمكانية مشاركة خبير تقني وخبير مهارات ناعمة لضمان تطوير تقني وسلوكي كامل للمشارك.",
+      },
+      target: {
+        badge: "الهدف النهائي",
+        title: "اكتساب المنعكسات المهنية",
+        list: [
+          "فهم المنصب ومهامه الأساسية",
+          "اكتساب المنعكسات والمهارات المهنية",
+          "الجاهزية الفورية لسوق العمل",
+          "التجربة عملية وليست نظرية",
+        ],
+      },
+      conditions: {
+        title: "شروط المشاركة للخبراء",
+        list: [
+          "التعاون المستمر مع المشرفين ونظام الذكاء الاصطناعي.",
+          "الالتزام بتطوير المشروع وتحسين المهارات التقنية.",
+          "العمل كمستقل وتمثيل MA-TRAINING-CONSULTING في كل جلسة.",
+          "الاستخدام الحصري للنظام لصالح المشروع فقط.",
+          "المساهمة في الترويج والتعريف بالمشروع (موصى به).",
+          "المواد البيداغوجية ملك للشركة وتستخدم وفق التشخيص.",
+          "اختيار خبير واحد لكل مجال خلال المرحلة التجريبية.",
+        ],
+      },
+      pedag: {
+        title: "الوسائل البيداغوجية",
+        desc: "الوسائل والمواد التعليمية ملك لـ Cabinet Conseil. يجب استخدامها فقط لتحضير الورشات بناءً على نتائج التشخيص وليس بشكل عشوائي.",
+      },
+      benefits: {
+        title: "مزايا الخبراء",
+        list: [
+          "نظام متكامل يجمع الذكاء الاصطناعي والمشرف والخبراء",
+          "تقارير مفصلة معدة مسبقاً لكل مشارك",
+          "مقترحات ذكية من النظام لدعم ورش العمل",
+          "مجتمع تفاعلي لتبادل الخبرات والتعاون",
+          "فرصة لتطوير المهارات في بيئة عملية واقعية",
+        ],
+      },
+      cta: "انضم إلى تجربة التميز الاستراتيجي",
     },
     recruit: {
       badge: "التوظيف لعام 2026 نشط",

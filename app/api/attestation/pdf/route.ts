@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jsPDF } from "jspdf";
+import fs from "fs";
+import path from "path";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -11,6 +13,16 @@ export async function GET(req: NextRequest) {
         ? new Date(Number(dateParam)).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
         : new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 
+    // ── Load Logo ─────────────────────────────────────────────────────────────
+    const logoPath = path.join(process.cwd(), "public", "logo-matc.png");
+    let logoBase64 = "";
+    try {
+        const logoBuffer = fs.readFileSync(logoPath);
+        logoBase64 = `data:image/png;base64,${logoBuffer.toString("base64")}`;
+    } catch (e) {
+        console.error("Failed to load logo:", e);
+    }
+
     // ── Page setup ──────────────────────────────────────────────────────────────
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const W = 297; // A4 landscape width (mm)
@@ -20,225 +32,152 @@ export async function GET(req: NextRequest) {
     doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, W, H, "F");
 
-    // Subtle radial centre glow (very light grey gradient approximation)
-    doc.setFillColor(249, 250, 251);
+    // Subtle radial centre glow
+    doc.setFillColor(250, 251, 252);
     doc.ellipse(W / 2, H / 2, 120, 80, "F");
     doc.setFillColor(255, 255, 255);
     doc.ellipse(W / 2, H / 2, 80, 55, "F");
 
     // ── Ornamental border ────────────────────────────────────────────────────────
-    doc.setDrawColor(203, 213, 225);   // slate-300
+    doc.setDrawColor(226, 232, 240); // slate-200
     doc.setLineWidth(0.3);
     doc.rect(12, 12, W - 24, H - 24);
 
-    doc.setDrawColor(15, 23, 42);
+    doc.setDrawColor(15, 23, 42, 0.1);
     doc.setLineWidth(0.15);
     doc.setLineDashPattern([0.5, 1], 0);
     doc.rect(14, 14, W - 28, H - 28);
     doc.setLineDashPattern([], 0);
 
-    // Corner accents (top-left / bottom-right)
-    const ca = 20; // corner accent length
-    doc.setDrawColor(15, 23, 42, 0.12);
-    doc.setLineWidth(1.2);
-    // TL
-    doc.line(5, 5 + ca, 5, 5);  doc.line(5, 5, 5 + ca, 5);
-    // BR
-    doc.line(W - 5, H - 5 - ca, W - 5, H - 5);  doc.line(W - 5, H - 5, W - 5 - ca, H - 5);
-    doc.setLineWidth(0.3);
+    // Corner accents
+    const ca = 20;
+    doc.setDrawColor(15, 23, 42, 0.1);
+    doc.setLineWidth(1);
+    doc.line(8, 8 + ca, 8, 8);  doc.line(8, 8, 8 + ca, 8);
+    doc.line(W - 8, H - 8 - ca, W - 8, H - 8);  doc.line(W - 8, H - 8, W - 8 - ca, H - 8);
 
-    // Watermark "✦" (light)
+    // Watermark
     doc.setTextColor(15, 23, 42);
-    doc.setGState(doc.GState({ opacity: 0.015 }));
-    doc.setFontSize(200);
-    doc.setFont("helvetica", "bold");
-    doc.text("✦", W / 2, H / 2 + 60, { align: "center" });
+    doc.setGState(doc.GState({ opacity: 0.01 }));
+    doc.setFontSize(180);
+    doc.text("✦", W / 2, H / 2 + 50, { align: "center" });
     doc.setGState(doc.GState({ opacity: 1 }));
 
-    // ── Logo box ─────────────────────────────────────────────────────────────────
-    doc.setFillColor(15, 23, 42);
-    doc.roundedRect(W / 2 - 7, 22, 14, 14, 2, 2, "F");
-    // Simple icon lines (document icon)
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(0.8);
-    doc.roundedRect(W / 2 - 4, 24.5, 8, 9, 0.8, 0.8);
-    doc.line(W / 2 - 2.5, 27, W / 2 + 2.5, 27);
-    doc.line(W / 2 - 2.5, 29, W / 2 + 2.5, 29);
-    doc.line(W / 2 - 2.5, 31, W / 2 + 1, 31);
-    doc.setLineWidth(0.3);
-
-    // ── Company name ─────────────────────────────────────────────────────────────
+    // ── Header: Logo & Company ──────────────────────────────────────────────────
+    if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", W / 2 - 15, 15, 30, 30);
+    }
+    
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7);
-    doc.setTextColor(15, 23, 42);
-    doc.setCharSpace(3.5);
-    doc.text("MA-TRAINING-CONSULTING", W / 2, 42, { align: "center" });
-    doc.setCharSpace(0);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(5.5);
-    doc.setTextColor(37, 99, 235, 0.6);
-    doc.text("CABINET DE CONSEIL STRATÉGIQUE", W / 2, 46.5, { align: "center" });
-
-    // ── Attestation label ────────────────────────────────────────────────────────
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(5.5);
-    doc.setTextColor(148, 163, 184);
-    doc.setCharSpace(4);
-    doc.text("ATTESTATION DE PARTICIPATION", W / 2, 55, { align: "center" });
-    doc.setCharSpace(0);
-
-    // ── Main title ───────────────────────────────────────────────────────────────
-    doc.setFont("times", "bolditalic");
-    doc.setFontSize(42);
-    doc.setTextColor(2, 6, 23);
-    doc.text("Workshop Stratégique", W / 2, 80, { align: "center" });
-
-    // ── Certifies text ────────────────────────────────────────────────────────────
-    doc.setFont("times", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text("Le Cabinet MA-TRAINING-CONSULTING certifie par la présente la participation active de", W / 2, 92, { align: "center" });
-
-    // ── Participant name ──────────────────────────────────────────────────────────
-    doc.setFont("times", "bold");
-    doc.setFontSize(28);
-    doc.setTextColor(15, 23, 42);
-    doc.text(participantName, W / 2, 106, { align: "center" });
-    // Underline
-    const nameWidth = doc.getTextWidth(participantName);
-    doc.setDrawColor(15, 23, 42);
-    doc.setLineWidth(0.6);
-    doc.line(W / 2 - nameWidth / 2, 108, W / 2 + nameWidth / 2, 108);
-    doc.setLineWidth(0.3);
-
-    // ── Workshop label ────────────────────────────────────────────────────────────
-    doc.setFont("times", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(71, 85, 105);
-    doc.text("À la Session Complète de Workshop intitulée :", W / 2, 118, { align: "center" });
-
-    // Workshop title in blue
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor(29, 78, 216);
-    doc.text(`« ${workshopTitle} »`, W / 2, 127, { align: "center" });
-
-    // ── Divider line ──────────────────────────────────────────────────────────────
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.4);
-    doc.line(20, 143, W - 20, 143);
-
-    // ── Footer left: Date + Ref ───────────────────────────────────────────────────
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(5);
-    doc.setTextColor(148, 163, 184);
-    doc.setCharSpace(2);
-    doc.text("DÉLIVRÉ LE", 22, 150);
-    doc.setCharSpace(0);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
-    doc.text(date, 22, 156);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(5);
-    doc.setTextColor(148, 163, 184);
-    doc.setCharSpace(2);
-    doc.text("RÉF. VALIDATION", 22, 164);
-    doc.setCharSpace(0);
-    doc.setFont("courier", "bold");
     doc.setFontSize(8);
     doc.setTextColor(15, 23, 42);
-    doc.text(referenceId, 22, 170);
-
-    // ── Stamp (bottom right) ──────────────────────────────────────────────────────
-    const sx = W - 85;  // stamp x
-    const sy = 148;     // stamp y
-    const sw = 58;      // stamp width
-    const sh = 32;      // stamp height
-
-    doc.setGState(doc.GState({ opacity: 0.72 }));
-    // Rotate stamp slightly
-    doc.saveGraphicsState();
-    const angle = -6 * (Math.PI / 180);
-    const cx = sx + sw / 2;
-    const cy = sy + sh / 2;
-    // Manual rotation approach: draw rotated rect using lines
-    doc.setDrawColor(30, 58, 138);
-    doc.setLineWidth(1.8);
-    const corners = [
-        [sx, sy], [sx + sw, sy], [sx + sw, sy + sh], [sx, sy + sh]
-    ].map(([x, y]) => [
-        cx + (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle),
-        cy + (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle)
-    ]);
-    doc.line(corners[0][0], corners[0][1], corners[1][0], corners[1][1]);
-    doc.line(corners[1][0], corners[1][1], corners[2][0], corners[2][1]);
-    doc.line(corners[2][0], corners[2][1], corners[3][0], corners[3][1]);
-    doc.line(corners[3][0], corners[3][1], corners[0][0], corners[0][1]);
-
-    // Stamp text
-    doc.setFont("times", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(30, 58, 138);
-    doc.text("Sté MA", cx, cy - 6, { align: "center", angle: 6 });
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(5);
-    doc.setCharSpace(1.5);
-    doc.text("TRAINING CONSULTING", cx, cy - 1.5, { align: "center", angle: 6 });
-    doc.setCharSpace(0);
-    // Divider inside stamp
-    doc.setDrawColor(30, 58, 138, 0.4);
-    doc.setLineWidth(0.3);
-    doc.line(cx - 18, cy + 1, cx + 18, cy + 1);
+    doc.text("MA-TRAINING-CONSULTING", W / 2, 50, { align: "center" });
+    
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(5);
-    doc.text("Tel: 44 172 264", cx, cy + 4.5, { align: "center", angle: 6 });
-    doc.text("MF: 1805031P/A/M/000", cx, cy + 7.5, { align: "center", angle: 6 });
+    doc.setFontSize(6);
+    doc.setTextColor(37, 99, 235);
+    doc.text("CABINET DE CONSEIL STRATÉGIQUE", W / 2, 54, { align: "center" });
 
-    doc.restoreGraphicsState();
-    doc.setGState(doc.GState({ opacity: 1 }));
-
-    // ── Signature (SVG-style curves via lines) ────────────────────────────────────
-    doc.setGState(doc.GState({ opacity: 0.80 }));
-    doc.setDrawColor(30, 58, 138);
-    doc.setLineWidth(1.4);
-    // Primary sweep
-    const sigX = W - 100;
-    const sigY = 157;
-    // Bezier approximation using polyline
-    const pts1: [number, number][] = [];
-    for (let t = 0; t <= 1; t += 0.04) {
-        const x = sigX + t * 55;
-        const y = sigY + Math.sin(t * Math.PI * 1.5) * -8 + t * 3;
-        pts1.push([x, y]);
-    }
-    for (let i = 0; i < pts1.length - 1; i++) {
-        doc.line(pts1[i][0], pts1[i][1], pts1[i+1][0], pts1[i+1][1]);
-    }
-    // Secondary underline
-    doc.setLineWidth(0.9);
-    const pts2: [number, number][] = [];
-    for (let t = 0; t <= 1; t += 0.06) {
-        const x = sigX + 5 + t * 38;
-        const y = sigY + 4 + Math.sin(t * Math.PI) * -1.5;
-        pts2.push([x, y]);
-    }
-    for (let i = 0; i < pts2.length - 1; i++) {
-        doc.line(pts2[i][0], pts2[i][1], pts2[i+1][0], pts2[i+1][1]);
-    }
-    doc.setGState(doc.GState({ opacity: 1 }));
-    doc.setLineWidth(0.3);
-
-    // ── Legal text ────────────────────────────────────────────────────────────────
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(4.5);
+    // ── Content Area ─────────────────────────────────────────────────────────────
     doc.setTextColor(148, 163, 184);
-    doc.text("Propriété intellectuelle exclusive de MA-TRAINING-CONSULTING.", W - 22, 183, { align: "right" });
-    doc.text("Vérification autorisée via le code de référence unique.", W - 22, 187, { align: "right" });
+    doc.setFontSize(7);
+    doc.text("ATTESTATION DE PARTICIPATION", W / 2, 68, { align: "center" });
 
-    // ── Output ────────────────────────────────────────────────────────────────────
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("times", "bolditalic");
+    doc.setFontSize(48);
+    doc.text("Workshop Stratégique", W / 2, 88, { align: "center" });
+
+    doc.setFont("times", "italic");
+    doc.setFontSize(14);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Le Cabinet MA-TRAINING-CONSULTING certifie par la présente la participation active de", W / 2, 108, { align: "center" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(38);
+    doc.setTextColor(15, 23, 42);
+    doc.text(participantName, W / 2, 128, { align: "center" });
+
+    doc.setDrawColor(15, 23, 42, 0.15);
+    doc.setLineWidth(1);
+    const nameWidth = doc.getTextWidth(participantName) + 40;
+    doc.line(W / 2 - nameWidth / 2, 131, W / 2 + nameWidth / 2, 131);
+
+    doc.setFont("times", "italic");
+    doc.setFontSize(14);
+    doc.setTextColor(71, 85, 105);
+    doc.text("À la Session Complète de Workshop intitulée :", W / 2, 148, { align: "center" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(29, 78, 216);
+    doc.text(`« ${workshopTitle} »`, W / 2, 158, { align: "center" });
+
+    // ── Footer ──────────────────────────────────────────────────────────────────
+    doc.setDrawColor(241, 245, 249);
+    doc.setLineWidth(0.5);
+    doc.line(25, 178, W - 25, 178);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    doc.setTextColor(148, 163, 184);
+    doc.text("DÉLIVRÉ LE", 30, 187);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(10);
+    doc.text(date, 30, 194);
+
+    doc.setFontSize(6);
+    doc.setTextColor(148, 163, 184);
+    doc.text("RÉF. VALIDATION", 85, 187);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(8);
+    doc.setFont("courier", "bold");
+    doc.text(referenceId, 85, 194);
+
+    // Stamp & Signature (Bottom Right)
+    const sx = W - 65; // Further right
+    const sy = 192; // Final lowering
+
+    doc.setFont("times", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Le Consultant en Stratégie", sx + 25, sy + 22, { align: "center" });
+
+    // Stamp
+    doc.setDrawColor(30, 58, 138);
+    doc.setLineWidth(1.2);
+    doc.roundedRect(sx, sy - 4, 50, 24, 3, 3);
+    
+    doc.setTextColor(30, 58, 138);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Sté MA", sx + 25, sy + 4, { align: "center" });
+    doc.setFontSize(7);
+    doc.text("Training Consulting", sx + 25, sy + 8, { align: "center" });
+    
+    doc.setDrawColor(30, 58, 138, 0.3);
+    doc.setLineWidth(0.2);
+    doc.line(sx + 10, sy + 10, sx + 40, sy + 10);
+    
+    doc.setFontSize(5);
+    doc.text("Tel: 44 172 264", sx + 25, sy + 14, { align: "center" });
+    doc.text("MF: 1805031P/A/M/000", sx + 25, sy + 17, { align: "center" });
+
+    // Signature (Manual Curves)
+    doc.setDrawColor(30, 58, 138, 0.9);
+    doc.setLineWidth(1);
+    const sigBaseX = sx - 10;
+    const sigBaseY = sy + 5;
+    doc.moveTo(sigBaseX + 10, sigBaseY + 5);
+    doc.curveTo(sigBaseX + 25, sigBaseY - 10, sigBaseX + 45, sigBaseY + 10, sigBaseX + 65, sigBaseY - 15);
+    doc.stroke();
+    doc.line(sigBaseX + 15, sigBaseY + 8, sigBaseX + 55, sigBaseY + 5);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5);
+    doc.setTextColor(203, 213, 225);
+    doc.text("Propriété exclusive de MA-TRAINING-CONSULTING. Vérification autorisée via le code de référence unique.", W - 25, 203, { align: "right" });
+
     const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
 
     return new NextResponse(pdfBuffer, {

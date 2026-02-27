@@ -17,6 +17,7 @@ import {
     AlertCircle,
     Zap
 } from "lucide-react";
+import Image from "next/image";
 import { AssetLocked } from "@/components/layout/AssetLocked";
 
 interface RecommendationData {
@@ -196,7 +197,7 @@ export default function RecommendationPage() {
             });
             document.body.removeChild(clone);
 
-            const img = new Image();
+            const img = new window.Image();
             img.src = dataUrl;
             await new Promise<void>(resolve => { img.onload = () => resolve(); });
 
@@ -394,13 +395,18 @@ export default function RecommendationPage() {
                                         {/* Elegant Header */}
                                         <div className="flex flex-col md:flex-row justify-between items-start gap-8 border-b border-slate-100 pb-12">
                                             <div className="space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg transform -rotate-6">
-                                                        <Sparkles className="w-7 h-7" />
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-20 h-20 md:w-24 md:h-24 relative bg-white rounded-2xl shadow-sm border border-slate-100 p-2 overflow-hidden shrink-0">
+                                                        <Image 
+                                                            src="/logo-matc.png" 
+                                                            alt="MATC Logo" 
+                                                            fill
+                                                            className="object-contain p-2"
+                                                        />
                                                     </div>
-                                                    <div>
-                                                        <h4 className="font-black text-xl text-slate-900 tracking-tighter leading-none uppercase">CareerUpgrade</h4>
-                                                        <p className="text-[10px] font-bold text-blue-600 tracking-[0.3em] uppercase mt-1">AI Elite Endorsement</p>
+                                                    <div className="space-y-1">
+                                                        <h4 className="font-black text-2xl text-slate-900 tracking-tighter leading-none uppercase">MA-TRAINING-CONSULTING</h4>
+                                                        <p className="text-xs font-bold text-blue-600 tracking-[0.25em] uppercase">Cabinet de Conseil Stratégique</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -445,12 +451,12 @@ export default function RecommendationPage() {
 
                                         {/* Footer Area - Signature */}
                                         <div className="pt-16 mt-20 border-t border-slate-100 flex flex-col md:flex-row justify-between items-end gap-10">
-                                            <div className="flex items-center gap-5 translate-y-2">
+                                            <div className="flex items-center gap-5 translate-y-2 text-left">
                                                 <div className="w-16 h-16 bg-blue-50/50 rounded-2xl flex items-center justify-center border border-blue-100/50 shadow-inner">
                                                     <ShieldCheck className="w-8 h-8 text-blue-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-black text-slate-900 text-lg uppercase tracking-tight">CareerUpgrade Executive Board</p>
+                                                    <p className="font-black text-slate-900 text-lg uppercase tracking-tight">MA-TRAINING-CONSULTING Executive Board</p>
                                                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Expertisé & Approuvé par notre Comité de Consultants Senior</p>
                                                 </div>
                                             </div>

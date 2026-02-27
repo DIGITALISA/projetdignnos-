@@ -370,11 +370,11 @@ export default function CertificatePage() {
                   ref={certificateRef}
                   id="certificate-content"
                   dir={dir}
-                  className={`relative w-full md:aspect-[1.414/1] flex flex-col p-8 md:p-16 overflow-hidden ${dir === 'rtl' ? 'font-arabic' : ''}`}
+                  className={`relative w-full flex flex-col p-10 md:p-20 ${dir === 'rtl' ? 'font-arabic' : ''} shadow-inner bg-white`}
                   style={{
-                    backgroundColor: "#ffffff",
                     borderRadius: "3.4rem",
-                    minHeight: "650px",
+                    minHeight: "1000px",
+                    height: "auto",
                   }}
                 >
                   {/* Security & Design Elements */}
@@ -387,7 +387,7 @@ export default function CertificatePage() {
                     />
                   </div>
 
-                  <div className="relative z-10 h-full flex flex-col justify-between gap-8 md:gap-0">
+                  <div className="relative z-10 flex flex-col justify-between gap-12 md:gap-16">
                     {/* Header */}
                     <div
                       className="flex flex-col md:flex-row justify-between items-start pb-8 md:pb-12 gap-6 md:gap-0"
@@ -471,9 +471,9 @@ export default function CertificatePage() {
                           </p>
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex flex-col gap-8 pt-4">
                           <div
-                            className="px-6 md:px-8 py-3 text-white text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] rounded-xl self-start"
+                            className="px-6 md:px-10 py-4 text-white text-[11px] md:text-xs font-black uppercase tracking-[0.3em] rounded-2xl self-start shadow-lg shadow-slate-900/20"
                             style={{ backgroundColor: "#0f172a" }}
                           >
                             {t.performanceProfile.strategicLevel}: {profile.verdict}
