@@ -43,6 +43,7 @@ export const translations = {
       totalMessages: "Total Messages",
       guidance: "Guidance",
       scenarios: "Scenarios",
+      loading: "Generating Strategic Report...",
     },
     nav: {
       home: "Home",
@@ -1844,6 +1845,7 @@ By signing below, you authorize the commencement of the strategic advisory manda
       totalMessages: "Total des Messages",
       guidance: "Accompagnement",
       scenarios: "Scénarios",
+      loading: "Génération du rapport stratégique...",
     },
     nav: {
       home: "Accueil",
@@ -3660,6 +3662,7 @@ En signant ci-dessous, vous acceptez de commencer le processus de conseil.
       totalMessages: "إجمالي الرسائل",
       guidance: "التوجيه",
       scenarios: "السيناريوهات",
+      loading: "جاري إنشاء التقرير الاستراتيجي...",
     },
     nav: {
       home: "الرئيسية",

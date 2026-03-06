@@ -36,7 +36,7 @@ interface DiagnosisData {
 }
 
 export default function StrategicReportPage() {
-    const { dir, language } = useLanguage();
+    const { dir, language, t } = useLanguage();
     const searchParams = useSearchParams();
     const [report, setReport] = useState<SCIReport | null>(null);
     const [diagnosis, setDiagnosis] = useState<DiagnosisData | null>(null);
