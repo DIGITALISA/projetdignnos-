@@ -139,6 +139,16 @@ export default function CVGenerationPage() {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
 
+            // ✅ Student Free Trial Gate
+            const isStudentFreeTrial = userProfile.plan === 'Student' && 
+                                      (userProfile.role === 'Free Tier' || userProfile.role === 'Trial User');
+            
+            if (isStudentFreeTrial) {
+                console.log("Student Free Trial user attempted to access cv-generation — redirecting to discovery completion");
+                router.push('/assessment/role-discovery');
+                return;
+            }
+
             if (userId) {
                 try {
                     const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);

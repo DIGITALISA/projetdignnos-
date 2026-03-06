@@ -19,10 +19,12 @@ import {
     Clock,
     Users,
     Globe,
-    Mail
+    Mail,
+    Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { TrialGate } from "@/components/ui/TrialGate";
 
 interface Milestone {
     id: number;
@@ -63,13 +65,31 @@ const IconMap: Record<string, typeof TrendingUp> = {
 };
 
 export default function RoadmapPage() {
-    const { t, dir } = useLanguage();
+    const { t, dir, language } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
     const [activeMilestone, setActiveMilestone] = useState<number>(0);
+    const [isUsed, setIsUsed] = useState(false);
+    const [isStudentFreeTrial, setIsStudentFreeTrial] = useState(false);
+
+    // Check if user is Student Free Trial and if ai-path was already used
+    useEffect(() => {
+        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const isTrial = profile.plan === 'Student' && 
+                        (profile.role === 'Free Tier' || profile.role === 'Trial User');
+        setIsStudentFreeTrial(isTrial);
+        if (isTrial) {
+            const visited = profile.visitedModules || [];
+            setIsUsed(visited.includes('/roadmap'));
+        }
+    }, []);
 
     const fetchRoadmap = async () => {
+        // If Student Free Trial and already used, block the fetch
+        if (isStudentFreeTrial && isUsed) {
+            return; // Don't allow regeneration
+        }
         setLoading(true);
         try {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
@@ -93,6 +113,18 @@ export default function RoadmapPage() {
                 if (savedProgress) {
                     setCompletedSteps(JSON.parse(savedProgress));
                 }
+
+                // Track visit for limited students only after successful roadmap generation
+                const userProfileLocal = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                if (userProfileLocal.plan === "Student" && userProfileLocal.activationType === "Limited") {
+                    fetch('/api/user/trial-gate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, module: 'strategic-roadmap', moduleHref: '/roadmap' })
+                    }).then(() => {
+                        window.dispatchEvent(new Event("profileUpdated"));
+                    }).catch(err => console.error("Track visit error:", err));
+                }
             }
         } catch (error) {
             console.error("Failed to fetch roadmap", error);
@@ -101,9 +133,8 @@ export default function RoadmapPage() {
         }
     };
 
-    useEffect(() => {
-        fetchRoadmap();
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { fetchRoadmap(); }, []);
 
     const toggleStep = (id: number) => {
         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
@@ -122,22 +153,29 @@ export default function RoadmapPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[80vh] gap-4">
-                <div className="relative">
-                    <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <TrendingUp size={16} className="text-blue-600" />
+            <TrialGate module="strategic-roadmap" moduleHref="/roadmap" dir={dir}>
+                <div className="flex flex-col items-center justify-center h-[80vh] gap-4">
+                    <div className="relative">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <TrendingUp size={16} className="text-blue-600" />
+                        </div>
                     </div>
+                    <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-[10px]">{t.roadmap.architecting}</p>
                 </div>
-                <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-[10px]">{t.roadmap.architecting}</p>
-            </div>
+            </TrialGate>
         );
     }
 
     if (!roadmap) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50/50" dir={dir}>
+        <TrialGate 
+            module="strategic-roadmap" 
+            moduleHref="/roadmap"
+            dir={dir}
+        >
+        <div className={`min-h-screen bg-slate-50/30 ${dir === 'rtl' ? 'font-arabic' : ''}`} dir={dir}>
             <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-16 pb-32">
             {/* Header */}
             <header className={cn("flex flex-col lg:flex-row lg:items-center justify-between gap-8 pt-8 relative", dir === 'rtl' ? 'lg:flex-row-reverse' : '')}>
@@ -160,6 +198,14 @@ export default function RoadmapPage() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {isStudentFreeTrial && isUsed ? (
+                        <div className={cn(
+                            "group relative px-8 py-4 bg-slate-200 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-xs cursor-not-allowed flex items-center gap-3"
+                        )}>
+                            <Lock size={16} />
+                            <span>{dir === 'rtl' ? 'تم الاستخدام مرة واحدة' : language === 'fr' ? 'Utilisé (1 fois)' : 'Used Once'}</span>
+                        </div>
+                    ) : (
                     <button 
                         onClick={fetchRoadmap}
                         className="group relative px-8 py-4 bg-slate-950 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] active:scale-95 overflow-hidden"
@@ -169,6 +215,7 @@ export default function RoadmapPage() {
                             <Zap size={16} className="fill-current group-hover:animate-bounce" /> {t.roadmap.regenerate}
                         </span>
                     </button>
+                    )}
                 </div>
             </header>
 
@@ -533,5 +580,6 @@ export default function RoadmapPage() {
             </motion.div>
         </div>
     </div>
+    </TrialGate>
     );
 }

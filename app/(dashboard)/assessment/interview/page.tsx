@@ -542,7 +542,9 @@ export default function InterviewPage() {
     // Interview Complete - Show Results Preview
     if (interviewComplete && finalEvaluation) {
         const userProfile = JSON.parse(typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}');
-        const isFreeTier = userProfile.plan === "Free Trial" || userProfile.plan === "None" || userProfile.role === "Trial User" || !userProfile.plan;
+        const isLimitedStudent = userProfile.activationType === "Limited";
+        const isPaidPlan = ["Professional", "Pro", "Executive", "Premium"].includes(userProfile.plan) || (userProfile.plan === "Student" && !isLimitedStudent);
+        const isFreeTier = !isPaidPlan;
 
         return (
             <div className="flex-1 flex items-center justify-center p-4 md:p-8">
@@ -665,8 +667,20 @@ export default function InterviewPage() {
                         {/* Action Button */}
                         <div className="relative pt-4">
                             <motion.button
-                                onClick={() => {
+                                onClick={async () => {
                                     if (isFreeTier) {
+                                        // Mark as used if trial student
+                                        if (isLimitedStudent) {
+                                            const userId = userProfile.email || userProfile.fullName;
+                                            if (userId) {
+                                                await fetch('/api/user/trial-gate', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ userId, module: 'strategic-report', moduleHref: '/strategic-report' })
+                                                });
+                                                window.dispatchEvent(new Event("profileUpdated"));
+                                            }
+                                        }
                                         router.push('/subscription');
                                     } else {
                                         localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));

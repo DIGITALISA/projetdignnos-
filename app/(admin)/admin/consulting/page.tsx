@@ -200,7 +200,7 @@ export default function ConsultingManagementPage() {
                                             value={contactConfig.whatsapp}
                                             onChange={(e) => setContactConfig({...contactConfig, whatsapp: e.target.value})}
                                             className="w-full bg-slate-950 border-none rounded-xl px-4 py-3 text-white font-medium focus:ring-2 focus:ring-blue-500/50 outline-none"
-                                            placeholder="+216 23 351 048"
+                                            placeholder="+216 44 172 284"
                                         />
                                     </div>
                                     <div className="bg-white/5 rounded-2xl p-5 border border-white/10">

@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, memberId } = body;
+        console.log("Creating/Updating user with plan:", body.plan);
+        const { fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, memberId, activationType } = body;
 
         if (!fullName || !email || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -40,9 +41,9 @@ export async function POST(req: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Auto-assign role if plan is premium
+        // Auto-assign role and status if activation is Unlimited or plan is Professional
         let finalRole = role || "Trial User";
-        if ((plan === "Pro Essential") && (finalRole === "Trial User")) {
+        if ((plan === "Professional" || activationType === "Unlimited") && (finalRole === "Trial User" || finalRole === "Free Tier")) {
             finalRole = "Premium Member";
         }
 
@@ -53,12 +54,15 @@ export async function POST(req: NextRequest) {
             role: finalRole,
             status: status || "Active",
             whatsapp: whatsapp || "",
-            plan: plan || "Free Trial",
+            plan: plan || "Professional",
+            paymentStatus: activationType === "Unlimited" ? "Paid" : "Unpaid",
+            accountType: activationType === "Unlimited" ? "Premium" : "Free",
             canAccessCertificates: !!canAccessCertificates,
             canAccessRecommendations: !!canAccessRecommendations,
             canAccessScorecard: !!canAccessScorecard,
             canAccessSCI: !!canAccessSCI,
-            memberId: memberId || undefined
+            memberId: memberId || undefined,
+            activationType: activationType || "Limited"
         });
 
         return NextResponse.json(user, { status: 201 });
@@ -71,7 +75,8 @@ export async function PUT(req: NextRequest) {
     try {
         await connectDB();
         const body = await req.json();
-        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, memberId } = body;
+        console.log("Updating user ID:", body.id, "to plan:", body.plan);
+        const { id, fullName, email, password, role, status, whatsapp, plan, canAccessCertificates, canAccessRecommendations, canAccessScorecard, canAccessSCI, memberId, activationType } = body;
 
         if (!id) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -89,11 +94,22 @@ export async function PUT(req: NextRequest) {
             canAccessScorecard: !!canAccessScorecard,
             canAccessSCI: !!canAccessSCI,
             paymentStatus: body.paymentStatus,
-            memberId: memberId
+            memberId: memberId,
+            activationType: activationType,
+            trialExpiry: body.trialExpiry
         };
 
-        // Auto-upgrade role if plan is premium
-        if ((plan === "Pro Essential") && (role === "Trial User" || !role)) {
+        // Sync role and status if activation is set to Unlimited
+        if (activationType === "Unlimited") {
+            if (role === "Trial User" || role === "Free Tier" || !role) {
+                updateData.role = "Premium Member";
+            }
+            updateData.paymentStatus = "Paid";
+            updateData.accountType = "Premium";
+        }
+
+        // Auto-upgrade role if plan is Professional or setting to Unlimited
+        if ((plan === "Professional" || activationType === "Unlimited") && (role === "Trial User" || role === "Free Tier" || !role)) {
             updateData.role = "Premium Member";
         }
         if (password && password.trim() !== "") {

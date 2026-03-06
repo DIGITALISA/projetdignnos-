@@ -16,7 +16,6 @@ import {
     RefreshCw,
     Brain,
     FileText,
-    ChevronRight,
     Star,
     Calendar,
     BarChart3,
@@ -27,6 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
 
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
@@ -63,7 +63,7 @@ interface SimulationReport {
 }
 
 export default function DashboardPage() {
-    const { t, dir } = useLanguage();
+    const { t, dir, language } = useLanguage();
     const [userName, setUserName] = useState("");
     const [userRole, setUserRole] = useState("");
     const [userPlan, setUserPlan] = useState("");
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                     const configMap = data.configs;
                     setSupport({
                         adminEmail: configMap.adminEmail || "support@careerupgrade.ai",
-                        adminWhatsapp: configMap.adminWhatsapp || "+216XXXXXXXX"
+                        adminWhatsapp: configMap.adminWhatsapp || "+216 44 172 284"
                     });
                 }
             } catch (error) {
@@ -211,6 +211,7 @@ export default function DashboardPage() {
     const simScore = simulationReport?.overallPerformance?.score || simulationReport?.overallScore || 0;
     const seniorityLevel = interviewEval?.seniorityLevel || t.dashboard.stats.pendingAnalysis;
 
+    const isProfessionalPlan = userPlan !== "Student";
     const steps = [
         {
             stage: "1",
@@ -231,9 +232,9 @@ export default function DashboardPage() {
             description: t.dashboard.journey.stages.simulationDesc,
             objective: t.dashboard.journey.stages.simulationObj,
             outcome: t.dashboard.journey.stages.simulationOutcome,
-            status: (userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
+            status: (userPlan !== "Student") 
                 ? "locked" 
-                : (isDiagnosisComplete ? "completed" : (hasStarted ? "in-progress" : "locked")),
+                : (isDiagnosisComplete ? "in-progress" : "locked"),
             icon: Zap,
             href: "/simulation",
             borderColor: "border-purple-200",
@@ -259,7 +260,7 @@ export default function DashboardPage() {
             description: t.dashboard.journey.stages.libraryDesc,
             objective: t.dashboard.journey.stages.libraryObj,
             outcome: t.dashboard.journey.stages.libraryOutcome,
-            status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "in-progress" : "locked",
+            status: (isDiagnosisComplete && userPlan === "Student") ? "in-progress" : "locked",
             icon: BookOpen,
             href: "/library",
             borderColor: "border-orange-200",
@@ -272,7 +273,7 @@ export default function DashboardPage() {
             description: t.dashboard.journey.stages.expertDesc,
             objective: t.dashboard.journey.stages.expertObj,
             outcome: t.dashboard.journey.stages.expertOutcome,
-            status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "in-progress" : "locked",
+            status: (isDiagnosisComplete && userPlan === "Student") ? "in-progress" : "locked",
             icon: MessageSquare,
             href: "/expert",
             borderColor: "border-pink-200",
@@ -285,7 +286,7 @@ export default function DashboardPage() {
             description: t.dashboard.journey.stages.strategicReportDesc,
             objective: t.dashboard.journey.stages.strategicReportObj,
             outcome: t.dashboard.journey.stages.strategicReportOutcome,
-            status: (isDiagnosisComplete && userPlan !== "Free Trial") ? "completed" : "locked",
+            status: (isDiagnosisComplete && userPlan === "Student") ? "completed" : "locked",
             icon: Shield,
             href: "/strategic-report",
             borderColor: "border-slate-700",
@@ -296,6 +297,23 @@ export default function DashboardPage() {
 
     return (
         <div dir={dir} className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-10 pb-24 md:pb-8">
+
+            {/* ── Student Dashboard (shown only for Student plan) ── */}
+            {userPlan === "Student" && hasStarted && (
+                <StudentDashboard
+                    userName={userName}
+                    isDiagnosisComplete={isDiagnosisComplete}
+                    hasStarted={hasStarted}
+                    dir={dir}
+                    language={language}
+                    stats={{
+                        totalSkills,
+                        overallScore,
+                        simScore,
+                        hasSCI
+                    }}
+                />
+            )}
 
             {/* ── Welcome Header ── */}
             <motion.div
@@ -524,9 +542,9 @@ export default function DashboardPage() {
                                         </h3>
                                         <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xl">
                                             {isDiagnosisComplete
-                                                ? ((userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") 
-                                                    ? t.dashboard.diagnosisStatus.teaserDesc
-                                                    : t.dashboard.diagnosisStatus.readyNext)
+                                                ? (isProfessionalPlan
+                                                    ? t.dashboard.diagnosisStatus.readyNext
+                                                    : t.dashboard.diagnosisStatus.teaserDesc)
                                                 : t.dashboard.diagnosisStatus.cvAnalysisComplete}
                                         </p>
 
@@ -613,7 +631,7 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
 
-                                {(userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User") && isDiagnosisComplete && (
+                                {(userRole === "Trial User" || userRole === "Free Tier") && isDiagnosisComplete && (
                                     <div className="mt-4 p-4 bg-linear-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-lg text-white relative overflow-hidden group">
                                         <Sparkles className="absolute top-2 right-2 w-8 h-8 text-white/10 -rotate-12 transition-transform group-hover:scale-125" />
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">

@@ -252,7 +252,6 @@ export default function CertificatePage() {
 
   if (
     !readiness.certReady ||
-    userPlan === "Free Trial" ||
     userPlan === "None"
   ) {
     return (
@@ -260,7 +259,7 @@ export default function CertificatePage() {
         title={t.performanceProfile.title}
         description={t.performanceProfile.subtitle}
         readiness={readiness}
-        isPremiumRequired={userPlan === "Free Trial" || userPlan === "None"}
+        isPremiumRequired={userPlan === "None"}
       />
     );
   }

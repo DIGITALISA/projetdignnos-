@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Sparkles,
@@ -10,11 +10,12 @@ import {
     Loader2,
     BrainCircuit,
     ArrowRight,
-    ScrollText,
     Play,
-    X
+    X,
+    ScrollText as ScrollTextIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TrialGate } from "@/components/ui/TrialGate";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { useSearchParams } from "next/navigation";
 
@@ -59,7 +60,7 @@ interface MentorContent {
 }
 
 export default function MentorPage() {
-    const { t, dir } = useLanguage();
+    const { t, dir, language } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [content, setContent] = useState<MentorContent | null>(null);
@@ -77,7 +78,7 @@ export default function MentorPage() {
     const [simChoices, setSimChoices] = useState<number[]>([]);
     const [showCons, setShowCons] = useState(false);
 
-    const generateMentorContent = async (customQuestion?: string) => {
+    const generateMentorContent = useCallback(async (customQuestion?: string) => {
         setGenerating(true);
         setError(null);
         if (customQuestion) setInterrogation(customQuestion);
@@ -107,6 +108,23 @@ export default function MentorPage() {
 
             if (data.success) {
                 setContent(data.guidance);
+                
+                // Track visit for limited students only after successful generation
+                const userProfileLocal = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                if (userProfileLocal.plan === "Student" && userProfileLocal.activationType === "Limited") {
+                    const userId = userProfileLocal.email || userProfileLocal.fullName;
+                    if (userId) {
+                        fetch('/api/user/trial-gate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, module: 'ai-path', moduleHref: '/mentor' })
+                        }).then(() => {
+                            // Update sidebar state
+                            window.dispatchEvent(new Event("profileUpdated"));
+                        }).catch(err => console.error("Track visit error:", err));
+                    }
+                }
+
                 // Reset interactive states for the new content
                 setCurrentChallenge(0);
                 setSimChoices([]);
@@ -118,12 +136,28 @@ export default function MentorPage() {
             } else {
                 setError(data.error || "Failed to generate guidance.");
             }
-        } catch {
+        } catch (err) {
+            console.error(err);
             setError("An error occurred.");
         } finally {
             setGenerating(false);
+            
+            // Mark module as used for trial students after generation
+            const profile = JSON.parse(typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}');
+            if (profile.activationType === "Limited") {
+                const userId = profile.email || profile.fullName;
+                if (userId) {
+                    fetch('/api/user/trial-gate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, module: 'ai-path', moduleHref: '/mentor' })
+                    }).then(() => {
+                         window.dispatchEvent(new Event("profileUpdated"));
+                    }).catch(console.error);
+                }
+            }
         }
-    };
+    }, []); // No external dependencies used inside the function
 
     useEffect(() => {
         const q = searchParams.get('q');
@@ -131,7 +165,7 @@ export default function MentorPage() {
             generateMentorContent(q);
         }
         setTimeout(() => setLoading(false), 800);
-    }, [searchParams]);
+    }, [searchParams, generateMentorContent]);
 
     if (loading) {
         return (
@@ -143,6 +177,13 @@ export default function MentorPage() {
     }
 
     return (
+        <TrialGate 
+            module="ai-path" 
+            moduleHref="/mentor"
+            dir={dir}
+            manualMark={true}
+            language={language}
+        >
         <div className="flex-1 bg-white min-h-screen text-slate-800" dir={dir}>
             {/* Minimal Header */}
             <div className="max-w-6xl mx-auto px-6 pt-16 pb-12">
@@ -199,7 +240,7 @@ export default function MentorPage() {
                     >
                         <div className="p-12 border border-slate-100 rounded-[2.5rem] bg-slate-50 flex flex-col items-center text-center space-y-6">
                             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
-                                <ScrollText size={32} />
+                                <ScrollTextIcon size={32} />
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-black text-slate-900">{t.mentor.emptyTitle}</h3>
@@ -527,5 +568,7 @@ export default function MentorPage() {
                 )}
             </AnimatePresence>
         </div>
+        </TrialGate>
     );
 }
+

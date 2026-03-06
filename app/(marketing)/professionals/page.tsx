@@ -514,7 +514,9 @@ export default function ProfessionalsPage() {
 
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-serif font-bold">
-                    {idx === 1 ? getPrice(35) : plan.price}
+                    {plan.price === "Free" || plan.price === "Gratuit" || plan.price === "مجاناً" || plan.price.includes("*")
+                      ? plan.price 
+                      : getPrice(parseInt(plan.price.replace(/[^0-9]/g, "")) || 0)}
                   </span>
                   <span className={cn("text-sm", plan.highlight ? "text-slate-400" : "text-slate-400")}>
                     {plan.period}

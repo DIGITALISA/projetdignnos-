@@ -32,6 +32,18 @@ export async function GET(req: Request) {
       );
     }
 
+    // Auto-set firstLoginAt for Student Free Trial users (starts their 3-hour trial clock)
+    const isStudentFreeTrial = user.plan === "Student" && 
+                               (user.role === "Free Tier" || user.role === "Trial User");
+    if (isStudentFreeTrial && !user.firstLoginAt) {
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { firstLoginAt: new Date() } }
+      );
+      (user as Record<string, unknown>).firstLoginAt = new Date();
+    }
+
+
     // Check Diagnosis
     const diagnosis = await Diagnosis.findOne({
       $or: [
@@ -60,32 +72,56 @@ export async function GET(req: Request) {
     const hasSCI = !!((diagnosis?.analysis as Record<string, unknown>)?.sciReport) || !!diagnosis?.simulationReport;
     const hasCompletedSimulation = simulations.length > 0 || !!diagnosis?.completionStatus?.simulationComplete;
     
+    // --- STUDENT PLAN LOGIC ---
+    let studentCertReady = false;
+    let studentScorecardReady = false;
+    let studentSciReady = false;
+
+    if (user?.plan === "Student") {
+        const isUnlimited = user.activationType === "Unlimited";
+        
+        // 1. AI & SCI are always free for Students once diagnosis is done
+        if (hasDiagnosis) {
+            studentSciReady = true;
+        }
+
+        // 2. 3-Month Rule for Certificates/Documents (Bypassed if Unlimited)
+        const creationDate = user.createdAt ? new Date(user.createdAt) : new Date();
+        const now = new Date();
+        const diffInMonths = (now.getFullYear() - creationDate.getFullYear()) * 12 + (now.getMonth() - creationDate.getMonth());
+        
+        if (diffInMonths >= 3 || isUnlimited) {
+            studentCertReady = true;
+        }
+
+        // 3. Scorecard unlocks only if Simulation is complete (Bypassed if Unlimited)
+        if (hasCompletedSimulation || isUnlimited) {
+            studentScorecardReady = true;
+        }
+    }
+
     // PROGRESSIVE LOGIC (The "Hierarchy")
-    // 1. Diagnosis must be done to see SCI
-    // 2. SCI must be done to unlock Simulation (Strategic context)
-    // 3. Simulation must be done to unlock Performance Scorecard
-    // 4. Scorecard/Profile must be validated by Expert for Recommendations/Certificates
+    // ... (rest of the steps logic below)
 
     // LEGACY & OVERRIDES SUPPORT
-    // Priority: Manual Admin Flag > Auto-detection
-    const sciReady = user?.canAccessSCI || hasSCI;
-    const certReady = user?.canAccessCertificates;
-    const recReady = user?.canAccessRecommendations;
-    const scorecardReady = user?.canAccessScorecard;
+    const sciReady = user?.canAccessSCI || hasSCI || studentSciReady;
+    const certReady = user?.canAccessCertificates || studentCertReady;
+    const recReady = user?.canAccessRecommendations || studentCertReady;
+    const scorecardReady = user?.canAccessScorecard || studentScorecardReady;
 
     const steps = [
         { id: 'diagnosis', label: 'Initial Diagnosis', isComplete: hasDiagnosis, isLocked: false },
         { id: 'sci', label: 'Strategic Intelligence', isComplete: sciReady, isLocked: !hasDiagnosis },
         { id: 'simulation', label: 'Executive simulation', isComplete: hasCompletedSimulation, isLocked: (!sciReady && !hasDiagnosis) },
         { id: 'scorecard', label: 'Performance Analytics', isComplete: scorecardReady, isLocked: (!hasCompletedSimulation) },
-        { id: 'certification', label: 'Strategic Certification', isComplete: certReady, isLocked: (!scorecardReady) }
+        { id: 'certification', label: 'Strategic Certification', isComplete: certReady, isLocked: (!scorecardReady && user?.plan !== "Student") }
     ];
 
     return NextResponse.json({
       success: true,
       currentStep: steps.find(s => !s.isComplete)?.id || 'completed',
       steps,
-      isReady: certReady && recReady, // Overall ready for core assets
+      isReady: certReady && recReady,
       certReady,
       recReady,
       scorecardReady,
@@ -98,7 +134,10 @@ export async function GET(req: Request) {
         hasStartedDiagnosis,
         hasSCI: sciReady,
         hasCompletedSimulation,
-        hasScorecard: scorecardReady
+        hasScorecard: scorecardReady,
+        activationType: user?.activationType,
+        firstLoginAt: user?.firstLoginAt,
+        visitedModules: user?.visitedModules || []
       },
     });
   } catch (error) {
@@ -108,4 +147,39 @@ export async function GET(req: Request) {
       { status: 500 },
     );
   }
+}
+
+export async function POST(req: Request) {
+    try {
+        await connectDB();
+        const { userId, moduleHref } = await req.json();
+
+        if (!userId || !moduleHref) {
+            return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+        }
+
+        const user = await User.findOne({
+            $or: [
+                { email: { $regex: new RegExp(`^${userId}$`, "i") } },
+                { fullName: { $regex: new RegExp(`^${userId}$`, "i") } },
+            ],
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // Only track for Limited Students
+        if (user.plan === "Student" && user.activationType === "Limited") {
+            if (!user.visitedModules.includes(moduleHref)) {
+                user.visitedModules.push(moduleHref);
+                await user.save();
+            }
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Visit Track Error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
 }

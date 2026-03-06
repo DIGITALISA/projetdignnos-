@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Sparkles,
@@ -10,67 +10,50 @@ import {
     ArrowRight,
     Trophy,
     Award,
-    Zap,
-    X
+    Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TrialGate } from "@/components/ui/TrialGate";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
-
-interface Session {
-    id: number;
-    title: string;
-    level: string;
-}
 
 interface Theme {
     id: number;
     title: string;
     description: string;
-    sessions: Session[];
+    icon: string;
+    lessonCount: number;
+}
+
+interface AcademyStructure {
+    themes: Theme[];
 }
 
 interface Slide {
-    slideNumber: number;
-    heading: string;
-    bullets: string[];
-    expertInsight: string;
-    visualKey: string;
-}
-
-interface SlideDeck {
+    id: number;
     title: string;
-    slides: Slide[];
-    summary: string;
+    content: string;
+    practicalTakeaway: string;
+    strategicInsight: string;
 }
-
-type SelectedTheme = Theme & { sessions: Session[] };
 
 export default function AcademyPage() {
-    const { t, dir } = useLanguage();
+    const { t, language, dir } = useLanguage();
+    const [structure, setStructure] = useState<AcademyStructure | null>(null);
     const [loading, setLoading] = useState(true);
-    const [structure, setStructure] = useState<{ themes: Theme[] } | null>(null);
-    const [selectedTheme, setSelectedTheme] = useState<SelectedTheme | null>(null);
-    const [currentSlides, setCurrentSlides] = useState<SlideDeck | null>(null);
-    const [generatingSlides, setGeneratingSlides] = useState<string | null>(null);
+    const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+    const [currentSlides, setCurrentSlides] = useState<Slide[] | null>(null);
+    const [generatingSlides, setGeneratingSlides] = useState<number | null>(null);
     const [activeSlide, setActiveSlide] = useState(0);
 
-    const fetchStructure = async () => {
+    const fetchStructure = useCallback(async () => {
         setLoading(true);
         try {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
-            const language = localStorage.getItem('selectedLanguage') || 'fr';
-
-            // Fetch AI Structure only
-            const response = await fetch('/api/user/academy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, language })
-            });
-            const data = await response.json();
+            const res = await fetch(`/api/user/academy?userId=${encodeURIComponent(userId)}&language=${language}`);
+            const data = await res.json();
             if (data.success) {
                 setStructure(data.structure);
             }
@@ -79,26 +62,38 @@ export default function AcademyPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [language]);
 
-    const handleSelectTheme = (theme: Theme) => {
+    const handleThemeSelect = async (theme: Theme) => {
+        setGeneratingSlides(theme.id);
         setSelectedTheme(theme);
-    };
-
-
-    const generateSlides = async (topic: string) => {
-        setGeneratingSlides(topic);
         try {
-            const language = localStorage.getItem('selectedLanguage') || 'fr';
-            const response = await fetch('/api/user/academy/slides', {
+            const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+            const userId = userProfile.email || userProfile.fullName;
+            const res = await fetch('/api/user/academy/slides', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, language })
+                body: JSON.stringify({ userId, themeId: theme.id, themeTitle: theme.title, language })
             });
-            const data = await response.json();
+            const data = await res.json();
             if (data.success) {
                 setCurrentSlides(data.content);
                 setActiveSlide(0);
+
+                // Mark module as used for trial users on first generation
+                const profile = JSON.parse(typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}');
+                if (profile.activationType === "Limited") {
+                    const userId = profile.email || profile.fullName;
+                    if (userId) {
+                        fetch('/api/user/trial-gate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, module: 'strategic-resources', moduleHref: '/academy' })
+                        }).then(() => {
+                             window.dispatchEvent(new Event("profileUpdated"));
+                        }).catch(console.error);
+                    }
+                }
             }
         } catch (error) {
             console.error(error);
@@ -114,8 +109,6 @@ export default function AcademyPage() {
             button.setAttribute('disabled', 'true');
             button.innerText = t.academy.preparingPdf;
         }
-
-        const language = localStorage.getItem('selectedLanguage') || 'fr';
 
         try {
             const pdf = new jsPDF({
@@ -133,64 +126,40 @@ export default function AcademyPage() {
             container.style.height = '210mm'; // A4 Landscape height
             document.body.appendChild(container);
 
-            for (let i = 0; i < currentSlides.slides.length; i++) {
-                const slide = currentSlides.slides[i];
-                
-                // Render slide HTML
-                const isRTL = language === 'ar';
-                container.innerHTML = `
-                    <div style="width: 297mm; height: 210mm; background-color: #ffffff; padding: 20mm; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; direction: ${isRTL ? 'rtl' : 'ltr'}; text-align: ${isRTL ? 'right' : 'left'};">
-                        
-                        <!-- Header -->
-                        <div style="margin-bottom: 10mm;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5mm; color: #2563eb; font-size: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; direction: ltr;">
-                                <span>SLIDE ${slide.slideNumber} / ${currentSlides.slides.length}</span>
-                                <span>MA-TRAINING CONSULTING</span>
-                            </div>
-                            <h1 style="font-size: 32px; font-weight: 900; line-height: 1.2; color: #0f172a; margin: 0;">${slide.heading}</h1>
+            for (let i = 0; i < currentSlides.length; i++) {
+                const slide = currentSlides[i];
+                const slideEl = document.createElement('div');
+                slideEl.style.width = '297mm';
+                slideEl.style.height = '210mm';
+                slideEl.style.backgroundColor = '#0f172a'; // slate-900
+                slideEl.style.color = 'white';
+                slideEl.style.padding = '40px';
+                slideEl.style.display = 'flex';
+                slideEl.style.flexDirection = 'column';
+                slideEl.style.justifyContent = 'center';
+                slideEl.innerHTML = `
+                    <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 40px;">
+                        <h1 style="font-size: 32px; font-weight: 900; text-transform: uppercase;">${slide.title}</h1>
+                    </div>
+                    <div style="font-size: 20px; line-height: 1.6; margin-bottom: 40px; color: #cbd5e1;">${slide.content}</div>
+                    <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 40px; margin-top: auto;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                            <h3 style="font-size: 14px; font-weight: 900; text-transform: uppercase; color: #3b82f6; margin-bottom: 10px;">Strategic Insight</h3>
+                            <p style="font-size: 16px;">${slide.strategicInsight}</p>
                         </div>
-
-                        <!-- Content Grid -->
-                        <div style="display: flex; gap: 15mm; flex: 1; flex-direction: ${isRTL ? 'row-reverse' : 'row'};">
-                            
-                            <!-- Bullets -->
-                            <div style="flex: 1;">
-                                ${slide.bullets.map(b => `
-                                    <div style="display: flex; gap: 4mm; margin-bottom: 6mm; flex-direction: ${isRTL ? 'row' : 'row'};">
-                                        <div style="width: 8px; height: 8px; background-color: #2563eb; border-radius: 50%; margin-top: 8px; flex-shrink: 0;"></div>
-                                        <p style="font-size: 16px; line-height: 1.6; color: #334155; margin: 0; font-weight: 500;">${b}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            <!-- Insight -->
-                            <div style="flex: 1;">
-                                <div style="background-color: #eff6ff; border: 1px solid #dbeafe; border-radius: 20px; padding: 10mm; height: 100%; box-sizing: border-box;">
-                                    <h4 style="color: #1e3a8a; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 5mm 0;">${t.academy.expertInterpretation}</h4>
-                                    <p style="color: #1e40af; font-size: 16px; font-weight: 700; line-height: 1.6; font-style: italic; margin: 0;">"${slide.expertInsight}"</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div style="background-color: #0f172a; color: white; padding: 8mm 20mm; margin: 0 -20mm -20mm -20mm; display: flex; justify-content: space-between; align-items: center; direction: ltr;">
-                             <div style="display: flex; align-items: center; gap: 3mm;">
-                                <div style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></div>
-                                <span style="font-size: 10px; font-weight: bold; uppercase; letter-spacing: 2px; opacity: 0.8;">${t.academy.visual}: ${slide.visualKey}</span>
-                             </div>
-                             <span style="font-size: 10px; opacity: 0.5; letter-spacing: 1px;">© MA-TRAINING CONSULTING</span>
+                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                            <h3 style="font-size: 14px; font-weight: 900; text-transform: uppercase; color: #f59e0b; margin-bottom: 10px;">Practical Takeaway</h3>
+                            <p style="font-size: 16px;">${slide.practicalTakeaway}</p>
                         </div>
                     </div>
                 `;
+                container.innerHTML = '';
+                container.appendChild(slideEl);
 
-                // Capture
-                const canvas = await html2canvas(container, {
+                const canvas = await html2canvas(slideEl, {
                     scale: 2,
                     useCORS: true,
-                    logging: false,
-                    onclone: (clonedDoc) => {
-                        sanitizeForHtml2Canvas(clonedDoc);
-                    }
+                    backgroundColor: '#0f172a'
                 });
 
                 const imgData = canvas.toDataURL('image/png');
@@ -198,12 +167,10 @@ export default function AcademyPage() {
                 pdf.addImage(imgData, 'PNG', 0, 0, 297, 210);
             }
 
+            pdf.save(`${selectedTheme?.title || 'Academy'}_Strategic_Deck.pdf`);
             document.body.removeChild(container);
-            pdf.save(`${currentSlides.title.replace(/\s+/g, '_')}_Deck.pdf`);
-
         } catch (error) {
-            console.error("PDF Generation failed", error);
-            alert("Failed to generate PDF. Please try again.");
+            console.error("PDF generation failed:", error);
         } finally {
             if (button) {
                 button.removeAttribute('disabled');
@@ -214,7 +181,7 @@ export default function AcademyPage() {
 
     useEffect(() => {
         fetchStructure();
-    }, []);
+    }, [fetchStructure]);
 
     if (loading) {
         return (
@@ -225,10 +192,15 @@ export default function AcademyPage() {
         );
     }
 
-    // Slide Viewer Modal
     return (
-        <div className="flex-1 min-h-screen bg-slate-50/50 pb-20" dir={dir}>
-            <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+        <TrialGate 
+            module="strategic-resources" 
+            moduleHref="/academy"
+            dir={dir}
+            manualMark={true}
+        >
+        <div className={`min-h-screen bg-white ${dir === 'rtl' ? 'font-arabic' : ''}`} dir={dir}>
+            <div className="max-w-7xl mx-auto px-6 py-12 space-y-12 pb-32">
                 {/* Header */}
                 <header className={cn("flex flex-col md:flex-row md:items-end justify-between gap-6", dir === 'rtl' ? 'md:flex-row-reverse' : '')}>
                     <div className={cn("space-y-3", dir === 'rtl' ? 'text-right' : 'text-left')}>
@@ -267,227 +239,153 @@ export default function AcademyPage() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
                         >
-                            {/* AI Generated Themes Only */}
                             {structure?.themes.map((theme) => (
                                 <div
                                     key={`ai-${theme.id}`}
-                                    className={cn("group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-blue-300 transition-all cursor-pointer relative overflow-hidden", dir === 'rtl' ? 'text-right' : 'text-left')}
-                                    onClick={() => handleSelectTheme(theme)}
+                                    className="group relative flex flex-col bg-slate-50 border border-slate-100 p-10 rounded-[2.5rem] hover:bg-white hover:border-blue-100 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500"
                                 >
-                                    <div className="relative z-10 space-y-6">
-                                        <div className={cn("w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500", dir === 'rtl' ? 'mr-0 ml-auto' : '')}>
-                                            <Sparkles size={28} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{t.academy.aiPersonalized}</div>
-                                            <h3 className="text-2xl font-black text-slate-900 leading-tight">{theme.title}</h3>
-                                            <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2">{theme.description}</p>
-                                        </div>
-                                        <div className={cn("flex items-center justify-between text-blue-600 font-black text-[10px] uppercase tracking-widest border-t border-slate-50 mt-4 pt-6", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                            <span>{theme.sessions.length} {t.academy.modules}</span>
-                                            <ArrowRight size={16} className={cn("transition-transform", dir === 'rtl' ? 'group-hover:-translate-x-2 rotate-180' : 'group-hover:translate-x-2')} />
-                                        </div>
+                                    <div className="absolute top-8 right-8 w-16 h-16 bg-blue-100/50 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 scale-75 group-hover:scale-100">
+                                        <ArrowRight className={cn("text-blue-600", dir === 'rtl' ? 'rotate-180' : '')} />
                                     </div>
-                                    <div className={cn("absolute top-0 p-8 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 duration-700", dir === 'rtl' ? 'left-0' : 'right-0')}>
-                                        <FileText size={100} />
+
+                                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 mb-8 transition-transform group-hover:scale-110">
+                                        <Sparkles size={24} />
                                     </div>
+
+                                    <div className="space-y-4 flex-1">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{theme.lessonCount} Modules</div>
+                                        <h3 className="text-2xl font-black text-slate-900 leading-tight uppercase tracking-tight">{theme.title}</h3>
+                                        <p className="text-slate-500 font-medium leading-relaxed">{theme.description}</p>
+                                    </div>
+
+                                    <button
+                                        onClick={() => handleThemeSelect(theme)}
+                                        disabled={generatingSlides !== null}
+                                        className="mt-10 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-blue-600 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                                    >
+                                        {generatingSlides === theme.id ? (
+                                            <Loader2 size={18} className="animate-spin" />
+                                        ) : (
+                                            <>Access Modules <ArrowRight size={18} className={dir === 'rtl' ? 'rotate-180' : ''} /></>
+                                        )}
+                                    </button>
                                 </div>
                             ))}
                         </motion.div>
+                    ) : !currentSlides ? (
+                        <motion.div
+                            key="loading-slides"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col items-center justify-center py-32 space-y-6"
+                        >
+                            <Loader2 size={48} className="text-blue-600 animate-spin" />
+                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs animate-pulse">Architecting Strategic Content...</p>
+                        </motion.div>
                     ) : (
                         <motion.div
-                            key="sessions"
+                            key="slides"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8"
+                            className="space-y-12"
                         >
                             <button
                                 onClick={() => setSelectedTheme(null)}
-                                className={cn("flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest transition-colors mb-4", dir === 'rtl' ? 'flex-row-reverse' : '')}
+                                className={cn("inline-flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-900 transition-all", dir === 'rtl' ? 'flex-row-reverse' : '')}
                             >
                                 <ArrowLeft size={14} className={dir === 'rtl' ? 'rotate-180' : ''} /> {t.academy.back}
                             </button>
 
-                            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 md:p-16 space-y-12">
-                                <header className={cn("space-y-4", dir === 'rtl' ? 'text-right' : 'text-left')}>
-                                    <div className="inline-block px-4 py-1.5 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl bg-blue-50 text-blue-600">
-                                        {t.academy.aiPersonalized}
-                                    </div>
-                                    <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none uppercase">{selectedTheme.title}</h2>
-                                </header>
-
-                                <div className="grid gap-4">
-                                    {
-                                    selectedTheme.sessions.map((session: Session, idx: number) => (
-                                        <div
-                                            key={session.id}
-                                            className={cn("group flex flex-col md:flex-row md:items-center justify-between p-8 rounded-4xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl transition-all", dir === 'rtl' ? 'md:flex-row-reverse' : '')}
+                            <div className="grid lg:grid-cols-12 gap-12">
+                                <div className="lg:col-span-8 space-y-8">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={activeSlide}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="bg-slate-900 text-white p-12 md:p-16 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col min-h-[500px]"
                                         >
-                                            <div className={cn("flex items-center gap-6", dir === 'rtl' ? 'flex-row-reverse text-right' : 'text-left')}>
-                                                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-sm shadow-sm">
-                                                    0{idx + 1}
+                                            <div className="flex-1 space-y-8">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Digitalisa Academy // 0{activeSlide + 1}</span>
+                                                    <Trophy className="text-blue-500/20" size={32} />
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <h4 className="text-xl font-black text-slate-900 tracking-tight">{session.title}</h4>
-                                                    <div className={cn("flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                                        <Trophy size={14} /> {t.academy.level}: {session.level}
-                                                    </div>
-                                                </div>
+                                                <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-none uppercase">{currentSlides[activeSlide].title}</h2>
+                                                <p className="text-xl md:text-2xl text-slate-300 font-medium leading-relaxed">{currentSlides[activeSlide].content}</p>
                                             </div>
 
+                                            <div className="mt-12 grid md:grid-cols-2 gap-8 pt-12 border-t border-white/5">
+                                                <div className="space-y-3">
+                                                    <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Strategic Insight</h4>
+                                                    <p className="text-slate-400 italic">&quot;{currentSlides[activeSlide].strategicInsight}&quot;</p>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Practical Takeaway</h4>
+                                                    <p className="text-slate-400 italic">&quot;{currentSlides[activeSlide].practicalTakeaway}&quot;</p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    </AnimatePresence>
+
+                                    <div className="flex items-center justify-between px-4">
+                                        <div className="flex gap-2">
                                             <button
-                                                onClick={() => generateSlides(session.title)}
-                                                disabled={generatingSlides === session.title}
-                                                className={cn(
-                                                    "mt-6 md:mt-0 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all",
-                                                    dir === 'rtl' ? 'flex-row-reverse' : '',
-                                                    generatingSlides === session.title
-                                                        ? "bg-slate-200 text-slate-400 animate-pulse"
-                                                        : "bg-slate-900 text-white hover:bg-blue-600 shadow-xl"
-                                                )}
+                                                onClick={() => setActiveSlide(v => Math.max(0, v - 1))}
+                                                disabled={activeSlide === 0}
+                                                className="p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 disabled:opacity-30 transition-all active:scale-95"
                                             >
-                                                {generatingSlides === session.title ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin" size={16} /> {t.academy.generating}
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Sparkles size={16} /> {t.academy.generateFramework}
-                                                    </>
-                                                )}
+                                                <ArrowLeft size={20} />
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSlide(v => Math.min(currentSlides.length - 1, v + 1))}
+                                                disabled={activeSlide === currentSlides.length - 1}
+                                                className="p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 disabled:opacity-30 transition-all active:scale-95"
+                                            >
+                                                <ArrowRight size={20} />
                                             </button>
                                         </div>
-                                    ))
-                                }
+
+                                        <button
+                                            id="download-pdf-btn"
+                                            onClick={handleDownloadDeck}
+                                            className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-3 active:scale-95"
+                                        >
+                                            <FileText size={18} />
+                                            {t.academy.downloadPdf}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="lg:col-span-4 space-y-6">
+                                    <div className="bg-slate-50 p-8 rounded-4xl border border-slate-100 space-y-6">
+                                        <h4 className="font-black uppercase tracking-widest text-slate-900">Module Progress</h4>
+                                        <div className="space-y-4">
+                                            {currentSlides.map((slide, i) => (
+                                                <button
+                                                    key={slide.id}
+                                                    onClick={() => setActiveSlide(i)}
+                                                    className={cn(
+                                                        "w-full text-left p-4 rounded-xl transition-all border flex items-center justify-between",
+                                                        activeSlide === i
+                                                            ? "bg-white border-blue-200 shadow-sm"
+                                                            : "border-transparent text-slate-400 hover:text-slate-600"
+                                                    )}
+                                                >
+                                                    <span className="font-bold text-sm truncate pr-4">{i + 1}. {slide.title}</span>
+                                                    {i < activeSlide ? <Award className="text-blue-500" size={16} /> : <div className="w-1 h-1 rounded-full bg-slate-200" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
-
-            {/* Slide Viewer Overlay */}
-            <AnimatePresence>
-                {currentSlides && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
-                    >
-                        <button
-                            onClick={() => setCurrentSlides(null)}
-                            className={cn("absolute top-10 text-white/50 hover:text-white transition-colors p-4 hover:bg-white/10 rounded-full", dir === 'rtl' ? 'left-10' : 'right-10')}
-                        >
-                            <X size={32} />
-                        </button>
-
-                        <div className="w-full max-w-6xl px-6 h-full flex flex-col justify-center py-20">
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={activeSlide}
-                                    initial={{ opacity: 0, x: 50, scale: 0.98 }}
-                                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                                    exit={{ opacity: 0, x: -50, scale: 0.98 }}
-                                    className="bg-white w-full min-h-[60vh] md:aspect-video rounded-4xl md:rounded-[4rem] shadow-2xl overflow-hidden flex flex-col"
-                                    dir={dir}
-                                >
-                                    {/* Slide Content */}
-                                    <div className={cn("p-6 md:p-12 h-full overflow-y-auto custom-scrollbar flex flex-col space-y-8", dir === 'rtl' ? 'text-right' : 'text-left')}>
-                                        <header className="space-y-4 shrink-0">
-                                            <div className={cn("text-blue-600 font-black text-xs uppercase tracking-[0.3em] flex items-center justify-between", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                                <span>{t.academy.slide} {currentSlides.slides[activeSlide].slideNumber} / {currentSlides.slides.length}</span>
-                                                <span className="opacity-50 hidden md:inline-block uppercase">MA-TRAINING CONSULTING</span>
-                                            </div>
-                                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-tight">
-                                                {currentSlides.slides[activeSlide].heading}
-                                            </h2>
-                                        </header>
-
-                                        <div className={cn("grid md:grid-cols-2 gap-8 md:gap-12 pb-8", dir === 'rtl' ? 'md:grid-cols-reverse' : '')}>
-                                            <div className="space-y-4 md:space-y-6">
-                                                {currentSlides.slides[activeSlide].bullets.map((bullet, i) => (
-                                                    <div key={i} className={cn("flex gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                                        <div className="w-2 h-2 rounded-full bg-blue-600 mt-2.5 shrink-0" />
-                                                        <p className="text-lg md:text-xl text-slate-700 font-medium leading-relaxed">{bullet}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <div className="space-y-8">
-                                                <div className="p-6 md:p-8 bg-blue-50/80 rounded-3xl border border-blue-100 flex flex-col gap-4 relative group">
-                                                    <div className="space-y-3">
-                                                        <h4 className={cn("flex items-center gap-2 font-black text-blue-900 text-xs uppercase tracking-widest", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                                            <Sparkles size={16} className="text-blue-600" />
-                                                            {t.academy.expertInterpretation}
-                                                        </h4>
-                                                        <p className="text-blue-900 text-base md:text-lg font-bold leading-relaxed italic">
-                                                            &quot;{currentSlides.slides[activeSlide].expertInsight}&quot;
-                                                        </p>
-                                                    </div>
-                                                    <div className={cn("absolute bottom-4 opacity-5", dir === 'rtl' ? 'left-4' : 'right-4')}>
-                                                        <Award size={80} />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Visual Representation Bar */}
-                                    <div className={cn("h-24 bg-slate-900 flex items-center px-12 justify-between", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                        <div className={cn("flex items-center gap-3", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                            <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest truncate max-w-md">
-                                                {t.academy.visualConcept}: {currentSlides.slides[activeSlide].visualKey}
-                                            </p>
-                                        </div>
-                                        <div className={cn("flex items-center gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                            <button
-                                                disabled={activeSlide === 0}
-                                                onClick={() => setActiveSlide(v => v - 1)}
-                                                className="w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all disabled:opacity-20"
-                                            >
-                                                <ArrowLeft size={18} className={dir === 'rtl' ? 'rotate-180' : ''} />
-                                            </button>
-                                            <button
-                                                disabled={activeSlide === currentSlides.slides.length - 1}
-                                                onClick={() => setActiveSlide(v => v + 1)}
-                                                className="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 transition-all disabled:opacity-20"
-                                            >
-                                                <ArrowRight size={18} className={dir === 'rtl' ? 'rotate-180' : ''} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </AnimatePresence>
-
-                            {/* Viewer Controls Footer */}
-                            <div className={cn("mt-12 flex items-center justify-between px-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                <div className={cn("space-y-1", dir === 'rtl' ? 'text-right' : 'text-left')}>
-                                    <h5 className="text-white font-black text-2xl tracking-tighter uppercase">{currentSlides.title}</h5>
-                                    <p className="text-white/40 text-xs font-bold tracking-widest uppercase">{t.academy.officialSupport}</p>
-                                </div>
-                                <div className={cn("flex gap-4", dir === 'rtl' ? 'flex-row-reverse' : '')}>
-                                    <button
-                                        id="download-pdf-btn"
-                                        onClick={handleDownloadDeck}
-                                        className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {t.academy.downloadPdf}
-                                    </button>
-                                    <button
-                                        onClick={() => setCurrentSlides(null)}
-                                        className="px-8 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
-                                    >
-                                        {t.academy.closeViewer}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
+        </TrialGate>
     );
 }
+

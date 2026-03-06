@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Star, Clock, CheckSquare, RotateCcw, LogIn } from "lucide-react";
+import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Clock, CheckSquare, RotateCcw, LogIn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +31,10 @@ export default function ParticipantsManagement() {
         attestations?: Array<{ workshopTitle: string; issueDate: Date; referenceId: string; instructor?: string }>;
         workshopAccessRequests?: string[];
         resetRequested?: boolean;
+        activationType?: string;
+        firstLoginAt?: Date;
         memberId?: string;
+        referenceId?: string;
     }
 
     interface Workshop {
@@ -47,12 +50,13 @@ export default function ParticipantsManagement() {
         role: "Premium Member",
         status: "Active",
         whatsapp: "",
-        plan: "Free Trial",
+        plan: "Student",
         canAccessCertificates: false,
         canAccessRecommendations: false,
         canAccessScorecard: false,
         canAccessSCI: false,
-        memberId: ""
+        memberId: "",
+        activationType: "Limited"
     });
 
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -131,12 +135,13 @@ export default function ParticipantsManagement() {
             role: user.role || "Premium Member",
             status: user.status || "Active",
             whatsapp: user.whatsapp || "",
-            plan: user.plan || "Free Trial",
+            plan: user.plan || "Professional",
             canAccessCertificates: !!user.canAccessCertificates,
             canAccessRecommendations: !!user.canAccessRecommendations,
             canAccessScorecard: !!user.canAccessScorecard,
             canAccessSCI: !!user.canAccessSCI,
-            memberId: user.memberId || ""
+            memberId: user.memberId || "",
+            activationType: user.activationType || "Limited"
         });
         setIsAddModalOpen(true);
     };
@@ -218,12 +223,13 @@ export default function ParticipantsManagement() {
             role: "Premium Member",
             status: "Active",
             whatsapp: "",
-            plan: "Free Trial",
+            plan: "Student",
             canAccessCertificates: false,
             canAccessRecommendations: false,
             canAccessScorecard: false,
             canAccessSCI: false,
-            memberId: ""
+            memberId: "",
+            activationType: "Limited"
         });
         setIsAddModalOpen(true);
     }
@@ -246,7 +252,8 @@ export default function ParticipantsManagement() {
                 canAccessRecommendations: formData.canAccessRecommendations,
                 canAccessScorecard: formData.canAccessScorecard,
                 canAccessSCI: formData.canAccessSCI,
-                memberId: formData.memberId
+                memberId: formData.memberId,
+                activationType: formData.activationType
             };
 
             const res = await fetch("/api/admin/users", {
@@ -276,15 +283,15 @@ export default function ParticipantsManagement() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Executive Management</h1>
-                    <p className="text-slate-500 mt-1">Manage executive assets, verify credentials, and approve strategic access.</p>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Student Management</h1>
+                    <p className="text-slate-500 mt-1">Manage student assets, verify credentials, and approve strategic access.</p>
                 </div>
                 <button
                     onClick={openAddModal}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
                 >
                     <UserPlus size={20} />
-                    Add Executive
+                    Add Student
                 </button>
                     <button
                         onClick={async () => {
@@ -401,6 +408,7 @@ export default function ParticipantsManagement() {
                                             </div>
                                              <div>
                                                  <p className="text-sm font-bold text-slate-900">{user.fullName}</p>
+                                                 {user.referenceId && <p className="text-[10px] font-black text-indigo-600 tracking-tighter uppercase">{user.referenceId}</p>}
                                                  <p className="text-xs text-slate-500">{user.email}</p>
                                              </div>
                                         </div>
@@ -415,13 +423,28 @@ export default function ParticipantsManagement() {
                                         )}
                                     </td>
                                     <td className="px-8 py-5">
-                                        <div className={cn(
-                                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest",
-                                            user.plan === "Pro Essential" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                                    "bg-slate-50 text-slate-500 border-slate-200"
-                                        )}>
-                                            {user.plan === "Pro Essential" ? <Star size={12} /> : <Clock size={12} />}
-                                            {user.plan || "No Plan"}
+                                        <div className="flex flex-col gap-2">
+                                            <div className={cn(
+                                                "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest",
+                                                user.plan === "Professional" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                                                user.plan === "Student" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                                        "bg-slate-50 text-slate-500 border-slate-200"
+                                            )}>
+                                                {user.plan === "Professional" ? <ShieldCheck size={12} /> :
+                                                 user.plan === "Student" ? <Zap size={12} /> :
+                                                 <Clock size={12} />}
+                                                {user.plan || "No Plan"}
+                                            </div>
+                                            {user.plan === "Student" && (
+                                                <span className={cn(
+                                                    "inline-flex items-center w-fit px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border",
+                                                    user.activationType === "Unlimited" 
+                                                        ? "bg-blue-600 text-white border-blue-500 shadow-sm" 
+                                                        : "bg-slate-100 text-slate-500 border-slate-200"
+                                                )}>
+                                                    {user.activationType === "Unlimited" ? "Illimité" : "Limité (3h)"}
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">
@@ -544,7 +567,7 @@ export default function ParticipantsManagement() {
                         <motion.div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl z-70 overflow-hidden border border-slate-200" initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}>
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
-                                    <h2 className="text-xl font-bold text-slate-900">{editingUserId ? "Edit Protocol" : "Register Executive"}</h2>
+                                    <h2 className="text-xl font-bold text-slate-900">{editingUserId ? "Edit Protocol" : "Register Student"}</h2>
                                     <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                                         <X size={20} />
                                     </button>
@@ -583,12 +606,21 @@ export default function ParticipantsManagement() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Mandate Plan</label>
-                                            <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
-                                                <option>Free Trial</option>
-                                                <option>Pro Essential</option>
-                                            </select>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Mandate Plan</label>
+                                                <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
+                                                    <option>Professional</option>
+                                                    <option>Student</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Activation</label>
+                                                <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.activationType} onChange={(e) => setFormData({ ...formData, activationType: e.target.value })}>
+                                                    <option value="Limited">Limited (3h)</option>
+                                                    <option value="Unlimited">Unlimited</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-4 pt-4 border-t border-slate-100">
@@ -628,7 +660,7 @@ export default function ParticipantsManagement() {
 
                                     <button type="submit" disabled={isSubmitting} className="w-full px-6 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-3 disabled:opacity-70">
                                         {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                                        {editingUserId ? "Confirm Mandate Update" : "Register Executive"}
+                                        {editingUserId ? "Confirm Mandate Update" : "Register Student"}
                                     </button>
                                 </form>
                             </div>

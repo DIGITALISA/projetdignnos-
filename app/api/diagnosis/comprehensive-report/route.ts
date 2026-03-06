@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-export const maxDuration = 60;
+export const maxDuration = 300; // Increased to 5 minutes
 import connectDB from '@/lib/mongodb';
 import Diagnosis from '@/models/Diagnosis';
 
@@ -18,13 +18,18 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
         }
 
+        console.log(`[ComprehensiveReport] Generating for user: ${userId} in ${language}`);
+
         // Connect to database and fetch all diagnosis data
         await connectDB();
         const diagnosisData = await Diagnosis.findOne({ userId }).lean();
 
         if (!diagnosisData) {
+            console.error(`[ComprehensiveReport] No data found for user: ${userId}`);
             return NextResponse.json({ success: false, error: 'No diagnosis data found' }, { status: 404 });
         }
+
+        console.log(`[ComprehensiveReport] Data fetched successfully. Starting AI generation...`);
 
         // Language instructions
         const languageInstructions: Record<string, string> = {
@@ -86,21 +91,21 @@ ${JSON.stringify(diagnosisData.simulationResults, null, 2)}
 **Simulation Final Report:**
 ${JSON.stringify(diagnosisData.simulationReport, null, 2)}
 
-**CV Generation Conversation:**
-${diagnosisData.cvGenerationConversation ? diagnosisData.cvGenerationConversation.map((m: { role: string, content: string }) => `${m.role}: ${m.content}`).join('\n') : 'Not available'}
-
 Create a detailed, professional report that synthesizes all this information into actionable insights.`
                 }
             ],
-            temperature: 0.7,
-            max_tokens: 4000,
+            temperature: 0.4,
+            max_tokens: 3000,
         });
 
         const reportContent = response.choices[0]?.message?.content;
 
         if (!reportContent) {
+            console.error(`[ComprehensiveReport] AI returned empty content`);
             throw new Error('No response from AI');
         }
+
+        console.log(`[ComprehensiveReport] Report generated successfully. Length: ${reportContent.length}`);
 
         // Save the comprehensive report back to the database
         await Diagnosis.findOneAndUpdate(

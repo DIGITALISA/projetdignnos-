@@ -9,6 +9,7 @@ import jsPDF from "jspdf";
 import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
+import { TrialGate } from "@/components/ui/TrialGate";
 
 interface InterviewEvaluation {
     accuracyScore: number;
@@ -245,6 +246,11 @@ export default function ResultsPage() {
         }
     };
 
+    const userProfile = JSON.parse(typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}');
+    const isLimitedStudent = userProfile.activationType === "Limited";
+    const isPaidPlan = ["Professional", "Pro", "Executive", "Premium"].includes(userProfile.plan) || (userProfile.plan === "Student" && !isLimitedStudent);
+    const isFreeTier = !isPaidPlan;
+
     if (!evaluation) {
         return (
             <div className="flex-1 flex items-center justify-center">
@@ -257,6 +263,12 @@ export default function ResultsPage() {
     }
 
     return (
+        <TrialGate 
+            module="strategic-report" 
+            moduleHref="/strategic-report"
+            dir={dir}
+            manualMark={false} 
+        >
         <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6" dir={dir}>
             {/* ── Next Stage Top Banner ── */}
             <StageProgressBanner stage="results" />
@@ -303,7 +315,13 @@ export default function ResultsPage() {
                                 initial={{ scale: 1 }}
                                 animate={{ scale: [1, 1.1, 1] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                onClick={() => router.push("/assessment/role-discovery")}
+                                onClick={() => {
+                                    if (isFreeTier) {
+                                        router.push('/subscription');
+                                    } else {
+                                        router.push("/assessment/role-discovery");
+                                    }
+                                }}
                                 className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 group"
                                 data-html2canvas-ignore
                             >
@@ -519,7 +537,17 @@ export default function ResultsPage() {
             </div>
 
             {/* ── Next Stage Full Teaser ── */}
-            <NextStageTeaser stage="results" onNavigate={() => router.push('/assessment/role-discovery')} />
+            <NextStageTeaser 
+                stage="results" 
+                onNavigate={() => {
+                    if (isFreeTier) {
+                        router.push('/subscription');
+                    } else {
+                        router.push('/assessment/role-discovery');
+                    }
+                }} 
+            />
         </div>
+        </TrialGate>
     );
 }

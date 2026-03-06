@@ -32,8 +32,13 @@ export async function POST(req: NextRequest) {
 
         // Block login for Pending users (if not admin/moderator)
         if (user.status === "Pending" && user.role !== "Admin" && user.role !== "Moderator") {
+            // Get contact config for the WhatsApp number
+            const Config = (await import("@/models/Config")).default;
+            const contactConfig = await Config.findOne({ key: 'contact_whatsapp' });
+            const whatsapp = contactConfig?.value || '+216 44 172 284';
+
             return NextResponse.json({
-                error: "Désolé, votre compte est en cours de vérification. سنتثبت من معطياتك إن كانت صحيحة لنرسل لك رسالة على الواتساب والبريد الإلكتروني. يجب عليك تأكيدهما للبدء.",
+                error: `Désolé, votre compte est en cours de vérification. سيتم تفعيل الحساب بعد التثبت من المعطيات مابين 24 ساعة و 72 ساعة. إذا تأخرنا أو كنت ترغب في تفعيل الحساب فوراً، تواصل معنا عبر الواتساب: ${whatsapp}`,
                 status: "Pending"
             }, { status: 403 });
         }
@@ -49,6 +54,12 @@ export async function POST(req: NextRequest) {
         // Trial period will be initialized on CV upload instead of login
 
 
+        // Initialize firstLoginAt if not set (for tracking student activation)
+        if (!user.firstLoginAt) {
+            user.firstLoginAt = new Date();
+            await user.save();
+        }
+
         // Generate a secure session token
         const sessionToken = crypto.randomBytes(32).toString('hex');
 
@@ -59,7 +70,7 @@ export async function POST(req: NextRequest) {
             email: user.email,
             role: user.role,
             status: user.status,
-            plan: user.plan || "Free Trial",
+            plan: user.plan || "Professional",
             trialExpiry: user.trialExpiry,
             canAccessCertificates: user.canAccessCertificates,
             canAccessRecommendations: user.canAccessRecommendations,

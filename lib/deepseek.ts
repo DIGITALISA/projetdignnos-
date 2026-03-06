@@ -2,17 +2,150 @@ import OpenAI from 'openai';
 import { getAIConfig } from './config';
 import { AI_PROMPTS } from './ai-prompts';
 
+export interface AuditResult {
+  authorityScore: number;
+  profileLevel: string;
+  alignment: string;
+  gaps: string[];
+  strengths: string[];
+  visionAnalysis: string;
+  nextEvolutionSteps: string[];
+  verdict: string;
+}
+
+export interface SWOT {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+}
+
+export interface Position {
+  title: string;
+  years: string;
+}
+
+export interface ProfessionalData {
+  sectors: string;
+  positions: Position[];
+  vision: string;
+  experienceMode: string;
+  cv?: File | null;
+  careerStory: string;
+  cvText?: string;
+}
+
+export interface InterviewMessage {
+  role: 'assistant' | 'user';
+  content: string;
+}
+
+export interface MCQQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface UltimateReportResult {
+  profileSummary: string;
+  maturityLevel: string;
+  swot: SWOT;
+  deepInsights: string[];
+  marketValue: string;
+  finalVerdict: string;
+  recommendedRoles: string[];
+  gapAnalysis: {
+    currentJobVsReality: string;
+    hardSkillsMatch: number;
+    softSkillsMatch: number;
+    criticalCompetencyGaps: string[];
+  };
+}
+
 async function getAI() {
     const config = await getAIConfig();
     const isOpenAI = config.activeProvider === 'openai';
-
+    
     return {
         client: new OpenAI({
             apiKey: isOpenAI ? config.openai.apiKey : config.deepseek.apiKey,
             baseURL: isOpenAI ? undefined : config.deepseek.baseURL,
+            dangerouslyAllowBrowser: true
         }),
         model: isOpenAI ? 'gpt-4o' : 'deepseek-chat'
     };
+}
+
+/**
+ * Robustly extracts and parses JSON from AI responses that might contain markdown or filler text.
+ * Now includes heuristic repair for truncated JSON frequently seen in large MCQ batches.
+ */
+function safeParseJSON(text: string) {
+    if (!text) return null;
+    
+    // First try standard cleaning (remove blocks)
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        // If that fails, try extraction between first { and last }
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        
+        if (firstBrace !== -1) {
+            let jsonPart = "";
+            
+            // Heuristic Repair for truncated JSON
+            if (lastBrace === -1 || lastBrace < firstBrace) {
+                jsonPart = cleaned.substring(firstBrace);
+                
+                if (jsonPart.includes('"questions": [')) {
+                    const questionsStart = jsonPart.indexOf('"questions": [') + 14;
+                    const questionsPart = jsonPart.substring(questionsStart);
+                    
+                    // Look for the last completely formed object inside the array
+                    const lastCommaBrace = questionsPart.lastIndexOf('},');
+                    if (lastCommaBrace !== -1) {
+                        jsonPart = jsonPart.substring(0, questionsStart + lastCommaBrace + 1) + ']}';
+                    } else {
+                        const lastClosing = questionsPart.lastIndexOf('}');
+                        if (lastClosing !== -1) {
+                            jsonPart = jsonPart.substring(0, questionsStart + lastClosing + 1) + ']}';
+                        }
+                    }
+                }
+            } else {
+                jsonPart = cleaned.substring(firstBrace, lastBrace + 1);
+            }
+
+            try {
+                return JSON.parse(jsonPart);
+            } catch (innerError) {
+                // Final attempt: find last possible closing brace and close outer structure
+                const backupBrace = jsonPart.lastIndexOf('}');
+                if (backupBrace !== -1) {
+                    try {
+                        let finalTry = jsonPart.substring(0, backupBrace + 1);
+                        if (!finalTry.trim().endsWith('}')) finalTry += '}';
+                        
+                        // If it belongs to questions but isn't closed
+                        if (finalTry.includes('"questions"') && !finalTry.trim().endsWith(']}')) {
+                            // Try closing the array and the object
+                            try { return JSON.parse(finalTry + ']}'); } catch { /* ignore repair failure */ }
+                            try { return JSON.parse(finalTry.substring(0, finalTry.lastIndexOf('}')) + ']}'); } catch { /* ignore repair failure */ }
+                        }
+                        return JSON.parse(finalTry);
+                    } catch { /* ignore repair failure */ }
+                }
+                
+                console.error("Failed to parse extracted JSON part:", innerError);
+                throw innerError;
+            }
+        }
+        throw e;
+    }
 }
 
 export async function analyzeCVWithAI(cvText: string, language: string = 'en') {
@@ -106,16 +239,14 @@ ${languageInstruction}
             throw new Error('No response from AI');
         }
 
-        // Try to parse JSON, handling potential markdown code blocks
+        // Use robust JSON parsing
         let parsedAnalysis;
         try {
-            // Remove markdown code blocks if present
-            const cleanedAnalysis = analysis.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-            parsedAnalysis = JSON.parse(cleanedAnalysis);
+            parsedAnalysis = safeParseJSON(analysis);
         } catch (parseError) {
-            console.error('JSON Parse Error:', parseError);
+            console.error('JSON Parse Error (CV Analysis):', parseError);
             console.error('Raw response:', analysis);
-            throw new Error('Failed to parse AI response as JSON');
+            throw new Error('Failed to parse AI response as JSON. The engine may have returned malformed data.');
         }
 
         return {
@@ -127,6 +258,95 @@ ${languageInstruction}
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to analyze CV',
+        };
+    }
+}
+
+export async function performProfessionalAudit(data: { sectors: string, positions: { title: string, years: string }[], vision: string, cvText?: string, careerStory?: string }, language: string = 'en') {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.',
+        };
+
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const { client, model } = await getAI();
+        console.log(`🤖 AI Audit Started - Model: ${model}, Language: ${language}`);
+        const startTime = Date.now();
+        
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a world-class Executive HR Strategist and Master Career Coach with 25+ years of experience in high-level executive search and organizational design.
+                    
+**YOUR ROLE:**
+Analyze the provided professional profile with extreme precision. You are not just reading data; you are "reading between the lines" of their career narrative to identify their true professional DNA, their authority level, and their strategic potential.
+
+**INPUT DATA TO SYNTHESIZE:**
+- **Sectors of Interest:** ${data.sectors}
+- **Career Trajectory (Roles):** ${JSON.stringify(data.positions)}
+- **Strategic Evolution Goal:** ${data.vision}
+- **Professional Narrative (The "Evidence"):** ${data.careerStory || data.cvText || "No detailed narrative provided"}
+
+**ANALYSIS CORE:**
+1. **The Professional DNA**: Define their core identity (e.g., "The Disruptive Operator", "The Strategic Visionary", "The Crisis Fixer").
+2. **Authority Audit**: Evaluate their current weight in the market (0-100%).
+3. **The "Red Thread"**: Identify the common logic connecting their past experiences to their future vision.
+4. **Strategic Alignment**: Does their current profile realistically support their 5-year goal?
+5. **Critical Gaps**: What specific executive skills or authority markers are missing?
+
+**TONE:** 
+Sophisticated, analytical, objective, and executive. Speak as a consultant to a CEO.
+
+**LANGUAGE:**
+${languageInstruction}
+
+**OUTPUT FORMAT (JSON ONLY):**
+{
+  "authorityScore": number,
+  "profileLevel": "string (Executive Level)",
+  "alignment": "string (Alignment Assessment)",
+  "gaps": ["string (Specific Gaps)"],
+  "strengths": ["string (Unique Selling Points)"],
+  "visionAnalysis": "string (Feasibility & Strategic Logic)",
+  "nextEvolutionSteps": ["string (3-5 High-level tactical actions)"],
+  "verdict": "string (Concise HR Executive Verdict)"
+}`
+                },
+                {
+                    role: 'user',
+                    content: `Analyze this professional profile and provide a strategic audit report in ${language}.`
+                }
+            ],
+            temperature: 0.3, // Lower temperature for more stable JSON output
+            max_tokens: 2000,
+            response_format: { type: 'json_object' }
+        }, { timeout: 110000 }); // Internal timeout slightly less than client but enough for deep work
+
+        const duration = Date.now() - startTime;
+        console.log(`✅ AI Audit Completed in ${duration}ms`);
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+        
+        try {
+            return {
+                success: true,
+                audit: safeParseJSON(result),
+            };
+        } catch (e) {
+            console.error("Audit JSON Parse Error:", e, "Raw:", result);
+            throw new Error("Critical Analysis Error: The AI engine provided data in an invalid format.");
+        }
+    } catch (error) {
+        console.error('Professional Audit AI Error:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to perform professional audit',
         };
     }
 }
@@ -218,6 +438,630 @@ export async function evaluateInterviewAnswer(question: string, answer: string, 
             success: false,
             error: 'Failed to evaluate answer',
         };
+    }
+}
+
+export async function generateProfessionalInterviewQuestion(
+    auditResult: AuditResult,
+    formData: ProfessionalData,
+    conversationHistory: InterviewMessage[] = [],
+    language: string = 'en'
+) {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English. Tone: Executive, profound, challenging but respectful.',
+            'fr': 'Répondez en français. Ton: Exécutif, profond, stimulant mais respectueux.',
+            'ar': 'أجب باللغة العربية. النبرة: تنفيذية، عميقة، متحدية ولكن محترمة.'
+        };
+
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+        const { client, model } = await getAI();
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a legendary Executive HR Strategist with 50 years of experience auditing the world's most powerful CEOs and Leaders. 
+                    
+**YOUR MISSION:**
+Conduct a high-stakes strategic interview to probe the candidate's depth. You already have their preliminary audit and their career narrative. 
+
+**INTERVIEW STRATEGY:**
+1. **Don't be superficial.** Ask about specific strategic decisions, leadership failures, or the logic behind their career pivots.
+2. **Contextual Awareness:** Use their "Sectors", "Vision", and "Career Story" to tailor every question.
+3. **Multi-Turn Logic:** If they answer, probe deeper. Don't just jump to a new topic.
+4. **Current Focus:** Focus on their ${formData.sectors} expertise and how they plan to achieve their vision of: ${formData.vision}.
+
+**RULES:**
+- Ask exactly ONE question.
+- Keep it concise but authoritative.
+- Never ever break character.
+
+${languageInstruction}`
+                },
+                ...conversationHistory,
+                {
+                    role: 'user',
+                    content: `Preliminary Audit: ${JSON.stringify(auditResult)}\nOriginal Data: ${JSON.stringify(formData)}\n\nGenerate the next challenging interview question.`
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 400
+        });
+
+        return {
+            success: true,
+            question: response.choices[0]?.message?.content || ''
+        };
+    } catch (error) {
+        console.error('Professional Interview AI Error:', error);
+        return { success: false, error: 'Failed to generate interview question' };
+    }
+}
+
+export async function analyzeProfessionalInterview(
+    auditResult: AuditResult,
+    formData: ProfessionalData,
+    conversationHistory: InterviewMessage[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.'
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are the legendary Executive HR Strategist (50 yrs experience). You are now writing the FINAL STRATEGIC VERDICT for a candidate after a deep-dive interview.
+
+**DATA SOURCES:**
+1. Preliminary Audit (DNA, Authority Score).
+2. Career Narrative (The Story).
+3. Full Interview Transcript (The nuances).
+
+**REQUIRED OUTPUT (JSON ONLY):**
+{
+  "profileSummary": "string (A masterful psychological and professional summary of the person)",
+  "maturityLevel": "string (Authority level after interview appraisal)",
+  "swot": {
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "opportunities": ["string"],
+    "threats": ["string"]
+  },
+  "deepInsights": ["string (3 hidden truths discovered during the interview)"],
+  "marketValue": "string (How the market perceives them now vs potential)",
+  "finalVerdict": "string (The ultimate 50-year veteran's judgment on their potential to reach their vision)",
+  "recommendedRoles": ["string (Specific high-level roles)"]
+}
+
+**TONE:** 
+Elite, uncompromising, brilliant, and strategic.
+
+${languageInstruction}`
+                },
+                {
+                    role: 'user',
+                    content: `Audit: ${JSON.stringify(auditResult)}\nData: ${JSON.stringify(formData)}\nTranscript: ${JSON.stringify(conversationHistory)}\n\nPerform final synthesis and provide the JSON report.`
+                }
+            ],
+            temperature: 0.4,
+            max_tokens: 2000
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+        
+        try {
+            return {
+                success: true,
+                report: safeParseJSON(result)
+            };
+        } catch (e) {
+            console.error("Interview Analysis JSON Parse Error:", e, "Raw:", result);
+            throw new Error("Final Synthesis Error: The interview could not be structured into a valid report.");
+        }
+    } catch (error) {
+        console.error('Final Analysis AI Error:', error);
+        return { success: false, error: 'Failed to perform final synthesis' };
+    }
+}
+
+export async function generateProfessionalMCQ(
+    auditResult: AuditResult,
+    formData: ProfessionalData,
+    interviewTranscript: InterviewMessage[],
+    type: 'hard' | 'soft',
+    count: number = 15,
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.'
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const focusArea = type === 'hard' ? 'Technical Competencies and Hard Skills' : 'Behavioral Competencies and Soft Skills';
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a high-level strategic auditor. Your goal is to generate ${count} high-precision MCQ questions to test a candidate's ${focusArea}. 
+                    
+**CRITICAL: RETURN ONLY VALID JSON. NO MARKDOWN CODE BLOCKS. NO PREAMBLE. NO TEXT BEFORE OR AFTER.**
+
+**CONTEXT:**
+- Sectors: ${formData.sectors}
+- Vision: ${formData.vision}
+- Preliminary Audit: ${JSON.stringify(auditResult)}
+- Interview Insights: ${JSON.stringify(interviewTranscript.slice(-5))}
+
+**REQUIREMENTS:**
+1. Generate EXACTLY ${count} questions.
+2. Each question must have 4 options.
+3. Provide the index of the correct answer (0-3).
+4. Provide a SHORT, strategic explanation for WHY that's the correct answer.
+5. Tone: Advanced, expert, and challenging.
+6. Language: ${languageInstruction}
+
+**OUTPUT FORMAT (JSON ONLY):**
+{
+  "questions": [
+    {
+      "question": "string",
+      "options": ["string", "string", "string", "string"],
+      "correctIndex": number,
+      "explanation": "string"
+    }
+  ]
+}`
+                }
+            ],
+            temperature: 0.4,
+            max_tokens: 8000, // Very high limit to accommodate 35 questions in Arabic
+            response_format: { type: 'json_object' }
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+        
+        try {
+            const parsed = safeParseJSON(result);
+            if (!parsed || !Array.isArray(parsed.questions)) {
+                throw new Error("Invalid MCQ structure received");
+            }
+            return {
+                success: true,
+                questions: parsed.questions as MCQQuestion[]
+            };
+        } catch (e) {
+            console.error("MCQ JSON Parse Error:", e, "Raw:", result);
+            throw new Error("Technical Validation Error: The AI failed to format the questions correctly.");
+        }
+    } catch (error) {
+        console.error('MCQ Generation Error:', error);
+        return { success: false, error: 'Failed to generate MCQ' };
+    }
+}
+
+export async function generatePortfolioQuestion(
+    auditResult: AuditResult,
+    formData: ProfessionalData,
+    interview1: InterviewMessage[],
+    mcqResults: { hardScore: number, softScore: number, totalQuestions: number },
+    currentHistory: InterviewMessage[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond ONLY in English.',
+            'fr': 'Répondez UNIQUEMENT en français.',
+            'ar': 'أجب باللغة العربية فقط.'
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+        const questionCount = currentHistory.filter(m => m.role === 'assistant').length;
+
+        // ─── PHASE 1 (Q1–Q4): Profile Deep-Dive Questions ───────────────────────
+        // Each question probes a specific dimension of the candidate's profile,
+        // drawing directly from audit gaps, MCQ performance, and career data.
+        const phase1Archetypes = [
+            'PROFILE_ANCHOR',       // Q1: Ground-truth the candidate — who are you really?
+            'GAP_CONFRONTATION',    // Q2: Confront a specific audit gap directly
+            'FAILURE_DEEP_DIVE',    // Q3: Real failure — no polished answers allowed
+            'SELF_AWARENESS_PROBE', // Q4: Measure how well they see themselves
+        ];
+
+        // ─── PHASE 2 (Q5): THE PIVOTAL EXECUTIVE PRESSURE CASE ──────────────────
+        // One bespoke, scenario-based case study tailor-made for this candidate's
+        // sector, seniority level, and stated vision. No "correct" answer exists —
+        // the AI evaluates HOW they think under pressure.
+
+        let systemPrompt: string;
+
+        if (questionCount < 4) {
+            // PHASE 1 — Profile understanding questions
+            const archetype = phase1Archetypes[questionCount];
+
+            const phase1Instructions: Record<string, string> = {
+                PROFILE_ANCHOR: `
+You are opening the Portfolio Deep-Dive interview. Your goal for Q1 is to establish the GROUND TRUTH of who this candidate really is — beyond their CV.
+
+Ask ONE question that forces them to:
+1. Distill their entire professional identity into its core essence.
+2. Reveal what truly drives them (money, legacy, power, impact, challenge).
+3. Be specific — reference their sector (${formData.sectors}) and their stated vision: "${formData.vision}".
+
+Example style: "Before we go into your portfolio — in one paragraph, no rehearsed elevator pitch — tell me: What have you actually built or transformed in your career that you would genuinely put your name on? Not your job title, not your company — what YOU personally changed or created that wouldn't exist without you?"
+
+Be direct. Be clinical. Show you've already read their file.`,
+
+                GAP_CONFRONTATION: `
+For Q2, your goal is to CONFRONT a specific gap in the candidate's profile directly and firmly.
+
+The audit data reveals these key gaps: ${JSON.stringify(auditResult.gaps)}
+Their MCQ scores: Hard Skills ${mcqResults.hardScore}/${mcqResults.totalQuestions}, Soft Skills ${mcqResults.softScore}/${mcqResults.totalQuestions}
+Their stated trajectory: ${JSON.stringify(formData.positions)}
+
+Pick the MOST critical gap and build a question that forces them to defend themselves — not explain away — but to demonstrate they have a concrete plan to close it.
+
+Example style: "Your profile shows [specific gap]. For someone targeting [their vision], this is not a minor issue — it's a potential ceiling. I need you to tell me specifically: Is this something you've already started working on, and if yes — what concrete evidence do you have? If no — why not?"
+
+Do NOT be soft. Do NOT use cushioning language. You are not their coach here — you are their evaluator.`,
+
+                FAILURE_DEEP_DIVE: `
+For Q3, ask about their BIGGEST PROFESSIONAL FAILURE — the one they have never fully disclosed in an interview before.
+
+Rules:
+- Block generic "weakness-as-strength" answers before they happen.
+- Force them to name a real cost: financial, relational, reputational, strategic.
+- Ask what it revealed about their character that they hadn't seen before.
+
+Example: "I want you to tell me about a professional decision or project that genuinely failed — not 'almost failed' or 'faced setbacks.' Something real, with real consequences. What did it cost you or your organization? And more importantly — what did it expose about your own limitations that you weren't aware of before that failure?"
+
+Reference their sector (${formData.sectors}) if you can make the question more pointed.`,
+
+                SELF_AWARENESS_PROBE: `
+For Q4, measure their level of SELF-AWARENESS with precision.
+
+Context for you:
+- Authority Score: ${auditResult.authorityScore}/100
+- Stated vision: "${formData.vision}"
+- Career positions: ${JSON.stringify(formData.positions)}
+
+Your question must probe whether they know the gap between who they think they are and who they actually are — behaviorally.
+
+Example: "Think about the 3 people who know your work best — a direct report, a peer, and a senior leader. If I called each of them RIGHT NOW and asked 'What is [candidate name]'s biggest professional blind spot?' — what would each of them say, and which answer would make you most uncomfortable? Why?"
+
+The goal: Do they know what others see that they cannot? High self-awareness = clear, honest, specific. Low self-awareness = vague, defensive, or too positive.`,
+            };
+
+            systemPrompt = `You are a world-class Executive Portfolio Auditor trained at McKinsey, Google, and Goldman Sachs. You have assessed 10,000+ professionals. You are conducting a structured Portfolio Deep-Dive — PHASE 1.
+
+**PHASE 1 OBJECTIVE:** Before the final pivotal question (Q5), build a complete behavioral and cognitive map of this candidate by probing 4 specific dimensions. You are already on Question ${questionCount + 1} of 4.
+
+**THIS QUESTION'S MISSION (${archetype}):**
+${phase1Instructions[archetype]}
+
+**CANDIDATE FILE (read before asking):**
+- Sector: ${formData.sectors}
+- Current Positions: ${JSON.stringify(formData.positions)}
+- Career Vision: "${formData.vision}"
+- Authority Score: ${auditResult.authorityScore}/100
+- Key Strengths Identified: ${JSON.stringify(auditResult.strengths)}
+- Key Gaps Identified: ${JSON.stringify(auditResult.gaps)}
+- MCQ Results — Hard: ${mcqResults.hardScore}/${mcqResults.totalQuestions}, Soft: ${mcqResults.softScore}/${mcqResults.totalQuestions}
+
+**RULES:**
+- One question only. No small talk. No explanation. No preamble.
+- Build on prior answers: ${currentHistory.length > 0 ? JSON.stringify(currentHistory.slice(-2)) : 'First question — use only file data.'}
+- Be professional, direct, slightly confrontational. You are NOT their mentor here.
+
+${languageInstruction}`;
+
+        } else {
+            // PHASE 2 — THE PIVOTAL: Bespoke Executive Pressure Case
+            systemPrompt = `You are a world-class Executive Portfolio Auditor trained at McKinsey, Google, and Goldman Sachs. You have conducted the entire Phase 1 profile deep-dive for this candidate. Now you will deliver THE PIVOTAL QUESTION — the single most important question in the entire audit.
+
+**THE PIVOTAL OBJECTIVE:**
+Design ONE executive-level, sector-specific "Pressure Case Scenario" that:
+1. Is 100% tailored to THIS candidate's sector, seniority, and stated vision.
+2. Has NO perfect answer — only reveals HOW they think, prioritize, and lead under pressure.
+3. Requires them to make a real decision within a specific time constraint with incomplete information.
+4. Tests multiple capabilities simultaneously: Strategic thinking, Crisis management, Stakeholder leadership, Self-awareness, and Execution discipline.
+
+**HOW TO BUILD IT (follow this structure):**
+- Set a realistic scenario in their exact sector (${formData.sectors}).
+- Give them a specific, senior role that aligns with their vision: "${formData.vision}".
+- Create a crisis that emerges UNEXPECTEDLY after they've already made a commitment.
+- The crisis must threaten multiple stakeholders simultaneously (board, team, clients, finances).
+- Ask for EXACTLY 5 precise, sequential steps they would take in the next 24–72 hours.
+- The scenario must feel real, uncomfortable, and urgent.
+
+**EXAMPLE FORMAT (adapt fully to this candidate, do NOT use this verbatim):**
+"The Board approves your appointment as [Role aligned to their vision]. [X days] in, you discover [a critical flaw, failure, or threat] that undermines [a key commitment you made]. The situation has not yet leaked — you have [time window]. Walk me through the 5 exact, ordered steps you take in the next 24 hours: what you do, who you call first, what you say, and what you sacrifice to protect [strategic priority]. There is no safe answer. I am evaluating your judgment, not your knowledge."
+
+**CANDIDATE FULL FILE:**
+- Sector: ${formData.sectors}
+- Career Trajectory: ${JSON.stringify(formData.positions)}
+- Stated Vision: "${formData.vision}"
+- Authority Score: ${auditResult.authorityScore}/100
+- Key Strengths: ${JSON.stringify(auditResult.strengths)}
+- Identified Gaps: ${JSON.stringify(auditResult.gaps)}
+- Audit Verdict: "${auditResult.verdict}"
+- MCQ: Hard ${mcqResults.hardScore}, Soft ${mcqResults.softScore} / ${mcqResults.totalQuestions}
+- Phase 1 Transcript Summary: ${JSON.stringify(currentHistory.slice(-6))}
+
+**CRITICAL RULES:**
+- The scenario MUST reference their actual sector and vision — not generic business.
+- Make the stakes executive-level: board, investors, clients, team, or transformation at risk.
+- Ask for exactly 5 numbered steps within a specific time window.
+- The question should be 3–6 sentences. Precise, dense, urgent. No rambling.
+- Begin the question with context setting, then the crisis, then the demand.
+
+${languageInstruction}`;
+        }
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                ...currentHistory.map(m => ({ role: m.role, content: m.content }))
+            ],
+            temperature: questionCount < 4 ? 0.65 : 0.8,
+            max_tokens: questionCount < 4 ? 450 : 700
+        });
+
+        return response.choices[0]?.message?.content || "Could not generate question.";
+    } catch (error) {
+        console.error('Portfolio Question Error:', error);
+        return "Failed to connect to AI engine.";
+    }
+}
+
+export async function analyzePortfolioInterview(
+    auditResult: AuditResult,
+    formData: ProfessionalData,
+    interview1Transcript: InterviewMessage[],
+    mcqResults: { hardScore: number, softScore: number, totalQuestions: number },
+    portfolioTranscript: InterviewMessage[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.'
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are the most rigorous Executive HR Evaluator in the world — trained at McKinsey, Google, Goldman Sachs, and the UN. You have assessed 10,000+ professionals over 30 years.
+
+You are performing the DEFINITIVE PROFESSIONAL X-RAY AUDIT. This is NOT a flattering report. This is a clinical, data-driven, behaviorally-anchored assessment — like what a Fortune 500 Board gets before making a C-suite hire.
+
+**YOUR MANDATE:**
+- No flattery. No corporate jargon.
+- Every statement must be rooted in the evidence from the transcripts and data.
+- Your analysis must reveal what the candidate CANNOT see about themselves.
+- Identify the behavioral patterns that will LIMIT their ascent if uncorrected.
+- Be the mentor they never had — honest, direct, and deeply strategic.
+
+**DATA SOURCES TO SYNTHESIZE:**
+1. Initial Audit & DNA Profile
+2. First Strategic Interview (Depth of thinking, structure, substance)
+3. MCQ Technical + Behavioral Results (Hard: ${mcqResults.hardScore}, Soft: ${mcqResults.softScore} / ${mcqResults.totalQuestions})
+4. Final Portfolio Interview Transcript (How they handle pressure, failure, self-awareness)
+
+**REQUIRED OUTPUT (JSON ONLY — no markdown, no explanation outside JSON):**
+{
+  "profileSummary": "string (3-4 sentences. Their professional DNA codename — e.g. 'The Tactical Visionary', 'The Crisis Operator'. Their core strength. Their core risk. Their market position today.)",
+  "maturityLevel": "string (Precise executive level: Junior Operator / Mid-level Manager / Senior Strategist / Executive Leader / C-Suite Ready)",
+  
+  "leadershipFingerprint": {
+    "archetype": "string (Visionary / Operator / Coach / Commander / Hybrid)",
+    "description": "string (2-3 sentences on HOW they lead — their instinct, their decision-making style, what contexts they dominate)",
+    "riskContext": "string (Context where this leadership style FAILS them — be specific)"
+  },
+
+  "selfAwarenessScore": {
+    "score": number (0-100),
+    "verdict": "string (Low / Moderate / High / Exceptional)",
+    "evidence": "string (What in their answers led to this score — specific moments from the transcript)"
+  },
+
+  "trajectoryVelocity": {
+    "assessment": "string (Accelerating / On-track / Plateauing / Regressing)",
+    "rationale": "string (Based on their career progression speed vs. sector benchmarks)"
+  },
+
+  "swot": {
+    "strengths": ["string (Specific, evidence-based, not generic)"],
+    "weaknesses": ["string (Real behavioral weaknesses revealed in the interview)"],
+    "opportunities": ["string (Market opportunities aligned to their actual profile)"],
+    "threats": ["string (Professional blind spots and market risks)"]
+  },
+
+  "deepInsights": ["string (3 behavioral patterns or hidden truths discovered — the things they don't see about themselves)"],
+
+  "marketValue": "string (Their current market positioning in their sector — candid, data-referenced)",
+
+  "gapAnalysis": {
+    "currentJobVsReality": "string (Gap between their title and their actual authority/competency level)",
+    "hardSkillsMatch": number (0-100, based on MCQ and audit),
+    "softSkillsMatch": number (0-100, based on MCQ and behavioral interview),
+    "criticalCompetencyGaps": ["string (Specific missing competencies with context)"],
+    "comparisonPositionReality": "string (Synthesis: what they think they are vs. what the data says they are)"
+  },
+
+  "actionPlan90Days": [
+    {
+      "week": "string (e.g. Week 1-2)",
+      "action": "string (One specific, executable action)",
+      "rationale": "string (Why this action first)"
+    }
+  ],
+
+  "careerAdvancement": [
+    {
+      "role": "string (Specific role title)",
+      "shortTermProbability": number (0-100, realistic based on evidence),
+      "longTermProbability": number (0-100),
+      "requirements": ["string (Precise requirements — skills, experiences, behavioral changes)"]
+    }
+  ],
+
+  "recommendedRoles": ["string (3-5 specific role titles for near-term pursuit)"],
+
+  "expertInterviewNotes": ["string (Raw, unfiltered observations from the interview transcripts — e.g. 'Highly structured but defensive when challenged', 'Strong technical baseline but lacks strategic vocabulary')"],
+
+  "authorityVsPotential": {
+    "currentAuthority": number (0-100, based on their track record),
+    "futurePotential": number (0-100, based on their cognitive adaptability and vision),
+    "quadrant": "string (e.g. 'High Potential / Rising Star', 'Solid Professional / Reliable Operator', 'High Authority / Nearing Maturity', 'Underutilized Talent')"
+  },
+
+  "strategicRadar": {
+    "technical": number (0-10),
+    "leadership": number (0-10),
+    "strategy": number (0-10),
+    "execution": number (0-10),
+    "influence": number (0-10)
+  },
+
+  "marketPerceptionVerdict": "string (A sharp 1-2 sentence verdict on how top-tier global headhunters would perceive this candidate right now based on their alignment and authority.)",
+
+  "linkedInStrategy": {
+    "headline": "string (A high-impact, authority-driven LinkedIn headline)",
+    "summaryFocus": "string (What their 'About' section should emphasize to build strategic authority)",
+    "networkingAdvice": "string (One specific networking move they should make today — e.g. reach out to X type of leader, join Y group)"
+  },
+
+  "finalVerdict": "string (2-3 sentences. The unfiltered, honest executive judgment. What they must hear, even if uncomfortable. What is their real ceiling without intervention? What unlocks their potential?)"
+}
+
+${languageInstruction}`
+                },
+                {
+                    role: 'user',
+                    content: `Initial Audit: ${JSON.stringify(auditResult)}\nCandidate Data: ${JSON.stringify(formData)}\nFirst Interview: ${JSON.stringify(interview1Transcript.slice(-6))}\nMCQ Results: ${JSON.stringify(mcqResults)}\nPortfolio Interview: ${JSON.stringify(portfolioTranscript)}\n\nGenerate the comprehensive X-Ray professional audit report. Be brutally honest, data-driven, and deeply insightful.`
+                }
+            ],
+            temperature: 0.3,
+            max_tokens: 4000,
+            response_format: { type: 'json_object' }
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+        
+        return {
+            success: true,
+            report: safeParseJSON(result)
+        };
+    } catch (error) {
+        console.error('Portfolio Analysis Error:', error);
+        return { success: false, error: 'Failed to analyze portfolio interview' };
+    }
+}
+
+export async function generateUltimateStrategicReport(
+    auditResult: AuditResult,
+    formData: ProfessionalData,
+    interviewTranscript: InterviewMessage[],
+    mcqResults: { type: 'hard' | 'soft', score: number, total: number }[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond in English.',
+            'fr': 'Répondez en français.',
+            'ar': 'أجب باللغة العربية.'
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are the legendary Executive HR Strategist (50 yrs experience). You are crafting the ULTIMATE STRATEGIC REPORT. 
+
+**ALL DATA SOURCES:**
+1. Preliminary Audit.
+2. Full Interview Transcript.
+3. MCQ Assessment Results: ${JSON.stringify(mcqResults)}
+
+**MISSION:**
+- Synthesize all data to reveal the absolute truth about the candidate.
+- Identify the gap between their current reality and the target vision.
+- Calculate match percentages for Hard and Soft skills.
+
+**REQUIRED OUTPUT (JSON ONLY):**
+{
+  "profileSummary": "string",
+  "maturityLevel": "string",
+  "swot": { "strengths": [], "weaknesses": [], "opportunities": [], "threats": [] },
+  "deepInsights": [],
+  "marketValue": "string",
+  "finalVerdict": "string",
+  "recommendedRoles": [],
+  "gapAnalysis": {
+    "currentJobVsReality": "string (Deep analysis of the gap)",
+    "hardSkillsMatch": number (0-100),
+    "softSkillsMatch": number (0-100),
+    "criticalCompetencyGaps": ["string"]
+  }
+}
+
+**TONE:** 
+Elite, visionary, and high-impact.
+
+${languageInstruction}`
+                },
+                {
+                    role: 'user',
+                    content: `Generate the ultimate strategic report based on all gathered data.`
+                }
+            ],
+            temperature: 0.4,
+            max_tokens: 2500
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+        
+        try {
+            return {
+                success: true,
+                report: safeParseJSON(result) as UltimateReportResult
+            };
+        } catch (e) {
+            console.error("Ultimate Report JSON Parse Error:", e, "Raw:", result);
+            throw new Error("Final Strategic Error: Failed to build the ultimate verdict report.");
+        }
+    } catch (error) {
+        console.error('Ultimate Report AI Error:', error);
+        return { success: false, error: 'Failed to generate ultimate report' };
     }
 }
 
@@ -1569,4 +2413,14 @@ Generate the Corporate Strategic Report in ${language}.`
             error: 'Failed to generate corporate report',
         };
     }
+}
+
+export async function generateDeepSeekChat(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]) {
+    const { client, model } = await getAI();
+    return await client.chat.completions.create({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 3000
+    });
 }

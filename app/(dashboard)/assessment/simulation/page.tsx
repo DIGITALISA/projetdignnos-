@@ -338,7 +338,7 @@ export default function SimulationPage() {
                     userId,
                     language: selectedLanguage
                 }),
-            }, 90000);
+            }, 300000);
 
             if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const result = await response.json();
@@ -350,11 +350,16 @@ export default function SimulationPage() {
                 setLastError(msg);
                 alert(msg);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error generating comprehensive report:', error);
-            const msg = t.simulation.errorGeneratingReport;
-            setLastError(msg);
-            alert(msg);
+            
+            let message = t.simulation.errorGeneratingReport;
+            if (error instanceof Error && error.name === 'AbortError') {
+                message = t.simulation.serverSlow;
+            }
+            
+            setLastError(message);
+            alert(message);
         } finally {
             setIsGeneratingReport(false);
         }
@@ -402,7 +407,7 @@ export default function SimulationPage() {
                     language,
                     scenarioNumber: 1
                 }),
-            }, 60000);
+            }, 90000);
 
             if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const result = await response.json();
@@ -437,71 +442,87 @@ export default function SimulationPage() {
 
     useEffect(() => {
         const loadInitialData = async () => {
+            setIsLoading(true);
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
+
+            // ✅ Student Free Trial Gate
+            const isStudentFreeTrial = userProfile.plan === 'Student' && 
+                                      (userProfile.role === 'Free Tier' || userProfile.role === 'Trial User');
+            
+            if (isStudentFreeTrial) {
+                console.log("Student Free Trial user attempted to access simulation — redirecting to discovery completion");
+                router.push('/assessment/role-discovery');
+                return;
+            }
             
             let storedRole = localStorage.getItem('selectedRole');
             let storedCV = localStorage.getItem('cvAnalysis');
             let storedLanguage = localStorage.getItem('selectedLanguage');
 
-            if (userId) {
-                try {
-                    const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
-                    const response = await res.json();
+            try {
+                if (userId) {
+                    try {
+                        const res = await fetchWithTimeout(`/api/user/progress?userId=${encodeURIComponent(userId)}`, {}, 15000);
+                        const response = await res.json();
 
-                    if (response.hasData && response.data) {
-                        const data = response.data;
-                        
-                        if (!storedRole && data.selectedRole) {
-                            storedRole = JSON.stringify(data.selectedRole);
-                            localStorage.setItem('selectedRole', storedRole);
-                        }
-                        if (!storedCV && data.cvAnalysis) {
-                            storedCV = JSON.stringify(data.cvAnalysis);
-                            localStorage.setItem('cvAnalysis', storedCV);
-                        }
-                        if (data.language) {
-                            storedLanguage = data.language;
-                            localStorage.setItem('selectedLanguage', data.language);
-                            setLanguage(data.language as Language);
-                        }
-
-                        if (data.simulationConversation && data.simulationConversation.length > 0) {
-                            const restoredMessages = data.simulationConversation.map((m: { 
-                                role: 'ai' | 'user', 
-                                content: string, 
-                                timestamp: string, 
-                                feedback?: { score: number, strengths: string[], improvements: string[] } 
-                            }) => ({
-                                ...m,
-                                timestamp: new Date(m.timestamp)
-                            }));
-                            setMessages(restoredMessages);
-                            setScenarioResults(data.simulationResults || []);
-                            setSelectedRole(data.selectedRole);
-                            setCvAnalysis(data.cvAnalysis);
-                            setSelectedLanguage(data.language || 'en');
+                        if (response.hasData && response.data) {
+                            const data = response.data;
                             
-                            if (data.completionStatus?.simulationComplete) {
-                                setSimulationComplete(true);
+                            if (!storedRole && data.selectedRole) {
+                                storedRole = JSON.stringify(data.selectedRole);
+                                localStorage.setItem('selectedRole', storedRole);
                             }
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed to load session from API", e);
-                }
-            }
+                            if (!storedCV && data.cvAnalysis) {
+                                storedCV = JSON.stringify(data.cvAnalysis);
+                                localStorage.setItem('cvAnalysis', storedCV);
+                            }
+                            if (data.language) {
+                                storedLanguage = data.language;
+                                localStorage.setItem('selectedLanguage', data.language);
+                                setLanguage(data.language as Language);
+                            }
 
-            if (storedRole && storedCV) {
-                const role = JSON.parse(storedRole);
-                const cv = JSON.parse(storedCV);
-                setSelectedRole(role);
-                setCvAnalysis(cv);
-                setSelectedLanguage(storedLanguage || 'en');
-                startSimulation(role, cv, storedLanguage || 'en');
-            } else {
-                router.push('/assessment/role-suggestions');
+                            if (data.simulationConversation && data.simulationConversation.length > 0) {
+                                const restoredMessages = data.simulationConversation.map((m: { 
+                                    role: 'ai' | 'user', 
+                                    content: string, 
+                                    timestamp: string, 
+                                    feedback?: { score: number, strengths: string[], improvements: string[] } 
+                                }) => ({
+                                    ...m,
+                                    timestamp: new Date(m.timestamp)
+                                }));
+                                setMessages(restoredMessages);
+                                setScenarioResults(data.simulationResults || []);
+                                setSelectedRole(data.selectedRole);
+                                setCvAnalysis(data.cvAnalysis);
+                                setSelectedLanguage(data.language || 'en');
+                                
+                                if (data.completionStatus?.simulationComplete) {
+                                    setSimulationComplete(true);
+                                }
+                                setIsLoading(false);
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Failed to load session from API", e);
+                    }
+                }
+
+                if (storedRole && storedCV) {
+                    const role = JSON.parse(storedRole);
+                    const cv = JSON.parse(storedCV);
+                    setSelectedRole(role);
+                    setCvAnalysis(cv);
+                    setSelectedLanguage(storedLanguage || 'en');
+                    await startSimulation(role, cv, storedLanguage || 'en');
+                } else {
+                    router.push('/assessment/role-suggestions');
+                }
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -551,7 +572,7 @@ export default function SimulationPage() {
                     conversationHistory: messages,
                     language: selectedLanguage,
                 }),
-            }, 60000);
+            }, 90000);
 
             if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const result = await response.json();
@@ -585,86 +606,85 @@ export default function SimulationPage() {
 
                 // Check if we should move to next scenario or finish
                 if (currentScenario < totalScenarios) {
-                    // Start next scenario
-                    setTimeout(async () => {
-                        const nextScenario = currentScenario + 1;
-                        setCurrentScenario(nextScenario);
-                        setTimeLeft(20 * 60); // Reset timer for next scenario
+                    // Start next scenario after a short delay to let user read feedback
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const nextScenario = currentScenario + 1;
+                    setCurrentScenario(nextScenario);
+                    setTimeLeft(20 * 60); // Reset timer for next scenario
 
-                        try {
-                            const nextResponse = await fetchWithTimeout('/api/simulation/next-scenario', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    selectedRole,
-                                    cvAnalysis,
-                                    scenarioNumber: nextScenario,
-                                    previousResults: updatedResults,
-                                    language: selectedLanguage,
-                                }),
-                            }, 60000);
+                    try {
+                        const nextResponse = await fetchWithTimeout('/api/simulation/next-scenario', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                selectedRole,
+                                cvAnalysis,
+                                scenarioNumber: nextScenario,
+                                previousResults: updatedResults,
+                                language: selectedLanguage,
+                            }),
+                        }, 90000);
 
-                            if (!nextResponse.ok) throw new Error(`Server returned ${nextResponse.status}`);
-                            const nextResult = await nextResponse.json();
+                        if (!nextResponse.ok) throw new Error(`Server returned ${nextResponse.status}`);
+                        const nextResult = await nextResponse.json();
 
-                            if (nextResult.success) {
-                                const finalMessages = [...updatedMessages, {
-                                    role: 'ai' as const,
-                                    content: nextResult.scenario,
-                                    timestamp: new Date(),
-                                }];
-                                setMessages(finalMessages);
-                                saveProgress(finalMessages, updatedResults, nextScenario);
-                            }
-                        } catch (err) {
-                            console.error("Error fetching next scenario", err);
-                            setLastError(t.simulation.failedNextScenario);
+                        if (nextResult.success) {
+                            const finalMessages = [...updatedMessages, {
+                                role: 'ai' as const,
+                                content: nextResult.scenario,
+                                timestamp: new Date(),
+                            }];
+                            setMessages(finalMessages);
+                            saveProgress(finalMessages, updatedResults, nextScenario);
                         }
-                    }, 2000);
+                    } catch (err) {
+                        console.error("Error fetching next scenario", err);
+                        setLastError(t.simulation.failedNextScenario);
+                    }
                 } else {
-                    // Complete simulation
-                    setTimeout(async () => {
-                        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                        
-                        try {
-                            // Persist diagnosis to MongoDB
-                            const completeResponse = await fetchWithTimeout('/api/simulation/complete', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    email: userProfile.email,
-                                    selectedRole,
-                                    cvAnalysis,
-                                    scenarioResults: updatedResults,
-                                    language: selectedLanguage,
-                                }),
-                            }, 90000);
+                    // Complete simulation after a short delay
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                    
+                    try {
+                        // Persist diagnosis to MongoDB
+                        const completeResponse = await fetchWithTimeout('/api/simulation/complete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: userProfile.email,
+                                selectedRole,
+                                cvAnalysis,
+                                scenarioResults: updatedResults,
+                                language: selectedLanguage,
+                            }),
+                        }, 90000);
 
-                            if (!completeResponse.ok) throw new Error(`Server returned ${completeResponse.status}`);
-                            const completeResult = await completeResponse.json();
+                        if (!completeResponse.ok) throw new Error(`Server returned ${completeResponse.status}`);
+                        const completeResult = await completeResponse.json();
 
-                            if (completeResult.success) {
-                                // Update local storage to unlock sections immediately
-                                const currentProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                                currentProfile.isDiagnosisComplete = true;
-                                localStorage.setItem('userProfile', JSON.stringify(currentProfile));
+                        if (completeResult.success) {
+                            // Update local storage to unlock sections immediately
+                            const currentProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                            currentProfile.isDiagnosisComplete = true;
+                            localStorage.setItem('userProfile', JSON.stringify(currentProfile));
 
-                                setFinalReport(completeResult.report);
-                                setSimulationComplete(true);
+                            setFinalReport(completeResult.report);
+                            setSimulationComplete(true);
 
-                                const finalMsgs = [...updatedMessages, {
-                                    role: 'ai' as const,
-                                    content: completeResult.completionMessage,
-                                    timestamp: new Date(),
-                                }];
-                                setMessages(finalMsgs);
-                                saveProgress(finalMsgs, updatedResults, currentScenario + 1);
-                            }
-                        } catch (err) {
-                            console.error("Error completing simulation", err);
-                            setLastError(t.simulation.failedCompleteSimulation);
+                            const finalMsgs = [...updatedMessages, {
+                                role: 'ai' as const,
+                                content: completeResult.completionMessage,
+                                timestamp: new Date(),
+                            }];
+                            setMessages(finalMsgs);
+                            saveProgress(finalMsgs, updatedResults, currentScenario + 1);
                         }
-                    }, 2000);
+                    } catch (err) {
+                        console.error("Error completing simulation", err);
+                        setLastError(t.simulation.failedCompleteSimulation);
+                    }
                 }
             }
         } catch (error: unknown) {
@@ -680,6 +700,7 @@ export default function SimulationPage() {
 
             if (!isRetry && retryCount < 2) {
                 setRetryCount(prev => prev + 1);
+                // For retries we still use setTimeout because we're returning early
                 setTimeout(() => {
                     handleSendMessage(messageContent, true);
                 }, 2000);

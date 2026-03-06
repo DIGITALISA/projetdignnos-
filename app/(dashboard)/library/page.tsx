@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Download, FileText, FileSpreadsheet, File, Search, Filter, Loader2, Link as LinkIcon, Sparkles, Globe, ExternalLink, Lock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
+import { TrialGate } from "@/components/ui/TrialGate";
 
 interface Resource {
     _id: string;
@@ -26,6 +27,14 @@ interface Tool {
 }
 
 export default function LibraryPage() {
+    const [dir, setDir] = useState<'ltr' | 'rtl'>('ltr');
+    const [language, setLanguage] = useState('fr');
+
+    useEffect(() => {
+        const lang = localStorage.getItem('selectedLanguage') || 'fr';
+        setLanguage(lang);
+        setDir(lang === 'ar' ? 'rtl' : 'ltr');
+    }, []);
     const [resources, setResources] = useState<Resource[]>([]);
     const [tools, setTools] = useState<Tool[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +99,7 @@ export default function LibraryPage() {
     };
 
     return (
+        <TrialGate module="resources" moduleHref="/library" manualMark={false} dir={dir} language={language}>
         <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 pb-20">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-2">
@@ -286,6 +296,7 @@ export default function LibraryPage() {
                 }
             `}</style>
         </div>
+        </TrialGate>
     );
 }
 

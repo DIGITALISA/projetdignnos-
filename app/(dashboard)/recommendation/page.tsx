@@ -58,7 +58,7 @@ export default function RecommendationPage() {
         return false;
     };
 
-    const [userPlan, setUserPlan] = useState("None");
+    const [userPlan, setUserPlan] = useState<string>("None");
 
     const fetchRecommendation = async () => {
         setLoading(true);
@@ -238,13 +238,17 @@ export default function RecommendationPage() {
         );
     }
 
-    if (!readiness.recReady || userPlan === "Free Trial" || userPlan === "None") {
+    const isPremiumRequired = userPlan === "Free Trial" || userPlan === "None";
+
+    if (!readiness.recReady || isPremiumRequired) {
         return (
             <AssetLocked
                 title="Letter of Recommendation"
-                description="Your Official Executive Endorsement is currently locked. This asset is synthesized based on your full platform history."
+                description={userPlan === "Student" 
+                    ? "Your professional recommendation is maturing. Official documents require 3 months of platform participation and workshop attendance." 
+                    : "Your Official Executive Endorsement is currently locked. This asset is synthesized based on your full platform history."}
                 readiness={readiness}
-                isPremiumRequired={userPlan === "Free Trial" || userPlan === "None"}
+                isPremiumRequired={isPremiumRequired}
             />
         );
     }

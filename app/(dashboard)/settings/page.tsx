@@ -10,7 +10,7 @@ export default function SettingsPage() {
         fullName: "Ahmed User",
         email: "ahmed@example.com",
         notifications: true,
-        plan: "Free Trial"
+        plan: "Professional"
     });
     const [saved, setSaved] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
@@ -145,8 +145,8 @@ export default function SettingsPage() {
                     </div>
                 </motion.div>
 
-                {/* Danger Zone - Only for Paid Plans */}
-                {(profile.plan === "Pro Essential") && (
+                {/* Danger Zone - Only for Professional Plans */}
+                {(profile.plan !== "Student") && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

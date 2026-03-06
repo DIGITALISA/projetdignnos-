@@ -8,41 +8,22 @@ import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
 
 const plans = [
     {
-        name: "Free Trial",
-        badge: "Discovery",
-        price: "Gratuit",
-        duration: "Diagnostic",
-        description: "Découvrez la puissance de l'IA pour votre carrière avec un diagnostic complet.",
+        name: "Student Full Access",
+        badge: "Spécial Étudiant 🎓",
+        price: "150 DT",
+        duration: "Par An",
+        description: "Accès illimité à tous les modules bloqués pour les étudiants après 3h.",
         features: [
-            "1 Analyse CV Complète (IA)",
-            "3 questions/jour au Conseiller IA",
-            "Diagnostic de Compétences",
-            "Aperçu du Scénario d'Excellence",
-            "Recommandations de base"
+            "Rapports Stratégiques illimités",
+            "Accès permanent à l'Académie & Mentor IA",
+            "Missions de Simulation illimitées",
+            "Documents Officiels & Attestations",
+            "Accès au Centre de Ressources",
+            "Support Expert Prioritaire"
         ],
-        type: "Free Trial",
-        color: "slate",
-        icon: Globe
-    },
-    {
-        name: "Pro Essential",
-        badge: "Full Access 🔥",
-        price: "À partir de 80€ (HT)",
-        duration: "+ (Selon Diagnostic)",
-        description: "Le protocole complet pour propulser votre carrière vers l'excellence exécutive.",
-        features: [
-            "Analyse CV & Profil illimitée",
-            "Conseiller IA Stratégique 24/7",
-            "Rapport SCI (Strategic Career Intelligence)",
-            "Accès aux Simulations Exécutives",
-            "Lettre de Recommandation Officielle",
-            "Scorecard de Performance",
-            "Accès aux Ateliers (Workshops)",
-            "Support Prioritaire"
-        ],
-        type: "Pro Essential",
-        color: "blue",
-        icon: Star,
+        type: "Student",
+        color: "amber",
+        icon: Shield,
         popular: true
     }
 ];
@@ -93,7 +74,7 @@ export default function SubscriptionPage() {
                 </div>
 
                 {/* Plans Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
+                <div className="flex justify-center max-w-lg mx-auto">
                     {plans.map((plan, idx) => {
                         const isCurrent = userProfile?.role === plan.type || (plan.type === 'Free Trial' && userProfile?.role === 'Trial User');
 

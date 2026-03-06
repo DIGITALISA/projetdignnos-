@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
                     ]
                 });
                 
-                const isFreeTier = !user || user.plan === "Free Trial" || user.plan === "None" || user.role === "Trial User" || user.role === "Free Tier";
+                const isFreeTier = !user || (user.plan as string) === "None" || user.role === "Trial User" || user.role === "Free Tier";
                 
                 // ✅ INITIALIZE TRIAL ON FIRST CV UPLOAD
                 if ((user?.role === "Trial User" || user?.role === "Free Tier") && !user.trialExpiry) {

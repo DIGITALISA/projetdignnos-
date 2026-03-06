@@ -13,7 +13,7 @@ export async function GET() {
         }, {} as Record<string, string>);
 
         return NextResponse.json({
-            whatsapp: configMap['contact_whatsapp'] || '+216 23 351 048',
+            whatsapp: configMap['contact_whatsapp'] || '+216 44 172 284',
             email: configMap['contact_email'] || 'matrainingconsulting@gmail.com'
         });
     } catch (error) {

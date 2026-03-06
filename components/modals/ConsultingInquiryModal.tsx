@@ -29,7 +29,7 @@ export default function ConsultingInquiryModal({ isOpen, onClose, redirectToDash
     });
 
     const [contactInfo, setContactInfo] = useState({
-        whatsapp: '+216 23 351 048',
+        whatsapp: '+216 44 172 284',
         email: 'matrainingconsulting@gmail.com'
     });
 
@@ -40,7 +40,7 @@ export default function ConsultingInquiryModal({ isOpen, onClose, redirectToDash
                 const data = await res.json();
                 if (data.whatsapp || data.email) {
                     setContactInfo({
-                        whatsapp: data.whatsapp || '+216 23 351 048',
+                        whatsapp: data.whatsapp || '+216 44 172 284',
                         email: data.email || 'matrainingconsulting@gmail.com'
                     });
                 }

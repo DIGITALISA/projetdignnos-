@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, User, Mail, Phone, Loader2, CheckCircle2, Lock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function RegisterPage() {
@@ -19,6 +19,16 @@ export default function RegisterPage() {
         password: ""
     });
     const [error, setError] = useState<string | null>(null);
+    const [contactInfo, setContactInfo] = useState({ whatsapp: '+216 44 172 284' });
+
+    useEffect(() => {
+        fetch("/api/config/contact")
+            .then(res => res.json())
+            .then(data => {
+                if (data.whatsapp) setContactInfo({ whatsapp: data.whatsapp });
+            })
+            .catch(err => console.error("Error fetching contact config:", err));
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,18 +68,40 @@ export default function RegisterPage() {
                     <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto text-emerald-500 mb-8 shadow-inner">
                         <CheckCircle2 size={40} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-4 opacity-90">Demande Envoyée</h2>
-                    <p className="text-slate-500 font-medium leading-relaxed mb-8">
+                    <h2 className="text-2xl font-black text-slate-900 mb-4 opacity-90">
+                        {dir === 'rtl' ? "تم إرسال الطلب" : "Demande Envoyée"}
+                    </h2>
+                    <p className="text-slate-500 font-medium leading-relaxed mb-4">
                         {dir === 'rtl'
                             ? "سنتثبت من معطياتك إن كانت صحيحة لنرسل لك رسالة على الواتساب والبريد الإلكتروني. يجب عليك تأكيدهما للبدء."
                             : "Nous vérifierons vos informations. Si elles sont correctes, nous vous enverrons un message sur WhatsApp et par e-mail. Vous devrez confirmer pour commencer."
                         }
                     </p>
+                    
+                    <div className="bg-blue-50/50 rounded-2xl p-6 mb-8 border border-blue-100/50">
+                        <p className="text-sm text-slate-600 font-bold mb-3 leading-relaxed">
+                            {dir === 'rtl'
+                                ? `سيتم تفعيل الحساب بعد التثبت من المعطيات مابين 24 ساعة و 72 ساعة. إذا تأخرنا أو كنت ترغب في تفعيل الحساب فوراً، تواصل معنا عبر الواتساب:`
+                                : `Votre compte sera activé après vérification de vos informations sous 24h à 72h. Si cela prend plus de temps ou si vous souhaitez l'activer plus tôt, contactez-nous via WhatsApp :`
+                            }
+                        </p>
+                        <a 
+                            href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-sm hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+                            dir="ltr"
+                        >
+                            <Phone size={16} />
+                            {contactInfo.whatsapp}
+                        </a>
+                    </div>
+
                     <Link
                         href="/login"
-                        className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline"
+                        className="inline-flex items-center gap-2 text-slate-400 font-bold hover:text-blue-600 transition-colors"
                     >
-                        Retour à la connexion <ArrowRight size={16} />
+                        {dir === 'rtl' ? "العودة لتسجيل الدخول" : "Retour à la connexion"} <ArrowRight size={16} className={dir === 'rtl' ? 'rotate-180' : ''} />
                     </Link>
                 </motion.div>
             </div>
@@ -90,8 +122,15 @@ export default function RegisterPage() {
             >
                 <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 p-10 md:p-12">
                     <div className="text-center mb-10">
-                        <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Inscription Gratuite</h1>
-                        <p className="text-slate-500 font-medium">Rejoignez l&apos;élite et profitez d&apos;un accès d&apos;essai</p>
+                        <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">
+                            {dir === 'rtl' ? "تسجيل حساب طالب" : "Student Registration"}
+                        </h1>
+                        <p className="text-slate-500 font-medium">
+                            {dir === 'rtl' 
+                                ? "انضم إلى النخبة الأكاديمية واستعد لمسيرتك المهنية" 
+                                : "Rejoignez l'élite académique et préparez votre carrière"
+                            }
+                        </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">

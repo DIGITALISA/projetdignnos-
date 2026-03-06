@@ -28,7 +28,7 @@ import {
     Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface SidebarProps {
@@ -63,6 +63,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [hasSCI, setHasSCI] = useState(false);
     const [hasCompletedSimulation, setHasCompletedSimulation] = useState(false);
     const [hasScorecard, setHasScorecard] = useState(false);
+    const [activationType, setActivationType] = useState("Limited");
+    const [firstLoginAt, setFirstLoginAt] = useState<string | null>(null);
+    const [visitedModules, setVisitedModules] = useState<string[]>([]);
 
     const sidebarItems: SidebarGroup[] = [
         {
@@ -166,6 +169,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 setHasSCI(data.details?.hasSCI || false);
                                 setHasCompletedSimulation(data.details?.hasCompletedSimulation || false);
                                 setHasScorecard(data.details?.hasScorecard || false);
+                                setActivationType(data.details?.activationType || "Limited");
+                                setFirstLoginAt(data.details?.firstLoginAt || null);
+                                setVisitedModules(data.details?.visitedModules || []);
                                 
                                 // Update localStorage to stay in sync
                                 const updatedProfile = { 
@@ -180,7 +186,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     hasCompletedSimulation: data.details?.hasCompletedSimulation || false,
                                     hasScorecard: data.details?.hasScorecard || false,
                                     plan: data.plan || profile.plan,
-                                    role: data.role || profile.role
+                                    role: data.role || profile.role,
+                                    activationType: data.details?.activationType || profile.activationType,
+                                    firstLoginAt: data.details?.firstLoginAt || profile.firstLoginAt
                                 };
                                 localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
                             }
@@ -190,8 +198,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                     }
 
-                    if ((profile.role === "Trial User" || profile.role === "Free Tier") && profile.trialExpiry) {
-                        const expiry = new Date(profile.trialExpiry).getTime();
+                    if ((profile.role === "Trial User" || profile.role === "Free Tier" || profile.plan === "Student") && (profile.trialExpiry || (profile.activationType === "Limited" && profile.firstLoginAt))) {
+                        const expiry = profile.plan === "Student" && profile.activationType === "Limited" && profile.firstLoginAt
+                            ? new Date(profile.firstLoginAt).getTime() + (3 * 60 * 60 * 1000) // 3 hours
+                            : new Date(profile.trialExpiry).getTime();
+
                         const updateTimer = () => {
                             const now = new Date().getTime();
                             const diff = expiry - now;
@@ -229,6 +240,53 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         };
     }, [t.sidebar.expired]);
 
+    const trackVisit = useCallback(async (href: string) => {
+        if (!href || href === "/") return;
+        if (userPlan === "Student" && activationType === "Limited") {
+            const savedProfile = localStorage.getItem("userProfile");
+            if (!savedProfile) return;
+            const profile = JSON.parse(savedProfile);
+            const userId = profile.email || profile.fullName;
+            
+            if (!userId) return;
+
+            const modulePath = href.split('?')[0];
+            if (visitedModules.includes(modulePath)) return;
+
+            try {
+                await fetch('/api/user/readiness', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, moduleHref: modulePath })
+                });
+                setVisitedModules(prev => [...prev, modulePath]);
+            } catch (err) {
+                console.error("Failed to track module visit:", err);
+            }
+        }
+    }, [userPlan, activationType, visitedModules]);
+
+    useEffect(() => {
+        const alwaysOpen = [
+            "/dashboard", 
+            "/subscription", 
+            "/settings", 
+            "/assessment/cv-upload", 
+            "/assessment/cv-generation", 
+            "/login", 
+            "/register", 
+            "/",
+            "/mentor",
+            "/academy",
+            "/expert",
+            "/roadmap",
+            "/library"
+        ];
+        if (pathname && !alwaysOpen.some(p => pathname.startsWith(p))) {
+            trackVisit(pathname);
+        }
+    }, [pathname, userPlan, activationType, trackVisit]);
+
     // Check if an item should be locked based on a progressive hierarchy
     const isLocked = (href: string) => {
         // 0. ADMIN BYPASS
@@ -239,18 +297,79 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         const alwaysOpen = ["/dashboard", "/subscription", "/settings", "/assessment/cv-upload", "/assessment/cv-generation"];
         if (alwaysOpen.includes(href)) return false;
 
-        // 2. PRO BYPASS: Unlock everything for paid users (Pro, Executive, etc.)
-        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || userRole === "Trial User";
-        if (!isFreePlan) return false;
-
-        // 3. STAGE 1 LOCK: Everything requires starting diagnosis (CV Upload done)
+        // 2. STAGE 1 LOCK: Everything requires starting diagnosis (CV Upload done)
         if (!hasStartedDiagnosis) {
              return true; 
         }
 
+        // 3. PRO BYPASS: Unlock everything for paid users (Pro, Executive, etc.)
+        const isFreePlan = userPlan === "Free Trial" || userPlan === "None" || (userRole === "Trial User" && !["Student", "Professional", "Pro", "Executive", "Premium"].includes(userPlan));
+        const isLimitedStudent = userPlan === "Student" && activationType === "Limited";
+        
+        // If not a free plan AND not a limited student, then it's a paid/unlimited user - unlock everything
+        if (!isFreePlan && !isLimitedStudent) return false;
+
+        // --- NEW ONE-TIME VISIT LOGIC FOR LIMITED STUDENTS ---
+        // If they have visited this module before and ARE NOT currently on it, lock it.
+        // This means "once they leave, it closes".
+        // Note: Simulation and Training are exempt as they stay open permanently for students.
+        if (isLimitedStudent) {
+            let isExempt = false;
+            if (href === "/simulation" || href.startsWith("/training")) {
+                isExempt = true;
+            }
+
+            // Strategic Report is closed from the beginning for free users/limited students
+            if (href === "/strategic-report" || href.startsWith("/assessment/results") || href.startsWith("/assessment/role-discovery")) {
+                return true;
+            }
+
+            if (!isExempt) {
+                // Map href to module key for TrialGate consistency
+                const hrefToModule: Record<string, string> = {
+                    '/mentor': 'ai-path',
+                    '/strategic-report': 'strategic-report',
+                    '/performance-scorecard': 'performance-scorecard',
+                    '/job-alignment': 'job-alignment',
+                    '/library': 'resources',
+                    '/expert': 'ai-experts',
+                    '/roadmap': 'strategic-roadmap',
+                    '/academy': 'strategic-resources',
+                    '/assessment/results': 'strategic-report',
+                    '/assessment/role-discovery': 'strategic-report'
+                };
+                
+                const moduleKey = hrefToModule[href as keyof typeof hrefToModule] || href;
+
+                // 1. One-time visit check (Check both href and module key for robustness)
+                if ((visitedModules.includes(href) || visitedModules.includes(moduleKey)) && pathname !== href) {
+                    return true;
+                }
+
+                // 2. 3-hour limit check
+                if (firstLoginAt) {
+                    const loginDate = new Date(firstLoginAt);
+                    const now = new Date();
+                    const diffInHours = (now.getTime() - loginDate.getTime()) / (1000 * 60 * 60);
+                    if (diffInHours > 3) {
+                        return true;
+                    }
+                }
+            }
+
+            // If a Limited Student hasn't been blocked by the one-time visit or the 3-hour limit,
+            // they bypass ALL following Stage locks because "Everything is open initially".
+            return false;
+        }
+
+        // ----------------------------------------------------
+        // -- NORMAL STAGE PROGRESSION (FOR FREE USERS) --
+        // ----------------------------------------------------
+
         // 3. STAGE 2 LOCK: SCI Logic (Strategic Report)
         // Needs Diagnosis Complete (Interview done)
         if (href.startsWith("/strategic-report") || href.startsWith("/assessment/results")) {
+            if (isFreePlan && userPlan !== "Student") return true;
             return !isDiagnosisComplete;
         }
 
@@ -260,7 +379,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         
         if (strategicTools.some((p: string) => href.startsWith(p))) {
             // Even if diagnostic is complete, if it's a FREE plan, we keep these locked to encourage upgrade
-            if (isFreePlan) return true;
+            if (isFreePlan && userPlan !== "Student") return true;
             
             // Unlock for PRO if either SCI is ready OR core diagnosis is complete
             if (!hasSCI && !isDiagnosisComplete) return true;
@@ -281,7 +400,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         // 6. STAGE 5 LOCK: Official Assets (Certificates, Recommendations, Attestations)
         // Needs Performance Scorecard / Expert Validation (Profile created)
         if (href.startsWith("/certificate") || href.startsWith("/recommendation") || href.startsWith("/attestations")) {
-            if (isFreePlan) return true;
+            if (isFreePlan && userPlan !== "Student") return true;
             return !hasScorecard;
         }
 

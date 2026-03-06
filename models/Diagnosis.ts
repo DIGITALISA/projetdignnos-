@@ -122,6 +122,16 @@ const DiagnosisSchema = new Schema({
         timestamp: Date,
         feedback: Schema.Types.Mixed
     }],
+    negotiationHistory: [{
+        role: String,
+        content: String,
+        timestamp: Date
+    }],
+    marketingAssets: {
+        cv: String,
+        report: String,
+        generatedAt: Date
+    },
     simulationResults: [Schema.Types.Mixed],
     simulationReport: Schema.Types.Mixed, // Final simulation performance report
     comprehensiveReport: String, // AI-generated comprehensive final report

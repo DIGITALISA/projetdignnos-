@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
+import { Send, Loader2, Target, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, Sparkles, Lock as LockedIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
+import { TrialGate } from "@/components/ui/TrialGate";
 
 const fetchWithTimeout = async (resource: string, options: RequestInit = {}, timeout = 60000) => {
     const controller = new AbortController();
@@ -72,7 +73,7 @@ interface InterviewEvaluation {
 
 export default function RoleDiscoveryPage() {
     const router = useRouter();
-    const { language, t } = useLanguage();
+    const { language, t, dir } = useLanguage();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +86,16 @@ export default function RoleDiscoveryPage() {
     const [isTimeUnlocked, setIsTimeUnlocked] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [lastError, setLastError] = useState<string | null>(null);
+    const [isStudentFreeTrial, setIsStudentFreeTrial] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Detect Student Free Trial / Limited
+    useEffect(() => {
+        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const isLimited = profile.activationType === 'Limited';
+        const isPaid = ["Professional", "Pro", "Executive", "Premium"].includes(profile.plan) || (profile.plan === "Student" && !isLimited);
+        setIsStudentFreeTrial(!isPaid);
+    }, [router]);
 
     // Timer logic for 20-minute safety unlock
     useEffect(() => {
@@ -235,7 +245,12 @@ export default function RoleDiscoveryPage() {
 
     const handleProceedToSuggestions = async () => {
         if (discoveryComplete) {
-            router.push('/assessment/role-suggestions');
+            // Student Free Trial → back to dashboard
+            if (isStudentFreeTrial) {
+                router.push('/dashboard');
+            } else {
+                router.push('/assessment/role-suggestions');
+            }
             return;
         }
 
@@ -505,86 +520,112 @@ export default function RoleDiscoveryPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
                 >
-                    {/* Header Section with Decoration */}
-                    <div className="relative bg-linear-to-br from-purple-600 to-indigo-700 p-8 md:p-12 text-center text-white">
-                        <div className="absolute top-4 left-4 z-20">
-                            <button
-                                onClick={() => setDiscoveryComplete(false)}
-                                className="p-2 hover:bg-white/20 rounded-full transition-colors group flex items-center gap-2 text-white/80 hover:text-white font-medium"
-                                title="Back to Chat"
-                            >
-                                <ArrowLeft className="w-6 h-6" />
-                                <span className="hidden sm:inline">{t.roleDiscovery.reviewChat}</span>
-                            </button>
-                        </div>
+                    {/* Header Section */}
+                    <div className={`relative p-8 md:p-12 text-center text-white ${isStudentFreeTrial ? 'bg-linear-to-br from-slate-800 to-slate-950' : 'bg-linear-to-br from-purple-600 to-indigo-700'}`}>
+                        {!isStudentFreeTrial && (
+                            <div className="absolute top-4 left-4 z-20">
+                                <button
+                                    onClick={() => setDiscoveryComplete(false)}
+                                    className="p-2 hover:bg-white/20 rounded-full transition-colors group flex items-center gap-2 text-white/80 hover:text-white font-medium"
+                                >
+                                    <ArrowLeft className="w-6 h-6" />
+                                    <span className="hidden sm:inline">{t.roleDiscovery.reviewChat}</span>
+                                </button>
+                            </div>
+                        )}
 
-                        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
-                            <div className="absolute top-10 left-10 w-20 h-20 rounded-full bg-white blur-3xl" />
-                            <div className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-pink-400 blur-3xl" />
-                        </div>
-                        
                         <motion.div 
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                             className="relative w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-white/30 shadow-xl"
                         >
-                            <Target className="w-12 h-12 text-white" />
+                            {isStudentFreeTrial ? <LockedIcon className="w-12 h-12 text-white" /> : <Target className="w-12 h-12 text-white" />}
                         </motion.div>
                         
-                        <h1 className="relative text-3xl md:text-4xl font-bold mb-3">{t.roleDiscovery.completeTitle}</h1>
-                        <p className="relative text-purple-100 text-lg max-w-lg mx-auto">
-                            {t.roleDiscovery.completeSubtitle}
+                        <h1 className="relative text-3xl md:text-4xl font-bold mb-3">
+                            {isStudentFreeTrial 
+                                ? (language === 'ar' ? 'أكمل رحلتك المهنية الآن!' : language === 'fr' ? 'Complétez votre parcours !' : 'Complete your journey!')
+                                : t.roleDiscovery.completeTitle}
+                        </h1>
+                        <p className="relative text-slate-300 text-lg max-w-lg mx-auto font-medium">
+                            {isStudentFreeTrial 
+                                ? (language === 'ar' ? 'لقد انتهت المرحلة التجريبية للديغنوس. اشترك الآن لفتح باقي المميزات.' : language === 'fr' ? 'La phase d\'essai est terminée. Abonnez-vous pour débloquer la suite.' : 'Trial phase completed. Subscribe to unlock the rest.')
+                                : t.roleDiscovery.completeSubtitle}
                         </p>
                     </div>
 
                     {/* Content Section */}
                     <div className="p-8 md:p-10 space-y-8">
-                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                            <h3 className="text-slate-900 font-semibold mb-2 flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5 text-green-500" />
-                                {t.roleDiscovery.nextTitle}
-                            </h3>
-                            <p className="text-slate-600 leading-relaxed text-sm md:text-base">
-                                {t.roleDiscovery.nextDesc}
-                            </p>
-                        </div>
+                        {isStudentFreeTrial ? (
+                            <div className="space-y-6">
+                                <h3 className={`font-black text-slate-800 flex items-center gap-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                    <Sparkles className="w-5 h-5 text-amber-500" />
+                                    {language === 'ar' ? 'المراحل المتبقية لك:' : language === 'fr' ? 'Vos étapes restantes :' : 'Your remaining stages:'}
+                                </h3>
+                                <div className="grid gap-3">
+                                    {[
+                                        { icon: "🎯", label: { ar: 'اقتراحات الأدوار المخصصة', fr: 'Recommandations de Rôles', en: 'Role Recommendations' } },
+                                        { icon: "✍️", label: { ar: 'استوديو السيرة الذاتية الاحترافية', fr: 'Studio CV Professionnel', en: 'Professional CV Studio' } },
+                                        { icon: "🏆", label: { ar: 'محاكاة الدور التنفيذي والشهادة', fr: 'Simulation & Certification', en: 'Simulation & Certification' } }
+                                    ].map((step, i) => (
+                                        <div key={i} className={`flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                                            <span className="text-2xl">{step.icon}</span>
+                                            <span className="font-bold text-slate-700 text-sm md:text-base">
+                                                {step.label[language as 'ar'|'fr'|'en'] || step.label.fr}
+                                            </span>
+                                            <div className={`${dir === 'rtl' ? 'mr-auto' : 'ml-auto'}`}>
+                                                <LockedIcon className="w-4 h-4 text-slate-300" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                                <h3 className="text-slate-900 font-semibold mb-2 flex items-center gap-2">
+                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                    {t.roleDiscovery.nextTitle}
+                                </h3>
+                                <p className="text-slate-600 leading-relaxed text-sm md:text-base">
+                                    {t.roleDiscovery.nextDesc}
+                                </p>
+                            </div>
+                        )}
 
-                        {/* Action Button - Reveal Career Paths */}
+                        {/* Action Button */}
                         <div className="relative group">
-                            {/* Pulsing Background Glow */}
                             <motion.div
-                                animate={{ 
-                                    scale: [1, 1.05, 1],
-                                    opacity: [0.3, 0.6, 0.3]
-                                }}
-                                transition={{ 
-                                    duration: 2, 
-                                    repeat: Infinity, 
-                                    ease: "easeInOut" 
-                                }}
-                                className="absolute -inset-2 bg-linear-to-r from-purple-600 to-indigo-600 rounded-2xl blur-xl z-0"
+                                animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.6, 0.3] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                className={`absolute -inset-2 rounded-2xl blur-xl z-0 ${isStudentFreeTrial ? 'bg-blue-600' : 'bg-purple-600'}`}
                             />
                             
                             <motion.button
-                                onClick={() => router.push('/assessment/role-suggestions')}
+                                onClick={() => isStudentFreeTrial ? router.push('/subscription') : router.push('/assessment/role-suggestions')}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="relative z-10 group w-full py-6 bg-linear-to-r from-purple-600 via-indigo-600 to-indigo-700 text-white text-xl font-black rounded-2xl shadow-2xl shadow-purple-600/40 transition-all flex items-center justify-center gap-4"
+                                className={`relative z-10 group w-full py-6 text-white text-xl font-black rounded-2xl shadow-2xl transition-all flex items-center justify-center gap-4 ${isStudentFreeTrial ? 'bg-blue-600 hover:bg-blue-700' : 'bg-linear-to-r from-purple-600 to-indigo-700'}`}
                             >
                                 <Sparkles className="w-7 h-7 text-yellow-300" />
                                 <span>
-                                    {t.roleDiscovery.revealPaths}
+                                    {isStudentFreeTrial 
+                                        ? (language === 'ar' ? 'فتح جميع المميزات الآن' : language === 'fr' ? 'Débloquer tout maintenant' : 'Unlock everything now')
+                                        : t.roleDiscovery.revealPaths
+                                    }
                                 </span>
-                                <motion.div
-                                    animate={{ x: [0, 5, 0] }}
-                                    transition={{ duration: 1.5, repeat: Infinity }}
-                                    className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
-                                >
-                                    <ArrowRight className="w-6 h-6" />
-                                </motion.div>
+                                <ArrowRight className={`w-6 h-6 ${dir === 'rtl' ? 'rotate-180' : ''}`} />
                             </motion.button>
                         </div>
+
+                        {isStudentFreeTrial && (
+                            <button 
+                                onClick={() => router.push('/dashboard')}
+                                className="w-full text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors"
+                            >
+                                {language === 'ar' ? 'العودة للوحة التحكم' : language === 'fr' ? 'Retour au tableau de bord' : 'Return to Dashboard'}
+                            </button>
+                        )}
                     </div>
                 </motion.div>
             </div>
@@ -592,6 +633,12 @@ export default function RoleDiscoveryPage() {
     }
 
     return (
+        <TrialGate 
+            module="strategic-report" 
+            moduleHref="/strategic-report"
+            dir={dir}
+            language={language}
+        >
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
             <div className="mb-6 flex flex-col items-center text-center gap-4 px-4 relative w-full">
                 <div className="absolute left-4 top-0" data-html2canvas-ignore>
@@ -810,10 +857,11 @@ export default function RoleDiscoveryPage() {
             {discoveryComplete && (
                 <NextStageTeaser
                     stage="role-discovery"
-                    onNavigate={() => router.push('/assessment/role-suggestions')}
+                    onNavigate={() => isStudentFreeTrial ? router.push('/dashboard') : router.push('/assessment/role-suggestions')}
                     visible={discoveryComplete}
                 />
             )}
         </div>
+        </TrialGate>
     );
 }

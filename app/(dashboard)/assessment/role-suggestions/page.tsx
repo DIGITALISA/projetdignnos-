@@ -36,7 +36,17 @@ export default function RoleSuggestionsPage() {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
 
-            // ✅ أولوية MongoDB للمستخدم المسجّل
+            // ✅ Student Free Trial Gate
+            const isStudentFreeTrial = userProfile.plan === 'Student' && 
+                                      (userProfile.role === 'Free Tier' || userProfile.role === 'Trial User');
+            
+            if (isStudentFreeTrial) {
+                console.log("Student Free Trial user attempted to access role-suggestions — redirecting to discovery completion");
+                router.push('/assessment/role-discovery');
+                return;
+            }
+
+            // ✅ MongoDB priority for logged in user
             if (userId) {
                 try {
                     const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
@@ -46,7 +56,7 @@ export default function RoleSuggestionsPage() {
                         const data = response.data;
                         if (data.roleSuggestions && data.roleSuggestions.length > 0) {
                             setRoleSuggestions(data.roleSuggestions);
-                            // مزامنة localStorage
+                            // Sync localStorage
                             if (data.cvAnalysis) localStorage.setItem('cvAnalysis', JSON.stringify(data.cvAnalysis));
                             localStorage.setItem('roleSuggestions', JSON.stringify(data.roleSuggestions));
                             if (data.language) localStorage.setItem('selectedLanguage', data.language);
@@ -54,7 +64,7 @@ export default function RoleSuggestionsPage() {
                             return;
                         }
                     }
-                    // مستخدم مسجّل لكن لا بيانات أدوار في MongoDB
+                    // Registered user but no roles in DB
                     console.log("Logged in user with no role data — redirecting to cv-upload");
                     localStorage.removeItem('roleSuggestions');
                     router.push('/assessment/cv-upload');
@@ -64,7 +74,7 @@ export default function RoleSuggestionsPage() {
                 }
             }
 
-            // Fallback: مستخدم زائر
+            // Fallback: guest user
             const storedRoles = localStorage.getItem('roleSuggestions');
             if (storedRoles) {
                 setRoleSuggestions(JSON.parse(storedRoles));
