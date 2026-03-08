@@ -22,6 +22,7 @@ export default function WorkshopAttestationPage() {
     const searchParams = useSearchParams();
     const userId = searchParams.get("userId");
     const dateParam = searchParams.get("date");
+    const hideInternalHeader = searchParams.get("hideInternalHeader") === "true";
 
     useEffect(() => {
         const loadInfo = async () => {
@@ -184,25 +185,27 @@ export default function WorkshopAttestationPage() {
     return (
         <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8 pb-20">
             {/* Action Bar */}
-            <div className="max-w-5xl mx-auto flex items-center justify-between bg-white p-6 rounded-4xl border border-slate-200 shadow-sm">
-                <Link href="/training" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-widest">
-                    <ArrowLeft size={16} />
-                    Retour aux Workshops
-                </Link>
-                <div className="flex items-center gap-3">
-                    <button onClick={() => window.print()} className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all">
-                        <Printer size={20} />
-                    </button>
-                    <button
-                        onClick={handleDownload}
-                        disabled={isDownloading}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-950 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-60"
-                    >
-                        {isDownloading ? "Génération..." : "Exporter l'Attestation"}
-                        <Download size={16} />
-                    </button>
+            {!hideInternalHeader && (
+                <div className="max-w-5xl mx-auto flex items-center justify-between bg-white p-6 rounded-4xl border border-slate-200 shadow-sm">
+                    <Link href="/training" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold text-xs uppercase tracking-widest">
+                        <ArrowLeft size={16} />
+                        Retour aux Workshops
+                    </Link>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => window.print()} className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all">
+                            <Printer size={20} />
+                        </button>
+                        <button
+                            onClick={handleDownload}
+                            disabled={isDownloading}
+                            className="flex items-center gap-2 px-6 py-3 bg-slate-950 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-60"
+                        >
+                            {isDownloading ? "Génération..." : "Exporter l'Attestation"}
+                            <Download size={16} />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Attestation Preview */}
             <div className="max-w-5xl mx-auto flex flex-col items-center">
@@ -343,23 +346,25 @@ export default function WorkshopAttestationPage() {
                 </motion.div>
 
                 {/* Additional Info Cards */}
-                <div className="grid md:grid-cols-3 gap-6 w-full mt-12 mb-20 text-center">
-                    <div className="bg-white p-8 rounded-3xl border border-slate-200">
-                        <Sparkles className="w-8 h-8 text-blue-600 mx-auto mb-4" />
-                        <h3 className="text-sm font-black uppercase mb-2 tracking-widest">Valeur Stratégique</h3>
-                        <p className="text-[10px] text-slate-500 font-medium">Cette attestation valide vos heures de réflexion stratégique pour votre prochaine promotion.</p>
+                {!hideInternalHeader && (
+                    <div className="grid md:grid-cols-3 gap-6 w-full mt-12 mb-20 text-center">
+                        <div className="bg-white p-8 rounded-3xl border border-slate-200">
+                            <Sparkles className="w-8 h-8 text-blue-600 mx-auto mb-4" />
+                            <h3 className="text-sm font-black uppercase mb-2 tracking-widest">Valeur Stratégique</h3>
+                            <p className="text-[10px] text-slate-500 font-medium">Cette attestation valide vos heures de réflexion stratégique pour votre prochaine promotion.</p>
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl border border-slate-200">
+                            <UserCheck className="w-8 h-8 text-emerald-600 mx-auto mb-4" />
+                            <h3 className="text-sm font-black uppercase mb-2 tracking-widest">Profil Validé</h3>
+                            <p className="text-[10px] text-slate-500 font-medium">Vos scores pendant ce Workshop sont automatiquement intégrés à votre diagnostic final.</p>
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl border border-slate-200">
+                            <Award className="w-8 h-8 text-amber-600 mx-auto mb-4" />
+                            <h3 className="text-sm font-black uppercase mb-2 tracking-widest">Official Audit</h3>
+                            <p className="text-[10px] text-slate-500 font-medium">Reconnu par notre Cabinet de Conseil comme une étape clé de votre transformation.</p>
+                        </div>
                     </div>
-                    <div className="bg-white p-8 rounded-3xl border border-slate-200">
-                        <UserCheck className="w-8 h-8 text-emerald-600 mx-auto mb-4" />
-                        <h3 className="text-sm font-black uppercase mb-2 tracking-widest">Profil Validé</h3>
-                        <p className="text-[10px] text-slate-500 font-medium">Vos scores pendant ce Workshop sont automatiquement intégrés à votre diagnostic final.</p>
-                    </div>
-                    <div className="bg-white p-8 rounded-3xl border border-slate-200">
-                        <Award className="w-8 h-8 text-amber-600 mx-auto mb-4" />
-                        <h3 className="text-sm font-black uppercase mb-2 tracking-widest">Official Audit</h3>
-                        <p className="text-[10px] text-slate-500 font-medium">Reconnu par notre Cabinet de Conseil comme une étape clé de votre transformation.</p>
-                    </div>
-                </div>
+                )}
             </div>
 
             <style jsx global>{`

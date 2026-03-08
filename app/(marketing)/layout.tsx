@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/ui/navbar";
 import { Footer } from "@/components/ui/footer";
+import { SaleBanner } from "@/components/ui/sale-banner";
 
 export default function MarketingLayout({
     children,
@@ -10,6 +11,7 @@ export default function MarketingLayout({
         <div className="min-h-screen bg-slate-50 dark:bg-[#050505]">
             <Navbar />
             {children}
+            <SaleBanner />
             <Footer />
         </div>
     );

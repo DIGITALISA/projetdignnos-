@@ -1065,6 +1065,356 @@ ${languageInstruction}`
     }
 }
 
+// ===== ACCOUNT-TYPE SPECIFIC EXPERT REPORTS =====
+
+/**
+ * Generates a STUDENT-specific diagnostic report for internal experts/trainers.
+ * Focuses on: current skill level, competency gaps, training recommendations, learning path.
+ */
+export async function generateStudentExpertReport(
+    studentData: {
+        userInfo: {
+            name: string;
+            email: string;
+            plan?: string;
+            joinedDate?: unknown;
+        };
+        cvAnalysis: unknown;
+        interviewEvaluation: unknown;
+        conversationHistory: unknown;
+        roleSuggestions: unknown;
+        selectedRole: unknown;
+        simulationResults?: unknown;
+        generatedDocuments?: unknown;
+    },
+    language: string = 'fr'
+) {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond entirely in English.',
+            'fr': 'Répondez entièrement en français.',
+            'ar': 'أجب باللغة العربية بالكامل.',
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['fr'];
+
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a Senior Learning & Development Specialist and Career Coach with 20+ years of experience. You are writing a CONFIDENTIAL INTERNAL REPORT for expert trainers about a STUDENT participant.
+
+**REPORT PURPOSE:**
+Help trainers understand this student's current reality so they can design a precise, personalized training plan. This is NOT a report for the participant — it is strictly for internal expert use.
+
+**STUDENT ACCOUNT CONTEXT:**
+This participant is enrolled in a Student program. The assessment includes:
+- CV Upload & Analysis
+- 15-Question Career Interview
+- Role Discovery Session
+- Career Documents Generation
+- Simulation (if completed)
+
+${languageInstruction}
+
+**REQUIRED JSON OUTPUT STRUCTURE:**
+{
+  "reportType": "STUDENT",
+  "reportTitle": "string (e.g. 'Student Diagnostic Report — Trainer Edition')",
+
+  "executiveSummary": "string (3-4 sentences: Who is this student? What is their realistic current level? What is the #1 priority for the trainer?)",
+
+  "currentLevelAssessment": {
+    "overallLevel": "Débutant | Junior | Intermédiaire | Avancé",
+    "levelJustification": "string (Why this level? Cite specific evidence from the CV and interview)",
+    "academicVsRealityGap": "string (Is their academic background aligned with their actual demonstrated competencies?)",
+    "confidenceVsCompetence": "Overconfident | Calibrated | Underconfident",
+    "motivationLevel": "Low | Medium | High | Very High"
+  },
+
+  "competencyMap": {
+    "confirmedStrengths": ["string (Skills verified through interview evidence, NOT just listed on CV)"],
+    "criticalGaps": ["string (Missing skills that are essential for their target role)"],
+    "hiddenPotential": ["string (Latent abilities the student hasn't recognized or developed yet)"],
+    "technicalSkillsScore": number (0-100),
+    "softSkillsScore": number (0-100),
+    "communicationScore": number (0-100)
+  },
+
+  "cvVsInterviewAnalysis": {
+    "cvAccuracyRating": "Highly Accurate | Partially Accurate | Inflated | Underpresented",
+    "keyDiscrepancies": ["string (Specific mismatch between what's listed on CV and what interview revealed)"],
+    "mostCredibleClaim": "string (What on the CV is most backed by interview performance?)",
+    "leastCredibleClaim": "string (What appears exaggerated or unsupported?)"
+  },
+
+  "learningProfile": {
+    "learningStyle": "string (Visual, Analytical, Practical, Collaborative — based on interview responses)",
+    "absorbsKnowledgeBest": "string (How this student learns most effectively)",
+    "challengeAreas": ["string (Concepts or skills that require extra trainer attention)"],
+    "engagementTriggers": ["string (What motivates and engages this specific student?)"]
+  },
+
+  "trainingRecommendations": {
+    "immediateActions": [
+      {
+        "priority": "URGENT",
+        "action": "string (Specific training action)",
+        "rationale": "string (Why this is urgent)"
+      }
+    ],
+    "shortTermModules": ["string (Specific workshop/training module names recommended for 0-3 months)"],
+    "mediumTermGoals": ["string (Skills and milestones to target at 3-6 months)"],
+    "suggestedTrainingFormat": "Individual Coaching | Group Workshop | Self-Study | Hybrid",
+    "estimatedReadinessTimeline": "string (Realistic timeline to reach entry-level in target role)"
+  },
+
+  "roleAlignmentAnalysis": {
+    "targetRole": "string (The role they selected or aspire to)",
+    "fitScore": number (0-100),
+    "fitRationale": "string (Why this score? What fits well and what doesn't?)",
+    "alternativeRoles": ["string (More realistic or better-aligned role alternatives based on assessment)"],
+    "minimumCriteriaToMeet": ["string (Specific threshold skills/knowledge the student must demonstrate before applying for the target role)"]
+  },
+
+  "behavioralFlags": {
+    "redFlags": ["string (Concerning patterns that need trainer attention — e.g. avoidance, defensiveness, unrealistic expectations)"],
+    "greenFlags": ["string (Positive behavioral signals showing growth potential)"],
+    "coachingApproach": "string (How should the trainer communicate with this specific student? What approach works best?)"
+  },
+
+  "trainerActionPlan": {
+    "session1Focus": "string (What should the first training session prioritize?)",
+    "keyQuestionToExplore": "string (One deep question the trainer should ask in the first session to unlock deeper understanding)",
+    "watchFor": ["string (Specific things the trainer should monitor as coaching progresses)"],
+    "successMetrics": ["string (How will we know training is working for this student?)"]
+  },
+
+  "finalVerdict": "string (2-3 sentences. Honest trainer-to-trainer assessment. What is this student's ceiling without intervention? What could unlock their full potential? Be direct.)"
+}
+
+**GROUND RULES:**
+- Never be generic. Every point must be traceable to actual data from the assessment.
+- This is for an expert — be precise, direct, and clinical.
+- Focus on ACTIONABLE insights. Vague statements are unacceptable.
+- Respect the output language strictly.`
+                },
+                {
+                    role: 'user',
+                    content: `Generate the Student Expert Diagnostic Report for: ${studentData.userInfo.name}
+
+STUDENT DATA:
+User Info: ${JSON.stringify(studentData.userInfo, null, 2)}
+CV Analysis: ${JSON.stringify(studentData.cvAnalysis, null, 2)}
+Interview Evaluation: ${JSON.stringify(studentData.interviewEvaluation, null, 2)}
+Conversation History: ${JSON.stringify(studentData.conversationHistory, null, 2)}
+Role Suggestions: ${JSON.stringify(studentData.roleSuggestions, null, 2)}
+Selected Role: ${JSON.stringify(studentData.selectedRole, null, 2)}
+Simulation Results: ${JSON.stringify(studentData.simulationResults || null, null, 2)}
+
+Generate the complete, deeply analytical Student Expert Report in ${language}. Be specific and evidence-based.`
+                }
+            ],
+            temperature: 0.35,
+            max_tokens: 4500,
+            response_format: { type: 'json_object' }
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+
+        const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const report = JSON.parse(cleanedResult);
+
+        console.log('✅ Student Expert Report generated successfully for:', studentData.userInfo.name);
+
+        return { success: true, report };
+    } catch (error) {
+        console.error('❌ Student Expert Report Error:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to generate student expert report'
+        };
+    }
+}
+
+/**
+ * Generates a PROFESSIONAL-specific diagnostic report for internal experts/coaches.
+ * Focuses on: executive authority, strategic market value, leadership gaps, high-level role recommendations.
+ */
+export async function generateProfessionalExpertReport(
+    professionalData: {
+        userInfo: {
+            name: string;
+            email: string;
+            plan?: string;
+            joinedDate?: unknown;
+        };
+        auditResult: AuditResult;
+        formData: ProfessionalData;
+        interviewTranscript: InterviewMessage[];
+        mcqResults: { type: 'hard' | 'soft', score: number, total: number }[];
+        ultimateReport?: unknown;
+        portfolioAnalysis?: unknown;
+    },
+    language: string = 'fr'
+) {
+    try {
+        const languageInstructions: Record<string, string> = {
+            'en': 'Respond entirely in English.',
+            'fr': 'Répondez entièrement en français.',
+            'ar': 'أجب باللغة العربية بالكامل.',
+        };
+        const languageInstruction = languageInstructions[language] || languageInstructions['fr'];
+
+        const { client, model } = await getAI();
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a World-Class Executive Talent Strategist and Senior HR Partner with 30+ years of experience at top-tier consulting firms. You are writing a CONFIDENTIAL INTERNAL REPORT for senior coaches and strategic advisors about a PROFESSIONAL account participant.
+
+**REPORT PURPOSE:**
+Equip senior advisors with a precise, actionable intelligence brief on this professional. This is an executive-grade confidential document used to calibrate coaching strategy, market positioning advice, and premium service recommendations.
+
+**PROFESSIONAL ACCOUNT CONTEXT:**
+This participant is enrolled in a Professional executive program. The comprehensive assessment includes:
+- Strategic Authority Audit
+- Deep Executive Interview (with strategic probing)
+- MCQ Assessment (Hard & Soft Skills)
+- Portfolio Interview (5-phase deep dive)
+- Ultimate Strategic Report
+
+${languageInstruction}
+
+**REQUIRED JSON OUTPUT STRUCTURE:**
+{
+  "reportType": "PROFESSIONAL",
+  "reportTitle": "string (e.g. 'Executive Intelligence Brief — Advisor Edition')",
+
+  "executiveBrief": "string (3-4 sentences: Who is this professional? What is their real market weight? What is the #1 strategic priority for the advisor?)",
+
+  "executiveAuthorityProfile": {
+    "authorityScore": number (0-100, sourced from audit),
+    "authorityLevel": "Junior Manager | Manager | Senior Manager | Director | Executive | C-Suite Contender",
+    "professionalDNA": "string (Their core identity archetype, e.g., 'The Operational Fixer', 'The Strategic Visionary', 'The Crisis Commander')",
+    "marketPerceptionGap": "string (Gap between how they see themselves and how the market actually perceives them)",
+    "executivePresenceRating": "Weak | Developing | Solid | Commanding",
+    "leadershipStyleSignature": "string (Their dominant leadership approach based on interview evidence)"
+  },
+
+  "strategicCapabilityAssessment": {
+    "hardSkillsScore": number (0-100),
+    "softSkillsScore": number (0-100),
+    "strategicThinkingCapacity": "Low | Medium | High | Elite",
+    "crisesManagementCapability": "string (Based on portfolio interview performance)",
+    "confirmedCompetencies": ["string (Executive-level skills verified through assessment data)"],
+    "criticalExecutiveGaps": ["string (Specific leadership or strategic gaps that limit their authority ceiling)"],
+    "hiddenExecutiveAssets": ["string (Underutilized assets that represent strategic leverage if developed)"]
+  },
+
+  "marketAndCareerIntelligence": {
+    "currentMarketValue": "string (Honest assessment of their current compensation range and marketability)",
+    "potentialMarketValue": "string (What they could command after targeted development)",
+    "topTargetRoles": ["string (Specific high-impact roles aligned to their profile AND vision)"],
+    "rollesToAvoidNow": ["string (Roles they should NOT pursue at this stage — with reasoning)"],
+    "sectorPositioning": "string (Which specific sectors/industries should they focus their career capital on?)",
+    "timeToNextLevel": "string (Realistic timeline to reach their target vision)"
+  },
+
+  "visionFeasibilityAnalysis": {
+    "statedVision": "string (Their declared 5-year ambition)",
+    "visionFeasibilityScore": number (0-100),
+    "visionFeasibilityVerdict": "Highly Feasible | Feasible With Effort | Ambitious But Possible | Requires Major Transformation | Currently Unrealistic",
+    "criticalPathBlockers": ["string (Specific obstacles that could derail their vision)"],
+    "visionAccelerators": ["string (Specific actions that would dramatically accelerate their vision achievement)"]
+  },
+
+  "behavioralAndPsychologicalProfile": {
+    "interviewPersonality": "string (How they presented in the interview — composed, anxious, overconfident, authentic, etc.)",
+    "selfAwarenessLevel": "Low | Medium | High | Elite",
+    "resilienceSignals": ["string (Evidence of resilience and adaptability from interview responses)"],
+    "redFlags": ["string (Concerning patterns observed — e.g., poor crisis response, defensiveness, unrealistic self-image)"],
+    "greenFlags": ["string (Impressive executive signals that distinguish this participant)"],
+    "coachingChemistryNotes": "string (What type of advisor/coach relationship will work best for this person?)"
+  },
+
+  "strategicInterventionPlan": {
+    "phase1_Immediate": {
+      "timeframe": "0-30 days",
+      "focus": "string",
+      "specificActions": ["string (High-impact, specific actions the advisor recommends for immediate execution)"]
+    },
+    "phase2_ShortTerm": {
+      "timeframe": "1-3 months",
+      "focus": "string",
+      "specificActions": ["string"]
+    },
+    "phase3_MediumTerm": {
+      "timeframe": "3-12 months",
+      "focus": "string",
+      "specificActions": ["string"]
+    },
+    "premiumServiceRecommendations": ["string (Specific premium programs, executive coaching formats, or strategic workshops from MA-TRAINING-CONSULTING that align to their needs)"]
+  },
+
+  "advisorIntelligenceNotes": {
+    "openingSessionStrategy": "string (How should the first advisor session be structured for maximum impact?)",
+    "keyUnlockQuestion": "string (The one question that will reveal the most about their true motivation and blockers)",
+    "negotiationLeverage": "string (What unique leverage does this person have in career negotiations?)",
+    "watchForInSessions": ["string (Specific dynamics the advisor should monitor as the relationship progresses)"]
+  },
+
+  "confidentialVerdict": "string (2-3 sentences. The unfiltered advisor-to-advisor verdict. What is this professional's real ceiling? What is the single biggest thing standing between them and their vision? What unlocks their transformation?)"
+}
+
+**GROUND RULES:**
+- Every insight must be grounded in specific assessment data — the audit scores, interview responses, MCQ results.
+- This is for senior advisors — write with precision, authority, and zero vagueness.
+- Strategic language only. No generic career advice platitudes.
+- Reflect the correct language in EVERY field of the JSON response.`
+                },
+                {
+                    role: 'user',
+                    content: `Generate the Professional Executive Intelligence Brief for: ${professionalData.userInfo.name}
+
+PROFESSIONAL ASSESSMENT DATA:
+User Info: ${JSON.stringify(professionalData.userInfo, null, 2)}
+Strategic Audit Result: ${JSON.stringify(professionalData.auditResult, null, 2)}
+Professional Profile Data: ${JSON.stringify(professionalData.formData, null, 2)}
+Interview Transcript (last 10 exchanges): ${JSON.stringify(professionalData.interviewTranscript.slice(-10), null, 2)}
+MCQ Assessment Results: ${JSON.stringify(professionalData.mcqResults, null, 2)}
+Portfolio Analysis: ${JSON.stringify(professionalData.portfolioAnalysis || null, null, 2)}
+Ultimate Strategic Report: ${JSON.stringify(professionalData.ultimateReport || null, null, 2)}
+
+Generate the complete, deeply analytical Professional Expert Intelligence Brief in ${language}. Be precise, strategic, and evidence-based.`
+                }
+            ],
+            temperature: 0.3,
+            max_tokens: 5000,
+            response_format: { type: 'json_object' }
+        });
+
+        const result = response.choices[0]?.message?.content;
+        if (!result) throw new Error('No response from AI');
+
+        const cleanedResult = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const report = JSON.parse(cleanedResult);
+
+        console.log('✅ Professional Expert Report generated successfully for:', professionalData.userInfo.name);
+
+        return { success: true, report };
+    } catch (error) {
+        console.error('❌ Professional Expert Report Error:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to generate professional expert report'
+        };
+    }
+}
+
 // ===== NEW STRUCTURED INTERVIEW FUNCTIONS =====
 
 export async function startStructuredInterview(cvAnalysis: unknown, language: string = 'en') {
@@ -1559,6 +1909,9 @@ Your entire response MUST be tailored to answer this question while still provid
 
 **THE ACADEMY MISSION:**
 The participant has identified critical gaps. You will build exactly 2 "Academic Modules", each dedicated to a major theme from the diagnostic results ${question ? 'and the user\'s specific question' : ''}.
+
+**COMPANY INTEGRATION:**
+You MUST ALWAYS mention in your advice or insights that the company "MA-TRAINING-CONSULTING" can help the user through its expert-led workshops, CV analysis, gap bridging, and dedicated professional services. Integrate this naturally into the content.
 
 **OUTPUT STRUCTURE (JSON):**
 {
@@ -2057,7 +2410,8 @@ export async function generateCareerRoadmap(
     userProfile: unknown,
     diagnosticResults: unknown,
     language: string = 'en',
-    expertNotes?: string
+    expertNotes?: string,
+    userInput?: { currentJob: string, tasksDone: string, futureJob: string }
 ) {
     try {
         const languageInstructions: Record<string, string> = {
@@ -2075,31 +2429,39 @@ export async function generateCareerRoadmap(
             messages: [
                 {
                     role: 'system',
-                    content: `You are a World-Class Career Architect and Strategic Growth Consultant. Your mission is to transform a participant's diagnostic results and profile into a precise, step-by-step "Strategic Execution Roadmap".
+                    content: `You are a World-Class Career Architect and Strategic Growth Consultant. Your mission is to transform a participant's diagnostic results, profile, and explicit goals into a precise, step-by-step "Strategic Execution Roadmap".
 
 **THE HUMAN FACTOR (PRIORITY):**
 Confidential Expert Notes: ${expertNotes || "No manual expert notes provided. Use standard diagnostic results."}
 
+**USER CONTEXT:**
+Current Position: ${userInput?.currentJob || 'Not specified'}
+Current Tasks/Studies: ${userInput?.tasksDone || 'Not specified'}
+Dream Goal (in 3 years): ${userInput?.futureJob || 'Not specified'}
+
 **MISSION:**
-Build a sequential journey of exactly 5 milestones. If EXPERT NOTES are present, they are your primary source of truth for the participant's real potential and recommended direction. Use them to override or refine AI diagnostic patterns.
+Build a sequential journey of exactly 10 to 15 milestones. If EXPERT NOTES are present, they are your primary source of truth. Use them to override or refine AI diagnostic patterns. 
+
+**CRITICAL INSTRUCTION - BE REALISTIC:**
+The user wants to reach their Dream Goal in 3 years. Be strictly realistic: if the goal is extremely hard or impossible in 3 years (e.g. from Junior to CEO), mention in the steps what parts can realistically be achieved within 3 years, what intermediate positions they must pass through, and how long it genuinely takes.
 
 **OUTPUT STRUCTURE (JSON):**
 {
   "roadmapTitle": "string (e.g., 'Executive Leadership Transformation')",
   "milestones": [
     {
-      "id": number (1 to 5),
+      "id": number (1 to 15),
       "label": "string (The phase name, e.g., 'Phase 1: Foundation')",
-      "title": "string (Specific goal)",
-      "description": "string (Concise action-oriented advice integrating diagnostic data and expert feedback)",
-      "tasks": ["string (High-precision action item)", "string"],
+      "title": "string (Specific goal or intermediate job role)",
+      "description": "string (Concise action-oriented advice integrating diagnostic data. If 3 years is unrealistic, state it here along with the actual timeline.)",
+      "tasks": ["string (High-precision action item)"],
       "expectedOutcome": "string",
       "icon": "string (Choose one: 'Target', 'Zap', 'BrainCircuit', 'Trophy', 'Award', 'Rocket', 'ShieldCheck', 'TrendingUp')"
     }
   ],
   "personalizedWorkshop": {
     "title": "string (Highly specific workshop title)",
-    "description": "string (Explanation explaining why this specific workshop is needed based on diagnosis and expert feedback)",
+    "description": "string (Explanation explaining why this specific workshop is needed based on diagnosis and goals)",
     "durationHours": number,
     "focusAreas": ["string", "string"]
   }

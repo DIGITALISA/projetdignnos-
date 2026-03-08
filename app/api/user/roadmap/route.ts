@@ -7,7 +7,7 @@ import { generateCareerRoadmap } from "@/lib/deepseek";
 
 export async function POST(req: Request) {
     try {
-        const { userId, language } = await req.json();
+        const { userId, language, currentJob, tasksDone, futureJob } = await req.json();
 
         if (!userId) {
             return NextResponse.json({ success: false, error: "Missing user ID" }, { status: 400 });
@@ -40,7 +40,8 @@ export async function POST(req: Request) {
             { fullName: user.fullName, email: user.email },
             diagnosis,
             language || 'fr',
-            profile?.expertNotes
+            profile?.expertNotes,
+            { currentJob, tasksDone, futureJob }
         );
 
         const Config = (await import("@/models/Config")).default;

@@ -5,6 +5,7 @@ import Recommendation from '@/models/Recommendation';
 import Certificate from '@/models/Certificate';
 import Diagnosis from '@/models/Diagnosis';
 import Simulation from '@/models/Simulation';
+import User from '@/models/User';
 
 export async function POST(request: NextRequest) {
     try {
@@ -34,11 +35,18 @@ export async function POST(request: NextRequest) {
         const certificates = await Certificate.find(userQuery);
 
         // Fetch Diagnosis (Audit)
-        // We look for any completed diagnosis or one with a report ready
         const diagnosis = await Diagnosis.findOne({ 
             ...userQuery,
             $or: [{ currentStep: 'completed' }, { 'analysis.sciReport': { $exists: true } }]
         }).sort({ updatedAt: -1 });
+
+        // Fetch user plan and professional progress if needed
+        const userRec = await User.findOne({
+            $or: [
+                { email: { $regex: new RegExp(`^${escapeRegExp(userId)}$`, 'i') } },
+                { fullName: { $regex: new RegExp(`^${escapeRegExp(userId)}$`, 'i') } }
+            ]
+        }).lean();
 
         // Fetch Simulations
         const simulations = await Simulation.find({ 
@@ -46,22 +54,32 @@ export async function POST(request: NextRequest) {
             status: 'completed' 
         });
 
-        if (!diagnosis) {
+        // ── Decide on Diagnosis Source ──
+        let analysisToUse = diagnosis?.analysis;
+        const profProg = userRec?.professionalProgress as Record<string, unknown>;
+
+        if (!analysisToUse && profProg) {
+            // Use professional progress data as the base for the recommendation
+            analysisToUse = (profProg.report || profProg.auditResult || profProg.finalReport || profProg.synthesis) as string;
+        }
+
+        if (!analysisToUse) {
             return NextResponse.json(
-                { error: 'No completed diagnosis found. Please complete the assessment first.' },
+                { error: 'No completed diagnosis or professional audit found. Please complete the assessment first.' },
                 { status: 404 }
             );
         }
 
         const userProfile = {
             fullName: userName,
-            userId: userId
+            userId: userId,
+            plan: userRec?.plan || "Student"
         };
 
         const result = await generateRecommendationLetter(
             userProfile,
             certificates,
-            diagnosis.analysis,
+            analysisToUse,
             simulations,
             language
         );

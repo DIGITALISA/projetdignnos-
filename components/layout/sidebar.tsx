@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutDashboard,
@@ -52,6 +52,9 @@ interface SidebarGroup {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const isProContext = searchParams.get("layout") === "pro" || searchParams.get("hideHeader") === "true";
+    
     const { t, dir, language, setLanguage } = useLanguage();
     const [userName, setUserName] = useState("User");
     const [userRole, setUserRole] = useState("");
@@ -67,49 +70,72 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [firstLoginAt, setFirstLoginAt] = useState<string | null>(null);
     const [visitedModules, setVisitedModules] = useState<string[]>([]);
 
+    const isActuallyPro = userPlan === "Professional" || userPlan === "Pro Essential" || isProContext;
+
     const sidebarItems: SidebarGroup[] = [
-        {
-            category: t.sidebar.categories.main,
-            icon: Zap,
-            items: [
-                { name: t.sidebar.items.overview, icon: LayoutDashboard, href: "/dashboard" },
-            ]
-        },
-        {
-            category: t.sidebar.categories.diagnostic,
-            icon: Activity,
-            items: [
-                { name: t.sidebar.items.diagnosis, icon: FileText, href: "/assessment/cv-upload" },
-            ]
-        },
-        {
-            category: t.sidebar.categories.aiModules,
-            icon: Sparkles,
-            items: [
-                { name: t.sidebar.items.mentor, icon: Sparkles, href: "/mentor", isAI: true },
-                { name: t.sidebar.items.academy, icon: BookOpen, href: "/academy", isAI: true },
-                { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert", isAI: true },
-                { name: t.sidebar.items.roadmap, icon: TrendingUp, href: "/roadmap", isAI: true },
-            ]
-        },
-        {
-            category: t.sidebar.categories.humanLed,
-            icon: Users,
-            items: [
-                { name: t.sidebar.items.training, icon: PlayCircle, href: "/training", isLive: true },
-                { name: t.sidebar.items.tools, icon: Target, href: "/simulation", isLive: true },
-                { name: t.sidebar.items.library, icon: Library, href: "/library" },
-            ]
-        },
-        {
-            category: t.sidebar.categories.strategicTools,
-            icon: BarChart3,
-            items: [
-                { name: t.sidebar.items.strategicReport, icon: BarChart3, href: "/strategic-report", isAI: true },
-                { name: t.sidebar.items.performanceScorecard, icon: TrendingUp, href: "/performance-scorecard", isAI: true },
-                { name: t.sidebar.items.jobAlignment, icon: Globe, href: "/job-alignment", isAI: true },
-            ]
-        },
+        // Main Group
+        ...(!isActuallyPro ? [
+            {
+                category: t.sidebar.categories.main,
+                icon: Zap,
+                items: [
+                    { name: t.sidebar.items.overview, icon: LayoutDashboard, href: "/dashboard" },
+                ]
+            }
+        ] : []),
+        
+        // Diagnostic for non-professional accounts or non-pro layouts
+        ...(userPlan !== "Professional" && !isProContext && !isActuallyPro ? [
+            {
+                category: t.sidebar.categories.diagnostic,
+                icon: Activity,
+                items: [
+                    { name: t.sidebar.items.diagnosis, icon: FileText, href: "/assessment/cv-upload" },
+                ]
+            }
+        ] : []),
+
+        // AI Modules - Hide for Pro
+        ...(!isActuallyPro ? [
+            {
+                category: t.sidebar.categories.aiModules,
+                icon: Sparkles,
+                items: [
+                    { name: t.sidebar.items.mentor, icon: Sparkles, href: "/mentor", isAI: true },
+                    { name: t.sidebar.items.academy, icon: BookOpen, href: "/academy", isAI: true },
+                    { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert", isAI: true },
+                    { name: t.sidebar.items.roadmap, icon: TrendingUp, href: "/roadmap", isAI: true },
+                ]
+            }
+        ] : []),
+
+        // Human Led - Hide for Pro
+        ...(!isActuallyPro ? [
+            {
+                category: t.sidebar.categories.humanLed,
+                icon: Users,
+                items: [
+                    { name: t.sidebar.items.training, icon: PlayCircle, href: "/training", isLive: true },
+                    { name: t.sidebar.items.tools, icon: Target, href: "/simulation", isLive: true },
+                    { name: t.sidebar.items.library, icon: Library, href: "/library" },
+                ]
+            }
+        ] : []),
+
+        // Strategic Tools - Hide for Pro as requested
+        ...(!isActuallyPro ? [
+            {
+                category: t.sidebar.categories.strategicTools,
+                icon: BarChart3,
+                items: [
+                    { name: t.sidebar.items.strategicReport, icon: BarChart3, href: "/strategic-report", isAI: true },
+                    { name: t.sidebar.items.performanceScorecard, icon: TrendingUp, href: "/performance-scorecard", isAI: true },
+                    { name: t.sidebar.items.jobAlignment, icon: Globe, href: "/job-alignment", isAI: true },
+                ]
+            }
+        ] : []),
+
+        // Official Documents (Keep these 3 for Pro)
         {
             category: t.sidebar.categories.officialDocuments,
             icon: Crown,
@@ -119,18 +145,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 { name: t.sidebar.items.certificates, icon: Award, href: "/certificate" },
             ]
         },
-        {
-            category: t.sidebar.categories.system,
-            icon: Settings,
-            items: [
-                { name: t.sidebar.items.subscription, icon: CreditCard, href: "/subscription" },
-                { name: t.sidebar.items.settings, icon: Settings, href: "/settings" },
-                // Admin/Moderator Link
-                ...(userRole === "Admin" || userRole === "Moderator" ? [
-                    { name: t.sidebar.items.moderator, icon: ShieldCheck, href: "/moderateur" }
-                ] : [])
-            ]
-        }
+
+        // System - Hide for Pro (except admin/mod)
+        ...(!isActuallyPro || userRole === "Admin" || userRole === "Moderator" ? [
+            {
+                category: t.sidebar.categories.system,
+                icon: Settings,
+                items: [
+                    { name: t.sidebar.items.subscription, icon: CreditCard, href: "/subscription" },
+                    { name: t.sidebar.items.settings, icon: Settings, href: "/settings" },
+                    ...(userRole === "Admin" || userRole === "Moderator" ? [
+                        { name: t.sidebar.items.moderator, icon: ShieldCheck, href: "/moderateur" }
+                    ] : [])
+                ]
+            }
+        ] : [])
     ];
 
 
@@ -397,9 +426,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             return !hasCompletedSimulation;
         }
 
-        // 6. STAGE 5 LOCK: Official Assets (Certificates, Recommendations, Attestations)
+        // 6. STAGE 5 LOCK: Official Assets (Certificates, Recommendations)
         // Needs Performance Scorecard / Expert Validation (Profile created)
-        if (href.startsWith("/certificate") || href.startsWith("/recommendation") || href.startsWith("/attestations")) {
+        // NOTE: /attestations is ALWAYS accessible — admin-issued, no lock needed
+        if (href.startsWith("/certificate") || href.startsWith("/recommendation")) {
             if (isFreePlan && userPlan !== "Student") return true;
             return !hasScorecard;
         }

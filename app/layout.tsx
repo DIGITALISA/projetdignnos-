@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/components/providers/LanguageProvider";
-import { SaleBanner } from "@/components/ui/sale-banner";
 
 
 const geistSans = Geist({
@@ -50,8 +49,6 @@ export default function RootLayout({
         <ToastProvider>
           <LanguageProvider>
             {children}
-            <SaleBanner />
-
           </LanguageProvider>
         </ToastProvider>
       </body>

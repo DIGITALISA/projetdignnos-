@@ -1,718 +1,610 @@
 "use client";
-
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import {
-  Crown, ArrowRight, CheckCircle2, ShieldCheck, FileText, X,
-  Sparkles, Zap, CreditCard, Calendar, DollarSign, Building2,
+  ArrowRight, CheckCircle2, X, Sparkles, Brain, ChevronDown,
+  Crown, Rocket, Star
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
-import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
-import domtoimage from "dom-to-image-more";
-import { jsPDF } from "jspdf";
-import { HERO, PROBLEM, JOURNEY, ECOSYSTEM_MODULES, CORPORATE, HUMAN, BENEFITS, PRICING, ASSETS, FINAL_CTA, CONTRACT } from "./content";
+import {
+  NAV, HERO, PAIN, SOLUTION, COHORT, PATHS,
+  EXPERT_MODULES, PROOF, PRICING, FAQ, FINAL_CTA, FOOTER
+} from "./content";
 
 type Lang = "en" | "fr" | "ar";
 
-const stepColors: Record<string, string> = {
-  blue: "from-blue-500 to-blue-700",
-  purple: "from-purple-500 to-purple-700",
-  emerald: "from-emerald-500 to-emerald-700",
-  orange: "from-orange-500 to-orange-700",
-  pink: "from-pink-500 to-pink-700",
-  cyan: "from-cyan-500 to-cyan-700",
-  amber: "from-amber-500 to-amber-700",
-};
+// ─── FADE IN COMPONENT ───────────────────────────────────────────────────────
+function FadeIn({ children, delay = 0, className = "", direction = "up" }: {
+  children: React.ReactNode; delay?: number; className?: string; direction?: "up" | "left" | "right" | "none";
+}) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const initial = direction === "up" ? { opacity: 0, y: 40 } : direction === "left" ? { opacity: 0, x: -40 } : direction === "right" ? { opacity: 0, x: 40 } : { opacity: 0 };
+  return (
+    <motion.div ref={ref} initial={initial} animate={inView ? { opacity: 1, x: 0, y: 0 } : initial}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
 
-const stepBadgeColors: Record<string, string> = {
-  blue: "bg-blue-100 text-blue-700 border-blue-200",
-  purple: "bg-purple-100 text-purple-700 border-purple-200",
-  emerald: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  orange: "bg-orange-100 text-orange-700 border-orange-200",
-  pink: "bg-pink-100 text-pink-700 border-pink-200",
-  cyan: "bg-cyan-100 text-cyan-700 border-cyan-200",
-  amber: "bg-amber-100 text-amber-700 border-amber-200",
-};
+// ─── COUNTER ─────────────────────────────────────────────────────────────────
+function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
+  if (inView && count === 0 && value > 0) {
+    const steps = 40;
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setCount(Math.round((value * i) / steps));
+      if (i >= steps) clearInterval(interval);
+    }, 35);
+  }
+  return <span ref={ref}>{count}{suffix}</span>;
+}
 
-// ─── MAIN PAGE ──────────────────────────────────────────────────────────────────
+
+
+// ─── EFFECTS ───────────────────────────────────────────────────────────────────
+function AnimatedHeroVisual() {
+  return (
+    <div className="relative w-full aspect-square flex items-center justify-center pointer-events-none">
+      <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} className="absolute inset-0 bg-blue-500/20 rounded-full blur-[100px]" />
+      
+      <motion.div animate={{ y: [-15, 15, -15] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="relative z-10 w-40 h-40 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-4xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer">
+        <Brain className="w-20 h-20 text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+      </motion.div>
+
+      {[...Array(3)].map((_, i) => (
+        <motion.div key={i} animate={{ rotate: 360 }} transition={{ duration: 20 + i * 10, repeat: Infinity, ease: "linear" }} className="absolute inset-0 flex items-center justify-center">
+          <div className={cn("rounded-full border border-dashed border-white/10", i === 0 ? "w-[120%] h-[120%]" : i === 1 ? "w-[160%] h-[160%] border-indigo-500/20" : "w-[200%] h-[200%] border-blue-500/10")} style={{ transform: `rotate(${i * 45}deg)` }} />
+          <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2 + i, repeat: Infinity }} className={cn("absolute w-3 h-3 rounded-full blur-[1px]", i === 0 ? "bg-blue-400 top-0" : i === 1 ? "bg-indigo-400 bottom-[10%] right-[10%]" : "bg-violet-400 top-[20%] left-[5%]")} />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function ProfessionalsPage() {
   const { language, dir } = useLanguage();
-  const lang = (language as Lang) || "en";
-  const hero = HERO[lang] || HERO.en;
-  const problem = PROBLEM[lang] || PROBLEM.en;
-  const journey = JOURNEY[lang] || JOURNEY.en;
-  const human = HUMAN[lang] || HUMAN.en;
-  const benefits = BENEFITS[lang] || BENEFITS.en;
-  const pricing = PRICING[lang] || PRICING.en;
-  const assets = ASSETS[lang] || ASSETS.en;
-  const finalCta = FINAL_CTA[lang] || FINAL_CTA.en;
-  const corporate = CORPORATE[lang] || CORPORATE.en;
-  const ecosystem = ECOSYSTEM_MODULES[lang] || ECOSYSTEM_MODULES.en;
-  const contract = CONTRACT[lang] || CONTRACT.en;
+  const lang: Lang = (language as Lang) || "en";
 
-  const contractRef = useRef<HTMLDivElement>(null);
-  const [isConsultingFormOpen, setIsConsultingFormOpen] = useState(false);
-  const [clientName, setClientName] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [currency, setCurrency] = useState("EUR");
-  const [rates, setRates] = useState<Record<string, number>>({
-    TND: 3.42, EUR: 1, USD: 1.08, MAD: 11, DZD: 145, XOF: 655.957
-  });
-
-  const currencies = [
-    { code: "TND", symbol: "DT" },
-    { code: "EUR", symbol: "€" },
-    { code: "USD", symbol: "$" },
-    { code: "MAD", symbol: "DH" },
-    { code: "DZD", symbol: "DA" },
-    { code: "XOF", symbol: "CFA" },
-  ];
-
-  // Fetch real-time rates on mount
-  useState(() => {
-    fetch("https://open.er-api.com/v6/latest/EUR")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.rates) {
-          setRates(prev => ({
-            ...prev,
-            ...data.rates
-          }));
-        }
-      })
-      .catch(err => console.error("Rate fetch error:", err));
-  });
-
-  const getPrice = (baseEur: number) => {
-    const curr = currencies.find(c => c.code === currency) || currencies[1];
-    const currentRate = rates[curr.code] || 1;
-    const tndRate = rates["TND"] || 3.42;
-
-    // Core Plan specific logic (baseEur is 35 from previous implementation)
-    if (baseEur === 35) {
-      if (curr.code === "TND") return `120 ${curr.symbol} TTC`;
-      
-      // Calculate price based on 100 TND net value
-      // Price in target currency = (100 / TND_Rate) * Target_Currency_Rate
-      const priceNet = (100 / tndRate) * currentRate;
-      return `${Math.round(priceNet).toLocaleString()} ${curr.symbol}*`;
-    }
-
-    const converted = baseEur * currentRate;
-    return `${Math.round(converted).toLocaleString()} ${curr.symbol}*`;
+  // Dynamic Translations
+  const t = {
+    nav: NAV[lang],
+    hero: HERO[lang],
+    pain: PAIN[lang],
+    solution: SOLUTION[lang],
+    cohort: COHORT[lang],
+    paths: PATHS[lang],
+    expertModules: EXPERT_MODULES[lang],
+    proof: PROOF[lang],
+    pricing: PRICING[lang],
+    faq: FAQ[lang],
+    finalCta: FINAL_CTA[lang],
+    footer: FOOTER[lang]
   };
 
-  const [contractId] = useState(() => Math.random().toString(36).substring(2, 9).toUpperCase());
-  const [authId] = useState(() => Math.random().toString(36).substring(2, 9).toUpperCase());
-  const [currentTime] = useState(() => new Date().toISOString());
-  const [currentDate] = useState(() => new Date().toLocaleDateString(lang === "ar" ? "ar-TN" : "fr-FR"));
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [currency, setCurrency] = useState("EUR");
+  const [activeTab, setActiveTab] = useState<"student" | "pro" | "expert">("pro");
+  const rates: Record<string, { symbol: string; rate: number }> = {
+    EUR: { symbol: "€", rate: 1 },
+    USD: { symbol: "$", rate: 1.08 },
+    TND: { symbol: "DT", rate: 3.42 },
+    MAD: { symbol: "DH", rate: 11 },
+  };
 
-  const handleDownloadContract = async () => {
-    if (!contractRef.current) return;
-    setIsGenerating(true);
-    try {
-      await document.fonts.ready;
-      const original = contractRef.current;
-      const clone = original.cloneNode(true) as HTMLElement;
-      
-      // Setup clone off-screen
-      clone.style.position = "fixed";
-      clone.style.top      = "-9999px";
-      clone.style.left     = "-9999px";
-      clone.style.width    = `${original.offsetWidth}px`;
-      clone.style.height   = `${original.offsetHeight}px`;
-      clone.style.overflow = "visible";
-      document.body.appendChild(clone);
-
-      const unsupported = /oklch|oklab|lab\(|lch\(|hwb\(|color-mix/i;
-      const resolveColor = (raw: string): string => {
-        const tmp = document.createElement("span");
-        tmp.style.color = raw;
-        document.body.appendChild(tmp);
-        const resolved = getComputedStyle(tmp).color;
-        document.body.removeChild(tmp);
-        return resolved || "rgb(0,0,0)";
-      };
-
-      // Sanitize the clone
-      [clone, ...Array.from(clone.querySelectorAll("*"))].forEach(node => {
-        const el = node as HTMLElement;
-        const computed = getComputedStyle(el);
-        
-        // REMOVE BLUR FOR PDF: Find the stamp by ID and clear its filter
-        const stamp = clone.querySelector('#contract-stamp') as HTMLElement;
-        if (stamp) {
-          stamp.style.setProperty("filter", "none", "important");
-          stamp.style.setProperty("-webkit-filter", "none", "important");
-        }
-
-        el.style.setProperty("transition", "none", "important");
-        el.style.setProperty("animation", "none", "important");
-        el.style.setProperty("backdrop-filter", "none", "important");
-
-        (["color", "backgroundColor"] as const).forEach(key => {
-          const val = computed[key] as string;
-          if (val && unsupported.test(val)) {
-            el.style.setProperty(key.replace(/([A-Z])/g, "-$1").toLowerCase(), resolveColor(val), "important");
-          }
-        });
-
-        (["Top", "Right", "Bottom", "Left"] as const).forEach(side => {
-          const w = computed[`border${side}Width` as keyof CSSStyleDeclaration] as string;
-          if (!w || w === "0px") {
-            el.style.setProperty(`border-${side.toLowerCase()}-width`, "0px", "important");
-          } else {
-            const c = computed[`border${side}Color` as keyof CSSStyleDeclaration] as string;
-            if (c && unsupported.test(c)) el.style.setProperty(`border-${side.toLowerCase()}-color`, resolveColor(c), "important");
-          }
-        });
-      });
-
-      const dataUrl = await domtoimage.toPng(clone, {
-        scale: 2,
-        bgcolor: "#ffffff",
-        width:  original.offsetWidth,
-        height: original.offsetHeight,
-      });
-      document.body.removeChild(clone);
-
-      const img = new window.Image();
-      img.src = dataUrl;
-      await new Promise<void>(resolve => { img.onload = () => resolve(); });
-
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pw = pdf.internal.pageSize.getWidth();
-      const ph = pdf.internal.pageSize.getHeight();
-      
-      const ratio = img.width / img.height;
-      let fw = pw - 20;
-      let fh = fw / ratio;
-      
-      if (fh > ph - 20) {
-        fh = ph - 20;
-        fw = fh * ratio;
-      }
-
-      pdf.addImage(dataUrl, "PNG", (pw - fw) / 2, 10, fw, fh);
-      pdf.save(`MA-CONSULTING-CONTRACT-${clientName || "CLIENT"}.pdf`);
-    } catch (e) { 
-      console.error("PDF error:", e);
-      alert("Erreur lors de la génération du contrat.");
-    } finally { 
-      setIsGenerating(false); 
-    }
+  const price = (base: string) => {
+    if (base === "Free" || base === "Gratuit" || base === "مجاناً") return base;
+    if (base === "Custom" || base === "Sur Mesure" || base === "حسب الطلب") return base;
+    const num = parseFloat(base);
+    if (isNaN(num)) return base;
+    const val = Math.round(num * rates[currency].rate);
+    return currency === "TND" || currency === "MAD" ? `${val} ${rates[currency].symbol}` : `${rates[currency].symbol}${val}`;
   };
 
   return (
-    <div className={cn("min-h-screen bg-[#FAFAFA] dark:bg-[#020202] overflow-x-hidden selection:bg-blue-500/30", lang === "ar" ? "font-arabic" : "font-sans")} dir={dir}>
+    <div className={cn("min-h-screen bg-[#040812] text-white overflow-x-hidden selection:bg-blue-500/30", lang === "ar" ? "font-arabic" : "font-sans")} dir={dir}>
 
-      {/* ═══ AMBIENT BACKGROUND ═══ */}
+      {/* ── AMBIENT BG ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px]" />
-        <div className="absolute left-0 right-0 top-[-10%] m-auto h-[500px] w-[500px] rounded-full bg-blue-500/10 opacity-50 blur-[100px]" />
+        <motion.div animate={{ x: [-50, 50, -50], y: [-20, 20, -20] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-blue-600/10 rounded-full blur-[150px]" />
+        <motion.div animate={{ x: [50, -50, 50], y: [20, -20, 20] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-700/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-size-[48px_48px]" />
       </div>
 
-      {/* ═══════════════ SECTION 1: HERO ═══════════════ */}
-      <section className="relative min-h-[90vh] flex flex-col justify-center px-6 pt-32 pb-20 overflow-hidden">
-        <div className="container mx-auto max-w-6xl relative z-10 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md mb-8 shadow-sm">
-            <Crown className="w-4 h-4 text-blue-600" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300">{hero.badge}</span>
-          </motion.div>
-
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium leading-[0.95] tracking-tight mb-4 text-slate-900 dark:text-white">
-            {hero.title}
-          </motion.h1>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium leading-[0.95] tracking-tight mb-8 text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600">
-            {hero.titleHighlight}
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 1 }}
-            className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto mb-12 font-light leading-relaxed">
-            {hero.subtitle}
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Link href="/register"
-              className="w-full sm:w-auto px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-full font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-xl">
-              {hero.ctaPrimary}
-            </Link>
-            <a href="#pricing"
-              className="w-full sm:w-auto px-8 py-4 bg-transparent border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-slate-50 transition-colors">
-              {hero.ctaSecondary}
-            </a>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, duration: 0.8 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto border-t border-slate-200 dark:border-slate-800 pt-12">
-            {hero.stats.map((s, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <span className="text-3xl font-serif font-bold text-slate-900 dark:text-white mb-1">{s.value}</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{s.label}</span>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════ SECTION 2: PROBLEM ═══════════════ */}
-      <section className="py-20 bg-slate-900 dark:bg-black text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-        <div className="container mx-auto px-6 relative z-10 max-w-4xl">
-          <div className="text-center mb-12">
-            <span className="text-red-400 font-bold text-xs uppercase tracking-[0.3em]">{problem.badge}</span>
-            <h2 className="text-3xl md:text-5xl font-serif mt-4 mb-6">{problem.title}</h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            {problem.points.map((p, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-                className="flex items-start gap-4 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <span className="text-3xl shrink-0">{p.icon}</span>
-                <p className="text-slate-300 font-medium leading-relaxed">{p.text}</p>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 1 — HERO                                                   */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-screen flex flex-col justify-center px-6 pt-28 pb-20 z-10">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+            {/* Left Content */}
+            <div className={cn("relative z-10", dir === 'rtl' ? "lg:pl-10" : "lg:pr-10")}>
+              {/* Badge */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 backdrop-blur-md mb-8 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-blue-300">{t.hero.badge}</span>
               </motion.div>
-            ))}
-          </div>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="text-center p-8 rounded-3xl bg-linear-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30">
-            <Sparkles className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-            <p className="text-lg text-blue-200 font-medium leading-relaxed">{problem.solution}</p>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* ═══════════════ SECTION 3: AI JOURNEY ═══════════════ */}
-      <section className="py-32 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-20">
-            <span className="text-blue-600 font-bold text-xs uppercase tracking-[0.3em]">{journey.badge}</span>
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mt-4 mb-4">{journey.title}</h2>
-            <p className="text-lg text-slate-500 max-w-2xl mx-auto">{journey.subtitle}</p>
-          </div>
-          <div className="relative">
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
-            <div className="space-y-12 md:space-y-0">
-              {journey.steps.map((step, idx) => (
-                <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }} transition={{ delay: idx * 0.1 }}
-                  className={cn("relative md:flex items-center gap-8 md:mb-16", idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse")}>
-                  <div className={cn("flex-1", idx % 2 === 0 ? "md:text-end" : "md:text-start")}>
-                    <div className={cn("inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border mb-3", stepBadgeColors[step.color])}>
-                      {step.tag}
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{step.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed max-w-sm inline-block">{step.desc}</p>
-                  </div>
-                  <div className="relative z-10 my-4 md:my-0 flex items-center justify-center">
-                    <div className={cn("w-16 h-16 rounded-2xl bg-linear-to-br flex items-center justify-center text-white font-black text-sm shadow-xl", stepColors[step.color])}>
-                      {step.icon && <step.icon size={28} strokeWidth={2} />}
-                    </div>
-                  </div>
-                  <div className="flex-1" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+              {/* H1 */}
+              <div className="mb-6">
+                <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.8 }}
+                  className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-2 text-white">
+                  {t.hero.h1a}
+                </motion.h1>
+                <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.8 }}
+                  className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-transparent bg-clip-text bg-linear-to-r from-blue-400 via-indigo-400 to-violet-400 drop-shadow-sm">
+                  {t.hero.h1b}
+                </motion.h1>
+              </div>
 
-      {/* ═══════════════ SECTION 3.5: AI ECOSYSTEM MODULES ═══════════════ */}
-      <section className="py-24 px-6 bg-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-b from-slate-900 to-black opacity-50" />
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <div className="text-center mb-16">
-            <span className="text-blue-400 font-bold text-xs uppercase tracking-[0.3em]">{ecosystem.badge}</span>
-            <h2 className="text-4xl md:text-5xl font-serif mt-4 mb-4">{ecosystem.title}</h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">{ecosystem.subtitle}</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ecosystem.modules.map((mod, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }}
-                className="group p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <mod.icon size={24} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">{mod.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-6">{mod.desc}</p>
-                <Link href={mod.link} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">
-                  Explore Module <ArrowRight size={14} />
+              {/* Subtitle */}
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 1 }}
+                className="text-lg md:text-xl text-slate-300 max-w-2xl mb-10 font-light leading-relaxed">
+                {t.hero.sub}
+              </motion.p>
+
+              {/* CTAs */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
+                className="flex flex-col sm:flex-row gap-4 items-start md:items-center mb-6">
+                <Link href="/register"
+                  className="group relative px-8 py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-bold text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-3 overflow-hidden">
+                  <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                  <span className="relative z-10">{t.hero.cta}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
                 </Link>
+                <a href="#pricing"
+                  className="px-8 py-4 border border-white/10 hover:border-white/30 text-slate-400 hover:text-white rounded-2xl font-bold text-sm uppercase tracking-widest transition-all duration-300 hover:bg-white/5">
+                  {t.hero.cta2}
+                </a>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
+                className="text-xs text-slate-500 font-medium">{t.hero.ctaSub}</motion.p>
 
-      {/* ═══════════════ SECTION 4: HUMAN-LED ═══════════════ */}
-      <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30 border-y border-slate-200 dark:border-slate-800">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <span className="text-purple-600 font-bold text-xs uppercase tracking-[0.3em]">{human.badge}</span>
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mt-4 mb-4">{human.title}</h2>
-            <p className="text-lg text-slate-500 max-w-2xl mx-auto">{human.subtitle}</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            {human.items.map((item, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }}
-                className="group relative bg-white dark:bg-slate-950 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-purple-500/5 transition-all duration-500 hover:-translate-y-1">
-                <div className="absolute top-6 end-6">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-purple-100 text-purple-700 border border-purple-200">{item.badge}</span>
-                </div>
-                <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center mb-6">
-                  <item.icon size={28} strokeWidth={1.5} />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{item.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+              {/* Stats */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85 }}
+                className="grid grid-cols-2 gap-8 mt-16 pt-10 border-t border-white/10">
+                {t.hero.stats.map((s, i) => (
+                  <motion.div key={i} whileHover={{ scale: 1.05 }} className="space-y-2 p-4 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 cursor-default">
+                    <div className="flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                       <div className="text-3xl font-black text-white">
+                         <Counter value={s.val} suffix={s.suf} />
+                       </div>
+                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{s.label}</div>
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ SECTION 5: BENEFITS ═══════════════ */}
-      <section className="py-24 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <span className="text-emerald-600 font-bold text-xs uppercase tracking-[0.3em]">{benefits.badge}</span>
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mt-4">{benefits.title}</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {benefits.items.map((item, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
-                className="text-center p-8 rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 hover:shadow-lg transition-all">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center mx-auto mb-5">
-                  <item.icon size={28} strokeWidth={1.5} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{item.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ SECTION 6: ASSETS ═══════════════ */}
-      <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30 border-y border-slate-200 dark:border-slate-800">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-            <div className="max-w-2xl">
-              <span className="text-amber-600 font-bold text-xs uppercase tracking-[0.3em]">{assets.badge}</span>
-              <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mt-4">{assets.subtitle}</h2>
             </div>
-            <ShieldCheck size={48} className="hidden md:block text-slate-200 dark:text-slate-800" />
+
+            {/* Right Visual (Desktop Only) */}
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, duration: 1 }}
+              className="hidden lg:flex items-center justify-center p-10 relative">
+               <div className="absolute inset-0 bg-blue-600/5 rounded-full blur-[100px]" />
+               <AnimatedHeroVisual />
+            </motion.div>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {assets.items.map((item, idx) => (
-              <div key={idx} className="group relative bg-white dark:bg-slate-950 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-amber-500/5 transition-all duration-500 hover:-translate-y-1">
-                <div className="absolute top-0 end-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"><item.icon size={64} /></div>
+        </div>
+
+        {/* Scroll hint */}
+        <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-700">
+          <ChevronDown className="w-6 h-6" />
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 2 — PAIN                                                   */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 bg-slate-950/80 border-y border-white/5 relative z-10">
+        <div className="container mx-auto max-w-4xl text-center">
+          <FadeIn>
+            <span className="text-red-400 font-bold text-xs uppercase tracking-[0.3em]">{t.pain.badge}</span>
+            <h2 className="text-4xl md:text-5xl font-black mt-4 mb-16 tracking-tight">{t.pain.title}</h2>
+          </FadeIn>
+          <div className="space-y-4 mb-16">
+            {t.pain.items.map((item, i) => (
+              <FadeIn key={i} delay={i * 0.08}>
+                <motion.div whileHover={{ scale: 1.02, x: dir === 'rtl' ? -5 : 5 }} whileTap={{ scale: 0.98 }} className="flex items-center gap-4 p-5 rounded-2xl bg-white/3 border border-white/[0.07] hover:border-red-500/30 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/10 transition-all duration-300 text-left cursor-default">
+                  <motion.span whileHover={{ rotate: 90 }} className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center font-black text-sm shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.2)]">✕</motion.span>
+                  <p className="text-slate-300 font-medium">{item}</p>
+                </motion.div>
+              </FadeIn>
+            ))}
+          </div>
+          <FadeIn delay={0.5}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex items-center gap-3 px-8 py-5 rounded-2xl bg-linear-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] cursor-default transition-shadow">
+              <Sparkles className="text-blue-400 w-5 h-5 shrink-0 animate-pulse" />
+              <p className="text-blue-200 font-semibold">{t.pain.close}</p>
+            </motion.div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 3 — SOLUTION                                               */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-32 px-6 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <FadeIn className="text-center mb-20">
+            <span className="text-blue-400 font-bold text-xs uppercase tracking-[0.3em]">{t.solution.badge}</span>
+            <h2 className="text-4xl md:text-6xl font-black mt-4 mb-6 tracking-tight">{t.solution.title}</h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">{t.solution.sub}</p>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {t.solution.steps.map((step, i) => (
+              <FadeIn key={i} delay={i * 0.1}>
+                <motion.div whileHover={{ y: -5 }} className="group relative p-8 rounded-3xl bg-white/3 border border-white/[0.07] hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-500 h-full hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] cursor-default overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors" />
+                  <div className="absolute top-6 right-6 text-[10px] font-black text-slate-700 tabular-nums">0{i + 1}</div>
+                  <motion.div whileHover={{ scale: 1.1, rotate: 5 }} className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-6 group-hover:bg-blue-500/20 transition-all duration-300 relative z-10 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                    <step.icon size={26} strokeWidth={1.5} />
+                  </motion.div>
+                  <h3 className="text-lg font-black mb-3 text-white relative z-10">{step.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed font-medium relative z-10">{step.desc}</p>
+                </motion.div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 4 — COHORT SYSTEM                                          */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 bg-linear-to-b from-slate-950/80 to-transparent border-y border-white/5 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <FadeIn direction="left">
+              <span className="text-violet-400 font-bold text-xs uppercase tracking-[0.3em]">{t.cohort.badge}</span>
+              <h2 className="text-4xl md:text-5xl font-black mt-4 mb-6 tracking-tight leading-tight">{t.cohort.title}</h2>
+              <p className="text-slate-400 font-light leading-relaxed mb-10">{t.cohort.sub}</p>
+              <div className="space-y-4">
+                {t.cohort.points.map((p, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                    className="flex items-start gap-4 p-4 rounded-2xl bg-white/3 border border-white/[0.07]">
+                    <span className="text-2xl">{p.icon}</span>
+                    <div>
+                      <h4 className="font-black text-white mb-1">{p.title}</h4>
+                      <p className="text-slate-500 text-sm">{p.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </FadeIn>
+
+            {/* Visual */}
+            <FadeIn direction="right" delay={0.2}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/10 rounded-3xl blur-3xl" />
+                <div className="relative p-8 rounded-3xl bg-white/3 border border-white/10">
+                  <div className="text-xs font-black uppercase tracking-widest text-slate-600 mb-6">{t.cohort.visual.title}</div>
+                  {/* Simulate cohort grouping visual */}
+                  <div className="space-y-4">
+                    {[
+                      { gap: "Strategic Leadership", level: "Mid-Senior", members: 4, color: "blue" },
+                      { gap: "Negotiation & Value Positioning", level: "Senior", members: 3, color: "violet" },
+                      { gap: "Executive Communication", level: "Junior-Mid", members: 5, color: "emerald" },
+                    ].map((cohort, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }} transition={{ delay: i * 0.15 }}
+                        className={cn("p-4 rounded-2xl border", i === 0 ? "bg-blue-500/10 border-blue-500/30" : i === 1 ? "bg-violet-500/10 border-violet-500/30" : "bg-emerald-500/10 border-emerald-500/30")}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-black uppercase tracking-widest text-slate-400">{cohort.gap}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-400">{cohort.level}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex -space-x-2">
+                            {Array(cohort.members).fill(0).map((_, j) => (
+                              <div key={j} className={cn("w-7 h-7 rounded-full border-2 border-slate-950 flex items-center justify-center text-[9px] font-black", i === 0 ? "bg-blue-600" : i === 1 ? "bg-violet-600" : "bg-emerald-600")}>{j + 1}</div>
+                            ))}
+                          </div>
+                          <span className="text-xs text-slate-500 font-medium">{cohort.members} {t.cohort.visual.unit}</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-white/5 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <p className="text-xs text-slate-500 font-medium">{t.cohort.visual.status}</p>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 5 — TWO PATHS                                              */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-32 px-6 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <FadeIn className="text-center mb-20">
+            <span className="text-amber-400 font-bold text-xs uppercase tracking-[0.3em]">{t.paths.badge}</span>
+            <h2 className="text-4xl md:text-6xl font-black mt-4 tracking-tight">{t.paths.title}</h2>
+          </FadeIn>
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Client Path */}
+            <FadeIn direction="left">
+              <motion.div whileHover={{ scale: 1.02 }} className="group relative h-full bg-white/3 rounded-[2.5rem] border border-white/10 p-10 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all duration-500 overflow-hidden hover:shadow-[0_0_50px_rgba(59,130,246,0.15)]">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl group-hover:bg-blue-600/10 transition-all opacity-0 group-hover:opacity-100" />
                 <div className="relative z-10">
-                  <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 flex items-center justify-center mb-6 text-sm font-bold">{idx + 1}</div>
-                  <h3 className="text-2xl font-serif text-slate-900 dark:text-white mb-4 group-hover:text-amber-600 transition-colors">{item.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                  <span className="inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 mb-6">{t.paths.client.tag}</span>
+                  <motion.div whileHover={{ rotate: 10, scale: 1.1 }} className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(59,130,246,0.2)]"><Brain size={28} /></motion.div>
+                  <h3 className="text-2xl font-black mb-8 text-white">{t.paths.client.title}</h3>
+                  <ul className="space-y-3 mb-10">
+                    {t.paths.client.items.map((f, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-semibold text-slate-300">
+                        <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href={t.paths.client.href}
+                    className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-blue-600/20">
+                    {t.paths.client.cta} <ArrowRight size={14} />
+                  </Link>
                 </div>
-              </div>
+              </motion.div>
+            </FadeIn>
+
+            {/* Expert Path */}
+            <FadeIn direction="right" delay={0.15}>
+              <motion.div whileHover={{ scale: 1.02 }} className="group relative h-full bg-linear-to-br from-slate-900 to-indigo-950/50 rounded-[2.5rem] border border-indigo-500/20 p-10 hover:border-indigo-500/50 transition-all duration-500 overflow-hidden hover:shadow-[0_0_50px_rgba(99,102,241,0.15)]">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative z-10">
+                  <span className="inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-6">{t.paths.expert.tag}</span>
+                  <motion.div whileHover={{ rotate: -10, scale: 1.1 }} className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(99,102,241,0.2)]"><Crown size={28} /></motion.div>
+                  <h3 className="text-2xl font-black mb-8 text-white">{t.paths.expert.title}</h3>
+                  <ul className="space-y-3 mb-10">
+                    {t.paths.expert.items.map((f, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-semibold text-slate-300">
+                        <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href={t.paths.expert.href}
+                    className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-indigo-600/20">
+                    {t.paths.expert.cta} <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </motion.div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 6 — EXPERT MODULES                                         */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 bg-slate-950/60 border-y border-white/5 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <FadeIn className="text-center mb-20">
+            <span className="text-indigo-400 font-bold text-xs uppercase tracking-[0.3em]">{t.expertModules.badge}</span>
+            <h2 className="text-4xl md:text-5xl font-black mt-4 mb-4 tracking-tight">{t.expertModules.title}</h2>
+            <p className="text-slate-400 max-w-xl mx-auto font-light">{t.expertModules.sub}</p>
+          </FadeIn>
+          <div className="grid md:grid-cols-2 gap-6">
+            {t.expertModules.modules.map((mod, i) => {
+              const colors: Record<string, string> = { blue: "from-blue-500/10 to-blue-600/5 border-blue-500/20 text-blue-400", violet: "from-violet-500/10 to-violet-600/5 border-violet-500/20 text-violet-400", emerald: "from-emerald-500/10 to-emerald-600/5 border-emerald-500/20 text-emerald-400", amber: "from-amber-500/10 to-amber-600/5 border-amber-500/20 text-amber-400" };
+              const [, , , iconColor] = colors[mod.color].split(" ");
+              return (
+                <FadeIn key={i} delay={i * 0.1}>
+                  <motion.div whileHover={{ y: -5, scale: 1.01 }} className={cn("group p-8 rounded-3xl bg-linear-to-br border transition-all duration-300 h-full", colors[mod.color])}>
+                    <div className="flex items-start gap-5">
+                      <motion.div whileHover={{ rotate: 180 }} transition={{ duration: 0.5 }} className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg", `bg-${mod.color}-500/20`, iconColor)}>
+                        <mod.icon size={24} />
+                      </motion.div>
+                      <div>
+                        <span className={cn("text-[9px] font-black uppercase tracking-widest mb-2 block", iconColor ?? "text-blue-400")}>{mod.tag}</span>
+                        <h3 className="text-xl font-black text-white mb-3">{mod.title}</h3>
+                        <p className="text-slate-400 text-sm leading-relaxed">{mod.desc}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </FadeIn>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 7 — SOCIAL PROOF                                           */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <FadeIn className="text-center mb-16">
+            <span className="text-yellow-400 font-bold text-xs uppercase tracking-[0.3em]">{t.proof.badge}</span>
+            <h2 className="text-4xl md:text-5xl font-black mt-4 tracking-tight">{t.proof.title}</h2>
+          </FadeIn>
+          <div className="grid md:grid-cols-3 gap-6">
+            {t.proof.reviews.map((r, i) => (
+              <FadeIn key={i} delay={i * 0.1}>
+                <div className="h-full p-8 rounded-3xl bg-white/3 border border-white/[0.07] hover:border-yellow-500/20 transition-all duration-300 flex flex-col">
+                  <div className="flex gap-1 mb-6">
+                    {Array(r.stars).fill(0).map((_, j) => (
+                      <Star key={j} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-slate-300 text-sm leading-relaxed font-medium flex-1 italic mb-8">&ldquo;{r.text}&rdquo;</p>
+                  <div>
+                    <p className="text-white font-black text-sm">{r.name}</p>
+                    <p className="text-slate-600 text-xs font-medium">{r.role}</p>
+                  </div>
+                </div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ SECTION 6.5: CORPORATE / HR INQUIRY ═══════════════ */}
-      <section className="py-24 px-6 relative overflow-hidden">
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 8 — PRICING                                                */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section id="pricing" className="py-32 px-6 bg-slate-950/60 border-t border-white/5 relative z-10">
         <div className="container mx-auto max-w-6xl">
-          <div className="bg-linear-to-br from-slate-900 to-indigo-950 rounded-[3rem] p-8 md:p-16 text-white border border-white/5 relative overflow-hidden shadow-2xl">
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]" />
-            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px]" />
-            
-            <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-              <div>
-                <span className="text-blue-400 font-bold text-xs uppercase tracking-[0.3em] font-sans">{corporate.badge}</span>
-                <h2 className="text-4xl md:text-5xl font-serif mt-4 mb-6">{corporate.title}</h2>
-                <p className="text-lg text-slate-300 mb-8 font-light leading-relaxed">{corporate.description}</p>
-                <ul className="space-y-4 mb-10">
-                  {corporate.features.map((f, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-200">
-                      <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                        <CheckCircle2 size={12} className="text-blue-400" />
-                      </div>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={() => setIsConsultingFormOpen(true)}
-                  className="px-8 py-4 bg-white text-slate-900 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl">
-                  {corporate.cta}
-                </button>
+          <FadeIn className="text-center mb-12">
+            <span className="text-indigo-400 font-bold text-xs uppercase tracking-[0.3em]">{t.pricing.badge}</span>
+            <h2 className="text-4xl md:text-6xl font-black mt-4 mb-4 tracking-tight">{t.pricing.title}</h2>
+            <p className="text-slate-400 font-light mb-8">{t.pricing.sub}</p>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-12">
+              {/* Account Type Tabs */}
+              <div className="inline-flex p-1.5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+                {t.pricing.tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as "student" | "pro" | "expert")}
+                    className={cn(
+                      "flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all duration-500",
+                      activeTab === tab.id
+                        ? "bg-white text-black shadow-2xl scale-105"
+                        : "text-slate-500 hover:text-white"
+                    )}
+                  >
+                    <span>{tab.icon}</span>
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                ))}
               </div>
-              <div className="hidden lg:block">
-                <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center"><Building2 size={24} className="text-blue-400" /></div>
-                    <div><h4 className="font-bold">HR Strategic Advisor</h4><p className="text-xs text-slate-400">Objective-Driven Analytics</p></div>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden"><motion.div initial={{ width: 0 }} whileInView={{ width: "85%" }} className="h-full bg-blue-500" /></div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden"><motion.div initial={{ width: 0 }} whileInView={{ width: "70%" }} className="h-full bg-indigo-500" /></div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden"><motion.div initial={{ width: 0 }} whileInView={{ width: "95%" }} className="h-full bg-purple-500" /></div>
-                  </div>
-                  <div className="mt-10 p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
-                    <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Evaluation Accuracy Score</p>
-                    <p className="text-3xl font-serif font-bold text-white mt-1">98.4%</p>
-                  </div>
-                </div>
+
+              <div className="w-px h-8 bg-white/10 hidden md:block" />
+
+              {/* Currency selector */}
+              <div className="inline-flex items-center gap-1 p-1.5 rounded-2xl bg-white/5 border border-white/10">
+                {Object.entries(rates).map(([code]) => (
+                  <button key={code} onClick={() => setCurrency(code)}
+                    className={cn("px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                      currency === code ? "bg-white text-black shadow-lg" : "text-slate-500 hover:text-white")}>
+                    {code}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════════════ SECTION 7: PRICING ═══════════════ */}
-      <section id="pricing" className="py-32 px-6 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="container mx-auto max-w-7xl relative z-10">
-          <div className="text-center mb-12">
-            <span className="text-indigo-600 font-bold text-xs uppercase tracking-[0.3em]">{pricing.badge}</span>
-            <h2 className="text-4xl md:text-6xl font-serif text-slate-900 dark:text-white mt-4 mb-4">{pricing.title}</h2>
-            <p className="text-xl text-slate-500 font-light mb-8">{pricing.subtitle}</p>
-
-            {/* Currency Selector */}
-            <div className="inline-flex flex-wrap justify-center items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              {currencies.map((curr) => (
-                <button key={curr.code} onClick={() => setCurrency(curr.code)}
-                  className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
-                    currency === curr.code ? "bg-white dark:bg-slate-800 shadow-md text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-700")}>
-                  {curr.code}
-                </button>
-              ))}
-            </div>
-          </div>
+            <FadeIn delay={0.2}>
+              <div className="mb-16 max-w-2xl mx-auto text-center">
+                <p className="text-xl font-medium text-indigo-300 mb-4">{t.pricing.groups[activeTab as keyof typeof t.pricing.groups].headline}</p>
+                {"note" in t.pricing.groups[activeTab as keyof typeof t.pricing.groups] && (
+                  <p className="text-sm text-slate-500 italic">{(t.pricing.groups[activeTab as keyof typeof t.pricing.groups] as { note?: string }).note}</p>
+                )}
+              </div>
+            </FadeIn>
+          </FadeIn>
 
           <div className="grid lg:grid-cols-3 gap-8 items-stretch">
-            {pricing.plans.map((plan, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: idx * 0.15 }}
-                className={cn("relative rounded-[2.5rem] p-10 border transition-all duration-500 flex flex-col",
+            {t.pricing.groups[activeTab as keyof typeof t.pricing.groups].plans.map((plan: {id?: string; name: string; desc: string; icon: string; price: string; priceTND?: string; period: string; highlight?: boolean; popular?: boolean; features: string[]; notIncluded?: string[]; cta: string; href?: string}, i: number) => (
+              <FadeIn key={i} delay={i * 0.12}>
+                <motion.div whileHover={{ y: -8 }} className={cn("relative h-full rounded-[2.5rem] p-10 border flex flex-col transition-all duration-300 cursor-default",
                   plan.highlight
-                    ? "bg-slate-900 dark:bg-white text-white dark:text-black border-slate-900 dark:border-white shadow-2xl scale-[1.03] z-10"
-                    : "bg-white dark:bg-slate-950 text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 hover:border-slate-300")}>
-
-                {"popular" in plan && (plan as { popular?: boolean }).popular ? (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg">
-                    {lang === "ar" ? "الأكثر شعبية" : lang === "fr" ? "Le Plus Populaire" : "Most Popular"}
+                    ? "bg-white text-slate-900 border-white shadow-2xl shadow-blue-500/10 scale-[1.03] z-10"
+                    : "bg-white/3 text-white border-white/10 hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.03)]"
+                )}>
+                  {"popular" in plan && plan.popular && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-full shadow-xl animate-bounce">{t.pricing.popular}</div>
+                  )}
+                  <motion.div whileHover={{ scale: 1.2, rotate: 5 }} className="text-4xl mb-4 self-start">{plan.icon}</motion.div>
+                  <h3 className={cn("text-2xl font-black mb-2", plan.highlight ? "text-slate-900" : "text-white")}>{plan.name}</h3>
+                  <p className={cn("text-sm mb-6", plan.highlight ? "text-slate-500" : "text-slate-400")}>{plan.desc}</p>
+                  <div className="flex items-baseline gap-1 mb-8">
+                    <span className={cn("text-4xl font-black", plan.highlight ? "text-blue-600" : "text-white")}>
+                      {currency === "TND" ? plan.priceTND : price(plan.price)}
+                    </span>
+                    <span className={cn("text-sm", plan.highlight ? "text-slate-400" : "text-slate-500")}>{plan.period}</span>
                   </div>
-                ) : null}
-
-                <div className="mb-6">
-                  <span className="text-4xl">{plan.icon}</span>
-                </div>
-                <h3 className="text-2xl font-black mb-2">{plan.name}</h3>
-                <p className={cn("text-sm font-medium mb-6", plan.highlight ? "text-slate-400" : "text-slate-500")}>{plan.desc}</p>
-
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-4xl font-serif font-bold">
-                    {plan.price === "Free" || plan.price === "Gratuit" || plan.price === "مجاناً" || plan.price.includes("*")
-                      ? plan.price 
-                      : getPrice(parseInt(plan.price.replace(/[^0-9]/g, "")) || 0)}
-                  </span>
-                  <span className={cn("text-sm", plan.highlight ? "text-slate-400" : "text-slate-400")}>
-                    {plan.period}
-                  </span>
-                </div>
-
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((f, fi) => (
-                    <li key={fi} className="flex items-start gap-3 text-sm font-medium">
-                      <CheckCircle2 size={16} className={plan.highlight ? "text-blue-400 shrink-0 mt-0.5" : "text-blue-600 shrink-0 mt-0.5"} />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                  {plan.notIncluded.map((f, fi) => (
-                    <li key={`n${fi}`} className="flex items-start gap-3 text-sm font-medium opacity-40">
-                      <X size={16} className="shrink-0 mt-0.5" />
-                      <span className="line-through">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {plan.highlight ? (
-                  <button onClick={() => setIsConsultingFormOpen(true)}
-                    className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest bg-white dark:bg-black text-black dark:text-white hover:bg-slate-200 dark:hover:bg-slate-800 shadow-lg transition-all">
-                    {plan.cta}
-                  </button>
-                ) : (
-                  <Link href="/register"
-                    className="w-full block text-center py-4 rounded-xl font-bold text-sm uppercase tracking-widest bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {plan.features.map((f: string, fi: number) => (
+                      <li key={fi} className="flex items-start gap-3 text-sm font-semibold">
+                        <CheckCircle2 size={16} className={cn("shrink-0 mt-0.5", plan.highlight ? "text-blue-600" : "text-blue-400")} />
+                        <span className={plan.highlight ? "text-slate-700" : "text-slate-300"}>{f}</span>
+                      </li>
+                    ))}
+                    {plan.notIncluded && plan.notIncluded.map((f: string, fi: number) => (
+                      <li key={`n${fi}`} className="flex items-start gap-3 text-sm font-medium opacity-30">
+                        <X size={16} className="shrink-0 mt-0.5" />
+                        <span className="line-through">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href={plan.id ? `/register?plan=${plan.id}` : (plan.price === "Custom" ? "mailto:contact@ma-training.com" : "/register")}
+                    className={cn("w-full block text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105",
+                      plan.highlight
+                        ? "bg-slate-900 text-white hover:bg-blue-600 shadow-xl"
+                        : "bg-white/5 border border-white/10 text-white hover:bg-white/10")}>
                     {plan.cta}
                   </Link>
-                )}
-              </motion.div>
+                </motion.div>
+              </FadeIn>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Pay-Per-Session */}
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="mt-16 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{pricing.extras.title}</h3>
-            <p className="text-sm text-slate-500 mb-6">{pricing.extras.subtitle}</p>
-            <div className="grid md:grid-cols-3 gap-4">
-               {pricing.extras.items.map((ex, i) => {
-                 const basePrice = parseInt(ex.price.replace(/[^0-9]/g, "")) || 0;
-                 return (
-                   <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                     <div><p className="font-bold text-slate-900 dark:text-white text-sm">{ex.name}</p><p className="text-xs text-slate-400">{ex.desc}</p></div>
-                     <span className="text-lg font-serif font-bold text-blue-600">{getPrice(basePrice)}</span>
-                   </div>
-                 );
-               })}
-            </div>
-          </motion.div>
-
-          {/* Payment Methods */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mb-4">{pricing.paymentMethods.title}</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {pricing.paymentMethods.options.map((opt, i) => (
-                <span key={i} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
-                  {i === 0 ? <Calendar size={14} /> : i === 1 ? <CreditCard size={14} /> : i === 2 ? <DollarSign size={14} /> : <Zap size={14} />}
-                  {opt}
-                </span>
-              ))}
-            </div>
-            <div className="mt-6 space-y-2">
-              <p className="text-xs text-slate-400">{pricing.paymentNote}</p>
-              {currency !== "TND" && (
-                <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
-                  * {lang === "ar" ? "الأسعار المعروضة لا تشمل مصاريف التحويل البنكي (على حساب الحريف)" : lang === "fr" ? "Les prix affichés sont hors frais de transfert (à la charge du client)" : "Prices shown exclude transfer fees (responsibility of the client)"}
-                </p>
-              )}
-            </div>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 9 — FAQ                                                     */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="container mx-auto max-w-3xl">
+          <FadeIn className="text-center mb-16">
+            <span className="text-slate-500 font-bold text-xs uppercase tracking-[0.3em]">{t.faq.badge}</span>
+            <h2 className="text-4xl md:text-5xl font-black mt-4 tracking-tight">{t.faq.title}</h2>
+          </FadeIn>
+          <div className="space-y-4">
+            {t.faq.items.map((item, i) => (
+              <FadeIn key={i} delay={i * 0.06}>
+                <div className={cn("rounded-2xl border transition-all duration-300 overflow-hidden",
+                  openFaq === i ? "border-blue-500/30 bg-blue-500/5" : "border-white/[0.07] bg-white/2 hover:border-white/10")}>
+                  <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-center justify-between p-6 text-left">
+                    <span className={cn("font-bold text-sm", openFaq === i ? "text-white" : "text-slate-300")}>{item.q}</span>
+                    <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                      <ChevronDown className={cn("w-4 h-4 shrink-0", openFaq === i ? "text-blue-400" : "text-slate-600")} />
+                    </motion.div>
+                  </button>
+                  <motion.div initial={false} animate={{ height: openFaq === i ? "auto" : 0 }}
+                    transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }} className="overflow-hidden">
+                    <p className="px-6 pb-6 text-sm text-slate-400 leading-relaxed font-medium">{item.a}</p>
+                  </motion.div>
+                </div>
+              </FadeIn>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ SECTION 8: CONTRACT ═══════════════ */}
-      <section className="py-24 px-6 bg-slate-100 dark:bg-slate-900 overflow-hidden">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-serif text-slate-900 dark:text-white mb-4">{contract.title}</h2>
-            <p className="text-slate-500 font-light">{contract.subtitle}</p>
-          </div>
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-8">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500">{contract.nameLabel}</label>
-                  <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder={contract.namePlaceholder}
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500">{contract.dateLabel}</label>
-                  <div className="px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-500">{currentDate}</div>
-                </div>
-              </div>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 10 — FINAL CTA                                             */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-32 px-6 relative z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-b from-blue-950/30 to-indigo-950/30" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-blue-600/15 rounded-full blur-[100px]" />
+        <div className="container mx-auto max-w-3xl text-center relative z-10">
+          <FadeIn>
+            <div className="w-20 h-20 rounded-3xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mx-auto mb-10">
+              <Rocket className="w-10 h-10 text-blue-400" />
             </div>
-
-            <div ref={contractRef} data-contract-container="true" className="relative p-8 md:p-16 mx-auto max-w-3xl"
-              style={{ minHeight: "1000px", backgroundColor: "#fff", color: "#000", border: "1px solid #e2e8f0", borderRadius: "2px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}>
-              <div className="relative z-10 space-y-10 font-serif">
-                <div className="text-center pb-10" style={{ borderBottom: "2px solid #0f172a" }}>
-                  <div className="text-xl font-bold mb-2 tracking-[0.3em]" style={{ color: "#0f172a" }}>MA-TRAINING-CONSULTING</div>
-                  <h3 className="text-3xl font-black uppercase tracking-widest mb-4" style={{ color: "#020617" }}>{contract.docTitle}</h3>
-                  <p className="text-[10px] font-sans uppercase tracking-[0.4em]" style={{ color: "#64748b" }}>Ref: MA-TC-2026-HQ / AUTH-{contractId}</p>
-                </div>
-                <div className="p-8 rounded-lg text-sm font-bold font-sans leading-relaxed text-center" style={{ backgroundColor: "#f8fafc", border: "1px solid #f1f5f9", color: "#1e293b" }}>
-                  {contract.parties.replace("{{client}}", clientName || "....................")}
-                </div>
-                <div className="space-y-8 px-4">
-                  {contract.clauses.map((cl, idx) => (
-                    <div key={idx} className="space-y-2">
-                      <h4 className="font-black text-base uppercase font-sans pl-4" style={{ color: "#020617", borderLeft: "4px solid #0f172a" }}>{cl.title}</h4>
-                      <p className="text-sm leading-relaxed font-sans text-justify" style={{ color: "#334155" }}>{cl.text}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-16 grid grid-cols-2 gap-12" style={{ borderTop: "2px solid #0f172a" }}>
-                  <div className="space-y-6">
-                    <div className="h-24 flex items-center justify-center relative" style={{ borderBottom: "1px solid #94a3b8", backgroundColor: "#fdfdfd" }}>
-                      <div className="absolute top-[-10px] left-[-20px] transform -rotate-6 z-20 opacity-95 pointer-events-none">
-                        <svg width="200" height="80" viewBox="0 0 150 60" fill="none" className="text-blue-900/90">
-                          <path d="M10 45C30 40 50 15 70 25C90 35 110 5 140 15M20 50C40 45 60 40 100 42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M40 30C45 25 55 20 60 35C65 50 50 55 45 45C40 35 55 25 70 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                      <div id="contract-stamp" className="absolute opacity-90 transform -rotate-12 z-10 blur">
-                        <div className="w-44 h-22 border-[3px] rounded-xl flex flex-col items-center justify-center" style={{ borderColor: "#1e3a8a", color: "#1e3a8a", fontFamily: "serif" }}>
-                          <p className="text-lg font-black uppercase tracking-tighter leading-none mb-1">Sté MA</p>
-                          <p className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1.5">Training Consulting</p>
-                          <p className="text-[8px] font-bold leading-none mb-0.5">Tel: 44 172 264</p>
-                          <p className="text-[8px] font-bold leading-none">MF: 1805031P/A/M/000</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-black font-sans tracking-widest" style={{ color: "#020617" }}>MA-TRAINING-CONSULTING</p>
-                      <p className="text-[8px] font-sans tracking-tight" style={{ color: "#94a3b8" }}>Verified Corporate Entity • 2026</p>
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="h-24 flex flex-col items-center justify-center p-4 relative" style={{ border: "1px dashed #d1d5db", backgroundColor: "#f0f9ff", borderRadius: "4px" }}>
-                      {clientName ? (
-                        <>
-                          <div className="absolute top-0 right-0 p-1" style={{ color: "#1d4ed8" }}><span className="text-[10px] font-bold">✓ VERIFIED</span></div>
-                          <span className="text-2xl font-serif italic" style={{ color: "#1e3a8a", fontFamily: "cursive" }}>{clientName}</span>
-                          <div className="mt-2 flex flex-col items-center">
-                            <div className="text-[7px] font-mono font-bold uppercase tracking-tighter" style={{ color: "#3b82f6" }}>Digitally Authorized • ID: {authId}</div>
-                            <div className="text-[6px] mt-0.5" style={{ color: "#94a3b8" }}>TS: {currentTime} • IP: Verified</div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-[10px] font-sans italic" style={{ color: "#cbd5e1" }}>SIGNATURE AREA</div>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-black font-sans tracking-widest" style={{ color: "#020617" }}>Client Signature & Legal Consent</p>
-                      <p className="text-[8px] font-sans tracking-tight" style={{ color: "#94a3b8" }}>Acceptance of Consulting Mandate</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-20 text-center text-[8px] font-sans uppercase tracking-widest" style={{ color: "#94a3b8" }}>
-                  Generated via Secure Protocol • Verified Digital Asset • {currentTime}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-4">
-              <button onClick={handleDownloadContract} disabled={!clientName || isGenerating}
-                className={cn("w-full max-w-md px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-sm uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3",
-                  !clientName || isGenerating ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95")}>
-                {isGenerating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FileText size={18} />}
-                {isGenerating ? "..." : contract.cta}
-              </button>
-              {!clientName && <p className="text-xs text-amber-600 font-bold animate-pulse">{contract.nameRequired}</p>}
-            </div>
-          </motion.div>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-tight">{t.finalCta.title}</h2>
+            <p className="text-xl text-slate-400 font-light mb-12">{t.finalCta.sub}</p>
+            <Link href="/register"
+              className="inline-flex items-center gap-4 px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-2xl shadow-blue-600/30 mb-6">
+              {t.finalCta.cta} <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-sm text-slate-600 font-medium">{t.finalCta.note}</p>
+          </FadeIn>
         </div>
       </section>
 
-      {/* ═══════════════ SECTION 9: FINAL CTA ═══════════════ */}
-      <section className="py-24 bg-blue-600 text-white text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
-        <div className="container mx-auto px-6 max-w-4xl relative z-10">
-          <h2 className="text-4xl md:text-5xl font-serif mb-4">{finalCta.title}</h2>
-          <p className="text-xl text-blue-200 mb-10 font-light">{finalCta.subtitle}</p>
-          <Link href="/register"
-            className="inline-flex items-center gap-3 px-10 py-5 bg-white text-blue-600 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-blue-50 transition-colors shadow-xl hover:scale-105">
-            {finalCta.cta} <ArrowRight size={16} />
-          </Link>
-          <p className="text-xs text-blue-300 mt-6 font-medium">{finalCta.note}</p>
-        </div>
-      </section>
-
-      <ConsultingInquiryModal isOpen={isConsultingFormOpen} onClose={() => setIsConsultingFormOpen(false)} redirectToDashboard={true} />
     </div>
   );
 }

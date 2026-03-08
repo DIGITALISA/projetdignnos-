@@ -1234,9 +1234,11 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
                                 &ldquo;{report.finalVerdict}&rdquo;
                             </p>
                         </div>
-                        <div className="w-40 h-40 rounded-4xl bg-white/5 border border-white/10 flex flex-col items-center justify-center backdrop-blur-xl">
-                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">{currentLang === 'ar' ? "الوزن السوقي" : "Market Weight"}</div>
-                            <div className="text-5xl font-black">{report.marketValue}</div>
+                        <div className="shrink-0 min-w-[10rem] max-w-[18rem] p-6 md:p-8 rounded-4xl bg-white/5 border border-white/10 flex flex-col items-center justify-center backdrop-blur-xl text-center space-y-2">
+                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2">{currentLang === 'ar' ? "الوزن السوقي" : "Market Weight"}</div>
+                            <div className={cn("font-black leading-tight", report.marketValue && report.marketValue.length > 15 ? "text-xl md:text-2xl" : "text-4xl md:text-5xl")}>
+                                {report.marketValue}
+                            </div>
                         </div>
                     </div>
 
@@ -1784,10 +1786,10 @@ export default function ExecutiveDashboard() {
 
       {/* ── TOP HEADER BAR ── */}
       <div className="sticky top-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
+        <div className="w-full mx-auto px-4 py-4 flex flex-col xl:flex-row items-center justify-between gap-4 xl:gap-8">
 
           {/* Brand */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 w-full xl:w-auto justify-center xl:justify-start">
             <div className="w-9 h-9 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
               <Shield size={18} className="text-white" />
             </div>
@@ -1798,14 +1800,14 @@ export default function ExecutiveDashboard() {
           </div>
 
           {/* Module Tabs */}
-          <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 justify-center">
+          <nav className="flex flex-wrap items-center gap-2 flex-1 justify-center w-full">
             {MODULES.map((mod) => (
               <button
                 key={mod.id}
                 onClick={() => setActiveModule(mod.id)}
                 disabled={mod.locked}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest whitespace-nowrap",
+                  "flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap",
                   activeModule === mod.id
                     ? cn("border", colorMap[mod.color])
                     : mod.locked
@@ -1824,14 +1826,14 @@ export default function ExecutiveDashboard() {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center justify-center gap-3 shrink-0 w-full xl:w-auto">
             <button className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest shadow-xl hover:bg-black transition-all">
               <Sparkles size={12} className="text-amber-400" /> {currentLang === 'ar' ? "تحميل التقرير" : "Download PDF"}
             </button>
             <a href="/professional" className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900">
               {t_ui.back}
             </a>
-            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+            <div className="hidden xl:block h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
             <button
               onClick={async () => {
                 try {

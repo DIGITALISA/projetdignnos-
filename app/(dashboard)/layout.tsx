@@ -185,8 +185,18 @@ export default function DashboardLayout({
                 
                 // --- Redirect Professional Plan users ---
                 const isProfessionalPlan = profile.plan === "Professional";
+                const allowedProPaths = [
+                    "/professional",
+                    "/recommendation",
+                    "/attestations",
+                    "/certificate",
+                    "/strategic-report",
+                    "/performance-scorecard",
+                    "/resume-portfolio"
+                ];
+                const isAllowedPath = allowedProPaths.some(p => pathname.startsWith(p));
     
-                if (isProfessionalPlan && !pathname.startsWith("/professional") && !isAdmin) {
+                if (isProfessionalPlan && !isAllowedPath && !isAdmin) {
                     router.replace("/professional");
                     return;
                 }
@@ -236,18 +246,25 @@ export default function DashboardLayout({
         );
     }
 
-    const isProfessionalRoute = pathname?.startsWith("/professional");
+    const isProfessionalLayoutRoute = pathname?.startsWith("/professional");
+    // Only hide sidebar if they are on a document route AND in pro context, 
+    // OR if they are on /professional route directly
+    const isProDocRoute = ["/attestations", "/recommendation", "/strategic-report", "/certificate", "/resume-portfolio"].some(p => pathname?.startsWith(p));
+    const isProContext = profile?.plan === "Professional" || profile?.plan === "Pro Essential" || profile?.plan === "Unlimited" || 
+                         (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get("layout") === "pro");
+    
+    const hideSidebar = isProfessionalLayoutRoute || (isProDocRoute && isProContext);
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex" dir={dir}>
 
             {/* Sidebar */}
-            {!isProfessionalRoute && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
+            {!hideSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
 
             {/* Main Content Area */}
             <div className={cn(
                 "flex-1 flex flex-col min-h-screen transition-all duration-300",
-                !isProfessionalRoute && (dir === 'rtl' ? 'md:pr-72' : 'md:pl-72')
+                !hideSidebar && (dir === 'rtl' ? 'md:pr-72' : 'md:pl-72')
             )}>
                 
                 {/* Student Trial Banner */}
@@ -255,12 +272,13 @@ export default function DashboardLayout({
                  profile.plan === 'Student' && 
                  (profile.role === 'Free Tier' || profile.role === 'Trial User') && 
                  profile.activationType !== 'Unlimited' &&
-                 !isProfessionalRoute && (
+                 !isProfessionalLayoutRoute && (
                     <StudentTrialBanner profile={profile} dir={dir} language={dir === 'rtl' ? 'ar' : 'fr'} />
                 )}
 
                 {/* Unified Header */}
-                {!isProfessionalRoute && <Header onOpenSidebar={() => setIsSidebarOpen(true)} />}
+                {!isProfessionalLayoutRoute && <Header onOpenSidebar={() => setIsSidebarOpen(true)} />}
+
 
                 {/* Main Content */}
                 <main className="flex-1 overflow-x-hidden">

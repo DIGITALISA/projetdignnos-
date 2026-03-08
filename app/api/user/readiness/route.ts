@@ -100,14 +100,24 @@ export async function GET(req: Request) {
         }
     }
 
+    // --- PROFESSIONAL PLAN LOGIC ---
+    let proReady = false;
+    if (user?.plan === "Professional") {
+        const proProg = user.professionalProgress as { phase?: number };
+        // If they reached phase 9 or have it marked as current/completed
+        if (proProg?.phase && proProg.phase >= 9) {
+            proReady = true;
+        }
+    }
+
     // PROGRESSIVE LOGIC (The "Hierarchy")
     // ... (rest of the steps logic below)
 
     // LEGACY & OVERRIDES SUPPORT
-    const sciReady = user?.canAccessSCI || hasSCI || studentSciReady;
-    const certReady = user?.canAccessCertificates || studentCertReady;
-    const recReady = user?.canAccessRecommendations || studentCertReady;
-    const scorecardReady = user?.canAccessScorecard || studentScorecardReady;
+    const sciReady = user?.canAccessSCI || hasSCI || studentSciReady || proReady;
+    const certReady = user?.canAccessCertificates || studentCertReady || proReady;
+    const recReady = user?.canAccessRecommendations || studentCertReady || proReady;
+    const scorecardReady = user?.canAccessScorecard || studentScorecardReady || proReady;
 
     const steps = [
         { id: 'diagnosis', label: 'Initial Diagnosis', isComplete: hasDiagnosis, isLocked: false },

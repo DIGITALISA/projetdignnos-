@@ -52,7 +52,11 @@ export default function AcademyPage() {
         try {
             const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
             const userId = userProfile.email || userProfile.fullName;
-            const res = await fetch(`/api/user/academy?userId=${encodeURIComponent(userId)}&language=${language}`);
+            const res = await fetch(`/api/user/academy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, language })
+            });
             const data = await res.json();
             if (data.success) {
                 setStructure(data.structure);

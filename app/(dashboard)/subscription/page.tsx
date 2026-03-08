@@ -8,23 +8,43 @@ import ConsultingInquiryModal from "@/components/modals/ConsultingInquiryModal";
 
 const plans = [
     {
-        name: "Student Full Access",
-        badge: "Spécial Étudiant 🎓",
-        price: "150 DT",
-        duration: "Par An",
-        description: "Accès illimité à tous les modules bloqués pour les étudiants après 3h.",
+        name: "Pack Standard",
+        badge: "Accès Essentiel 🚀",
+        price: "100 DT",
+        duration: "Pour 6 Mois",
+        description: "Utilisation illimitée des modèles d'IA et accès aux ressources.",
         features: [
-            "Rapports Stratégiques illimités",
-            "Accès permanent à l'Académie & Mentor IA",
-            "Missions de Simulation illimitées",
-            "Documents Officiels & Attestations",
-            "Accès au Centre de Ressources",
-            "Support Expert Prioritaire"
+            "Modèles d'IA en illimité",
+            "Accès complet aux Ressources & Mentor",
+            "Sessions Experts & Ateliers (Payant par session)",
+            "Role Simulations (Payant par mission)",
+            "Documents & Attestations (Achat externe)"
         ],
-        type: "Student",
-        color: "amber",
+        type: "Standard",
+        color: "blue",
+        icon: Globe,
+        popular: false,
+        topBadge: undefined
+    },
+    {
+        name: "Pack Pro",
+        badge: "Accès Exécutif 🌟",
+        price: "Sur Devis",
+        duration: "Après Diagnostic",
+        description: "Accès illimité à la plateforme avec élaboration et exécution d'un plan stratégique de carrière sur mesure.",
+        features: [
+            "Accès total à tous les modules IA",
+            "Sessions avec Experts & Ateliers inclus",
+            "Missions de Simulation de Rôles incluses",
+            "Tous les Documents & Attestations",
+            "Plan Stratégique de Carrière Personnalisé",
+            "Accompagnement & Exécution du Plan"
+        ],
+        type: "Pro",
+        color: "indigo",
         icon: Shield,
-        popular: true
+        popular: true,
+        topBadge: "Pack Pro 🔥"
     }
 ];
 
@@ -74,7 +94,7 @@ export default function SubscriptionPage() {
                 </div>
 
                 {/* Plans Grid */}
-                <div className="flex justify-center max-w-lg mx-auto">
+                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     {plans.map((plan, idx) => {
                         const isCurrent = userProfile?.role === plan.type || (plan.type === 'Free Trial' && userProfile?.role === 'Trial User');
 
@@ -91,8 +111,8 @@ export default function SubscriptionPage() {
                                 )}
                             >
                                 {plan.popular && (
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
-                                        Best Value 🔥
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg whitespace-nowrap">
+                                        {plan.topBadge || "Best Value 🔥"}
                                     </div>
                                 )}
 

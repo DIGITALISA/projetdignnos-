@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Award, Calendar, ChevronRight, FileText, Sparkles, Building2, Download } from "lucide-react";
+import { Award, Calendar, ChevronRight, FileText, Sparkles, Building2, Download, ArrowLeft } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -20,6 +20,8 @@ function DiplomasContent() {
     const [isLoading, setIsLoading] = useState(true);
     const searchParams = useSearchParams();
     const userId = searchParams.get("userId");
+    const layout = searchParams.get("layout");
+    const isPro = layout === "pro";
 
     useEffect(() => {
         const fetchDiplomas = async () => {
@@ -64,6 +66,17 @@ function DiplomasContent() {
     return (
         <div className="min-h-screen bg-slate-50/50 pb-20">
             <div className="max-w-6xl mx-auto px-4 pt-12 space-y-10">
+                {/* Back Button */}
+                {isPro && (
+                    <Link 
+                        href="/professional/performance-studio"
+                        className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors font-black text-[10px] uppercase tracking-[0.2em] group"
+                    >
+                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                        Back to Executive Studio
+                    </Link>
+                )}
+
                 {/* Header Section */}
                 <div className="relative overflow-hidden bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white shadow-2xl">
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -139,7 +152,7 @@ function DiplomasContent() {
                                                 </div>
                                             </div>
                                             <Link 
-                                                href={`/attestations/certificate?userId=${userId || ''}&activeWorkshop=${encodeURIComponent(att.workshopTitle)}&ref=${att.referenceId}&date=${new Date(att.issueDate).getTime()}`}
+                                                href={`/attestations/certificate?userId=${userId || ''}&activeWorkshop=${encodeURIComponent(att.workshopTitle)}&ref=${att.referenceId}&date=${new Date(att.issueDate).getTime()}${isPro ? '&layout=pro&hideInternalHeader=true' : ''}`}
                                                 className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all"
                                             >
                                                 <ChevronRight size={24} />
@@ -189,9 +202,9 @@ function DiplomasContent() {
                             </div>
                         </div>
 
-                        <Link href="/training" className="block p-8 bg-blue-600 rounded-4xl text-white hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 group">
-                            <h3 className="text-lg font-black uppercase tracking-tight italic">Enroll in more Workshops</h3>
-                            <p className="text-blue-200/80 text-xs font-bold mt-2 uppercase tracking-widest">Grow your strategic collection <ChevronRight size={14} className="inline group-hover:translate-x-1 transition-transform" /></p>
+                        <Link href={isPro ? "/professional/performance-studio" : "/training"} className="block p-8 bg-blue-600 rounded-4xl text-white hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 group">
+                            <h3 className="text-lg font-black uppercase tracking-tight italic">{isPro ? "Back to your Studio" : "Enroll in more Workshops"}</h3>
+                            <p className="text-blue-200/80 text-xs font-bold mt-2 uppercase tracking-widest">{isPro ? "Return to your performance dashboard" : "Grow your strategic collection"} <ChevronRight size={14} className="inline group-hover:translate-x-1 transition-transform" /></p>
                         </Link>
                     </div>
                 </div>

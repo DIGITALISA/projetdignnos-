@@ -72,6 +72,12 @@ export default function RoadmapPage() {
     const [activeMilestone, setActiveMilestone] = useState<number>(0);
     const [isUsed, setIsUsed] = useState(false);
     const [isStudentFreeTrial, setIsStudentFreeTrial] = useState(false);
+    
+    // New Form States
+    const [shouldShowForm, setShouldShowForm] = useState(true);
+    const [currentJob, setCurrentJob] = useState("");
+    const [tasksDone, setTasksDone] = useState("");
+    const [futureJob, setFutureJob] = useState("");
 
     // Check if user is Student Free Trial and if ai-path was already used
     useEffect(() => {
@@ -99,7 +105,7 @@ export default function RoadmapPage() {
             const response = await fetch('/api/user/roadmap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, language })
+                body: JSON.stringify({ userId, language, currentJob, tasksDone, futureJob })
             });
 
             const data = await response.json();
@@ -108,6 +114,7 @@ export default function RoadmapPage() {
                     ...data.roadmap,
                     support: data.support
                 });
+                setShouldShowForm(false);
                 // Load completed steps from localStorage
                 const savedProgress = localStorage.getItem(`roadmap_progress_${userId}`);
                 if (savedProgress) {
@@ -133,8 +140,11 @@ export default function RoadmapPage() {
         }
     };
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { fetchRoadmap(); }, []);
+    // Do not auto-fetch on mount, let user fill the form
+    useEffect(() => { 
+        // We can check if a roadmap already exists in localStorage or similar, but for now we'll require the form
+        setLoading(false); 
+    }, []);
 
     const toggleStep = (id: number) => {
         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
@@ -167,7 +177,92 @@ export default function RoadmapPage() {
         );
     }
 
-    if (!roadmap) return null;
+    if (!roadmap || shouldShowForm) {
+        return (
+            <TrialGate module="strategic-roadmap" moduleHref="/roadmap" dir={dir}>
+                <div className={`min-h-[80vh] flex items-center justify-center p-6 ${dir === 'rtl' ? 'font-arabic' : ''}`} dir={dir}>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white max-w-2xl w-full p-10 rounded-[2.5rem] shadow-2xl border border-blue-100"
+                    >
+                        <div className="text-center mb-10 space-y-4">
+                            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                                <Target size={32} />
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">
+                                {dir === 'rtl' ? 'تحليل مسارك المهني التفصيلي' : 'Detailed Career Analysis'}
+                            </h2>
+                            <p className="text-slate-500 font-medium">
+                                {dir === 'rtl' 
+                                    ? 'لتقديم خارطة طريق احترافية وواقعية لك، يرجى تزويدنا بالتفاصيل الدقيقة لمهنتك ومهامك وأهدافك المستقبلية.'
+                                    : 'To provide a highly professional and realistic roadmap, please provide detailed information about your current state and future goals.'}
+                            </p>
+                        </div>
+
+                        <form onSubmit={(e) => { e.preventDefault(); fetchRoadmap(); }} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className={cn("block text-sm font-bold text-slate-700 uppercase tracking-wide", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                                    {dir === 'rtl' ? 'منصبك الحالي (أو طالب / باحث عن عمل)' : 'Current Position (or Student/Jobseeker)'}
+                                </label>
+                                <input
+                                    required
+                                    type="text"
+                                    value={currentJob}
+                                    onChange={e => setCurrentJob(e.target.value)}
+                                    className={cn("w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all", dir === 'rtl' ? 'text-right' : 'text-left')}
+                                    placeholder={dir === 'rtl' ? 'مثال: مهندس برمجيات، طالب جامعي...' : 'e.g., Software Engineer, University Student...'}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className={cn("block text-sm font-bold text-slate-700 uppercase tracking-wide", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                                    {dir === 'rtl' ? 'تفاصيل مهامك أو دراساتك (ماذا تفعل بالضبط؟)' : 'Details of your tasks or studies (What do you actually do?)'}
+                                </label>
+                                <textarea
+                                    required
+                                    value={tasksDone}
+                                    onChange={e => setTasksDone(e.target.value)}
+                                    rows={4}
+                                    className={cn("w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all resize-none", dir === 'rtl' ? 'text-right' : 'text-left')}
+                                    placeholder={dir === 'rtl' ? 'اذكر المهام التي تقوم بها يومياً أو المشاريع التي عملت عليها...' : 'Mention the daily tasks or projects you worked on...'}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className={cn("block text-sm font-bold text-slate-700 uppercase tracking-wide", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                                    {dir === 'rtl' ? 'المنصب الذي تتوقع وتحلم بالوصول إليه بعد 3 سنوات' : 'The position you expect and dream to reach in 3 years'}
+                                </label>
+                                <input
+                                    required
+                                    type="text"
+                                    value={futureJob}
+                                    onChange={e => setFutureJob(e.target.value)}
+                                    className={cn("w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all", dir === 'rtl' ? 'text-right' : 'text-left')}
+                                    placeholder={dir === 'rtl' ? 'مثال: مدير تقني، رائد أعمال...' : 'e.g., Technical Director, Entrepreneur...'}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || !currentJob || !tasksDone || !futureJob || (isStudentFreeTrial && isUsed)}
+                                className="w-full mt-6 px-8 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl"
+                            >
+                                {loading && <Loader2 size={18} className="animate-spin" />}
+                                {dir === 'rtl' ? 'توليد خارطة الطريق الاحترافية' : 'Generate Professional Roadmap'} <Zap size={18} className={dir === 'rtl' ? 'rotate-180': ''}/>
+                            </button>
+                            
+                            {isStudentFreeTrial && isUsed && (
+                                <p className="text-red-500 text-xs font-bold text-center italic mt-2">
+                                    {dir === 'rtl' ? 'لقد استنفدت المحاولة المجانية لهذا القسم.' : 'You have exhausted the free trial for this module.'}
+                                </p>
+                            )}
+                        </form>
+                    </motion.div>
+                </div>
+            </TrialGate>
+        );
+    }
 
     return (
         <TrialGate 

@@ -166,6 +166,68 @@ interface StrategicReport {
   strategicRadar?: Record<string, number>;
 }
 
+interface StudentExpertReport {
+  reportType?: string;
+  reportTitle?: string;
+  executiveSummary?: string;
+  currentLevelAssessment?: {
+    overallLevel?: string;
+    motivationLevel?: string;
+    levelJustification?: string;
+  };
+  trainerActionPlan?: {
+    session1Focus?: string;
+    keyQuestionToExplore?: string;
+  };
+  competencyMap?: {
+    technicalSkillsScore?: number;
+    softSkillsScore?: number;
+    criticalGaps?: string[];
+  };
+  finalVerdict?: string;
+}
+
+interface ProfessionalExpertReport {
+  reportType?: string;
+  reportTitle?: string;
+  executiveBrief?: string;
+  executiveAuthorityProfile?: {
+    authorityScore?: number;
+    authorityLevel?: string;
+    professionalDNA?: string;
+    marketPerceptionGap?: string;
+    executivePresenceRating?: string;
+    leadershipStyleSignature?: string;
+  };
+  strategicCapabilityAssessment?: Record<string, unknown>;
+  marketAndCareerIntelligence?: {
+    currentMarketValue?: string;
+    potentialMarketValue?: string;
+    topTargetRoles?: string[];
+    rollesToAvoidNow?: string[];
+    sectorPositioning?: string;
+    timeToNextLevel?: string;
+  };
+  visionFeasibilityAnalysis?: {
+    statedVision?: string;
+    visionFeasibilityScore?: number;
+    visionFeasibilityVerdict?: string;
+    criticalPathBlockers?: string[];
+    visionAccelerators?: string[];
+  };
+  strategicInterventionPlan?: {
+    phase1_Immediate?: { timeframe?: string; focus?: string; specificActions?: string[] };
+    phase2_ShortTerm?: { timeframe?: string; focus?: string; specificActions?: string[] };
+    phase3_MediumTerm?: { timeframe?: string; focus?: string; specificActions?: string[] };
+  };
+  advisorIntelligenceNotes?: {
+    keyUnlockQuestion?: string;
+    negotiationLeverage?: string;
+    redFlagWarnings?: string[];
+  };
+  confidentialVerdict?: string;
+}
+
 interface DiagnosisInterface {
   analysis?: {
     overview?: string;
@@ -211,6 +273,11 @@ interface DiagnosisInterface {
     report: string;
     generatedAt: string | Date;
   };
+  studentExpertReport?: StudentExpertReport;
+  studentExpertReportGeneratedAt?: string | Date;
+  professionalExpertReport?: ProfessionalExpertReport;
+  professionalExpertReportGeneratedAt?: string | Date;
+  auditResult?: Record<string, unknown>;
 }
 
 interface AggregatedData {
@@ -348,7 +415,7 @@ function ProfessionalReviewBoard({ report, diagnosis }: { report: StrategicRepor
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-gradient-to-br from-slate-900 to-black rounded-4xl p-8 text-white shadow-2xl space-y-6">
+              <div className="bg-linear-to-br from-slate-900 to-black rounded-4xl p-8 text-white shadow-2xl space-y-6">
                 <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Verdict Final</div>
                 <p className="text-lg font-bold leading-relaxed text-slate-200">&ldquo;{report.finalVerdict}&rdquo;</p>
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
@@ -411,20 +478,20 @@ function ProfessionalReviewBoard({ report, diagnosis }: { report: StrategicRepor
                     <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Audit Initial du Candidat</h3>
                   </div>
                   
-                  {/* @ts-ignore */}
+                  {/* @ts-expect-error - originalData is untyped */}
                   {diagnosis?.analysis?.originalData ? (
                     <div className="space-y-6">
                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Secteurs & Domaines</p>
-                        {/* @ts-ignore */}
+                        {/* @ts-expect-error - originalData is untyped */}
                         <p className="text-sm font-bold text-slate-700">{diagnosis.analysis.originalData.sectors || "N/A"}</p>
                       </div>
                       
                       <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Postes Occupés / Durée</p>
                         <div className="space-y-2">
-                          {/* @ts-ignore */}
-                          {diagnosis.analysis.originalData.positions?.map((pos: any, i: number) => (
+                          {/* @ts-expect-error - originalData is untyped */}
+                          {diagnosis.analysis.originalData.positions?.map((pos: { title: string, duration: string }, i: number) => (
                             <div key={i} className="text-xs font-bold text-slate-600 flex justify-between">
                               <span>{pos.title}</span>
                               <span className="text-indigo-600">{pos.duration}</span>
@@ -435,7 +502,7 @@ function ProfessionalReviewBoard({ report, diagnosis }: { report: StrategicRepor
 
                       <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100">
                         <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">Vision à 3-5 ans</p>
-                        {/* @ts-ignore */}
+                        {/* @ts-expect-error - originalData is untyped */}
                         <p className="text-xs font-medium text-slate-700 leading-relaxed italic">&ldquo;{diagnosis.analysis.originalData.vision}&rdquo;</p>
                       </div>
                     </div>
@@ -448,12 +515,12 @@ function ProfessionalReviewBoard({ report, diagnosis }: { report: StrategicRepor
                   <h3 className="text-lg font-black uppercase tracking-tight text-white flex items-center gap-3">
                     <FileText className="text-amber-400" size={20} /> Career Story / Narrative
                   </h3>
-                  {/* @ts-ignore */}
+                  {/* @ts-expect-error - originalData is untyped */}
                   {diagnosis?.analysis?.originalData?.careerStory ? (
                     <div className="relative">
                       <div className="absolute top-0 left-0 w-1 h-full bg-amber-400/30 rounded-full" />
                       <p className="pl-6 text-sm text-slate-300 leading-relaxed font-medium italic">
-                        {/* @ts-ignore */}
+                        {/* @ts-expect-error - originalData is untyped */}
                         &ldquo;{diagnosis.analysis.originalData.careerStory}&rdquo;
                       </p>
                     </div>
@@ -481,7 +548,7 @@ function ProfessionalReviewBoard({ report, diagnosis }: { report: StrategicRepor
                   return (
                     <div key={key} className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 capitalize">{key}</span>
+                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">{key}</span>
                         <span className="text-sm font-black text-slate-900">{val as number}<span className="text-slate-400">/10</span></span>
                       </div>
                       <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -1124,6 +1191,35 @@ export default function UserProfileReview() {
     }
   };
 
+  const [isGeneratingExpertReport, setIsGeneratingExpertReport] = useState(false);
+  const handleGenerateExpertReport = async (plan: string) => {
+    setIsGeneratingExpertReport(true);
+    try {
+      const endpoint = plan === "Professional" 
+        ? "/api/expert/professional-report" 
+        : "/api/expert/student-report";
+        
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, language: "fr" }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Expert Review Report generated successfully!");
+        window.location.reload();
+      } else {
+        alert("Generation failed: " + data.error);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("System error during expert report generation");
+    } finally {
+      setIsGeneratingExpertReport(false);
+    }
+  };
+
   const [isHandlingReset, setIsHandlingReset] = useState(false);
   const handleResetAction = async (action: "approve" | "reject") => {
     if (
@@ -1267,6 +1363,9 @@ export default function UserProfileReview() {
           comprehensiveReport: userData.user.diagnosisData.comprehensiveReport,
           comprehensiveReportGeneratedAt:
             userData.user.diagnosisData.comprehensiveReportGeneratedAt,
+          studentExpertReport: (userData.user.diagnosisData as Record<string, unknown>).studentExpertReport as StudentExpertReport | undefined,
+          professionalExpertReport: (userData.user.diagnosisData as Record<string, unknown>).professionalExpertReport as ProfessionalExpertReport | undefined,
+          auditResult: (userData.user.diagnosisData as Record<string, unknown>).auditResult,
         } as DiagnosisInterface)
       : null;
 
@@ -2488,6 +2587,231 @@ export default function UserProfileReview() {
           )}>
             {userData.user?.plan || "Plan"}
           </div>
+        </div>
+
+        {/* ======== EXPERT REPORT RENDERING ======== */}
+        <div className="mb-12">
+            {!isProfessionalPlan && diagnosis?.studentExpertReport && (
+                <div className="bg-linear-to-br from-emerald-900 to-emerald-950 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden border border-emerald-800">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]" />
+                    <div className="flex items-center gap-4 mb-8 relative z-10">
+                        <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-400/30">
+                            <GraduationCap className="text-emerald-400 w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="text-3xl font-black tracking-tight">{diagnosis.studentExpertReport.reportTitle}</h3>
+                            <p className="text-emerald-400 font-bold text-sm">INTERNAL TRAINER EDITION</p>
+                        </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-8 relative z-10">
+                        <div className="space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-3">Executive Summary</h4>
+                                <p className="text-sm font-medium leading-relaxed">{diagnosis.studentExpertReport.executiveSummary}</p>
+                            </div>
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm space-y-4">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Level Assessment</h4>
+                                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                                    <span className="text-xs text-slate-400">Overall Level</span>
+                                    <span className="text-sm font-black text-emerald-400">{diagnosis.studentExpertReport.currentLevelAssessment?.overallLevel}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                                    <span className="text-xs text-slate-400">Motivation</span>
+                                    <span className="text-sm font-black text-emerald-400">{diagnosis.studentExpertReport.currentLevelAssessment?.motivationLevel}</span>
+                                </div>
+                                <div className="text-xs text-slate-300 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
+                                    &quot;{diagnosis.studentExpertReport.currentLevelAssessment?.levelJustification}&quot;
+                                </div>
+                            </div>
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-3">Trainer Action Plan</h4>
+                                <div className="space-y-3">
+                                    <div>
+                                        <span className="text-[9px] uppercase tracking-widest text-emerald-500 block mb-1">Session 1 Focus</span>
+                                        <p className="text-xs font-medium text-slate-300">{diagnosis.studentExpertReport.trainerActionPlan?.session1Focus}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-[9px] uppercase tracking-widest text-amber-500 block mb-1">Key Unlock Question</span>
+                                        <p className="text-xs font-medium text-slate-200 bg-black/20 p-2 rounded-lg border border-white/5 italic">&quot;{diagnosis.studentExpertReport.trainerActionPlan?.keyQuestionToExplore}&quot;</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-4">Competency Map</h4>
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                                            <span>Technical</span>
+                                            <span>{diagnosis.studentExpertReport.competencyMap?.technicalSkillsScore}%</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div className="bg-emerald-500 h-full rounded-full" style={{width: `${diagnosis.studentExpertReport.competencyMap?.technicalSkillsScore}%`}}></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                                            <span>Soft Skills</span>
+                                            <span>{diagnosis.studentExpertReport.competencyMap?.softSkillsScore}%</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div className="bg-blue-500 h-full rounded-full" style={{width: `${diagnosis.studentExpertReport.competencyMap?.softSkillsScore}%`}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-6 space-y-2">
+                                    <p className="text-[9px] uppercase tracking-widest text-slate-400 mb-1">Critical Gaps</p>
+                                    {diagnosis.studentExpertReport.competencyMap?.criticalGaps?.map((gap: string, i: number) => (
+                                        <div key={i} className="flex gap-2 text-xs text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20">
+                                            <AlertCircle size={14} className="shrink-0 text-rose-400 mt-0.5" /> {gap}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="bg-emerald-500/20 p-6 rounded-3xl border border-emerald-400/30 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-2">Final Verdict</h4>
+                                <p className="text-sm font-bold text-white leading-relaxed">&quot;{diagnosis.studentExpertReport.finalVerdict}&quot;</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isProfessionalPlan && diagnosis?.professionalExpertReport && (
+                <div className="bg-linear-to-br from-indigo-950 via-slate-900 to-black p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden border border-indigo-900/50">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px]" />
+                    <div className="flex items-center gap-4 mb-8 relative z-10">
+                        <div className="w-14 h-14 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-400/30">
+                            <Shield className="text-indigo-400 w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="text-3xl font-black tracking-tight">{diagnosis.professionalExpertReport.reportTitle}</h3>
+                            <p className="text-indigo-400 font-bold text-sm tracking-widest uppercase">EXECUTIVE ADVISOR EDITION</p>
+                        </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-8 relative z-10">
+                        <div className="space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-3">Executive Brief</h4>
+                                <p className="text-sm font-medium leading-relaxed">{diagnosis.professionalExpertReport.executiveBrief}</p>
+                            </div>
+                            
+                            <div className="bg-linear-to-br from-indigo-900/40 to-violet-900/40 p-6 rounded-3xl border border-indigo-500/20 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-4">Authority & Market Value</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span className="text-[9px] uppercase tracking-widest text-slate-400">Authority Score</span>
+                                        <div className="text-3xl font-black text-white">{diagnosis.professionalExpertReport.executiveAuthorityProfile?.authorityScore}<span className="text-slate-500 text-lg">/100</span></div>
+                                    </div>
+                                    <div>
+                                        <span className="text-[9px] uppercase tracking-widest text-slate-400">Current Value</span>
+                                        <div className="text-sm font-bold text-emerald-400 mt-1">{diagnosis.professionalExpertReport.marketAndCareerIntelligence?.currentMarketValue}</div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-white/10">
+                                    <span className="text-[9px] uppercase tracking-widest text-slate-400">Professional DNA</span>
+                                    <div className="text-sm font-black text-indigo-300 mt-1 uppercase">{diagnosis.professionalExpertReport.executiveAuthorityProfile?.professionalDNA}</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-3">Vision Feasibility</h4>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs font-bold">{diagnosis.professionalExpertReport.visionFeasibilityAnalysis?.visionFeasibilityVerdict}</span>
+                                    <span className="text-lg font-black">{diagnosis.professionalExpertReport.visionFeasibilityAnalysis?.visionFeasibilityScore}/100</span>
+                                </div>
+                                <p className="text-[10px] text-slate-400 italic mb-4">&quot;{diagnosis.professionalExpertReport.visionFeasibilityAnalysis?.statedVision}&quot;</p>
+                                
+                                <div className="space-y-2">
+                                    <span className="text-[9px] uppercase tracking-widest text-rose-400 mb-1 block">Critical Blockers</span>
+                                    {diagnosis.professionalExpertReport.visionFeasibilityAnalysis?.criticalPathBlockers?.map((b: string, i: number) => (
+                                        <div key={i} className="text-xs text-rose-200 bg-rose-900/20 px-3 py-1.5 rounded-lg border border-rose-900/30">
+                                            ✕ {b}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-4">Strategic Intervention Plan</h4>
+                                <div className="space-y-4">
+                                    <div className="border-l-2 border-rose-500 pl-4 py-1">
+                                        <span className="text-[10px] font-black tracking-widest text-rose-400 uppercase">Phase 1: {diagnosis.professionalExpertReport.strategicInterventionPlan?.phase1_Immediate?.timeframe}</span>
+                                        <div className="text-sm font-bold text-white mb-2">{diagnosis.professionalExpertReport.strategicInterventionPlan?.phase1_Immediate?.focus}</div>
+                                        <ul className="text-xs text-slate-400 space-y-1 list-disc ml-3">
+                                            {diagnosis.professionalExpertReport.strategicInterventionPlan?.phase1_Immediate?.specificActions?.map((a: string, i: number) => <li key={i}>{a}</li>)}
+                                        </ul>
+                                    </div>
+                                    <div className="border-l-2 border-amber-500 pl-4 py-1">
+                                        <span className="text-[10px] font-black tracking-widest text-amber-400 uppercase">Phase 2: {diagnosis.professionalExpertReport.strategicInterventionPlan?.phase2_ShortTerm?.timeframe}</span>
+                                        <div className="text-sm font-bold text-white">{diagnosis.professionalExpertReport.strategicInterventionPlan?.phase2_ShortTerm?.focus}</div>
+                                    </div>
+                                    <div className="border-l-2 border-emerald-500 pl-4 py-1">
+                                        <span className="text-[10px] font-black tracking-widest text-emerald-400 uppercase">Phase 3: {diagnosis.professionalExpertReport.strategicInterventionPlan?.phase3_MediumTerm?.timeframe}</span>
+                                        <div className="text-sm font-bold text-white">{diagnosis.professionalExpertReport.strategicInterventionPlan?.phase3_MediumTerm?.focus}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-3">Advisor Intelligence Notes</h4>
+                                <div className="space-y-3">
+                                    <div>
+                                        <span className="text-[9px] uppercase tracking-widest text-amber-400 block mb-1">Key Unlock Question</span>
+                                        <p className="text-xs text-slate-300 italic">&quot;{diagnosis.professionalExpertReport.advisorIntelligenceNotes?.keyUnlockQuestion}&quot;</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-[9px] uppercase tracking-widest text-emerald-400 block mb-1">Negotiation Leverage</span>
+                                        <p className="text-xs text-white font-medium">{diagnosis.professionalExpertReport.advisorIntelligenceNotes?.negotiationLeverage}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-indigo-600/20 p-6 rounded-3xl border border-indigo-400/30 backdrop-blur-sm">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">Confidential Verdict</h4>
+                                <p className="text-sm font-bold text-white leading-relaxed">&quot;{diagnosis.professionalExpertReport.confidentialVerdict}&quot;</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Generate buttons if reports are missing */}
+            {((!isProfessionalPlan && !diagnosis?.studentExpertReport) || (isProfessionalPlan && !diagnosis?.professionalExpertReport)) && (
+                <div className="p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[3rem] text-center flex flex-col items-center gap-4">
+                    <ShieldCheck className="w-12 h-12 text-slate-300" />
+                    <div>
+                        <h4 className="font-bold text-slate-700">Expert Review Report</h4>
+                        <p className="text-sm text-slate-500">Generate a comprehensive, actionable intelligence brief designed specifically for {isProfessionalPlan ? "Professional Executives" : "Student Trainers"}.</p>
+                    </div>
+                    
+                    {/* Only allow generation if minimum data is met: Audit for professionnal, General for student */}
+                    {isProfessionalPlan && !diagnosis?.auditResult && !diagnosis?.ultimateStrategicReport ? (
+                         <div className="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-xs font-black uppercase">
+                            Warning: Executive lacks the necessary strategic audit data.
+                         </div>
+                    ) : (
+                        <button 
+                            onClick={() => handleGenerateExpertReport(userData.user?.plan || "Student")}
+                            disabled={isGeneratingExpertReport}
+                            className={cn(
+                                "px-6 py-3 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg disabled:opacity-50 mt-2 flex items-center gap-2",
+                                isProfessionalPlan ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
+                            )}
+                        >
+                            {isGeneratingExpertReport ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                            Generate Expert Report
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
 
         {isProfessionalPlan ? (

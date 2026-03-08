@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles, Mail } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle, Lock, ArrowLeft, Video, Loader2, Calendar, User, ArrowRight, Plus, Minus, Users, Sparkles, Mail, Award } from "lucide-react";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
@@ -245,6 +246,26 @@ export default function TrainingPage() {
                     {t.workshops.subtitle}
                 </p>
             </div>
+
+            {/* ── Attestation Quick-Access Badge ── */}
+            <Link
+                href="/attestations"
+                className="flex items-center justify-between p-5 bg-white border border-amber-200 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-300 transition-all group mb-8"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                        <Award size={22} />
+                    </div>
+                    <div>
+                        <p className="text-sm font-black text-slate-900 uppercase tracking-widest">{t.workshops.accreditationTitle || "My Attestations"}</p>
+                        <p className="text-xs text-slate-400 font-medium mt-0.5">{t.workshops.accreditationDesc || "View and download your issued workshop certificates"}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-xs font-black uppercase tracking-widest border border-amber-200 group-hover:bg-amber-500 group-hover:text-white group-hover:border-amber-500 transition-all">
+                    View All
+                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
+            </Link>
 
             {isLoading ? (
                 <div className="py-20 text-center">

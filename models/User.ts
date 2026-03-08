@@ -96,6 +96,9 @@ const UserSchema = new Schema(
     diagnosisData: {
       type: Schema.Types.Mixed,
     },
+    professionalProgress: {
+      type: Schema.Types.Mixed,
+    },
     selectedRole: {
       type: String,
     },

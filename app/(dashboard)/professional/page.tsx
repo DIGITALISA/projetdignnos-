@@ -25,6 +25,8 @@ import {
   MessageSquare,
   TrendingUp,
   BarChart3,
+  AlertTriangle,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -700,20 +702,26 @@ function ExpertInterview({
 
   if (finalizing) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="relative">
-          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-spin border-t-blue-600" />
+          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_3s_linear_infinite] border-t-blue-600 shadow-[0_0_40px_rgba(37,99,235,0.2)]" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Cpu className="text-blue-600 w-16 h-16 animate-pulse" />
+            <div className="w-32 h-32 rounded-full bg-blue-500/10 flex items-center justify-center backdrop-blur-sm border border-blue-500/20">
+                <Cpu className="text-blue-500 w-12 h-12 animate-pulse" />
+            </div>
           </div>
         </div>
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-black uppercase tracking-tight">
+        <div className="text-center space-y-5 relative z-10">
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-blue-600 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
             {t.finalizing}
           </h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.4em]">
-            {t.analysisStep}
-          </p>
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.4em]">
+                {t.analysisStep}
+              </p>
+          </div>
         </div>
       </div>
     );
@@ -725,25 +733,33 @@ function ExpertInterview({
       animate={{ opacity: 1 }}
       className="max-w-3xl mx-auto space-y-8 py-8"
     >
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-black uppercase tracking-tight">
+      <div className="text-center space-y-4 relative z-10">
+        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
           {t.title}
         </h2>
-        <p className="text-slate-500 font-medium px-4">{t.subtitle}</p>
+        <p className="text-lg md:text-xl text-slate-500 font-medium px-4 max-w-2xl mx-auto tracking-wide">{t.subtitle}</p>
       </div>
 
-      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 h-[500px] flex flex-col overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4 bg-white/50 dark:bg-slate-950/50">
-          <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white">
-            <Shield size={24} />
+      <div className="bg-white dark:bg-slate-950 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 h-[600px] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(37,99,235,0.1)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] relative">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl relative z-10 shadow-sm">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)] border border-white/20 group-hover:rotate-3 transition-transform">
+              <Shield size={32} strokeWidth={1} />
+            </div>
+            <div>
+              <div className="font-black text-sm md:text-base uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
+                Senior Strategic AI
+              </div>
+              <div className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] flex items-center gap-2 mt-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" /> 
+                System: Active Analysis
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="font-black text-xs uppercase tracking-widest text-blue-600">
-              Senior HR Strategist
-            </div>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-              Status: Evaluation in Progress
-            </div>
+          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+             <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secure Protocol</div>
+             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" />
           </div>
         </div>
 
@@ -758,35 +774,36 @@ function ExpertInterview({
               key={i}
               initial={{
                 opacity: 0,
-                y: 10,
-                x: m.role === "assistant" ? -10 : 10,
+                y: 20,
+                x: m.role === "assistant" ? -20 : 20,
               }}
               animate={{ opacity: 1, y: 0, x: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
               className={cn(
-                "flex items-end gap-3",
+                "flex items-end gap-4",
                 m.role === "user" ? "flex-row-reverse" : "flex-row",
               )}
             >
               <div
                 className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg border backdrop-blur-md transition-transform hover:scale-105",
                   m.role === "assistant"
-                    ? "bg-slate-200 dark:bg-slate-800"
-                    : "bg-blue-600 text-white",
+                    ? "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-blue-600"
+                    : "bg-linear-to-br from-indigo-600 to-blue-700 border-white/20 text-white",
                 )}
               >
                 {m.role === "assistant" ? (
-                  <Cpu size={14} />
+                  <Cpu size={22} strokeWidth={1.5} />
                 ) : (
-                  <User size={14} />
+                  <User size={22} strokeWidth={1.5} />
                 )}
               </div>
               <div
                 className={cn(
-                  "max-w-[80%] p-4 rounded-3xl font-medium text-sm leading-relaxed",
+                  "max-w-[85%] p-6 md:p-8 text-base font-medium leading-relaxed shadow-xl group transition-all",
                   m.role === "assistant"
-                    ? "bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-bl-none"
-                    : "bg-blue-600 text-white rounded-br-none",
+                    ? "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-[2.5rem] rounded-bl-none"
+                    : "bg-linear-to-br from-indigo-600 to-blue-700 text-white rounded-[2.5rem] rounded-br-none shadow-[0_15px_30px_rgba(37,99,235,0.15)] border border-white/10",
                 )}
               >
                 {m.content}
@@ -797,18 +814,19 @@ function ExpertInterview({
             !finalizing &&
             messages.length > 0 &&
             messages[messages.length - 1].role === "user" && (
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                  <Cpu size={14} className="animate-spin" />
+              <div className="flex gap-4 items-end animate-in fade-in slide-in-from-bottom-2 duration-700">
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-blue-500/5 animate-pulse" />
+                  <Cpu size={22} className="animate-spin text-blue-600 duration-3000" strokeWidth={1.5} />
                 </div>
-                <div className="p-4 rounded-3xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 animate-pulse text-[10px] font-black uppercase tracking-widest">
-                  Thought process active...
+                <div className="px-6 py-4 rounded-4xl rounded-bl-none bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-[0.4em] text-blue-500/60 shadow-sm">
+                  Synthesizing Cognitive Strategy...
                 </div>
               </div>
             )}
         </div>
 
-        <div className="p-6 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex gap-4">
+        <div className="p-8 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 flex gap-4 relative z-10 backdrop-blur-md">
           <textarea
             value={currentInput}
             onChange={(e) => setCurrentInput(e.target.value)}
@@ -819,14 +837,15 @@ function ExpertInterview({
               }
             }}
             placeholder={t.placeholder}
-            className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-3 text-sm font-medium outline-none focus:border-blue-600 transition-colors resize-none h-14"
+            className="flex-1 bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-4xl px-8 py-5 text-sm font-medium outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all resize-none shadow-inner"
+            rows={1}
           />
           <button
             onClick={handleSend}
             disabled={!currentInput.trim() || loading}
-            className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-xl shadow-blue-600/20"
+            className="w-16 h-16 shrink-0 rounded-4xl bg-linear-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center hover:bg-linear-to-br hover:from-indigo-500 hover:to-blue-500 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.3)]"
           >
-            <Send size={24} />
+            <Send size={24} strokeWidth={2.5} className="ml-1" />
           </button>
         </div>
       </div>
@@ -966,21 +985,26 @@ function PortfolioInterview({
 
   if (finalizing) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="relative">
-          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-spin border-t-indigo-600" />
+          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_3s_linear_infinite] border-t-indigo-600 shadow-[0_0_40px_rgba(79,70,229,0.2)]" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Cpu className="text-indigo-600 w-16 h-16 animate-pulse" />
+            <div className="w-32 h-32 rounded-full bg-indigo-500/10 flex items-center justify-center backdrop-blur-sm border border-indigo-500/20">
+                <Cpu className="text-indigo-500 w-12 h-12 animate-pulse" />
+            </div>
           </div>
         </div>
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-black uppercase tracking-tight">
+        <div className="text-center space-y-5 relative z-10">
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-indigo-600 to-violet-400 bg-clip-text text-transparent drop-shadow-sm">
             Synthesizing Strategic X-Ray Report...
           </h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.4em] text-center">
-            Cross-referencing all audit data, interview transcripts & MCQ
-            results
-          </p>
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping" />
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.4em]">
+                Cross-referencing all audit data, interview transcripts & MCQ results
+              </p>
+          </div>
         </div>
       </div>
     );
@@ -1005,49 +1029,48 @@ function PortfolioInterview({
       </div>
 
       {/* ─── PROGRESS BAR ─────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            Question{" "}
-            {Math.min(assistantCount + (loading ? 0 : 0), TOTAL_QUESTIONS)} /{" "}
-            {TOTAL_QUESTIONS}
+      <div className="space-y-4 max-w-2xl mx-auto p-6 rounded-4xl bg-white/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-sm">
+        <div className="flex items-center justify-between px-2">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+            Phase Progression
           </span>
           <span
             className={cn(
-              "text-[10px] font-black uppercase tracking-widest transition-colors",
-              isPivotalPhase ? "text-amber-500" : "text-indigo-500",
+              "text-[10px] font-black uppercase tracking-[0.3em] transition-colors flex items-center gap-2",
+              isPivotalPhase ? "text-amber-500" : "text-indigo-600",
             )}
           >
+            {isPivotalPhase && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
             {isPivotalPhase
-              ? "⚡ PIVOTAL PHASE"
-              : `Phase 1 — ${PHASE_LABELS[Math.max(assistantCount - 1, 0)]?.label || ""}`}
+              ? "⚡ PIVOTAL PRESSURE"
+              : `${PHASE_LABELS[Math.max(assistantCount - 1, 0)]?.label || ""}`}
           </span>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           {PHASE_LABELS.map((phase, i) => (
-            <div key={i} className="flex-1 space-y-1">
+            <div key={i} className="flex-1 space-y-2">
               <motion.div
                 className={cn(
-                  "h-2 rounded-full transition-all",
+                  "h-2.5 rounded-full transition-all duration-500 ease-out",
                   i < assistantCount
                     ? i === 4
-                      ? "bg-amber-500"
-                      : "bg-indigo-500"
+                      ? "bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]"
+                      : "bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
                     : i === assistantCount && !loading
                       ? i === 4
-                        ? "bg-amber-500/60"
-                        : "bg-indigo-500/30"
-                      : "bg-slate-100 dark:bg-slate-800",
+                        ? "bg-amber-500/30 border border-amber-500/50"
+                        : "bg-indigo-500/20 border border-indigo-500/30"
+                      : "bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors",
                 )}
               />
               <div
                 className={cn(
-                  "text-[7px] font-black uppercase tracking-widest text-center truncate hidden md:block",
+                  "text-[8px] font-black uppercase tracking-widest text-center truncate hidden md:block",
                   i < assistantCount
                     ? i === 4
-                      ? "text-amber-500"
-                      : "text-indigo-500"
-                    : "text-slate-300 dark:text-slate-700",
+                      ? "text-amber-600 dark:text-amber-500"
+                      : "text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-400 dark:text-slate-600",
                 )}
               >
                 {phase.label}
@@ -1131,14 +1154,16 @@ function PortfolioInterview({
           /* ─── PHASE 1 MODE: Standard chat interface ─── */
           <motion.div
             key="phase1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[3.5rem] shadow-[0_20px_60px_rgba(37,99,235,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] overflow-hidden relative"
           >
+            <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
+            
             {/* Chat header */}
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-                <Shield size={22} />
+            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center gap-5 bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-md relative z-10">
+              <div className="w-14 h-14 rounded-full bg-linear-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+                <Shield size={28} strokeWidth={1.5} />
               </div>
               <div>
                 <div className="font-black text-xs uppercase tracking-widest text-indigo-600">
@@ -1166,19 +1191,34 @@ function PortfolioInterview({
               {messages.map((m, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20, x: m.role === "assistant" ? -20 : 20 }}
+                  animate={{ opacity: 1, y: 0, x: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className={cn(
-                    "flex",
-                    m.role === "assistant" ? "justify-start" : "justify-end",
+                    "flex items-end gap-4",
+                    m.role === "assistant" ? "flex-row" : "flex-row-reverse",
                   )}
                 >
                   <div
                     className={cn(
-                      "max-w-[85%] p-5 rounded-3xl text-sm font-medium leading-relaxed",
+                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md",
+                      m.role === "assistant"
+                        ? "bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-600"
+                        : "bg-linear-to-br from-indigo-500 to-blue-600 text-white",
+                    )}
+                  >
+                    {m.role === "assistant" ? (
+                      <Cpu size={18} strokeWidth={2} />
+                    ) : (
+                      <User size={18} strokeWidth={2} />
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      "max-w-[85%] p-5 md:p-6 rounded-4xl text-sm font-medium leading-relaxed shadow-sm transition-shadow hover:shadow-md",
                       m.role === "assistant"
                         ? "bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-100 dark:border-slate-800"
-                        : "bg-indigo-600 text-white rounded-br-none shadow-lg shadow-indigo-600/20",
+                        : "bg-linear-to-br from-indigo-600 to-blue-600 text-white rounded-br-none shadow-[0_10px_20px_rgba(79,70,229,0.2)]",
                     )}
                   >
                     {m.content}
@@ -1186,8 +1226,11 @@ function PortfolioInterview({
                 </motion.div>
               ))}
               {loading && messages.length > 0 && (
-                <div className="flex justify-start">
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-3xl rounded-bl-none animate-pulse text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="flex justify-start items-end gap-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center border border-slate-200 dark:border-slate-800">
+                    <Cpu size={18} className="animate-spin text-indigo-600" />
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-4xl rounded-bl-none animate-pulse text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
                     Evaluator is formulating the next challenge...
                   </div>
                 </div>
@@ -1386,20 +1429,51 @@ function MCQAssessment({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-16 relative overflow-hidden">
+        {/* Background Decorative Blurs */}
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-600/5 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-teal-600/5 rounded-full blur-[100px] animate-pulse" />
+
         <div className="relative">
-          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-spin border-t-emerald-600" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <TrendingUp className="text-emerald-600 w-16 h-16 animate-pulse" />
+          <div className="w-64 h-64 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center relative shadow-2xl bg-white/50 dark:bg-black/50 backdrop-blur-3xl">
+             <div 
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: "radial-gradient(circle, #10b981 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                }}
+              />
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 border-[0.5px] border-emerald-500/30 border-dashed rounded-full"
+              />
+              <div className="relative z-10 flex flex-col items-center">
+                 <TrendingUp className="text-emerald-500 w-24 h-24 animate-pulse" strokeWidth={1} />
+              </div>
           </div>
         </div>
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-black uppercase tracking-tight">
-            {t.mcqLoading}
-          </h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.4em]">
-            {phase === "hard" ? t.hardSkillsTitle : t.softSkillsTitle}
-          </p>
+        
+        <div className="text-center space-y-8 max-w-lg z-10">
+          <div className="space-y-3">
+             <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-emerald-600 to-teal-400 bg-clip-text text-transparent drop-shadow-sm">
+                {t.mcqLoading}
+             </h2>
+             <div className="w-full bg-slate-100 dark:bg-slate-900 h-1 rounded-full overflow-hidden shadow-inner">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+                  className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                />
+             </div>
+          </div>
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-xl">
+             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.5em]">
+                {phase === "hard" ? t.hardSkillsTitle : t.softSkillsTitle}
+             </p>
+          </div>
         </div>
       </div>
     );
@@ -1435,35 +1509,43 @@ function MCQAssessment({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-4xl mx-auto space-y-10 py-12"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="max-w-4xl mx-auto space-y-10 py-12 relative z-10"
     >
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-4xl font-black uppercase tracking-tight">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+        <div className="space-y-2">
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
             {t.mcqTitle}
           </h2>
-          <p className="text-slate-500 font-medium">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             {phase === "hard" ? t.hardSkillsTitle : t.softSkillsTitle}
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
-            Question {currentIndex + 1} / {questions.length}
           </div>
-          <div className="w-48 bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
+        </div>
+        <div className="text-left md:text-right w-full md:w-auto bg-white/50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-sm">
+          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center md:justify-end gap-2">
+            <span>Evaluation Progress</span>
+            <span className="text-emerald-500">
+              {currentIndex + 1} / {questions.length}
+            </span>
+          </div>
+          <div className="w-full md:w-56 h-2.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              className="h-full bg-emerald-500"
+              className="h-full bg-linear-to-r from-emerald-600 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
             />
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-950 p-12 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl space-y-10">
-        <h3 className="text-2xl font-black leading-tight text-slate-800 dark:text-white">
+      <div className="bg-white dark:bg-slate-950 p-10 md:p-14 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-[0_20px_60px_rgba(16,185,129,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] space-y-12 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+          <Target size={200} strokeWidth={1} />
+        </div>
+        <h3 className="text-2xl md:text-3xl font-black leading-snug text-slate-800 dark:text-white relative z-10 border-l-4 border-emerald-500 pl-6">
           {currentQ.question}
         </h3>
 
@@ -1486,27 +1568,30 @@ function MCQAssessment({
                 disabled={selectedIdx !== null}
                 onClick={() => handleAnswer(i)}
                 className={cn(
-                  "p-6 rounded-3xl border-2 text-left transition-all duration-300 flex items-center gap-4 group",
+                  "p-6 md:p-8 rounded-4xl border-2 text-left transition-all duration-300 flex items-center gap-6 group relative overflow-hidden",
                   status === "idle" &&
-                    "border-slate-100 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-500/5",
+                    "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 hover:border-emerald-500/50 hover:bg-emerald-500/5 hover:shadow-[0_10px_30px_rgba(16,185,129,0.1)] hover:-translate-y-1",
                   status === "correct" &&
-                    "border-emerald-500 bg-emerald-500/10 text-emerald-600",
+                    "border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.02] z-10",
                   status === "incorrect" &&
-                    "border-rose-500 bg-rose-500/10 text-rose-600",
+                    "border-rose-500 bg-rose-500/10 text-rose-600 opacity-70",
                 )}
               >
+                {status === "correct" && (
+                  <div className="absolute right-0 top-0 h-full w-2 bg-emerald-500" />
+                )}
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-black text-xs",
+                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0 font-black text-sm border-2 transition-all duration-300",
                     status === "idle" &&
-                      "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white",
-                    status === "correct" && "bg-emerald-500 text-white",
-                    status === "incorrect" && "bg-rose-500 text-white",
+                      "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-400 group-hover:border-emerald-500 group-hover:bg-emerald-500 group-hover:text-white shadow-sm",
+                    status === "correct" && "bg-emerald-500 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]",
+                    status === "incorrect" && "bg-rose-500 border-rose-500 text-white",
                   )}
                 >
                   {String.fromCharCode(65 + i)}
                 </div>
-                <span className="font-bold">{opt}</span>
+                <span className="font-bold text-sm md:text-base leading-relaxed relative z-10">{opt}</span>
               </button>
             );
           })}
@@ -1571,14 +1656,14 @@ function FinalReport({
       animate={{ opacity: 1 }}
       className="max-w-5xl mx-auto space-y-12 pb-20"
     >
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em]">
-          <CheckCircle2 size={16} /> Audit Strategicized & Certified
+      <div className="text-center space-y-6">
+        <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+          <CheckCircle2 size={18} strokeWidth={2.5} /> Audit Strategicized & Certified
         </div>
-        <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight leading-[0.9]">
+        <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight leading-[0.9] bg-clip-text text-transparent bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white">
           {t.title}
         </h1>
-        <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+        <p className="text-xl md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto tracking-wide">
           {t.subtitle}
         </p>
       </div>
@@ -1587,27 +1672,32 @@ function FinalReport({
       {(report.strategicRadar || report.authorityVsPotential) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {report.strategicRadar && (
-            <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-2xl space-y-8">
-              <div className="flex items-center gap-3 text-blue-600">
-                <BarChart3 size={24} />
-                <h3 className="text-xl font-black uppercase tracking-tight">
+            <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.2)] space-y-8 relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[60px] pointer-events-none" />
+              <div className="flex items-center gap-4 text-indigo-600 relative z-10">
+                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                  <BarChart3 size={28} strokeWidth={2} />
+                </div>
+                <h3 className="text-2xl font-black uppercase tracking-tight">
                   Strategic Competency Radar
                 </h3>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-6 relative z-10">
                 {Object.entries(report.strategicRadar).map(([key, val]) => (
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest px-1">
                       <span className="text-slate-500">{key}</span>
-                      <span className="text-blue-600">{val}/10</span>
+                      <span className="text-indigo-600 bg-indigo-500/10 px-2 py-0.5 rounded-md">{val}/10</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-50 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-100 dark:border-slate-800">
+                    <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-900/80 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${(val / 10) * 100}%` }}
-                        transition={{ duration: 1, delay: 0.2 }}
-                        className="h-full bg-linear-to-r from-blue-500 to-indigo-600 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                      />
+                        transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
+                        className="h-full bg-linear-to-r from-indigo-500 to-violet-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-white/20 w-1/2 skew-x-12 translate-x-[-150%] animate-[shimmer_2s_infinite]" />
+                      </motion.div>
                     </div>
                   </div>
                 ))}
@@ -1616,57 +1706,59 @@ function FinalReport({
           )}
 
           {report.authorityVsPotential && (
-            <div className="p-10 rounded-[3rem] bg-linear-to-br from-slate-900 to-black text-white shadow-2xl space-y-10 relative overflow-hidden flex flex-col justify-center">
-              <div className="absolute top-0 right-0 p-12 opacity-5">
-                <Target size={200} />
+            <div className="p-10 rounded-[3rem] bg-linear-to-br from-indigo-950 via-slate-900 to-black text-white shadow-2xl space-y-10 relative overflow-hidden flex flex-col justify-center border border-white/10 group">
+              <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-emerald-500/10 rounded-full blur-[80px]" />
+              <div className="absolute top-0 right-0 p-12 opacity-5 scale-110 group-hover:scale-125 transition-transform duration-1000">
+                <Target size={240} strokeWidth={1} />
               </div>
-              <div className="space-y-2 relative z-10">
-                <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-[0.4em]">
+              <div className="space-y-4 relative z-10">
+                <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black uppercase text-[10px] tracking-[0.4em]">
                   Strategic Archetype
-                </h4>
-                <h3 className="text-4xl font-black uppercase leading-tight tracking-tighter">
+                </div>
+                <h3 className="text-4xl lg:text-5xl font-black uppercase leading-tight tracking-tighter drop-shadow-md">
                   {report.authorityVsPotential.quadrant}
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-8 relative z-10">
-                <div className="space-y-2">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <div className="grid grid-cols-2 gap-8 relative z-10 pt-4">
+                <div className="space-y-3 p-6 rounded-4xl bg-white/5 border border-white/5 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Current Authority
                   </div>
                   <div className="text-4xl font-black text-white">
                     {report.authorityVsPotential.currentAuthority}%
                   </div>
-                  <div className="w-full h-1 bg-slate-800 rounded-full">
+                  <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{
                         width: `${report.authorityVsPotential.currentAuthority}%`,
                       }}
-                      className="h-full bg-emerald-500"
+                      className="h-full bg-linear-to-r from-emerald-600 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="space-y-3 p-6 rounded-4xl bg-white/5 border border-white/5 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                     Future Potential
                   </div>
                   <div className="text-4xl font-black text-white">
                     {report.authorityVsPotential.futurePotential}%
                   </div>
-                  <div className="w-full h-1 bg-slate-800 rounded-full">
+                  <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{
                         width: `${report.authorityVsPotential.futurePotential}%`,
                       }}
-                      className="h-full bg-blue-500"
+                      className="h-full bg-linear-to-r from-indigo-600 to-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]"
                     />
                   </div>
                 </div>
               </div>
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-medium leading-relaxed italic text-slate-300 relative z-10">
-                Diagnostic: High-precision mapping of current market weight vs.
-                native cognitive adaptability.
+              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-bold leading-relaxed italic text-slate-300 relative z-10 tracking-wide mt-auto">
+                Diagnostic: High-precision mapping of current market weight vs. native cognitive adaptability.
               </div>
             </div>
           )}
@@ -1807,14 +1899,17 @@ function FinalReport({
             </div>
           </div>
 
-          <div className="p-10 rounded-[3.5rem] bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-2xl relative overflow-hidden">
-            <Shield className="absolute -top-10 -right-10 w-64 h-64 text-white/5 rotate-12" />
-            <h3 className="text-3xl font-black uppercase tracking-tight mb-8 relative z-10">
-              {t.finalVerdict}
-            </h3>
-            <p className="text-xl font-bold leading-relaxed relative z-10 text-blue-50">
-              {report.finalVerdict}
-            </p>
+          <div className="p-12 rounded-[3.5rem] bg-linear-to-br from-indigo-600 to-violet-700 text-white shadow-[0_20px_60px_rgba(79,70,229,0.3)] relative overflow-hidden border border-white/10 group">
+            <Shield className="absolute -top-10 -right-10 w-80 h-80 text-white/5 rotate-12 group-hover:scale-110 group-hover:rotate-24 transition-all duration-700" />
+            <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-white/10 rounded-full blur-[60px]" />
+            <div className="relative z-10">
+              <h3 className="text-3xl font-black uppercase tracking-tight mb-8 drop-shadow-md">
+                {t.finalVerdict}
+              </h3>
+              <p className="text-2xl font-black leading-relaxed text-blue-50 tracking-wide font-serif italic selection:bg-white/30">
+                &quot;{report.finalVerdict}&quot;
+              </p>
+            </div>
           </div>
 
           {report.marketPerceptionVerdict && (
@@ -2219,46 +2314,91 @@ export default function ProfessionalDashboard() {
 
   // Persistence: Load on Mount
   useEffect(() => {
-    // We use a small timeout to avoid the "cascading renders" error during direct hydration execution
-    // which some strict linters/React dev builds flag as problematic
-    const hydrate = () => {
-      const savedStep = localStorage.getItem("prof_step");
-      const savedFormData = localStorage.getItem("prof_formData");
-      const savedAuditResult = localStorage.getItem("prof_auditResult");
-      const savedFinalReport = localStorage.getItem("prof_finalReport");
-      const savedTranscript = localStorage.getItem("prof_transcript");
-      const savedPortfolioTranscript = localStorage.getItem(
-        "prof_portfolioTranscript",
-      );
-      const savedMcqResults = localStorage.getItem("prof_mcqResults");
+    const loadProgress = async () => {
+      try {
+        const storedProfile = localStorage.getItem("userProfile");
+        const email = storedProfile ? JSON.parse(storedProfile)?.email : null;
 
-      if (savedStep) setStep(savedStep as Step);
-      if (savedAuditResult) setAuditResult(JSON.parse(savedAuditResult));
-      if (savedFinalReport) setFinalReport(JSON.parse(savedFinalReport));
-      if (savedTranscript) setInterviewTranscript(JSON.parse(savedTranscript));
-      if (savedPortfolioTranscript)
-        setPortfolioTranscript(JSON.parse(savedPortfolioTranscript));
-      if (savedMcqResults) setMcqResults(JSON.parse(savedMcqResults));
+        let loadedFromDB = false;
 
-      if (savedFormData) {
-        const parsed = JSON.parse(savedFormData);
-        setFormData((prev) => ({
-          ...prev,
-          ...parsed,
-          cv: null,
-        }));
+        if (email) {
+          const response = await fetch(`/api/user/professional-progress?email=${encodeURIComponent(email)}`);
+          const json = await response.json();
+
+          if (json.success && json.data) {
+            loadedFromDB = true;
+            const {
+              step: savedStep,
+              formData: savedFormData,
+              auditResult: savedAuditResult,
+              finalReport: savedFinalReport,
+              interviewTranscript: savedTranscript,
+              portfolioTranscript: savedPortfolioTranscript,
+              mcqResults: savedMcqResults,
+            } = json.data;
+
+            if (savedStep) setStep(savedStep as Step);
+            if (savedAuditResult) setAuditResult(savedAuditResult);
+            if (savedFinalReport) setFinalReport(savedFinalReport);
+            if (savedTranscript) setInterviewTranscript(savedTranscript);
+            if (savedPortfolioTranscript)
+              setPortfolioTranscript(savedPortfolioTranscript);
+            if (savedMcqResults) setMcqResults(savedMcqResults);
+
+            if (savedFormData) {
+              setFormData((prev) => ({
+                ...prev,
+                ...savedFormData,
+                cv: null,
+              }));
+            }
+          }
+        }
+
+        if (!loadedFromDB) {
+          // Fallback to localStorage for smooth migration
+          const savedStep = localStorage.getItem("prof_step");
+          const savedFormData = localStorage.getItem("prof_formData");
+          const savedAuditResult = localStorage.getItem("prof_auditResult");
+          const savedFinalReport = localStorage.getItem("prof_finalReport");
+          const savedTranscript = localStorage.getItem("prof_transcript");
+          const savedPortfolioTranscript = localStorage.getItem(
+            "prof_portfolioTranscript",
+          );
+          const savedMcqResults = localStorage.getItem("prof_mcqResults");
+
+          if (savedStep) setStep(savedStep as Step);
+          if (savedAuditResult) setAuditResult(JSON.parse(savedAuditResult));
+          if (savedFinalReport) setFinalReport(JSON.parse(savedFinalReport));
+          if (savedTranscript) setInterviewTranscript(JSON.parse(savedTranscript));
+          if (savedPortfolioTranscript)
+            setPortfolioTranscript(JSON.parse(savedPortfolioTranscript));
+          if (savedMcqResults) setMcqResults(JSON.parse(savedMcqResults));
+
+          if (savedFormData) {
+            const parsed = JSON.parse(savedFormData);
+            setFormData((prev) => ({
+              ...prev,
+              ...parsed,
+              cv: null,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load professional progress", error);
+      } finally {
+        setIsHydrated(true);
       }
-
-      setIsHydrated(true);
     };
 
-    const timeout = setTimeout(hydrate, 0);
-    return () => clearTimeout(timeout);
+    loadProgress();
   }, []);
 
   // Persistence: Save on Change
   useEffect(() => {
     if (!isHydrated) return;
+
+    // Save to local storage for quick access
     localStorage.setItem("prof_step", step);
     localStorage.setItem("prof_auditResult", JSON.stringify(auditResult));
     localStorage.setItem("prof_finalReport", JSON.stringify(finalReport));
@@ -2272,10 +2412,40 @@ export default function ProfessionalDashboard() {
     );
     localStorage.setItem("prof_mcqResults", JSON.stringify(mcqResults));
 
-    // Save form data without the file object (omit cv using the rest pattern)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { cv: _, ...dataToSave } = formData;
     localStorage.setItem("prof_formData", JSON.stringify(dataToSave));
+
+    // Save to MongoDB with a slight debounce
+    const saveToDB = async () => {
+      try {
+        const storedProfile = localStorage.getItem("userProfile");
+        const email = storedProfile ? JSON.parse(storedProfile)?.email : null;
+        if (!email) return;
+
+        await fetch("/api/user/professional-progress", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            step,
+            formData: dataToSave,
+            auditResult,
+            finalReport,
+            interviewTranscript,
+            portfolioTranscript,
+            mcqResults,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to save professional progress to DB", error);
+      }
+    };
+
+    const timeout = setTimeout(saveToDB, 1500);
+    return () => clearTimeout(timeout);
   }, [
     step,
     formData,
@@ -2436,36 +2606,37 @@ export default function ProfessionalDashboard() {
     >
       <div className="max-w-4xl mx-auto">
         {/* Top bar with Logout */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-6 relative z-50">
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/5 transition-all text-[10px] font-black uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-200 dark:hover:border-rose-500/20 transition-all text-[10px] font-black uppercase tracking-[0.2em] shadow-sm"
           >
-            <LogOut size={16} />
+            <LogOut size={14} strokeWidth={2.5} />
             {t.welcome.logout || "Log Out"}
           </button>
         </div>
 
         {/* === PROGRESS BAR === */}
         {step !== "welcome" && (
-          <div className="mb-8 space-y-3">
-            <div className="flex justify-between items-center">
+          <div className="mb-10 space-y-4 p-5 rounded-4xl bg-white/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+            <div className="flex justify-between items-center px-1">
               <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                Step {currentStepIndex + 1} / {STEPS.length}
+                Phase {currentStepIndex + 1} <span className="text-slate-300 dark:text-slate-600">/</span> {STEPS.length}
               </div>
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                 {STEP_LABELS[step]}
               </div>
             </div>
-            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <motion.div
+            <div className="w-full h-2.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
+                <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="h-full bg-linear-to-r from-indigo-500 to-violet-500 rounded-full"
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full bg-linear-to-r from-indigo-500 via-blue-500 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] bg-size-[200%_auto] animate-[gradient_2s_linear_infinite]"
               />
             </div>
-            <div className="hidden md:flex justify-between">
+            <div className="hidden md:flex justify-between px-1">
               {STEPS.map((s, i) => (
                 <div
                   key={s}
@@ -2498,17 +2669,17 @@ export default function ProfessionalDashboard() {
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="bg-white dark:bg-slate-950 rounded-[3rem] p-12 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-8 text-center"
               >
-                <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center mx-auto">
-                  <LogOut className="text-red-500" size={28} />
+                <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center mx-auto">
+                  <LogOut className="text-blue-600 dark:text-blue-500" size={28} />
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-2xl font-black uppercase tracking-tight">
                     {currentLang === "ar" ? "هل أنت متأكد؟" : "Are you sure?"}
                   </h3>
-                  <p className="text-slate-500 font-medium text-sm">
+                  <p className="text-slate-500 font-medium text-sm leading-relaxed">
                     {currentLang === "ar"
-                      ? "سيتم حذف كل تقدمك في التدقيق الاستراتيجي ولا يمكن استعادته."
-                      : "All your audit progress will be permanently deleted and cannot be recovered."}
+                      ? "سيتم حفظ جميع تقدمك وبياناتك بأمان. يمكنك العودة واستكمال التقييم التنفيذي في أي وقت ومن أي جهاز."
+                      : "Your progress is securely saved. You can resume your executive assessment anytime, from any device."}
                   </p>
                 </div>
                 <div className="flex gap-4">
@@ -2520,7 +2691,7 @@ export default function ProfessionalDashboard() {
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all"
+                    className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)]"
                   >
                     {currentLang === "ar" ? "خروج" : "Log Out"}
                   </button>
@@ -2682,18 +2853,20 @@ function WelcomeScreen({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-12"
+      className="space-y-16 relative z-10"
     >
-      <div className="space-y-4 text-center md:text-left">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-black uppercase tracking-[0.2em]">
-          <Shield size={14} /> {t.tag}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
+      
+      <div className="space-y-6 text-center md:text-left relative z-10">
+        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] shadow-sm">
+          <Shield size={16} strokeWidth={2.5} className="text-blue-500" /> {t.tag}
         </div>
-        <h1 className="text-4xl md:text-7xl font-black tracking-tight leading-[0.9] uppercase">
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.9] uppercase drop-shadow-sm">
           {(t.title || "").split(" ").map((word: string, i: number) =>
-            i > 2 ? (
+            i > 1 ? (
               <span
                 key={i}
-                className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-indigo-500 to-purple-600 block md:inline"
+                className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 block md:inline"
               >
                 {word}{" "}
               </span>
@@ -2702,28 +2875,29 @@ function WelcomeScreen({
             ),
           )}
         </h1>
-        <p className="text-xl text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
+        <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-medium max-w-3xl leading-relaxed tracking-wide">
           {t.subtitle}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
         {t.steps?.map((s, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="group flex items-start gap-5 p-6 rounded-4xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800/50 hover:bg-white dark:hover:bg-slate-900 transition-all hover:shadow-[0_20px_40px_rgba(0,0,0,0.03)]"
+            transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
+            className="group flex items-start gap-6 p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-blue-500/30 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-all hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative overflow-hidden"
           >
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm transition-colors group-hover:bg-blue-600 group-hover:text-white">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 shrink-0 relative z-10">
               {icons[i]}
             </div>
-            <div>
-              <h3 className="font-black text-lg uppercase tracking-tight">
+            <div className="space-y-1 relative z-10 pt-1">
+              <h3 className="font-black text-xl uppercase tracking-tight text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">
                 {s.title}
               </h3>
-              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm leading-relaxed">
                 {s.desc}
               </p>
             </div>
@@ -2734,12 +2908,13 @@ function WelcomeScreen({
       <div className="flex justify-center md:justify-start">
         <button
           onClick={onNext}
-          className="group relative inline-flex items-center justify-center gap-4 px-10 py-5 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black text-xl uppercase tracking-widest overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]"
+          className="group relative inline-flex items-center justify-center gap-4 px-12 py-6 rounded-4xl bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 text-white font-black text-xl uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(79,70,229,0.3)] hover:shadow-[0_0_60px_rgba(79,70,229,0.5)] border border-white/10"
         >
-          <span>{t.cta}</span>
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+          <span className="relative z-10 drop-shadow-md">{t.cta}</span>
           <ArrowRight
             size={24}
-            className="transition-transform group-hover:translate-x-2"
+            className="transition-transform group-hover:translate-x-3 relative z-10 drop-shadow-md"
           />
         </button>
       </div>
@@ -2773,26 +2948,26 @@ function LanguageSelection({
       animate={{ opacity: 1, scale: 1 }}
       className="text-center py-12"
     >
-      <div className="flex justify-center mb-8">
-        <div className="p-6 rounded-4xl bg-blue-600/10 text-blue-600 animate-pulse">
-          <Languages size={64} />
+      <div className="flex justify-center mb-10">
+        <div className="p-8 rounded-full bg-linear-to-br from-blue-600/20 to-indigo-600/10 text-blue-600 animate-[pulse_4s_ease-in-out_infinite] shadow-[0_0_60px_rgba(37,99,235,0.2)] border border-blue-600/20">
+          <Languages size={72} strokeWidth={1.5} />
         </div>
       </div>
-      <h2 className="text-4xl md:text-5xl font-black uppercase mb-4">
+      <h2 className="text-4xl md:text-6xl font-black uppercase mb-6 tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
         {t.title}
       </h2>
-      <p className="text-xl text-slate-500 mb-16 font-medium">{t.subtitle}</p>
+      <p className="text-xl md:text-2xl text-slate-500 mb-16 font-medium tracking-wide max-w-2xl mx-auto">{t.subtitle}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
         {options.map((opt) => (
           <button
             key={opt.code}
             onClick={() => onSelect(opt.code)}
             className={cn(
-              "group p-10 rounded-[2.5rem] border-4 transition-all text-left relative overflow-hidden",
+              "group p-10 rounded-[3.5rem] border bg-white dark:bg-slate-950 transition-all text-left relative overflow-hidden",
               selected === opt.code
-                ? "border-blue-600 bg-blue-600/5 shadow-2xl"
-                : "border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700",
+                ? "border-blue-600 shadow-[0_20px_40px_rgba(37,99,235,0.15)] ring-4 ring-blue-600/10 scale-105 z-10"
+                : "border-slate-100 dark:border-slate-800 hover:border-blue-400 hover:shadow-2xl hover:-translate-y-2",
             )}
           >
             <div className="text-2xl font-black mb-1 uppercase tracking-tight">
@@ -2843,20 +3018,21 @@ function AuditForm({
       animate={{ opacity: 1, x: 0 }}
       className="space-y-10"
     >
-      <div className="flex items-center gap-6 mb-4">
-        <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500">
-          <Info size={32} />
+      <div className="flex items-center gap-6 mb-8 mt-4">
+        <div className="p-5 rounded-4xl bg-linear-to-br from-indigo-500/20 to-blue-500/10 border border-indigo-500/20 text-indigo-500 shadow-inner">
+          <Info size={36} strokeWidth={1.5} />
         </div>
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
             {t.title}
           </h2>
-          <p className="text-lg text-slate-500 font-medium">{t.subtitle}</p>
+          <p className="text-lg text-slate-500 font-medium tracking-wide mt-1">{t.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-8 bg-slate-50/50 dark:bg-slate-900/30 p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-800/50">
-        <div className="space-y-3">
+      <div className="space-y-10 bg-white dark:bg-slate-950 p-12 relative overflow-hidden rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="relative z-10 space-y-4">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
             {t.sectorsLabel}
           </label>
@@ -2882,11 +3058,11 @@ function AuditForm({
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm"
+                className="flex items-center justify-between p-5 rounded-4xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow"
               >
-                <span className="font-black text-sm uppercase tracking-tight">
-                  {p.title} <span className="text-blue-600 mx-2">—</span>{" "}
-                  {p.years} {t.years || "years"}
+                <span className="font-black text-sm uppercase tracking-tight ml-2">
+                  {p.title} <span className="text-indigo-500 mx-3">—</span>{" "}
+                  <span className="text-slate-500">{p.years} {t.years || "years"}</span>
                 </span>
                 <button
                   onClick={() =>
@@ -2926,9 +3102,9 @@ function AuditForm({
             />
             <button
               onClick={addPosition}
-              className="p-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 active:scale-95"
+              className="p-4 px-6 md:px-8 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-[0_10px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_15px_30px_rgba(79,70,229,0.4)] active:scale-95 flex items-center justify-center"
             >
-              <Plus size={24} />
+              <Plus size={24} strokeWidth={3} />
             </button>
           </div>
         </div>
@@ -2943,7 +3119,7 @@ function AuditForm({
             onChange={(e) =>
               setFormData({ ...formData, vision: e.target.value })
             }
-            className="w-full h-40 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-4xl px-8 py-6 font-bold focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all outline-none resize-none"
+            className="w-full h-48 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-4xl px-8 py-6 font-bold focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all outline-none resize-none shadow-inner"
           />
         </div>
       </div>
@@ -3005,31 +3181,41 @@ function ExperienceInput({
         </p>
       </div>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
         <div
           className={cn(
-            "p-12 rounded-[3.5rem] border-4 transition-all text-center space-y-10 group relative bg-indigo-600/5 border-indigo-600 shadow-2xl",
+            "p-12 md:p-16 rounded-[4rem] border transition-all text-center space-y-10 group relative bg-white dark:bg-slate-950 shadow-2xl border-slate-100 dark:border-slate-800 hover:border-indigo-500/30",
           )}
         >
-          <div className="inline-flex p-8 rounded-3xl bg-indigo-600/10 text-indigo-600 transition-transform group-hover:-rotate-6 group-hover:scale-110">
-            <Mic size={80} />
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-3xl font-black uppercase tracking-tight">
-              {t.storyTitle}
-            </h3>
-            <p className="text-slate-500 font-bold uppercase text-xs tracking-[0.2em] max-w-md mx-auto leading-relaxed">
-              {t.storyDesc}
-            </p>
+          <div className="absolute inset-0 bg-linear-to-b from-transparent via-indigo-600/5 to-indigo-600/10 rounded-[4rem] pointer-events-none" />
+          <div className="relative z-10">
+            <div className="inline-flex p-10 rounded-[3rem] bg-linear-to-br from-indigo-600/20 to-violet-600/10 text-indigo-600 transition-all group-hover:scale-110 shadow-inner border border-indigo-600/20 relative">
+               <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl animate-pulse" />
+               <Mic size={80} strokeWidth={1} className="relative z-10" />
+            </div>
+            <div className="space-y-4 mt-10">
+              <h3 className="text-4xl font-black uppercase tracking-tighter italic">
+                {t.storyTitle}
+              </h3>
+              <div className="flex items-center justify-center gap-2 text-slate-400 font-black uppercase text-[10px] tracking-[0.4em] mb-4">
+                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+                 Strategic Voice Capture Mode
+                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+              </div>
+              <p className="text-slate-500 font-bold text-sm max-w-lg mx-auto leading-relaxed italic">
+                {t.storyDesc}
+              </p>
+            </div>
           </div>
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="pt-4"
+            className="pt-6"
             onClick={(e) => e.stopPropagation()}
           >
             <textarea
-              className="w-full h-80 p-10 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] text-xl font-medium outline-none focus:border-indigo-600 transition-all resize-none shadow-inner leading-relaxed"
+              className="w-full relative z-10 h-80 p-12 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-800 rounded-[3.5rem] text-xl font-medium outline-none focus:bg-white dark:focus:bg-slate-950 focus:border-indigo-600 focus:ring-20 focus:ring-indigo-600/5 transition-all resize-none shadow-2xl leading-relaxed placeholder:text-slate-300 dark:placeholder:text-slate-700"
               placeholder={
                 language === "ar"
                   ? "أخبرنا عن رحلتك المهنية بحرية، المهام التي قمت بها، والإنجازات التي تفتخر بها..."
@@ -3041,25 +3227,32 @@ function ExperienceInput({
                 setConfirmed(false);
               }}
             />
-            {formData.careerStory.length >= 1 && !confirmed && (
-              <button
+            {formData.careerStory.length >= 10 && !confirmed && (
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 onClick={() => setConfirmed(true)}
-                className="mt-6 w-full py-6 bg-indigo-600 text-white font-black rounded-3xl hover:bg-indigo-700 transition-all shadow-xl uppercase tracking-[0.2em] text-sm active:scale-95"
+                className="mt-10 relative z-10 w-full py-8 bg-linear-to-r from-indigo-700 to-violet-800 text-white font-black rounded-3xl hover:translate-y-[-4px] transition-all shadow-[0_25px_50px_rgba(79,70,229,0.4)] uppercase tracking-[0.3em] text-xs active:scale-95 border border-white/20"
               >
-                {language === "ar" ? "تأكيد ما كتبت" : "Confirm My Story"}
-              </button>
+                {language === "ar" ? "تحليل المسار المهني" : "Analyze My Executive Path"}
+              </motion.button>
             )}
 
             {confirmed && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 flex items-center justify-center gap-2 text-indigo-600 font-black uppercase text-xs tracking-widest"
+                className="mt-6 flex flex-col items-center gap-3"
               >
-                <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-                {language === "ar"
-                  ? "تم التأكيد - جاهز للتحليل"
-                  : "Story Confirmed - Ready for Analysis"}
+                <div className="flex items-center gap-2 text-indigo-500 font-black uppercase text-[10px] tracking-widest bg-indigo-500/10 px-4 py-2 rounded-full border border-indigo-500/20">
+                  <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse shadow-[0_0_10px_rgba(79,70,229,0.8)]" />
+                  {language === "ar"
+                    ? "تم تأمين البيانات - جاهز للانتقال"
+                    : "Strategic Data Locked - Move Forward"}
+                </div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
+                   v4.2 Analysis Engine Awaiting Command
+                </p>
               </motion.div>
             )}
           </motion.div>
@@ -3251,41 +3444,80 @@ function InitialAnalysis({
 
         <div className="relative">
           {/* Main Strategic Radar */}
-          <div className="w-64 h-64 rounded-full border-2 border-slate-100 dark:border-slate-800 flex items-center justify-center relative overflow-hidden shadow-2xl bg-white dark:bg-slate-950">
-            {/* Rotating Grid Lines */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 opacity-10"
+          <div className="w-72 h-72 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center relative overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.4)] bg-white/50 dark:bg-black/50 backdrop-blur-3xl">
+            {/* Background Grid Lines */}
+            <div 
+              className="absolute inset-0 opacity-20"
               style={{
-                backgroundImage:
-                  "radial-gradient(circle, #3b82f6 1px, transparent 1px)",
-                backgroundSize: "20px 20px",
+                backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
               }}
             />
 
             {/* Scanning Bar */}
             <motion.div
-              animate={{ y: [-150, 150] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-1/2 left-0 w-full h-[2px] bg-linear-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.5)] z-20"
+              animate={{ top: ['0%', '100%', '0%'] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              className="absolute left-0 w-full h-[3px] bg-linear-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_25px_rgba(59,130,246,0.8)] z-30 opacity-80"
+            />
+
+            <motion.div
+               animate={{ rotate: 360 }}
+               transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+               className="absolute inset-0 border-[0.5px] border-blue-500/20 border-dashed rounded-full"
             />
 
             {/* Inner Concentric Circles */}
-            <div className="absolute inset-4 rounded-full border border-slate-100 dark:border-slate-800 flex items-center justify-center">
-              <div className="absolute inset-8 rounded-full border border-slate-100 dark:border-slate-800 flex items-center justify-center">
-                <div className="absolute inset-12 rounded-full border border-blue-600/20 animate-ping" />
-                <Cpu className="text-blue-600 w-16 h-16 animate-pulse" />
-              </div>
+            <div className="absolute inset-6 rounded-full border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center shadow-inner">
+               <div className="absolute inset-12 rounded-full border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center">
+                  <div className="absolute inset-16 rounded-full border border-blue-600/20" />
+                  <div className="relative z-10 flex flex-col items-center">
+                    <Cpu className="text-blue-600 w-20 h-20 animate-pulse" strokeWidth={1} />
+                    <div className="absolute -bottom-4 text-[7px] font-black uppercase tracking-[0.3em] text-blue-500/60 animate-pulse">
+                       Core Engine
+                    </div>
+                  </div>
+               </div>
             </div>
 
-            {/* Rotating Outer Ring */}
+            {/* Rotating Outer Ring Markers */}
             <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 border-4 border-dashed border-blue-600/20 rounded-full"
-            />
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0"
+            >
+              {[0, 90, 180, 270].map((deg) => (
+                <div 
+                  key={deg} 
+                  className="absolute w-4 h-0.5 bg-blue-500/30" 
+                  style={{ top: '50%', left: '50%', transform: `rotate(${deg}deg) translate(140px)` }}
+                />
+              ))}
+            </motion.div>
           </div>
+
+          {/* Artificial Data Points */}
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: [0, 1, 0],
+                scale: [0.5, 1.2, 0.5],
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity, 
+                delay: i * 0.4,
+                ease: "easeInOut"
+              }}
+              className="absolute w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,1)]"
+              style={{
+                left: `${50 + Math.cos(i * 1.04) * 35}%`,
+                top: `${50 + Math.sin(i * 1.04) * 35}%`,
+              }}
+            />
+          ))}
 
           {/* Floating Data Nodes */}
           {[0, 1, 2, 3].map((i) => (
@@ -3363,70 +3595,81 @@ function InitialAnalysis({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="space-y-10"
+      className="space-y-12 max-w-5xl mx-auto"
     >
-      <div className="p-10 rounded-[3rem] bg-blue-600 text-white shadow-2xl shadow-blue-600/30 overflow-hidden relative">
+      <div className="p-10 md:p-14 rounded-[3.5rem] bg-linear-to-br from-blue-600 via-indigo-600 to-violet-700 border border-white/20 text-white shadow-[0_20px_60px_rgba(79,70,229,0.4)] overflow-hidden relative group">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
+        </div>
         <motion.div
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="relative z-10 flex items-center gap-6"
+           initial={{ x: -100, opacity: 0 }}
+           animate={{ x: 0, opacity: 1 }}
+           className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left"
         >
-          <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md">
-            <CheckCircle2 size={48} />
+          <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
+            <CheckCircle2 size={56} strokeWidth={1.5} className="text-emerald-400" />
           </div>
-          <div>
-            <h2 className="text-4xl font-black uppercase italic tracking-tight leading-none">
+          <div className="space-y-3">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-2">
+                <Sparkles size={12} /> Strategic Signal Locked
+             </div>
+            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none drop-shadow-2xl">
               {t.complete}
             </h2>
-            <p className="font-black opacity-80 uppercase tracking-[0.2em] text-[10px] mt-2">
+            <p className="font-black opacity-80 uppercase tracking-[0.4em] text-[10px] md:text-xs">
               {t.completeSub}
             </p>
           </div>
         </motion.div>
-        <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-[80px]" />
+        <div className="absolute -left-20 -top-20 w-64 h-64 bg-indigo-400/20 rounded-full blur-[60px]" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/20 space-y-6">
-          <h3 className="font-black uppercase text-[10px] text-blue-600 tracking-[0.3em]">
+        <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-2xl space-y-8 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Target size={120} />
+          </div>
+          <h3 className="font-black uppercase text-xs text-blue-600 tracking-[0.4em] relative z-10">
             {t.profile}
           </h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
-              <span className="text-xs font-black uppercase text-slate-400 tracking-wider font-sans">
+          <div className="space-y-4 relative z-10">
+            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-6 rounded-4xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all hover:border-emerald-500/30">
+              <span className="text-xs font-black uppercase text-slate-400 tracking-wider">
                 {t.authority}
               </span>
-              <span className="font-black text-3xl text-emerald-500 font-serif">
+              <span className="font-black text-4xl text-emerald-500">
                 {auditData?.authorityScore}%
               </span>
             </div>
-            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
-              <span className="text-xs font-black uppercase text-slate-400 tracking-wider font-sans">
+            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-6 rounded-4xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all hover:border-blue-500/30">
+              <span className="text-xs font-black uppercase text-slate-400 tracking-wider">
                 {t.alignment}
               </span>
-              <span className="font-black text-sm text-blue-600 uppercase tracking-tight">
+              <span className="font-black text-lg text-blue-600 uppercase tracking-tight">
                 {auditData?.profileLevel}
               </span>
             </div>
           </div>
-          <div className="pt-4 space-y-2">
-            <p className="text-xs text-slate-500 font-bold uppercase leading-relaxed">
-              {auditData?.verdict}
+          <div className="pt-4 space-y-2 border-t border-slate-100 dark:border-slate-800 relative z-10">
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-bold leading-relaxed italic">
+              &quot;{auditData?.verdict}&quot;
             </p>
           </div>
         </div>
 
-        <div className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/20 space-y-6">
-          <h3 className="font-black uppercase text-[10px] text-orange-600 tracking-[0.3em]">
-            {t.gaps}
+        <div className="p-10 rounded-[3rem] bg-slate-900 dark:bg-black border border-slate-800 text-white shadow-2xl relative overflow-hidden space-y-8">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/10 rounded-full blur-[80px]" />
+          <h3 className="font-black uppercase text-xs text-orange-500 tracking-[0.4em] relative z-10 flex items-center gap-3">
+            <AlertTriangle size={18} /> {t.gaps}
           </h3>
-          <ul className="space-y-3">
+          <ul className="space-y-4 relative z-10">
             {auditData?.gaps?.map((gap: string, i: number) => (
               <li
                 key={i}
-                className="flex items-start gap-4 text-sm font-bold leading-tight group"
+                className="flex items-start gap-4 text-sm font-bold leading-relaxed text-slate-300 group p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
               >
-                <div className="w-2 h-2 rounded-full bg-orange-500 mt-1.5 shrink-0 group-hover:scale-150 transition-transform" />
+                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 mt-1.5 shrink-0 group-hover:scale-150 transition-transform shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
                 {gap}
               </li>
             ))}
@@ -3434,22 +3677,22 @@ function InitialAnalysis({
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="font-black uppercase text-[10px] text-slate-400 tracking-[0.3em] text-center">
-          Vision Alignment Analysis
+      <div className="space-y-6 pt-6">
+        <h3 className="font-black uppercase text-xs text-slate-400 tracking-[0.4em] text-center flex items-center justify-center gap-3">
+          <Eye size={18} /> Vision Alignment Analysis
         </h3>
-        <p className="text-center text-slate-500 dark:text-slate-400 font-medium italic leading-relaxed max-w-3xl mx-auto px-6">
+        <p className="text-center text-lg md:text-xl text-slate-700 dark:text-slate-300 font-bold italic leading-relaxed max-w-4xl mx-auto px-6">
           &quot;{auditData?.visionAnalysis}&quot;
         </p>
       </div>
 
-      <div className="flex justify-center pt-8">
+      <div className="flex justify-center pt-10">
         <button
           onClick={onNext}
-          className="group flex items-center gap-4 px-12 py-5 bg-emerald-600 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-emerald-600/30 hover:scale-105 transition-all"
+          className="group flex items-center gap-6 px-14 py-6 bg-emerald-600 text-white font-black uppercase tracking-[0.3em] text-lg rounded-4xl shadow-[0_20px_40px_rgba(16,185,129,0.3)] hover:shadow-[0_25px_50px_rgba(16,185,129,0.4)] hover:scale-105 transition-all outline-none"
         >
           {t.cta}{" "}
-          <ChevronRight className="group-hover:translate-x-2 transition-transform" />
+          <ChevronRight className="group-hover:translate-x-2 transition-transform w-8 h-8" />
         </button>
       </div>
     </motion.div>
