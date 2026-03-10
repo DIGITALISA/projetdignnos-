@@ -7,7 +7,8 @@ import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/Ne
 import { Send, Loader2, FileText, Mail, ArrowRight, ArrowLeft, CheckCircle, Sparkles, Download, Phone, MapPin, Linkedin, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
+import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 
 interface Message {
     role: 'ai' | 'user';
@@ -648,100 +649,198 @@ export default function CVGenerationPage() {
     const handleDownloadPDF = async (ref: React.RefObject<HTMLDivElement | null>, filename: string) => {
         if (!ref.current) return;
         setIsExporting(filename);
+        
+        const offscreen = document.createElement('div');
+        offscreen.style.position = 'fixed';
+        offscreen.style.left = '-9999px';
+        offscreen.style.top = '0';
+        offscreen.style.width = '794px'; // A4 width in px at 96dpi
+        offscreen.style.backgroundColor = '#ffffff';
+        offscreen.style.zIndex = '-1';
+        
+        // Deep clone the actual document element
+        const clone = ref.current.cloneNode(true) as HTMLElement;
+        clone.style.width = '100%';
+        clone.style.maxWidth = 'none';
+        clone.style.margin = '0';
+        clone.style.padding = '40px';
+        clone.style.boxShadow = 'none';
+        clone.style.borderRadius = '0';
+        clone.style.backgroundColor = '#ffffff';
+        clone.style.overflow = 'visible';
+        
+        offscreen.appendChild(clone);
+        document.body.appendChild(offscreen);
+        
         try {
-            const element = ref.current;
-            
-            // Capture with robust settings
-            const canvas = await html2canvas(element, {
-                scale: 2, // Good balance of quality/size
+            const canvas = await html2canvas(offscreen, {
+                scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: "#ffffff",
-                windowWidth: 800, // Force desktop width for consistent layout
+                backgroundColor: '#ffffff',
+                width: 794,
+                windowWidth: 794,
+                scrollX: 0,
+                scrollY: 0,
                 onclone: (clonedDoc) => {
-                    // 1. Remove stubborn link tags that break html2canvas with modern CSS (lab/oklch)
-                    const links = clonedDoc.getElementsByTagName('link');
-                    while (links.length > 0) {
-                        links[0].parentNode?.removeChild(links[0]);
-                    }
+                    // ── STEP 1: Nuke all <link> stylesheets (Tailwind v4 uses lab/oklch) ──
+                    Array.from(clonedDoc.getElementsByTagName('link'))
+                        .forEach(l => l.parentNode?.removeChild(l));
 
-                    // 2. Reveal the printable element (it might be hidden in scrollbox)
-                    const el = clonedDoc.getElementById('printable-doc');
-                    if (el) {
-                        (el as HTMLElement).style.display = 'block';
-                        (el as HTMLElement).style.padding = '40px'; // Add padding for "page" feel
-                        (el as HTMLElement).style.width = '100%';
-                        (el as HTMLElement).style.maxWidth = 'none';
-                        (el as HTMLElement).style.margin = '0 auto';
-                    }
+                    // ── STEP 2: Strip lab/oklch from every <style> tag ──
+                    const getColorRegex = () => /(oklch|oklab|lab|lch|hwb|color-mix|color)\s*\([^)]*\)/g;
+                    Array.from(clonedDoc.getElementsByTagName('style')).forEach(s => {
+                        if (getColorRegex().test(s.innerHTML)) {
+                            s.innerHTML = s.innerHTML.replace(getColorRegex(), '#000000');
+                        }
+                    });
 
-                    // 3. Inject Safe Styles & Font
+                    // ── STEP 3: Strip lab/oklch from every element's inline style ──
+                    Array.from(clonedDoc.getElementsByTagName('*')).forEach(el => {
+                        const htmlEl = el as HTMLElement;
+                        const style = htmlEl.getAttribute('style');
+                        if (style && getColorRegex().test(style)) {
+                            htmlEl.setAttribute('style', style.replace(getColorRegex(), '#000000'));
+                        }
+                        // Also kill backdrop filters and transitions that can fail
+                        htmlEl.style.removeProperty('backdrop-filter');
+                        htmlEl.style.removeProperty('-webkit-backdrop-filter');
+                        htmlEl.style.removeProperty('transition');
+                        htmlEl.style.removeProperty('animation');
+                        htmlEl.style.removeProperty('filter');
+                    });
+
+                    // ── STEP 4: Inject safe PDF styles ──
                     const safeStyle = clonedDoc.createElement('style');
                     safeStyle.innerHTML = `
-                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-                        * { font-family: 'Tajawal', sans-serif !important; box-sizing: border-box; }
+                        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap');
                         
-                        /* Basic Reset & Tailwind Emulation for PDF */
-                        .bg-white { background-color: #ffffff !important; }
+                        * { box-sizing: border-box !important; margin: 0; padding: 0; }
+                        
+                        body, div, span, p, h1, h2, h3, h4, h5, h6, li {
+                            color: inherit !important;
+                            background-color: transparent !important;
+                        }
+
+                        /* Tailwind color utilities */
+                        .bg-white    { background-color: #ffffff !important; }
+                        .bg-slate-50 { background-color: #f8fafc !important; }
+                        .bg-slate-100{ background-color: #f1f5f9 !important; }
+                        .bg-blue-50  { background-color: #eff6ff !important; }
+                        .bg-purple-50{ background-color: #faf5ff !important; }
+                        .bg-emerald-50{ background-color: #ecfdf5 !important; }
+
                         .text-slate-900 { color: #0f172a !important; }
                         .text-slate-800 { color: #1e293b !important; }
                         .text-slate-700 { color: #334155 !important; }
                         .text-slate-600 { color: #475569 !important; }
                         .text-slate-500 { color: #64748b !important; }
-                        .text-blue-600 { color: #2563eb !important; }
-                        .text-blue-700 { color: #1d4ed8 !important; }
-                        .text-purple-600 { color: #9333ea !important; }
-                        .border-blue-600 { border-color: #2563eb !important; }
-                        .border-b-2 { border-bottom-width: 2px !important; }
-                        .border-b { border-bottom-width: 1px !important; }
+                        .text-slate-400 { color: #94a3b8 !important; }
+                        .text-blue-600  { color: #2563eb !important; }
+                        .text-blue-700  { color: #1d4ed8 !important; }
+                        .text-purple-600{ color: #9333ea !important; }
+                        .text-purple-700{ color: #7e22ce !important; }
+                        .text-emerald-600{ color: #059669 !important; }
+                        .text-emerald-700{ color: #047857 !important; }
+
+                        /* Borders */
+                        .border-blue-600  { border-color: #2563eb !important; }
                         .border-slate-200 { border-color: #e2e8f0 !important; }
-                        .bg-slate-100 { background-color: #f1f5f9 !important; }
-                        
-                        .p-12 { padding: 3rem !important; }
-                        .mb-8 { margin-bottom: 2rem !important; }
-                        .mb-6 { margin-bottom: 1.5rem !important; }
-                        .mb-4 { margin-bottom: 1rem !important; }
-                        .mb-3 { margin-bottom: 0.75rem !important; }
-                        .mb-2 { margin-bottom: 0.5rem !important; }
-                        .mb-1 { margin-bottom: 0.25rem !important; }
-                        
-                        .text-4xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
-                        .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
-                        .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
-                        .text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
-                        .text-xs { font-size: 0.75rem !important; line-height: 1rem !important; }
-                        
-                        .font-bold { font-weight: 700 !important; }
+                        .border-slate-100 { border-color: #f1f5f9 !important; }
+                        .border-b-2       { border-bottom-width: 2px !important; border-bottom-style: solid !important; }
+                        .border-b         { border-bottom-width: 1px !important; border-bottom-style: solid !important; }
+                        .border           { border-width: 1px !important; border-style: solid !important; }
+                        .border-blue-100  { border-color: #dbeafe !important; }
+                        .border-purple-100{ border-color: #f3e8ff !important; }
+                        .border-emerald-100{ border-color: #d1fae5 !important; }
+
+                        /* Typography */
+                        .text-4xl    { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+                        .text-3xl    { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+                        .text-2xl    { font-size: 1.5rem !important; line-height: 2rem !important; }
+                        .text-xl     { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+                        .text-lg     { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+                        .text-sm     { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+                        .text-xs     { font-size: 0.75rem !important; line-height: 1rem !important; }
+                        .text-\[10px\] { font-size: 10px !important; }
+                        .font-bold      { font-weight: 700 !important; }
                         .font-extrabold { font-weight: 800 !important; }
-                        .font-semibold { font-weight: 600 !important; }
-                        .uppercase { text-transform: uppercase !important; }
+                        .font-semibold  { font-weight: 600 !important; }
+                        .font-medium    { font-weight: 500 !important; }
+                        .font-black     { font-weight: 900 !important; }
+                        .uppercase      { text-transform: uppercase !important; }
+                        .tracking-wider  { letter-spacing: 0.05em !important; }
+                        .tracking-widest { letter-spacing: 0.1em !important; }
+                        .leading-relaxed { line-height: 1.625 !important; }
+
+                        /* Spacing */
+                        .p-12  { padding: 3rem !important; }
+                        .p-5   { padding: 1.25rem !important; }
+                        .p-4   { padding: 1rem !important; }
+                        .p-3   { padding: 0.75rem !important; }
+                        .p-2   { padding: 0.5rem !important; }
+                        .p-1   { padding: 0.25rem !important; }
+                        .px-2  { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+                        .py-1  { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+                        .pb-6  { padding-bottom: 1.5rem !important; }
+                        .pb-1  { padding-bottom: 0.25rem !important; }
+                        .pt-8  { padding-top: 2rem !important; }
                         
-                        .flex { display: flex !important; }
+                        .mt-12 { margin-top: 3rem !important; }
+                        .mt-8  { margin-top: 2rem !important; }
+                        .mt-4  { margin-top: 1rem !important; }
+                        .mb-8  { margin-bottom: 2rem !important; }
+                        .mb-6  { margin-bottom: 1.5rem !important; }
+                        .mb-4  { margin-bottom: 1rem !important; }
+                        .mb-3  { margin-bottom: 0.75rem !important; }
+                        .mb-2  { margin-bottom: 0.5rem !important; }
+                        .mb-1  { margin-bottom: 0.25rem !important; }
+                        .ml-4  { margin-left: 1rem !important; }
+                        .mr-4  { margin-right: 1rem !important; }
+
+                        /* Layout */
+                        .flex  { display: flex !important; }
                         .flex-wrap { flex-wrap: wrap !important; }
-                        .items-center { align-items: center !important; }
+                        .flex-1    { flex: 1 !important; }
+                        .items-center    { align-items: center !important; }
+                        .items-start     { align-items: flex-start !important; }
                         .justify-between { justify-content: space-between !important; }
+                        .justify-start   { justify-content: flex-start !important; }
+                        .gap-8 { gap: 2rem !important; }
                         .gap-4 { gap: 1rem !important; }
                         .gap-2 { gap: 0.5rem !important; }
                         .gap-1 { gap: 0.25rem !important; }
-                        
-                        .grid { display: grid !important; }
-                        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-                        .col-span-2 { grid-column: span 2 / span 2 !important; }
-                        .col-span-1 { grid-column: span 1 / span 1 !important; }
+
+                        .grid          { display: grid !important; }
+                        .grid-cols-3   { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+                        .col-span-2    { grid-column: span 2 / span 2 !important; }
+                        .col-span-1    { grid-column: span 1 / span 1 !important; }
+
                         .space-y-8 > * + * { margin-top: 2rem !important; }
                         .space-y-6 > * + * { margin-top: 1.5rem !important; }
                         .space-y-4 > * + * { margin-top: 1rem !important; }
                         .space-y-2 > * + * { margin-top: 0.5rem !important; }
                         .space-y-1 > * + * { margin-top: 0.25rem !important; }
-                        
-                        .list-disc { list-style-type: disc !important; }
-                        .ml-4 { margin-left: 1rem !important; }
-                        .rounded { border-radius: 0.25rem !important; }
+
+                        .list-disc         { list-style-type: disc !important; }
+                        .list-outside      { list-style-position: outside !important; }
+
+                        .rounded    { border-radius: 0.25rem !important; }
+                        .rounded-lg { border-radius: 0.5rem !important; }
+
+                        /* Hide decorative/interactive elements */
+                        .shadow-xl, .shadow-lg, .shadow-sm  { box-shadow: none !important; }
+                        .backdrop-blur-sm { backdrop-filter: none !important; }
+                        svg.lucide       { display: none !important; }
                     `;
                     clonedDoc.head.appendChild(safeStyle);
                 }
             });
 
+            // Remove off-screen container
+            document.body.removeChild(offscreen);
+
+            // Generate PDF
             const imgData = canvas.toDataURL('image/png', 1.0);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -764,8 +863,9 @@ export default function CVGenerationPage() {
 
             pdf.save(`${filename}.pdf`);
         } catch (error) {
-            console.error("Export failed:", error);
-            alert("Failed to export PDF");
+            if (document.body.contains(offscreen)) document.body.removeChild(offscreen);
+            console.error('Export failed:', error);
+            alert('Failed to export PDF: ' + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsExporting(null);
         }
@@ -839,7 +939,7 @@ export default function CVGenerationPage() {
 
                         {/* CV Preview Scrollbox */}
                         <div className="bg-slate-200 rounded-2xl p-4 md:p-8 overflow-y-auto max-h-[800px] shadow-inner border border-slate-300 custom-scrollbar">
-                            <div ref={cvRef}>
+                            <div ref={cvRef} style={{ backgroundColor: '#fff' }}>
                                 <CVDocument data={generatedDocuments.cv} language={selectedLanguage} />
                             </div>
                         </div>
@@ -864,7 +964,7 @@ export default function CVGenerationPage() {
 
                         {/* Letter Preview Scrollbox */}
                         <div className="bg-slate-200 rounded-2xl p-4 md:p-8 overflow-y-auto max-h-[800px] shadow-inner border border-slate-300 custom-scrollbar">
-                            <div ref={letterRef}>
+                            <div ref={letterRef} style={{ backgroundColor: '#fff' }}>
                                 <LetterDocument
                                     content={generatedDocuments.coverLetter}
                                     fullName={generatedDocuments.cv.personalDetails?.fullName || ''}
@@ -1235,7 +1335,7 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
     const docT = t.cvDocument;
 
     return (
-        <div id="printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-12 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
+        <div id="cv-printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-12 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
             {/* Header */}
             <header className="border-b-2 border-blue-600 pb-6 mb-8">
                 <h1 className="text-4xl font-extrabold text-slate-900 mb-2">{data.personalDetails?.fullName}</h1>
@@ -1375,7 +1475,7 @@ function LetterDocument({ content, fullName, jobTitle, language }: { content: st
     });
 
     return (
-        <div id="printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-20 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
+        <div id="letter-printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-20 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
             <div className="border-b-2 border-slate-100 pb-10 mb-10">
                 <h1 className="text-3xl font-bold text-slate-900 mb-1">{fullName}</h1>
                 <p className="text-slate-500 uppercase tracking-widest text-sm">{jobTitle}</p>

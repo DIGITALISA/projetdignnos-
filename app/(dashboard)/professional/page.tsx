@@ -2568,16 +2568,66 @@ export default function ProfessionalDashboard() {
     "portfolio-interview",
     "final-report",
   ];
+
+  // Stage metadata driven by the selected language
+  const STAGE_META: { icon: React.ReactNode; label: string; desc: string }[] = [
+    {
+      icon: <Languages size={18} />,
+      label: currentLang === "ar" ? "اللغة" : currentLang === "fr" ? "Langue" : "Language",
+      desc: currentLang === "ar" ? "اختيار لغة الحساب" : currentLang === "fr" ? "Langue du compte" : "Account language",
+    },
+    {
+      icon: <Shield size={18} />,
+      label: currentLang === "ar" ? "المرحبا" : currentLang === "fr" ? "Bienvenue" : "Welcome",
+      desc: currentLang === "ar" ? "نظرة عامة على المسار" : currentLang === "fr" ? "Vue d'ensemble" : "Journey overview",
+    },
+    {
+      icon: <Briefcase size={18} />,
+      label: currentLang === "ar" ? "الملف المهني" : currentLang === "fr" ? "Profil" : "Profile",
+      desc: currentLang === "ar" ? "القطاعات والمناصب والرؤية" : currentLang === "fr" ? "Secteurs, postes & vision" : "Sectors, roles & vision",
+    },
+    {
+      icon: <FileText size={18} />,
+      label: currentLang === "ar" ? "الأدلة" : currentLang === "fr" ? "Preuves" : "Evidence",
+      desc: currentLang === "ar" ? "رفع السيرة الذاتية أو السرد" : currentLang === "fr" ? "CV ou narration" : "CV upload or narrative",
+    },
+    {
+      icon: <Cpu size={18} />,
+      label: currentLang === "ar" ? "التحليل الأولي" : currentLang === "fr" ? "Analyse" : "Analysis",
+      desc: currentLang === "ar" ? "تقرير الذكاء الاصطناعي الأولي" : currentLang === "fr" ? "Rapport IA initial" : "AI initial audit report",
+    },
+    {
+      icon: <MessageSquare size={18} />,
+      label: currentLang === "ar" ? "المقابلة" : currentLang === "fr" ? "Entretien" : "Interview",
+      desc: currentLang === "ar" ? "مقابلة استراتيجية مع خبير" : currentLang === "fr" ? "Entretien stratégique" : "AI strategic interview",
+    },
+    {
+      icon: <CheckCircle2 size={18} />,
+      label: currentLang === "ar" ? "التقييم" : currentLang === "fr" ? "MCQ" : "MCQ",
+      desc: currentLang === "ar" ? "اختبار المهارات الصلبة والناعمة" : currentLang === "fr" ? "Test Hard & Soft skills" : "Hard & Soft skills test",
+    },
+    {
+      icon: <Target size={18} />,
+      label: currentLang === "ar" ? "المحفظة" : currentLang === "fr" ? "Portfolio" : "Portfolio",
+      desc: currentLang === "ar" ? "غوص عميق في القيادة" : currentLang === "fr" ? "Deep-dive leadership" : "Leadership deep-dive",
+    },
+    {
+      icon: <TrendingUp size={18} />,
+      label: currentLang === "ar" ? "التقرير النهائي" : currentLang === "fr" ? "Rapport" : "Report",
+      desc: currentLang === "ar" ? "الحكم الاستراتيجي الشامل" : currentLang === "fr" ? "Verdict stratégique" : "Final strategic verdict",
+    },
+  ];
+
   const STEP_LABELS: Record<Step, string> = {
-    language: "Language",
-    welcome: "Welcome",
-    "audit-form": "Profile",
-    "experience-input": "Evidence",
-    "initial-analysis": "Analysis",
-    "expert-interview": "Interview",
-    "mcq-assessment": "MCQ",
-    "portfolio-interview": "Portfolio",
-    "final-report": "Report",
+    language: STAGE_META[0].label,
+    welcome: STAGE_META[1].label,
+    "audit-form": STAGE_META[2].label,
+    "experience-input": STAGE_META[3].label,
+    "initial-analysis": STAGE_META[4].label,
+    "expert-interview": STAGE_META[5].label,
+    "mcq-assessment": STAGE_META[6].label,
+    "portfolio-interview": STAGE_META[7].label,
+    "final-report": STAGE_META[8].label,
   };
   const currentStepIndex = STEPS.indexOf(step);
   const progressPercent = Math.round(
@@ -2599,234 +2649,328 @@ export default function ProfessionalDashboard() {
   return (
     <div
       className={cn(
-        "min-h-screen bg-white dark:bg-[#06080a] text-slate-900 dark:text-white p-6 lg:p-12 font-sans selection:bg-blue-500/30 transition-colors duration-500",
+        "min-h-screen bg-slate-50 dark:bg-[#06080a] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30 transition-colors duration-500",
         dir === "rtl" ? "font-arabic" : "font-sans",
       )}
       dir={dir}
     >
-      <div className="max-w-4xl mx-auto">
-        {/* Top bar with Logout */}
-        <div className="flex justify-end mb-6 relative z-50">
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-200 dark:hover:border-rose-500/20 transition-all text-[10px] font-black uppercase tracking-[0.2em] shadow-sm"
-          >
-            <LogOut size={14} strokeWidth={2.5} />
-            {t.welcome.logout || "Log Out"}
-          </button>
-        </div>
-
-        {/* === PROGRESS BAR === */}
-        {step !== "welcome" && (
-          <div className="mb-10 space-y-4 p-5 rounded-4xl bg-white/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
-            <div className="flex justify-between items-center px-1">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                Phase {currentStepIndex + 1} <span className="text-slate-300 dark:text-slate-600">/</span> {STEPS.length}
-              </div>
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                {STEP_LABELS[step]}
-              </div>
+      {/* ── TOP BAR ── */}
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#06080a]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Logo / Brand */}
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
+              <Shield size={16} className="text-white" strokeWidth={2.5} />
             </div>
-            <div className="w-full h-2.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
-                <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="h-full bg-linear-to-r from-indigo-500 via-blue-500 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] bg-size-[200%_auto] animate-[gradient_2s_linear_infinite]"
-              />
-            </div>
-            <div className="hidden md:flex justify-between px-1">
-              {STEPS.map((s, i) => (
-                <div
-                  key={s}
-                  className={cn(
-                    "text-[8px] font-black uppercase tracking-widest transition-colors",
-                    i <= currentStepIndex
-                      ? "text-indigo-500"
-                      : "text-slate-300 dark:text-slate-700",
-                  )}
-                >
-                  {STEP_LABELS[s]}
-                </div>
-              ))}
-            </div>
+            <span className="font-black text-sm uppercase tracking-[0.2em] text-slate-800 dark:text-white hidden sm:block">
+              {currentLang === "ar" ? "الحساب التنفيذي" : currentLang === "fr" ? "Compte Exécutif" : "Executive Account"}
+            </span>
           </div>
-        )}
 
-        {/* === LOGOUT CONFIRMATION DIALOG === */}
-        <AnimatePresence>
-          {showLogoutConfirm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+          {/* Mobile: current step pill */}
+          <div className="flex md:hidden items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest">{STEP_LABELS[step]} — {currentStepIndex + 1}/{STEPS.length}</span>
+          </div>
+
+          {/* Right: progress % + logout */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="h-full bg-indigo-500 rounded-full"
+                />
+              </div>
+              <span className="text-indigo-600 dark:text-indigo-400">{progressPercent}%</span>
+            </div>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-200 dark:hover:border-rose-500/20 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
             >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white dark:bg-slate-950 rounded-[3rem] p-12 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-8 text-center"
-              >
-                <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center mx-auto">
-                  <LogOut className="text-blue-600 dark:text-blue-500" size={28} />
+              <LogOut size={13} strokeWidth={2.5} />
+              <span className="hidden sm:block">{t.welcome.logout || "Log Out"}</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ── MAIN LAYOUT ── */}
+      <div className="max-w-7xl mx-auto flex gap-0 md:gap-8 px-4 md:px-8 py-8">
+
+        {/* ────────────────── SIDEBAR STEPPER ────────────────── */}
+        {step !== "language" && step !== "welcome" && (
+          <aside className="hidden md:flex flex-col w-72 shrink-0">
+            <div className="sticky top-24 space-y-2">
+              {/* Title */}
+              <div className="px-4 pb-4">
+                <p className="text-[9px] font-black uppercase tracking-[0.35em] text-slate-400">
+                  {currentLang === "ar" ? "مسار التقييم" : currentLang === "fr" ? "Parcours d'évaluation" : "Assessment Journey"}
+                </p>
+              </div>
+
+              {/* Steps */}
+              {STEPS.map((s, i) => {
+                const meta = STAGE_META[i];
+                const isDone = i < currentStepIndex;
+                const isActive = i === currentStepIndex;
+                const isSkip = s === "language" || (s === "welcome" && currentStepIndex > 1);
+                if (isSkip && !isDone) return null;
+
+                return (
+                  <motion.div
+                    key={s}
+                    initial={{ opacity: 0, x: dir === "rtl" ? 20 : -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className={cn(
+                      "flex items-start gap-3 px-4 py-3 rounded-2xl transition-all cursor-default group",
+                      isActive
+                        ? "bg-white dark:bg-slate-900 shadow-lg shadow-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20"
+                        : isDone
+                        ? "hover:bg-white/60 dark:hover:bg-slate-900/40"
+                        : "opacity-40",
+                    )}
+                  >
+                    {/* Step Icon */}
+                    <div
+                      className={cn(
+                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all",
+                        isActive
+                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/40"
+                          : isDone
+                          ? "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-400",
+                      )}
+                    >
+                      {isDone ? <CheckCircle2 size={16} strokeWidth={2.5} /> : meta.icon}
+                    </div>
+
+                    {/* Label + Desc */}
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <p
+                        className={cn(
+                          "text-sm font-black uppercase tracking-tight leading-tight truncate",
+                          isActive
+                            ? "text-indigo-600 dark:text-indigo-400"
+                            : isDone
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-slate-500",
+                        )}
+                      >
+                        {meta.label}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-0.5 leading-snug">
+                        {meta.desc}
+                      </p>
+                    </div>
+
+                    {/* Status dot */}
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shrink-0 mt-1" />
+                    )}
+                    {isDone && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1" />
+                    )}
+                  </motion.div>
+                );
+              })}
+
+              {/* Footer: global progress ring */}
+              <div className="mt-6 px-4 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center gap-4">
+                <div className="relative w-14 h-14 shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                    <circle
+                      cx="18" cy="18" r="14" fill="none"
+                      stroke="#6366f1" strokeWidth="3"
+                      strokeDasharray={`${progressPercent * 0.88} 88`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-indigo-600">{progressPercent}%</span>
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-black uppercase tracking-tight">
-                    {currentLang === "ar" ? "هل أنت متأكد؟" : "Are you sure?"}
-                  </h3>
-                  <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                <div>
+                  <p className="text-xs font-black text-slate-800 dark:text-white">
+                    {currentLang === "ar" ? "التقدم الكلي" : currentLang === "fr" ? "Progression globale" : "Overall progress"}
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">
                     {currentLang === "ar"
-                      ? "سيتم حفظ جميع تقدمك وبياناتك بأمان. يمكنك العودة واستكمال التقييم التنفيذي في أي وقت ومن أي جهاز."
-                      : "Your progress is securely saved. You can resume your executive assessment anytime, from any device."}
+                      ? `${currentStepIndex + 1} من ${STEPS.length} مراحل`
+                      : currentLang === "fr"
+                      ? `Étape ${currentStepIndex + 1} sur ${STEPS.length}`
+                      : `Step ${currentStepIndex + 1} of ${STEPS.length}`}
                   </p>
                 </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setShowLogoutConfirm(false)}
-                    className="flex-1 py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
-                  >
-                    {currentLang === "ar" ? "إلغاء" : "Cancel"}
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)]"
-                  >
-                    {currentLang === "ar" ? "خروج" : "Log Out"}
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Step Navigation Hooks */}
-        {step !== "welcome" && step !== "initial-analysis" && (
-          <div className="flex justify-between items-center mb-8 px-2">
-            <button
-              onClick={prevStep}
-              className="group flex items-center gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition-all hover:shadow-xl"
-            >
-              <ChevronLeft
-                className={cn(
-                  "w-6 h-6 transition-transform group-hover:-translate-x-1",
-                  dir === "rtl" && "rotate-180 group-hover:translate-x-1",
-                )}
-              />
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                {t.welcome.back || "Back"}
-              </span>
-            </button>
-
-            <button
-              onClick={nextStep}
-              className="group flex items-center gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition-all hover:shadow-xl"
-            >
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                {t.welcome.next || "Fast Forward"}
-              </span>
-              <ChevronRight
-                className={cn(
-                  "w-6 h-6 transition-transform group-hover:translate-x-1",
-                  dir === "rtl" && "rotate-180 group-hover:-translate-x-1",
-                )}
-              />
-            </button>
-          </div>
+              </div>
+            </div>
+          </aside>
         )}
 
-        <AnimatePresence mode="wait">
-          {step === "welcome" && (
-            <WelcomeScreen key="welcome" onNext={nextStep} t={t.welcome} />
+        {/* ─────────────── MAIN CONTENT ─────────────── */}
+        <main className={cn("flex-1 min-w-0", step === "language" || step === "welcome" ? "max-w-4xl mx-auto w-full" : "")}>
+          {/* ── Logout Confirm ── */}
+          <AnimatePresence>
+            {showLogoutConfirm && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-white dark:bg-slate-950 rounded-[3rem] p-12 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-8 text-center"
+                >
+                  <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center mx-auto">
+                    <LogOut className="text-blue-600 dark:text-blue-500" size={28} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black uppercase tracking-tight">
+                      {currentLang === "ar" ? "هل أنت متأكد؟" : "Are you sure?"}
+                    </h3>
+                    <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                      {currentLang === "ar"
+                        ? "سيتم حفظ جميع تقدمك وبياناتك بأمان. يمكنك العودة واستكمال التقييم التنفيذي في أي وقت ومن أي جهاز."
+                        : "Your progress is securely saved. You can resume your executive assessment anytime, from any device."}
+                    </p>
+                  </div>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setShowLogoutConfirm(false)}
+                      className="flex-1 py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+                    >
+                      {currentLang === "ar" ? "إلغاء" : "Cancel"}
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)]"
+                    >
+                      {currentLang === "ar" ? "خروج" : "Log Out"}
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Back / Forward dev nav (hidden on final + analysis) ── */}
+          {step !== "welcome" && step !== "initial-analysis" && step !== "language" && (
+            <div className="flex justify-between items-center mb-6 px-1">
+              <button
+                onClick={prevStep}
+                className="group flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-all hover:shadow-md text-slate-500"
+              >
+                <ChevronLeft className={cn("w-5 h-5 transition-transform group-hover:-translate-x-0.5", dir === "rtl" && "rotate-180")} />
+                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">{t.welcome.back || "Back"}</span>
+              </button>
+              <button
+                onClick={nextStep}
+                className="group flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-all hover:shadow-md text-slate-500"
+              >
+                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">{t.welcome.next || "Skip"}</span>
+                <ChevronRight className={cn("w-5 h-5 transition-transform group-hover:translate-x-0.5", dir === "rtl" && "rotate-180")} />
+              </button>
+            </div>
           )}
 
-          {step === "language" && (
-            <LanguageSelection
-              key="language"
-              selected={currentLang}
-              onSelect={(l) => {
-                setLanguage(l);
-                nextStep();
-              }}
-              t={t.language}
-            />
-          )}
+          {/* ── STEP CONTENT ── */}
+          <AnimatePresence mode="wait">
+            {step === "welcome" && (
+              <WelcomeScreen key="welcome" onNext={nextStep} t={t.welcome} />
+            )}
 
-          {step === "audit-form" && (
-            <AuditForm
-              key="audit"
-              formData={formData}
-              setFormData={setFormData}
-              newPosition={newPosition}
-              setNewPosition={setNewPosition}
-              addPosition={addPosition}
-              onNext={nextStep}
-              t={t.auditForm}
-            />
-          )}
+            {step === "language" && (
+              <LanguageSelection
+                key="language"
+                selected={currentLang}
+                onSelect={(l) => {
+                  setLanguage(l);
+                  nextStep();
+                }}
+                t={t.language}
+              />
+            )}
 
-          {step === "experience-input" && (
-            <ExperienceInput
-              key="experience"
-              formData={formData}
-              setFormData={setFormData}
-              onNext={nextStep}
-              t={t.experience}
-              language={currentLang}
-            />
-          )}
+            {step === "audit-form" && (
+              <AuditForm
+                key="audit"
+                formData={formData}
+                setFormData={setFormData}
+                newPosition={newPosition}
+                setNewPosition={setNewPosition}
+                addPosition={addPosition}
+                onNext={nextStep}
+                t={t.auditForm}
+              />
+            )}
 
-          {step === "initial-analysis" && (
-            <InitialAnalysis
-              key="analysis"
-              formData={formData}
-              t={t.analysis}
-              language={currentLang}
-              onComplete={handleAnalysisComplete}
-              onNext={nextStep}
-            />
-          )}
+            {step === "experience-input" && (
+              <ExperienceInput
+                key="experience"
+                formData={formData}
+                setFormData={setFormData}
+                onNext={nextStep}
+                t={t.experience}
+                language={currentLang}
+              />
+            )}
 
-          {step === "expert-interview" && auditResult && (
-            <ExpertInterview
-              key="interview"
-              formData={formData}
-              auditResult={auditResult}
-              t={t.interview}
-              language={currentLang}
-              onComplete={handleInterviewComplete}
-            />
-          )}
+            {step === "initial-analysis" && (
+              <InitialAnalysis
+                key="analysis"
+                formData={formData}
+                t={t.analysis}
+                language={currentLang}
+                onComplete={handleAnalysisComplete}
+                onNext={nextStep}
+              />
+            )}
 
-          {step === "mcq-assessment" && auditResult && (
-            <MCQAssessment
-              key="mcq"
-              auditResult={auditResult}
-              formData={formData}
-              interviewTranscript={interviewTranscript}
-              t={t.mcq}
-              language={currentLang}
-              onComplete={handleMCQComplete}
-            />
-          )}
+            {step === "expert-interview" && auditResult && (
+              <ExpertInterview
+                key="interview"
+                formData={formData}
+                auditResult={auditResult}
+                t={t.interview}
+                language={currentLang}
+                onComplete={handleInterviewComplete}
+              />
+            )}
 
-          {step === "portfolio-interview" && auditResult && mcqResults && (
-            <PortfolioInterview
-              key="portfolio"
-              auditResult={auditResult}
-              formData={formData}
-              interviewTranscript={interviewTranscript}
-              mcqResults={mcqResults}
-              language={currentLang}
-              onComplete={handlePortfolioComplete}
-            />
-          )}
+            {step === "mcq-assessment" && auditResult && (
+              <MCQAssessment
+                key="mcq"
+                auditResult={auditResult}
+                formData={formData}
+                interviewTranscript={interviewTranscript}
+                t={t.mcq}
+                language={currentLang}
+                onComplete={handleMCQComplete}
+              />
+            )}
 
-          {step === "final-report" && finalReport && (
-            <FinalReport key="report" report={finalReport} t={t.finalReport} />
-          )}
-        </AnimatePresence>
+            {step === "portfolio-interview" && auditResult && mcqResults && (
+              <PortfolioInterview
+                key="portfolio"
+                auditResult={auditResult}
+                formData={formData}
+                interviewTranscript={interviewTranscript}
+                mcqResults={mcqResults}
+                language={currentLang}
+                onComplete={handlePortfolioComplete}
+              />
+            )}
+
+            {step === "final-report" && finalReport && (
+              <FinalReport key="report" report={finalReport} t={t.finalReport} />
+            )}
+          </AnimatePresence>
+        </main>
       </div>
     </div>
   );

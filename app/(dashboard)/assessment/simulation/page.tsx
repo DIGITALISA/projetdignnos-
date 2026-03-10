@@ -21,7 +21,7 @@ const fetchWithTimeout = async (resource: string, options: RequestInit = {}, tim
     }
 };
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 import ReactMarkdown from "react-markdown";
 import { useLanguage } from "@/components/providers/LanguageProvider";
