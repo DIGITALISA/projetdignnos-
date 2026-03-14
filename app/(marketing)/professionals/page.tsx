@@ -2,8 +2,8 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import {
-  ArrowRight, CheckCircle2, X, Sparkles, Brain, ChevronDown,
-  Crown, Rocket, Star
+  ArrowRight, CheckCircle2, Sparkles, Brain, ChevronDown,
+  Crown, Star, GraduationCap, Briefcase, Shield, Zap, FileText, MessageSquare, Timer
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -31,43 +31,12 @@ function FadeIn({ children, delay = 0, className = "", direction = "up" }: {
 }
 
 // ─── COUNTER ─────────────────────────────────────────────────────────────────
-function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
-  if (inView && count === 0 && value > 0) {
-    const steps = 40;
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setCount(Math.round((value * i) / steps));
-      if (i >= steps) clearInterval(interval);
-    }, 35);
-  }
-  return <span ref={ref}>{count}{suffix}</span>;
-}
+
 
 
 
 // ─── EFFECTS ───────────────────────────────────────────────────────────────────
-function AnimatedHeroVisual() {
-  return (
-    <div className="relative w-full aspect-square flex items-center justify-center pointer-events-none">
-      <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} className="absolute inset-0 bg-blue-500/20 rounded-full blur-[100px]" />
-      
-      <motion.div animate={{ y: [-15, 15, -15] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="relative z-10 w-40 h-40 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-4xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer">
-        <Brain className="w-20 h-20 text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-      </motion.div>
 
-      {[...Array(3)].map((_, i) => (
-        <motion.div key={i} animate={{ rotate: 360 }} transition={{ duration: 20 + i * 10, repeat: Infinity, ease: "linear" }} className="absolute inset-0 flex items-center justify-center">
-          <div className={cn("rounded-full border border-dashed border-white/10", i === 0 ? "w-[120%] h-[120%]" : i === 1 ? "w-[160%] h-[160%] border-indigo-500/20" : "w-[200%] h-[200%] border-blue-500/10")} style={{ transform: `rotate(${i * 45}deg)` }} />
-          <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2 + i, repeat: Infinity }} className={cn("absolute w-3 h-3 rounded-full blur-[1px]", i === 0 ? "bg-blue-400 top-0" : i === 1 ? "bg-indigo-400 bottom-[10%] right-[10%]" : "bg-violet-400 top-[20%] left-[5%]")} />
-        </motion.div>
-      ))}
-    </div>
-  );
-}
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function ProfessionalsPage() {
@@ -91,23 +60,9 @@ export default function ProfessionalsPage() {
   };
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [currency, setCurrency] = useState("EUR");
-  const [activeTab, setActiveTab] = useState<"student" | "pro" | "expert">("pro");
-  const rates: Record<string, { symbol: string; rate: number }> = {
-    EUR: { symbol: "€", rate: 1 },
-    USD: { symbol: "$", rate: 1.08 },
-    TND: { symbol: "DT", rate: 3.42 },
-    MAD: { symbol: "DH", rate: 11 },
-  };
 
-  const price = (base: string) => {
-    if (base === "Free" || base === "Gratuit" || base === "مجاناً") return base;
-    if (base === "Custom" || base === "Sur Mesure" || base === "حسب الطلب") return base;
-    const num = parseFloat(base);
-    if (isNaN(num)) return base;
-    const val = Math.round(num * rates[currency].rate);
-    return currency === "TND" || currency === "MAD" ? `${val} ${rates[currency].symbol}` : `${rates[currency].symbol}${val}`;
-  };
+
+
 
   return (
     <div className={cn("min-h-screen bg-[#040812] text-white overflow-x-hidden selection:bg-blue-500/30", lang === "ar" ? "font-arabic" : "font-sans")} dir={dir}>
@@ -122,84 +77,192 @@ export default function ProfessionalsPage() {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* SECTION 1 — HERO                                                   */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex flex-col justify-center px-6 pt-28 pb-20 z-10">
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 1 — HERO (3 CARDS VERSION)                                 */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-screen flex flex-col justify-center px-5 py-24 md:py-32 z-10">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-            {/* Left Content */}
-            <div className={cn("relative z-10", dir === 'rtl' ? "lg:pl-10" : "lg:pr-10")}>
-              {/* Badge */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 backdrop-blur-md mb-8 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
-                <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-blue-300">{t.hero.badge}</span>
-              </motion.div>
-
-              {/* H1 */}
-              <div className="mb-6">
-                <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.8 }}
-                  className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-2 text-white">
-                  {t.hero.h1a}
-                </motion.h1>
-                <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.8 }}
-                  className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-transparent bg-clip-text bg-linear-to-r from-blue-400 via-indigo-400 to-violet-400 drop-shadow-sm">
-                  {t.hero.h1b}
-                </motion.h1>
-              </div>
-
-              {/* Subtitle */}
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 1 }}
-                className="text-lg md:text-xl text-slate-300 max-w-2xl mb-10 font-light leading-relaxed">
-                {t.hero.sub}
-              </motion.p>
-
-              {/* CTAs */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
-                className="flex flex-col sm:flex-row gap-4 items-start md:items-center mb-6">
-                <Link href="/register"
-                  className="group relative px-8 py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-bold text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-3 overflow-hidden">
-                  <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                  <span className="relative z-10">{t.hero.cta}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
-                </Link>
-                <a href="#pricing"
-                  className="px-8 py-4 border border-white/10 hover:border-white/30 text-slate-400 hover:text-white rounded-2xl font-bold text-sm uppercase tracking-widest transition-all duration-300 hover:bg-white/5">
-                  {t.hero.cta2}
-                </a>
-              </motion.div>
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
-                className="text-xs text-slate-500 font-medium">{t.hero.ctaSub}</motion.p>
-
-              {/* Stats */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85 }}
-                className="grid grid-cols-2 gap-8 mt-16 pt-10 border-t border-white/10">
-                {t.hero.stats.map((s, i) => (
-                  <motion.div key={i} whileHover={{ scale: 1.05 }} className="space-y-2 p-4 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 cursor-default">
-                    <div className="flex items-center gap-2">
-                       <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                       <div className="text-3xl font-black text-white">
-                         <Counter value={s.val} suffix={s.suf} />
-                       </div>
-                    </div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{s.label}</div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Right Visual (Desktop Only) */}
-            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, duration: 1 }}
-              className="hidden lg:flex items-center justify-center p-10 relative">
-               <div className="absolute inset-0 bg-blue-600/5 rounded-full blur-[100px]" />
-               <AnimatedHeroVisual />
+          {/* Header */}
+          <div className="text-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-8"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-300">
+                {lang === 'ar' ? "تشخيص مجاني 100% — بدون بطاقة بنكية" : lang === 'fr' ? "Diagnostics 100% Gratuits — Sans carte" : "100% Free Diagnostics — No Card"}
+              </span>
             </motion.div>
-          </div>
-        </div>
 
-        {/* Scroll hint */}
-        <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-700">
-          <ChevronDown className="w-6 h-6" />
-        </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 leading-[1.02]"
+            >
+              {lang === 'ar' ? "اختر مسارك" : lang === 'fr' ? "Choisissez votre" : "Choose Your"}{" "}
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 via-indigo-400 to-violet-400">
+                {lang === 'ar' ? "المهني" : lang === 'fr' ? "Parcours Professionnel" : "Professional Path"}
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed"
+            >
+              {lang === 'ar' ? "كل نوع حساب له تشخيص ذكاء اصطناعي مجاني خاص به. سجّل، أكمل تشخيصك وابدأ رحلتك الشخصية." : 
+               lang === 'fr' ? "Chaque type de compte dispose d'un diagnostic IA gratuit. Inscrivez-vous, complétez votre diagnostic et commencez votre parcours personnalisé." : 
+               "Each account type has its own free AI diagnostic. Register, complete your diagnostic, and start your personalized journey."}
+            </motion.p>
+          </div>
+
+          {/* 3 Account Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {[
+              {
+                color: "blue", tag: lang === 'ar' ? "طالب" : lang === 'fr' ? "Étudiant" : "Student",
+                title: lang === 'ar' ? "حساب طالب" : lang === 'fr' ? "Compte Étudiant" : "Student Account",
+                desc: lang === 'ar' ? "حلّل سيرتك الذاتية، اكتشف فجواتك المهنية، واحصل على خارطة طريق لإطلاق مسيرتك." : lang === 'fr' ? "Analysez votre CV, découvrez vos lacunes et obtenez une feuille de route pour lancer votre carrière." : "Analyze your CV, discover your career gaps, and get a roadmap to launch your career.",
+                diag: lang === 'ar' ? "تشخيص الطالب" : lang === 'fr' ? "Diagnostic Étudiant" : "Student Diagnostic",
+                steps: lang === 'ar' ? ["تحليل ذكي للسيرة الذاتية", "مقابلة محاكاة", "تقرير مهني"] : lang === 'fr' ? ["Analyse IA de CV", "Entretien RH simulé", "Rapport stratégique"] : ["AI CV Analysis", "Simulated HR Interview", "Strategic Report"],
+                cta: lang === 'ar' ? "ابدأ مجاناً — طالب" : lang === 'fr' ? "Commencer Gratuit — Étudiant" : "Start Free — Student",
+                href: "/register?plan=s-free", icon: GraduationCap, diagIcon: FileText
+              },
+              {
+                color: "indigo", tag: lang === 'ar' ? "محترف" : lang === 'fr' ? "Professionnel" : "Professional",
+                title: lang === 'ar' ? "حساب محترف" : lang === 'fr' ? "Compte Professionnel" : "Professional Account",
+                desc: lang === 'ar' ? "شق مسار تحولك المهني عبر رحلة ذكية من 7 مراحل، ورشات خبراء ومحاكاة تنفيذية." : lang === 'fr' ? "Naviguez votre transformation via un parcours en 7 étapes, ateliers experts et simulations." : "Navigate your transformation via a 7-stage journey, expert workshops and simulations.",
+                diag: lang === 'ar' ? "تشخيص المحترف" : lang === 'fr' ? "Diagnostic Professionnel" : "Professional Diagnostic",
+                steps: lang === 'ar' ? ["تحليل الفجوات", "رحلة 7 مراحل", "تدريب تنفيذي"] : lang === 'fr' ? ["Analyse des lacunes", "Parcours 7 étapes", "Coaching exécutif"] : ["Gap Analysis", "7-Stage Journey", "Executive Coaching"],
+                cta: lang === 'ar' ? "ابدأ مجاناً — محترف" : lang === 'fr' ? "Commencer Gratuit — Pro" : "Start Free — Professional",
+                href: "/register?plan=p-pro", icon: Briefcase, diagIcon: Brain
+              },
+              {
+                color: "violet", tag: lang === 'ar' ? "خبير / مدرب" : lang === 'fr' ? "Expert / Formateur" : "Expert / Trainer",
+                title: lang === 'ar' ? "حساب خبير" : lang === 'fr' ? "Compte Expert" : "Expert Account",
+                desc: lang === 'ar' ? "انضم لشبكة خبرائنا. خبير ذكاء اصطناعي يحاورك، يحدد فجواتك ويُنشئ تقريراً شاملاً." : lang === 'fr' ? "Rejoignez notre réseau. Un pair IA vous interviewe, identifie vos lacunes et génère un rapport." : "Join our network. An AI peer interviews you, identifies your gaps and generates a report.",
+                diag: lang === 'ar' ? "اعتماد خبير IA" : lang === 'fr' ? "Accréditation Expert IA" : "Expert AI Accreditation",
+                steps: lang === 'ar' ? ["مقابلة حية (5د/سؤال)", "تحليل خبرة", "تقرير تشخيصي"] : lang === 'fr' ? ["Entretien live (5min/Q)", "Analyse expertise", "Rapport diagnostique"] : ["Live Interview (5min/Q)", "Expertise Analysis", "Diagnostic Report"],
+                cta: lang === 'ar' ? "التقدم كخبير" : lang === 'fr' ? "Candidater comme Expert" : "Apply as Expert",
+                href: "/register?plan=x-expert", icon: Shield, diagIcon: MessageSquare, isExpert: true
+              }
+            ].map((card, i) => {
+              interface ColorStyle {
+                border: string;
+                bg: string;
+                accent: string;
+                badge: string;
+                btn: string;
+                icon: string;
+                check: string;
+              }
+              const colors: Record<string, ColorStyle> = {
+                blue: { border: "border-blue-500/20", bg: "bg-blue-500/5", accent: "text-blue-400", badge: "bg-blue-500/10 text-blue-300 border-blue-500/20", btn: "from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-blue-600/20", icon: "bg-blue-500/10 text-blue-400", check: "text-blue-400" },
+                indigo: { border: "border-indigo-500/20", bg: "bg-indigo-500/5", accent: "text-indigo-400", badge: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20", btn: "from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 shadow-indigo-600/20", icon: "bg-indigo-500/10 text-indigo-400", check: "text-indigo-400" },
+                violet: { border: "border-violet-500/20", bg: "bg-violet-500/5", accent: "text-violet-400", badge: "bg-violet-500/10 text-violet-300 border-violet-500/20", btn: "from-violet-600 to-indigo-700 hover:from-violet-500 hover:to-indigo-600 shadow-violet-600/20", icon: "bg-violet-500/10 text-violet-400", check: "text-violet-400" }
+              };
+              const c = colors[card.color];
+              const Icon = card.icon;
+              const DiagIcon = card.diagIcon;
+
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.6 }}
+                  whileHover={{ y: -6 }}
+                  className={cn(
+                    "relative flex flex-col rounded-4xl border p-8 transition-all duration-300",
+                    "bg-slate-900/40 backdrop-blur-sm hover:shadow-2xl",
+                    c.border,
+                    card.isExpert && "md:ring-1 md:ring-violet-500/30"
+                  )}
+                >
+                   {card.isExpert && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap px-4 py-1.5 rounded-full bg-linear-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/30 flex items-center gap-1.5">
+                      <Zap className="w-3 h-3" />
+                      Experts & Trainers
+                    </div>
+                  )}
+
+                  <div className="mb-6 mt-2">
+                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-5", c.icon)}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <span className={cn("inline-block text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3", c.badge)}>
+                      {card.tag}
+                    </span>
+                    <h2 className="text-2xl font-black text-white mb-2">{card.title}</h2>
+                    <p className="text-slate-400 text-sm leading-relaxed font-medium">{card.desc}</p>
+                  </div>
+
+                  <div className={cn("rounded-2xl border p-5 mb-6", c.bg, c.border)}>
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <DiagIcon className={cn("w-4 h-4 shrink-0", c.accent)} />
+                      <span className={cn("text-[10px] font-black uppercase tracking-widest", c.accent)}>
+                        {card.diag}
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2.5">
+                      {card.steps.map((step, j) => (
+                        <li key={j} className="flex items-start gap-2.5">
+                          <CheckCircle2 className={cn("w-4 h-4 shrink-0 mt-0.5", c.check)} />
+                          <span className="text-slate-300 text-xs font-medium leading-snug">{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {card.isExpert && (
+                      <div className="mt-4 flex items-center gap-2 text-amber-400/80 text-[10px] font-bold">
+                        <Timer className="w-3.5 h-3.5 shrink-0" />
+                        <span>5 min max / Q · Anti-triche</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <Link
+                    href={card.href}
+                    className={cn(
+                      "mt-auto w-full flex items-center justify-center gap-3 py-4 rounded-2xl",
+                      "bg-linear-to-r text-white font-black text-xs uppercase tracking-widest",
+                      "transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg",
+                      c.btn
+                    )}
+                  >
+                    {card.cta}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Trust row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+            className="mt-20 flex flex-col sm:flex-row items-center justify-center gap-8"
+          >
+            {[
+              { icon: Sparkles, text: lang === 'ar' ? "مجاني 100% — بدون بطاقة" : "100% Gratuit — Sans carte", color: "text-emerald-400" },
+              { icon: Shield, text: lang === 'ar' ? "نتائج فورية بالذكاء الاصطناعي" : "Résultats IA instantanés", color: "text-blue-400" },
+              { icon: Zap, text: lang === 'ar' ? "3 مسارات متخصصة" : "3 Parcours spécialisés", color: "text-violet-400" }
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <item.icon className={cn("w-4 h-4 shrink-0", item.color)} />
+                <span className="text-slate-400 text-xs font-bold">{item.text}</span>
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
@@ -450,106 +513,7 @@ export default function ProfessionalsPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* SECTION 8 — PRICING                                                */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section id="pricing" className="py-32 px-6 bg-slate-950/60 border-t border-white/5 relative z-10">
-        <div className="container mx-auto max-w-6xl">
-          <FadeIn className="text-center mb-12">
-            <span className="text-indigo-400 font-bold text-xs uppercase tracking-[0.3em]">{t.pricing.badge}</span>
-            <h2 className="text-4xl md:text-6xl font-black mt-4 mb-4 tracking-tight">{t.pricing.title}</h2>
-            <p className="text-slate-400 font-light mb-8">{t.pricing.sub}</p>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-12">
-              {/* Account Type Tabs */}
-              <div className="inline-flex p-1.5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
-                {t.pricing.tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as "student" | "pro" | "expert")}
-                    className={cn(
-                      "flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all duration-500",
-                      activeTab === tab.id
-                        ? "bg-white text-black shadow-2xl scale-105"
-                        : "text-slate-500 hover:text-white"
-                    )}
-                  >
-                    <span>{tab.icon}</span>
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
 
-              <div className="w-px h-8 bg-white/10 hidden md:block" />
-
-              {/* Currency selector */}
-              <div className="inline-flex items-center gap-1 p-1.5 rounded-2xl bg-white/5 border border-white/10">
-                {Object.entries(rates).map(([code]) => (
-                  <button key={code} onClick={() => setCurrency(code)}
-                    className={cn("px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                      currency === code ? "bg-white text-black shadow-lg" : "text-slate-500 hover:text-white")}>
-                    {code}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <FadeIn delay={0.2}>
-              <div className="mb-16 max-w-2xl mx-auto text-center">
-                <p className="text-xl font-medium text-indigo-300 mb-4">{t.pricing.groups[activeTab as keyof typeof t.pricing.groups].headline}</p>
-                {"note" in t.pricing.groups[activeTab as keyof typeof t.pricing.groups] && (
-                  <p className="text-sm text-slate-500 italic">{(t.pricing.groups[activeTab as keyof typeof t.pricing.groups] as { note?: string }).note}</p>
-                )}
-              </div>
-            </FadeIn>
-          </FadeIn>
-
-          <div className="grid lg:grid-cols-3 gap-8 items-stretch">
-            {t.pricing.groups[activeTab as keyof typeof t.pricing.groups].plans.map((plan: {id?: string; name: string; desc: string; icon: string; price: string; priceTND?: string; period: string; highlight?: boolean; popular?: boolean; features: string[]; notIncluded?: string[]; cta: string; href?: string}, i: number) => (
-              <FadeIn key={i} delay={i * 0.12}>
-                <motion.div whileHover={{ y: -8 }} className={cn("relative h-full rounded-[2.5rem] p-10 border flex flex-col transition-all duration-300 cursor-default",
-                  plan.highlight
-                    ? "bg-white text-slate-900 border-white shadow-2xl shadow-blue-500/10 scale-[1.03] z-10"
-                    : "bg-white/3 text-white border-white/10 hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.03)]"
-                )}>
-                  {"popular" in plan && plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-full shadow-xl animate-bounce">{t.pricing.popular}</div>
-                  )}
-                  <motion.div whileHover={{ scale: 1.2, rotate: 5 }} className="text-4xl mb-4 self-start">{plan.icon}</motion.div>
-                  <h3 className={cn("text-2xl font-black mb-2", plan.highlight ? "text-slate-900" : "text-white")}>{plan.name}</h3>
-                  <p className={cn("text-sm mb-6", plan.highlight ? "text-slate-500" : "text-slate-400")}>{plan.desc}</p>
-                  <div className="flex items-baseline gap-1 mb-8">
-                    <span className={cn("text-4xl font-black", plan.highlight ? "text-blue-600" : "text-white")}>
-                      {currency === "TND" ? plan.priceTND : price(plan.price)}
-                    </span>
-                    <span className={cn("text-sm", plan.highlight ? "text-slate-400" : "text-slate-500")}>{plan.period}</span>
-                  </div>
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((f: string, fi: number) => (
-                      <li key={fi} className="flex items-start gap-3 text-sm font-semibold">
-                        <CheckCircle2 size={16} className={cn("shrink-0 mt-0.5", plan.highlight ? "text-blue-600" : "text-blue-400")} />
-                        <span className={plan.highlight ? "text-slate-700" : "text-slate-300"}>{f}</span>
-                      </li>
-                    ))}
-                    {plan.notIncluded && plan.notIncluded.map((f: string, fi: number) => (
-                      <li key={`n${fi}`} className="flex items-start gap-3 text-sm font-medium opacity-30">
-                        <X size={16} className="shrink-0 mt-0.5" />
-                        <span className="line-through">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href={plan.id ? `/register?plan=${plan.id}` : (plan.price === "Custom" ? "mailto:contact@ma-training.com" : "/register")}
-                    className={cn("w-full block text-center py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105",
-                      plan.highlight
-                        ? "bg-slate-900 text-white hover:bg-blue-600 shadow-xl"
-                        : "bg-white/5 border border-white/10 text-white hover:bg-white/10")}>
-                    {plan.cta}
-                  </Link>
-                </motion.div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* SECTION 9 — FAQ                                                     */}
@@ -586,23 +550,13 @@ export default function ProfessionalsPage() {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* SECTION 10 — FINAL CTA                                             */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="py-32 px-6 relative z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-b from-blue-950/30 to-indigo-950/30" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-blue-600/15 rounded-full blur-[100px]" />
-        <div className="container mx-auto max-w-3xl text-center relative z-10">
-          <FadeIn>
-            <div className="w-20 h-20 rounded-3xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mx-auto mb-10">
-              <Rocket className="w-10 h-10 text-blue-400" />
-            </div>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-tight">{t.finalCta.title}</h2>
-            <p className="text-xl text-slate-400 font-light mb-12">{t.finalCta.sub}</p>
-            <Link href="/register"
-              className="inline-flex items-center gap-4 px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 shadow-2xl shadow-blue-600/30 mb-6">
-              {t.finalCta.cta} <ArrowRight className="w-5 h-5" />
-            </Link>
-            <p className="text-sm text-slate-600 font-medium">{t.finalCta.note}</p>
-          </FadeIn>
-        </div>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION 10 — SIMPLE FOOTER                                         */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 relative z-10 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-700">
+          {lang === 'ar' ? "MA-TRAINING-CONSULTING © 2026 · جميع التشخيصات مجانية" : "MA-TRAINING-CONSULTING © 2026 · Tous les diagnostics sont gratuits"}
+        </p>
       </section>
 
     </div>

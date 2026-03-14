@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,14 +37,7 @@ export default function RoleSuggestionsPage() {
             const userId = userProfile.email || userProfile.fullName;
 
             // ✅ Student Free Trial Gate
-            const isStudentFreeTrial = userProfile.plan === 'Student' && 
-                                      (userProfile.role === 'Free Tier' || userProfile.role === 'Trial User');
-            
-            if (isStudentFreeTrial) {
-                console.log("Student Free Trial user attempted to access role-suggestions — redirecting to discovery completion");
-                router.push('/assessment/role-discovery');
-                return;
-            }
+
 
             // ✅ MongoDB priority for logged in user
             if (userId) {
@@ -87,7 +80,11 @@ export default function RoleSuggestionsPage() {
         loadProgress();
     }, [router]);
 
+    // Profile and Plan checks (Locked for all)
+    const canDownload = false;
+
     const handleDownloadReport = async () => {
+        if (!canDownload) return;
         setIsDownloading(true);
         try {
             const container = document.createElement('div');
@@ -303,18 +300,31 @@ export default function RoleSuggestionsPage() {
                 </div>
 
                 <div className={`absolute top-0 ${dir === 'rtl' ? 'left-0' : 'right-0'}`}>
-                    <button
-                        onClick={handleDownloadReport}
-                        disabled={isDownloading}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-semibold text-slate-700 shadow-sm"
-                    >
-                        {isDownloading ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                        ) : (
-                            <Download className="w-5 h-5 text-blue-600" />
-                        )}
-                        {isDownloading ? rs.generating : rs.downloadPdf}
-                    </button>
+                    {canDownload ? (
+                        <button
+                            onClick={handleDownloadReport}
+                            disabled={isDownloading}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all font-semibold text-slate-700 shadow-sm"
+                        >
+                            {isDownloading ? (
+                                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                            ) : (
+                                <Download className="w-5 h-5 text-blue-600" />
+                            )}
+                            {isDownloading ? rs.generating : rs.downloadPdf}
+                        </button>
+                    ) : (
+                        <div
+                            title={dir === 'rtl' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl font-bold text-sm cursor-not-allowed select-none transition-all opacity-80"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>{rs.downloadPdf}</span>
+                            <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                {dir === 'rtl' ? 'برو' : 'PRO'}
+                            </span>
+                        </div>
+                    )}
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 shrink-0 mx-auto mb-3">
                     <Target className="w-10 h-10 text-indigo-600" />

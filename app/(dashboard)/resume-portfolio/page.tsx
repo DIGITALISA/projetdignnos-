@@ -327,10 +327,16 @@ export default function ResumePortfolioPage() {
                 </AnimatePresence>
 
                 <div className="flex justify-center pt-8">
-                     <button className="flex items-center gap-3 px-10 py-5 bg-slate-900 hover:bg-black text-white rounded-4xl font-black uppercase tracking-[0.3em] text-[10px] md:text-xs transition-all shadow-2xl hover:scale-105 active:scale-95 group">
-                        <Download size={18} className="text-rose-500 group-hover:-translate-y-1 transition-transform" />
+                    <div 
+                        title={isRTL ? 'التصدير متاح للمشتركين فقط' : 'Export available for paid plans only'} 
+                        className="flex items-center gap-3 px-10 py-5 bg-slate-100 text-slate-400 rounded-4xl font-black uppercase tracking-[0.3em] text-[10px] md:text-xs border border-slate-200 cursor-not-allowed select-none"
+                    >
+                        <Download size={18} />
                         {isRTL ? "تصدير البيانات لبناء الموقع/ملف" : "Export Source Code & PDF"}
-                    </button>
+                        <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ml-2">
+                            {isRTL ? 'برو' : 'PRO'}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -15,32 +15,51 @@ const JobAlignmentSchema = new Schema({
         enum: ["New Job", "Promotion"],
         required: true,
     },
+    jobTitle: String,
+    companyName: String,
+    companySector: String,
+    companyAddress: String,
+    companyWebsite: String,
+    additionalCompanyInfo: String,
+    researchReport: {
+        summary: String,
+        insights: [String],
+        culture: String,
+        competitors: [String]
+    },
     jobDescription: {
         type: String,
         required: true,
     },
-    questions: [{
+    // MCQ Phase
+    mcqQuestions: [{
         question: String,
         options: [String],
         correctAnswer: Number,
-        explanation: String
+        explanation: String,
+        category: { type: String, enum: ["Technical", "Psychological"] }
     }],
-    answers: [Number],
-    score: {
-        type: Number,
-        default: 0
-    },
-    report: {
-        verdict: String,
+    mcqAnswers: [Number],
+    mcqScore: Number,
+    // Interview Phase
+    interviewChat: [{
+        role: { type: String, enum: ["assistant", "user"] },
+        content: String,
+        timestamp: { type: Date, default: Date.now }
+    }],
+    interviewAnalysis: {
         strengths: [String],
-        gaps: [String],
-        roadmap: [String],
-        analysis: String
+        weaknesses: [String],
+        advice: String,
+        score: Number
     },
-    status: {
+    // Final Output
+    generatedCV: String,
+    generatedCoverLetter: String,
+    currentStage: {
         type: String,
-        enum: ["pending", "completed"],
-        default: "pending"
+        enum: ["form", "research", "mcq", "interview", "cv-prep", "completed"],
+        default: "form"
     },
     referenceId: {
         type: String,
@@ -49,6 +68,24 @@ const JobAlignmentSchema = new Schema({
     language: {
         type: String,
         default: "en"
+    },
+    report: { // Legacy field, keeping for backward compatibility but might not use for new flow
+        verdict: String,
+        strengths: [String],
+        gaps: [String],
+        roadmap: [String],
+        analysis: String
+    },
+    finalAudit: {
+        verdict: String,
+        suitabilityScore: Number,
+        evidence: [String],
+        detailedAnalysis: String
+    },
+    status: {
+        type: String,
+        enum: ["pending", "completed"],
+        default: "pending"
     }
 }, {
     timestamps: true,

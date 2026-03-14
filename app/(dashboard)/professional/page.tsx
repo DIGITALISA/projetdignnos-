@@ -27,9 +27,11 @@ import {
   BarChart3,
   AlertTriangle,
   Eye,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import Link from "next/link";
 
 type Step =
   | "welcome"
@@ -40,6 +42,7 @@ type Step =
   | "expert-interview"
   | "mcq-assessment"
   | "portfolio-interview"
+  | "simulation"
   | "final-report";
 
 interface InterviewMessage {
@@ -141,6 +144,16 @@ interface FinalReportResult {
     summaryFocus: string;
     networkingAdvice: string;
   };
+  title?: string;
+  subtitle?: string;
+}
+
+interface UserProfile {
+  email?: string;
+  fullName?: string;
+  role?: string;
+  plan?: string;
+  activationType?: string;
 }
 
 interface MCQQuestion {
@@ -179,11 +192,15 @@ interface StepTranslations {
   alignment?: string;
   gapsLabel?: string;
   gaps?: string;
-  // Interview
   intro?: string;
   placeholder?: string;
   finalizing?: string;
   analysisStep?: string;
+  // Pro Modal
+  proTitle?: string;
+  proDesc?: string;
+  proUpgrade?: string;
+  proBack?: string;
   // Report
   maturity?: string;
   marketValue?: string;
@@ -215,6 +232,7 @@ interface StepTranslations {
   shortTerm?: string;
   longTerm?: string;
   masteryReqs?: string;
+  executiveSummary?: string;
 }
 
 interface LanguageTranslations {
@@ -323,7 +341,7 @@ const TRANSLATIONS: Translations = {
     },
     interview: {
       title: "Strategic Executive Interview",
-      subtitle: "The AI HR Mentor (50 years experience) probes your depth.",
+      subtitle: "Welcome to your Strategic Executive Interview.",
       intro:
         "This conversation is high-stakes. Be precise, strategic, and professional.",
       placeholder: "Write your strategic response here...",
@@ -343,6 +361,15 @@ const TRANSLATIONS: Translations = {
       gapTitle: "Strategic Gap Analysis",
       matchScore: "Competency Alignment",
       cta: "Access Executive Dashboard",
+      proTitle: "PRO Version Required",
+      proDesc: "The Strategic Executive Dashboard and Advanced Simulations are exclusive to PRO accounts. Complete your professional evolution with a full activation.",
+      proUpgrade: "Upgrade to PRO Account",
+      proBack: "Return to Report",
+      strengths: "Core Strategic Strengths",
+      weaknesses: "Critical Developmental Gaps",
+      opportunities: "Market Expansion Potential",
+      threats: "Strategic Vulnerabilities",
+      executiveSummary: "Executive Strategic Summary",
     },
     mcq: {
       mcqTitle: "Competency Verification",
@@ -443,7 +470,7 @@ const TRANSLATIONS: Translations = {
     },
     interview: {
       title: "Entretien Exécutif Stratégique",
-      subtitle: "Le Mentor RH (50 ans d'expérience) sonde votre profondeur.",
+      subtitle: "Bienvenue dans votre entretien exécutif stratégique.",
       intro:
         "Cette conversation est à enjeux élevés. Soyez précis et stratégique.",
       placeholder: "Rédigez votre réponse stratégique ici...",
@@ -464,6 +491,15 @@ const TRANSLATIONS: Translations = {
       gapTitle: "Analyse des Écarts Stratégiques",
       matchScore: "Alignement des Compétences",
       cta: "Accéder au Tableau de Bord",
+      proTitle: "Version PRO Requise",
+      proDesc: "Le Tableau de Bord Exécutif Stratégique et les Simulations Avancées sont exclusifs aux comptes PRO. Complétez votre évolution avec une activation complète.",
+      proUpgrade: "Passer au Compte PRO",
+      proBack: "Retour au Rapport",
+      strengths: "Forces Stratégiques Clés",
+      weaknesses: "Lacunes de Développement Critiques",
+      opportunities: "Potentiel d'Expansion du Marché",
+      threats: "Vulnérabilités Stratégiques",
+      executiveSummary: "Résumé Stratégique Exécutif",
     },
     mcq: {
       mcqTitle: "Vérification des Compétences",
@@ -563,7 +599,7 @@ const TRANSLATIONS: Translations = {
     },
     interview: {
       title: "المقابلة التنفيذية الاستراتيجية",
-      subtitle: "خبير موارد بشرية (50 سنة خبرة) يختبر عمقك المهني.",
+      subtitle: "مرحباً بك في مرحلة المقابلة الاستراتيجية المعمقة.",
       intro:
         "هذا الحوار عالي الأهمية. كن دقيقاً، استراتيجياً، ومحترفاً في إجاباتك.",
       placeholder: "اكتب استجابتك الاستراتيجية هنا...",
@@ -583,6 +619,15 @@ const TRANSLATIONS: Translations = {
       gapTitle: "تحليل الفجوات الاستراتيجية",
       matchScore: "توافق الكفاءات",
       cta: "الانتقال إلى المرحلة القادمة",
+      proTitle: "مطلوب حساب برو مدفوع",
+      proDesc: "لوحة التحكم التنفيذية الاستراتيجية والمحاكاة المتقدمة حصرية لحسابات البرو. أكمل مسارك الاحترافي عبر التفعيل الكامل للحساب.",
+      proUpgrade: "الترقية إلى حساب برو مدفوع",
+      proBack: "العودة للتقرير",
+      strengths: "نقاط القوة الاستراتيجية الأساسية",
+      weaknesses: "فجوات التطوير الحرجة",
+      opportunities: "فرص التوسع في السوق",
+      threats: "المخاطر الاستراتيجية المحتملة",
+      executiveSummary: "الملخص الاستراتيجي التنفيذي",
     },
     mcq: {
       mcqTitle: "التحقق من الكفاءات",
@@ -620,45 +665,34 @@ function ExpertInterview({
   const [currentInput, setCurrentInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
-  const maxQuestions = 5;
+  const [timeLeft, setTimeLeft] = useState(480);
+  const maxQuestions = 20;
 
-  // Initialize First Question
-  useEffect(() => {
-    const fetchFirstQuestion = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/professional-interview/question", {
-          method: "POST",
-          body: JSON.stringify({ auditResult, formData, language }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          setMessages([{ role: "assistant", content: data.question }]);
-        }
-      } catch (err) {
-        console.error("Failed to start interview:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFirstQuestion();
-  }, [auditResult, formData, language]);
+  const handleSend = useCallback(async (e?: React.FormEvent, isSpecialAction: 'timeout' | 'skip' | 'finish' | 'none' = 'none') => {
+    if (e) e.preventDefault();
+    if ((!currentInput.trim() && isSpecialAction === 'none') || loading) return;
 
-  const handleSend = async () => {
-    if (!currentInput.trim() || loading) return;
+    let content = currentInput;
+    if (isSpecialAction === 'timeout') {
+      content = language === "ar" ? "[نفاذ الوقت: لم يتم تقديم إجابة من المستخدم]" : "[Timeout: User did not provide an answer]";
+    } else if (isSpecialAction === 'skip') {
+      content = language === "ar" ? "[تخطى المستخدم هذا السؤال]" : "[User skipped this question]";
+    } else if (isSpecialAction === 'finish') {
+      content = language === "ar" ? "[أنهى المستخدم المقابلة مبكراً]" : "[User finished the interview early]";
+    }
 
-    const userMsg = { role: "user" as const, content: currentInput };
+    const userMsg = { role: "user" as const, content };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setCurrentInput("");
     setLoading(true);
 
-    const userQuestionsCount = updatedMessages.filter(
+    const assistantQuestionsCount = updatedMessages.filter(
       (m) => m.role === "assistant",
     ).length;
 
     try {
-      if (userQuestionsCount >= maxQuestions) {
+      if (assistantQuestionsCount >= maxQuestions || isSpecialAction === 'finish') {
         setFinalizing(true);
         const response = await fetch("/api/professional-interview/analyze", {
           method: "POST",
@@ -698,7 +732,53 @@ function ExpertInterview({
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentInput, loading, messages, language, maxQuestions, auditResult, formData, onComplete]);
+
+  useEffect(() => {
+    if (finalizing || loading || messages.length === 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSend(undefined, 'timeout');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [loading, finalizing, messages.length, handleSend]);
+
+  // Reset timer when new assistant message arrives
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
+      setTimeLeft(480);
+    }
+  }, [messages]);
+
+  // Initialize First Question
+  useEffect(() => {
+    const fetchFirstQuestion = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/professional-interview/question", {
+          method: "POST",
+          body: JSON.stringify({ auditResult, formData, language }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          setMessages([{ role: "assistant", content: data.question }]);
+        }
+      } catch (err) {
+        console.error("Failed to start interview:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFirstQuestion();
+  }, [auditResult, formData, language]);
 
   if (finalizing) {
     return (
@@ -826,27 +906,66 @@ function ExpertInterview({
             )}
         </div>
 
-        <div className="p-8 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 flex gap-4 relative z-10 backdrop-blur-md">
-          <textarea
-            value={currentInput}
-            onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder={t.placeholder}
-            className="flex-1 bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-4xl px-8 py-5 text-sm font-medium outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all resize-none shadow-inner"
-            rows={1}
-          />
-          <button
-            onClick={handleSend}
-            disabled={!currentInput.trim() || loading}
-            className="w-16 h-16 shrink-0 rounded-4xl bg-linear-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center hover:bg-linear-to-br hover:from-indigo-500 hover:to-blue-500 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.3)]"
-          >
-            <Send size={24} strokeWidth={2.5} className="ml-1" />
-          </button>
+        <div className="p-8 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4 relative z-10 backdrop-blur-md">
+          <div className="flex gap-4">
+            <div className={cn(
+              "flex flex-col items-center justify-center px-4 py-2 rounded-2xl border transition-colors",
+              timeLeft < 60 ? "bg-rose-500/10 border-rose-500/20 text-rose-500" : "bg-blue-500/10 border-blue-500/20 text-blue-500"
+            )}>
+              <div className="text-[8px] font-black uppercase tracking-widest mb-1">Time Left</div>
+              <div className="text-lg font-black font-mono">
+                {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+              </div>
+            </div>
+            <textarea
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={t.placeholder}
+              className="flex-1 bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-4xl px-8 py-5 text-sm font-medium outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all resize-none shadow-inner"
+              rows={1}
+            />
+            <button
+              onClick={() => handleSend()}
+              disabled={!currentInput.trim() || loading}
+              className="w-16 h-16 shrink-0 rounded-4xl bg-linear-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center hover:bg-linear-to-br hover:from-indigo-500 hover:to-blue-500 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.3)]"
+            >
+              <Send size={24} strokeWidth={2.5} className="ml-1" />
+            </button>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2">
+            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">
+              Protocol: Career Deep-Dive Assessment — Question {messages.filter(m => m.role === 'assistant').length} of {maxQuestions}
+            </p>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => handleSend(undefined, 'skip')}
+                    disabled={loading}
+                    className="px-6 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-black uppercase tracking-widest text-[10px] transition-all border border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                  >
+                    {language === "ar" ? "تخطي السؤال" : language === "fr" ? "Passer la question" : "Skip Question"}
+                  </button>
+                  {messages.filter(m => m.role === 'assistant').length >= 10 && (
+                    <button
+                      onClick={() => handleSend(undefined, 'finish')}
+                      disabled={loading}
+                      className="px-6 py-2 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black uppercase tracking-widest text-[10px] transition-all border border-amber-500/20 hover:bg-amber-500/20 active:scale-95 animate-pulse hover:animate-none"
+                    >
+                      {language === "ar" ? "إنهاء وتحليل الآن" : language === "fr" ? "Terminer et Analyser" : "Finish & Analyze Now"}
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-1 overflow-x-auto max-w-full py-1">
+                  {Array.from({length: maxQuestions}).map((_, i) => (
+                    <div key={i} className={cn("w-3 h-1 rounded-full shrink-0", i < messages.filter(m => m.role === 'assistant').length ? "bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" : "bg-slate-200 dark:bg-slate-800")} />
+                  ))}
+                </div>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -878,18 +997,24 @@ function PortfolioInterview({
   const [currentInput, setCurrentInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const TOTAL_QUESTIONS = 5; // 4 profile + 1 pivotal
+  const TOTAL_QUESTIONS = 10; // 9 profile + 1 pivotal
 
   const assistantCount = messages.filter((m) => m.role === "assistant").length;
-  const isPivotalPhase = assistantCount >= 4 && messages.length > 0;
+  const isPivotalPhase = assistantCount >= 9 && messages.length > 0;
 
   const PHASE_LABELS = [
     { label: "Profile Anchor", icon: "①", color: "text-blue-500" },
     { label: "Gap Confrontation", icon: "②", color: "text-amber-500" },
     { label: "Failure Deep-Dive", icon: "③", color: "text-rose-500" },
     { label: "Self-Awareness Probe", icon: "④", color: "text-violet-500" },
-    { label: "THE PIVOTAL", icon: "⑤", color: "text-white" },
+    { label: "Stakeholder Management", icon: "⑤", color: "text-emerald-500" },
+    { label: "Strategic Judgment", icon: "⑥", color: "text-indigo-500" },
+    { label: "Leadership Rigor", icon: "⑦", color: "text-teal-500" },
+    { label: "Values & Ethics", icon: "⑧", color: "text-cyan-500" },
+    { label: "Innovation Rigor", icon: "⑨", color: "text-sky-500" },
+    { label: "THE PIVOTAL", icon: "⑩", color: "text-white" },
   ];
 
   useEffect(() => {
@@ -923,39 +1048,38 @@ function PortfolioInterview({
     fetchFirstQuestion();
   }, [auditResult, formData, interviewTranscript, mcqResults, language]);
 
-  const handleSend = async () => {
-    if (!currentInput.trim() || loading) return;
+  const finalizeInterview = useCallback(async (finalMessages: { role: "assistant" | "user"; content: string }[]) => {
+    setFinalizing(true);
+    try {
+      const response = await fetch("/api/portfolio-interview/analyze", {
+        method: "POST",
+        body: JSON.stringify({
+          auditResult,
+          formData,
+          interview1Transcript: interviewTranscript,
+          mcqResults,
+          portfolioTranscript: finalMessages,
+          language,
+          userId: JSON.parse(localStorage.getItem("userProfile") || "{}").email,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        onComplete(data.report, finalMessages);
+      }
+    } catch (err) {
+      console.error("Portfolio interview analysis failed:", err);
+      setFinalizing(false);
+    }
+  }, [auditResult, formData, interviewTranscript, mcqResults, language, onComplete]);
 
-    const userMsg = { role: "user" as const, content: currentInput };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setCurrentInput("");
+  const triggerNextStep = useCallback(async (updatedMessages: { role: "assistant" | "user"; content: string }[]) => {
     setLoading(true);
-
-    const currentAssistantCount = updatedMessages.filter(
-      (m) => m.role === "assistant",
-    ).length;
+    const currentAssistantCount = updatedMessages.filter((m) => m.role === "assistant").length;
 
     try {
       if (currentAssistantCount >= TOTAL_QUESTIONS) {
-        setFinalizing(true);
-        const response = await fetch("/api/portfolio-interview/analyze", {
-          method: "POST",
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            interview1Transcript: interviewTranscript,
-            mcqResults,
-            portfolioTranscript: updatedMessages,
-            language,
-            userId: JSON.parse(localStorage.getItem("userProfile") || "{}")
-              .email,
-          }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          onComplete(data.report, updatedMessages);
-        }
+        await finalizeInterview(updatedMessages);
       } else {
         const response = await fetch("/api/portfolio-interview/question", {
           method: "POST",
@@ -970,10 +1094,7 @@ function PortfolioInterview({
         });
         const data = await response.json();
         if (data.success) {
-          setMessages([
-            ...updatedMessages,
-            { role: "assistant", content: data.question },
-          ]);
+          setMessages([...updatedMessages, { role: "assistant", content: data.question }]);
         }
       }
     } catch (err) {
@@ -981,7 +1102,52 @@ function PortfolioInterview({
     } finally {
       setLoading(false);
     }
-  };
+  }, [auditResult, formData, interviewTranscript, mcqResults, language, finalizeInterview, TOTAL_QUESTIONS]);
+
+  const handleSkipQuestion = useCallback(() => {
+    if (loading) return;
+    const skipMsg = language === "ar" ? "تخطي هذا السؤال" : language === "fr" ? "Passer cette question" : "Skip this question";
+    setCurrentInput("");
+    setMessages(prev => {
+      const updated = [...prev, { role: "user" as const, content: skipMsg }];
+      triggerNextStep(updated);
+      return updated;
+    });
+  }, [loading, language, triggerNextStep]);
+
+  const handleSend = useCallback(async () => {
+    if (!currentInput.trim() || loading) return;
+    const userMsg = { role: "user" as const, content: currentInput };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+    setCurrentInput("");
+    await triggerNextStep(updatedMessages);
+  }, [currentInput, loading, messages, triggerNextStep]);
+
+  // Timer logic for autoimmune skip
+  useEffect(() => {
+    if (finalizing || loading || messages.length === 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSkipQuestion();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [loading, finalizing, messages.length, handleSkipQuestion]);
+
+  // Reset timer when a new question arrives
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
+      setTimeLeft(300);
+    }
+  }, [messages]);
 
   if (finalizing) {
     return (
@@ -1034,21 +1200,34 @@ function PortfolioInterview({
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
             Phase Progression
           </span>
-          <span
-            className={cn(
-              "text-[10px] font-black uppercase tracking-[0.3em] transition-colors flex items-center gap-2",
-              isPivotalPhase ? "text-amber-500" : "text-indigo-600",
+          <div className="flex items-center gap-4">
+            <span
+              className={cn(
+                "text-[10px] font-black uppercase tracking-[0.3em] transition-colors flex items-center gap-2",
+                isPivotalPhase ? "text-amber-500" : "text-indigo-600",
+              )}
+            >
+              {isPivotalPhase && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
+              {isPivotalPhase
+                ? "⚡ PIVOTAL PRESSURE"
+                : `${PHASE_LABELS[Math.max(assistantCount - 1, 0)]?.label || ""}`}
+            </span>
+
+            {/* Timer Display */}
+            {!loading && !finalizing && messages.length > 0 && (
+              <div className={cn(
+                "flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-black tracking-widest transition-colors",
+                timeLeft < 60 ? "bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse" : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+              )}>
+                <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+              </div>
             )}
-          >
-            {isPivotalPhase && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
-            {isPivotalPhase
-              ? "⚡ PIVOTAL PRESSURE"
-              : `${PHASE_LABELS[Math.max(assistantCount - 1, 0)]?.label || ""}`}
-          </span>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3 overflow-x-auto pb-4 px-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {PHASE_LABELS.map((phase, i) => (
-            <div key={i} className="flex-1 space-y-2">
+            <div key={i} className="min-w-[130px] flex-1 space-y-2 shrink-0">
               <motion.div
                 className={cn(
                   "h-2.5 rounded-full transition-all duration-500 ease-out",
@@ -1065,12 +1244,14 @@ function PortfolioInterview({
               />
               <div
                 className={cn(
-                  "text-[8px] font-black uppercase tracking-widest text-center truncate hidden md:block",
+                  "text-[9px] font-black uppercase tracking-widest text-center transition-opacity duration-300",
                   i < assistantCount
                     ? i === 4
                       ? "text-amber-600 dark:text-amber-500"
                       : "text-indigo-600 dark:text-indigo-400"
-                    : "text-slate-400 dark:text-slate-600",
+                    : i === assistantCount && !loading 
+                      ? "text-slate-700 dark:text-slate-300 scale-105"
+                      : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400",
                 )}
               >
                 {phase.label}
@@ -1274,22 +1455,35 @@ function PortfolioInterview({
         />
         <div
           className={cn(
-            "flex items-center justify-between px-6 py-4 border-t",
+            "flex items-center justify-between px-6 py-4 border-t gap-4",
             isPivotalPhase
               ? "border-amber-500/20"
               : "border-slate-100 dark:border-slate-800",
           )}
         >
-          <div
-            className={cn(
-              "text-[9px] font-black uppercase tracking-widest",
-              isPivotalPhase ? "text-amber-500/60" : "text-slate-400",
+          <div className="flex items-center gap-3">
+            {!isPivotalPhase && (
+              <button
+                onClick={handleSkipQuestion}
+                disabled={loading}
+                className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all border border-slate-200 dark:border-slate-800"
+              >
+                {language === "ar" ? "تخطي السؤال " : language === "fr" ? "Passer la question" : "Skip Question"}
+              </button>
             )}
-          >
-            {isPivotalPhase
-              ? "⚡ This is your executive moment"
-              : "Enter to send · Shift+Enter for new line"}
+            
+            {assistantCount >= 10 && (
+              <button
+                onClick={() => finalizeInterview(messages)}
+                disabled={loading}
+                className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-2"
+              >
+                <CheckCircle2 size={12} />
+                {language === "ar" ? "إنهاء المرحلة الآن" : language === "fr" ? "Terminer la phase" : "Finish Phase Now"}
+              </button>
+            )}
           </div>
+
           <button
             onClick={handleSend}
             disabled={loading || !currentInput.trim()}
@@ -1340,7 +1534,40 @@ function MCQAssessment({
   >([]);
   const [currentScore, setCurrentScore] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState(150); // 2:30 in seconds
   const fetchStarted = useRef<string | null>(null);
+
+  const handleAnswer = useCallback((idx: number) => {
+    if (selectedIdx !== null) return;
+    setSelectedIdx(idx);
+    if (idx !== -1 && questions[currentIndex] && idx === questions[currentIndex].correctIndex) {
+      setCurrentScore((prev) => prev + 1);
+    }
+  }, [selectedIdx, questions, currentIndex]);
+
+  // Timer effect
+  useEffect(() => {
+    if (loading || currentIndex >= questions.length || selectedIdx !== null) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Mark as wrong and move to next
+          handleAnswer(-1); 
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex, phase, loading, selectedIdx, questions.length, handleAnswer]);
+
+  // Reset timer on index change
+  useEffect(() => {
+    setTimeLeft(150);
+  }, [currentIndex, phase]);
 
   useEffect(() => {
     // Prevent duplicate fetches for the same phase
@@ -1359,7 +1586,7 @@ function MCQAssessment({
             formData,
             interviewTranscript,
             type: phase,
-            count: phase === "hard" ? 20 : 15,
+            count: 10, // Reduced from 20/15 for faster and more reliable generation
             language,
           }),
         });
@@ -1385,13 +1612,35 @@ function MCQAssessment({
       }
     };
     fetchQuestions();
-  }, [phase, auditResult, formData, interviewTranscript, language]);
+  }, [phase, auditResult, formData, interviewTranscript, language, setCurrentScore]);
 
-  const handleAnswer = (idx: number) => {
-    if (selectedIdx !== null) return;
-    setSelectedIdx(idx);
-    if (idx === questions[currentIndex].correctIndex) {
-      setCurrentScore((prev) => prev + 1);
+
+  const skipQuestion = () => {
+    nextQuestion();
+  };
+
+  const finishEarly = () => {
+    // Phase Complete with current score
+    const newResults = [
+      ...results,
+      { type: phase, score: currentScore, total: questions.length },
+    ];
+    setResults(newResults);
+
+    if (phase === "hard") {
+      setPhase("soft");
+      setQuestions([]);
+      setCurrentIndex(0);
+      setSelectedIdx(null);
+      setCurrentScore(0);
+    } else {
+      const hard = newResults.find((r) => r.type === "hard");
+      const soft = newResults.find((r) => r.type === "soft");
+      onComplete(null, {
+        hardScore: hard?.score || 0,
+        softScore: soft?.score || 0,
+        totalQuestions: (hard?.total || 0) + (soft?.total || 0),
+      });
     }
   };
 
@@ -1479,26 +1728,27 @@ function MCQAssessment({
     );
   }
 
-  if (errorMessage || questions.length === 0) {
+  if (!questions || questions.length === 0 || !questions[currentIndex]) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 text-center p-6">
         <div className="w-24 h-24 rounded-4xl bg-rose-500/10 flex items-center justify-center text-rose-600">
-          <X size={48} />
+          <AlertTriangle size={48} />
         </div>
         <div className="space-y-4 max-w-md">
           <h2 className="text-3xl font-black uppercase tracking-tight">
-            Assessment Interrupted
+            {language === "ar" ? "خطأ في التقييم" : "Assessment Error"}
           </h2>
           <p className="text-slate-500 font-medium leading-relaxed">
-            {errorMessage ||
-              "The AI engine was unable to generate specific questions for your profile at this moment."}
+            {errorMessage || (language === "ar" 
+              ? "تعذر تحميل الأسئلة. يرجى المحاولة مرة أخرى."
+              : "Unable to load questions. Please check your connection and retry.")}
           </p>
         </div>
         <button
           onClick={() => window.location.reload()}
           className="px-12 py-5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-2xl"
         >
-          Retry Diagnostic
+          {language === "ar" ? "إعادة المحاولة" : "Retry Diagnostic"}
         </button>
       </div>
     );
@@ -1524,19 +1774,44 @@ function MCQAssessment({
             {phase === "hard" ? t.hardSkillsTitle : t.softSkillsTitle}
           </div>
         </div>
-        <div className="text-left md:text-right w-full md:w-auto bg-white/50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-sm">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center md:justify-end gap-2">
-            <span>Evaluation Progress</span>
-            <span className="text-emerald-500">
-              {currentIndex + 1} / {questions.length}
-            </span>
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
+          {/* Question Timer */}
+          <div className={cn(
+            "bg-white dark:bg-slate-950 px-6 py-4 rounded-2xl border flex items-center gap-4 shadow-sm backdrop-blur-md transition-all duration-500",
+            timeLeft < 30 ? "border-rose-500 animate-pulse text-rose-500 shadow-rose-500/10" : "border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+          )}>
+            <Clock size={16} className={cn(timeLeft < 30 ? "text-rose-500" : "text-emerald-500")} />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Remaining Time</span>
+              <span className="text-lg font-black tabular-nums tracking-tighter">
+                {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+              </span>
+            </div>
+            
+            {/* Minimal timer progress ring/bar */}
+            <div className="w-12 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden ml-2 hidden sm:block">
+              <motion.div 
+                animate={{ width: `${(timeLeft / 150) * 100}%` }}
+                className={cn("h-full", timeLeft < 30 ? "bg-rose-500" : "bg-emerald-500")}
+              />
+            </div>
           </div>
-          <div className="w-full md:w-56 h-2.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              className="h-full bg-linear-to-r from-emerald-600 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-            />
+
+          {/* Progress Bar */}
+          <div className="text-left md:text-right flex-1 bg-white/50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-sm">
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center md:justify-end gap-2">
+              <span>Evaluation Progress</span>
+              <span className="text-emerald-500">
+                {currentIndex + 1} / {questions.length}
+              </span>
+            </div>
+            <div className="w-full md:w-56 h-2.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                className="h-full bg-linear-to-r from-emerald-600 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -1631,12 +1906,558 @@ function MCQAssessment({
                 >
                   {currentIndex === questions.length - 1
                     ? t.mcqCta
-                    : "Confirm & Next"}
+                    : (language === "ar" ? "تأكيد والتالي" : "Confirm & Next")}
                 </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {selectedIdx === null && (
+          <div className="flex justify-center gap-4 pt-6">
+            <button
+              onClick={skipQuestion}
+              className="px-8 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-black uppercase tracking-widest text-[10px] transition-all border border-slate-200 dark:border-slate-700 hover:border-slate-300"
+            >
+              {language === "ar" ? "تخطي السؤال" : "Skip Question"}
+            </button>
+            {currentIndex >= 5 && (
+              <button
+                onClick={finishEarly}
+                className="px-8 py-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black uppercase tracking-widest text-[10px] transition-all border border-amber-500/20 hover:bg-amber-500/20 active:scale-95"
+              >
+                {language === "ar" ? "إنهاء المرحلة الآن" : "Finish Phase Now"}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── SIMULATION ASSESSMENT ────────────────────────────────────────────────────
+interface SimulationScenario {
+  id: number;
+  type: "hard" | "soft" | "critical";
+  category: string;
+  title: string;
+  context: string;
+  situation: string;
+  choices: { label: string; description: string }[];
+  correctChoice: number;
+  consequence: string;
+  promotionRelevance?: string;
+}
+
+interface SimulationResult {
+  scenarios: SimulationScenario[];
+  hardSkillScore: number;
+  softSkillScore: number;
+  criticalScore: number;
+  promotionReadiness: string;
+  promotionBlockers: string[];
+  weaknesses: string[];
+  overallVerdict: string;
+}
+
+function SimulationAssessment({
+  auditResult,
+  formData,
+  interviewTranscript,
+  portfolioTranscript,
+  mcqResults,
+  language,
+  onComplete,
+}: {
+  auditResult: AuditResult;
+  formData: FormData;
+  interviewTranscript: InterviewMessage[];
+  portfolioTranscript: InterviewMessage[];
+  mcqResults: { hardScore: number; softScore: number; totalQuestions: number } | null;
+  language: string;
+  onComplete: (results: SimulationResult) => void;
+}) {
+  const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
+  const [showConsequence, setShowConsequence] = useState(false);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [completed, setCompleted] = useState(false);
+  const [results, setResults] = useState<SimulationResult | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [globalTimeLeft, setGlobalTimeLeft] = useState(900); // 15 minutes in seconds
+
+  const forceFinishDueToTimeout = useCallback(async () => {
+    if (completed || analyzing) return;
+    setAnalyzing(true);
+    
+    // Fill remaining scenarios with -1 (incorrect)
+    const finalAnswers = [...answers];
+    while (finalAnswers.length < scenarios.length) {
+      finalAnswers.push(-1);
+    }
+
+    try {
+      const res = await fetch("/api/simulation/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenarios,
+          answers: finalAnswers,
+          auditResult,
+          formData,
+          language,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResults(data.results);
+        setCompleted(true);
+      }
+    } catch (err) {
+      console.error("Timeout analysis failed:", err);
+      setCompleted(true);
+    } finally {
+      setAnalyzing(false);
+    }
+  }, [completed, analyzing, answers, scenarios, auditResult, formData, language]);
+
+  // Global Simulation Timer
+  useEffect(() => {
+    if (loading || completed || analyzing || scenarios.length === 0) return;
+
+    const interval = setInterval(() => {
+      setGlobalTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          forceFinishDueToTimeout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [loading, completed, analyzing, scenarios.length, forceFinishDueToTimeout]);
+
+  const typeLabels: Record<string, { en: string; fr: string; ar: string; color: string; bg: string }> = {
+    hard: { en: "Technical Scenario", fr: "Scénario Technique", ar: "حدث تقني", color: "text-blue-600", bg: "bg-blue-500/10 border-blue-500/20" },
+    soft: { en: "Behavioral Scenario", fr: "Scénario Comportemental", ar: "حدث سلوكي", color: "text-violet-600", bg: "bg-violet-500/10 border-violet-500/20" },
+    critical: { en: "Critical Promotion Test", fr: "Test de Promotion Critique", ar: "اختبار الترقي المصيري", color: "text-amber-600", bg: "bg-amber-500/10 border-amber-500/20" },
+  };
+
+  useEffect(() => {
+    const generate = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/simulation/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            auditResult,
+            formData,
+            interviewTranscript,
+            portfolioTranscript,
+            mcqResults,
+            language,
+          }),
+        });
+        const data = await res.json();
+        if (data.success && data.scenarios) {
+          setScenarios(data.scenarios);
+        }
+      } catch (err) {
+        console.error("Failed to generate simulations:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    generate();
+  }, [auditResult, formData, interviewTranscript, portfolioTranscript, mcqResults, language]);
+
+  const handleChoiceSelect = (idx: number) => {
+    if (selectedChoice !== null) return;
+    setSelectedChoice(idx);
+    setShowConsequence(true);
+  };
+
+  const handleNext = async () => {
+    const newAnswers = [...answers, selectedChoice ?? -1];
+    setAnswers(newAnswers);
+    setSelectedChoice(null);
+    setShowConsequence(false);
+
+    if (currentIndex < scenarios.length - 1) {
+      setCurrentIndex((p) => p + 1);
+    } else {
+      // All scenarios done — analyze results
+      setAnalyzing(true);
+      try {
+        const res = await fetch("/api/simulation/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenarios,
+            answers: newAnswers,
+            auditResult,
+            formData,
+            language,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setResults(data.results);
+          setCompleted(true);
+        }
+      } catch (err) {
+        console.error("Failed to analyze simulation:", err);
+        setCompleted(true);
+      } finally {
+        setAnalyzing(false);
+      }
+    }
+  };
+
+  // ── LOADING ──
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-10 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[120px]" />
+          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-blue-600/5 rounded-full blur-[80px]" />
+        </div>
+        <div className="relative">
+          <div className="w-40 h-40 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_4s_linear_infinite] border-t-violet-600 shadow-[0_0_40px_rgba(139,92,246,0.2)]" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-24 h-24 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
+              <Sparkles className="text-violet-500 w-10 h-10 animate-pulse" />
+            </div>
+          </div>
+        </div>
+        <div className="text-center space-y-4 relative z-10">
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-violet-600 to-blue-400 bg-clip-text text-transparent">
+            {language === "ar" ? "جاري إعداد الأحداث المهنية..." : language === "fr" ? "Génération des scénarios..." : "Generating Professional Scenarios..."}
+          </h2>
+          <p className="text-slate-500 font-medium text-sm max-w-md mx-auto">
+            {language === "ar"
+              ? "يتم تحضير 10 أحداث مخصصة بناءً على مسارك المهني"
+              : language === "fr"
+              ? "Préparation de 10 scénarios personnalisés basés sur votre parcours"
+              : "Preparing 10 tailored scenarios based on your professional history"}
+          </p>
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="w-2 h-2 rounded-full bg-violet-500 animate-ping" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
+              {language === "ar" ? "4 تقنية · 4 سلوكية · 2 مصيرية" : language === "fr" ? "4 Techniques · 4 Comportementaux · 2 Critiques" : "4 Technical · 4 Behavioral · 2 Critical"}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── ANALYZING ──
+  if (analyzing) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-10">
+        <div className="w-40 h-40 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_3s_linear_infinite] border-t-amber-500 shadow-[0_0_40px_rgba(245,158,11,0.2)]" />
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl font-black uppercase tracking-tight text-amber-600">
+            {language === "ar" ? "جاري تحليل أدائك..." : language === "fr" ? "Analyse de votre performance..." : "Analyzing Your Performance..."}
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  // ── COMPLETED ──
+  if (completed && results) {
+    const hardPct = Math.round((results.hardSkillScore / 4) * 100);
+    const softPct = Math.round((results.softSkillScore / 6) * 100);
+    const critPct = Math.round((results.criticalScore / 2) * 100);
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-10 py-10">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[10px] font-black uppercase tracking-[0.3em]">
+            <Sparkles size={14} /> {language === "ar" ? "تحليل المحاكاة المهنية" : language === "fr" ? "Analyse de Simulation" : "Simulation Analysis"}
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
+            {language === "ar" ? "نتائج الأحداث" : language === "fr" ? "Résultats des Scénarios" : "Scenario Results"}
+          </h2>
+        </div>
+
+        {/* Scores */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: language === "ar" ? "المهارات التقنية" : language === "fr" ? "Compétences Techniques" : "Technical Skills", pct: hardPct, color: "blue" },
+            { label: language === "ar" ? "المهارات الشخصية" : language === "fr" ? "Soft Skills" : "Soft Skills", pct: softPct, color: "violet" },
+            { label: language === "ar" ? "استعداد الترقي" : language === "fr" ? "Aptitude Promotion" : "Promotion Readiness", pct: critPct, color: "amber" },
+          ].map((s, i) => (
+            <div key={i} className={`p-6 rounded-3xl border bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 text-center space-y-4`}>
+              <div className={`text-5xl font-black ${s.color === "blue" ? "text-blue-600" : s.color === "violet" ? "text-violet-600" : "text-amber-600"}`}>{s.pct}%</div>
+              <div className="text-xs font-black uppercase tracking-widest text-slate-500">{s.label}</div>
+              <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${s.pct}%` }}
+                  transition={{ duration: 1, delay: i * 0.2 }}
+                  className={`h-full rounded-full ${s.color === "blue" ? "bg-blue-600" : s.color === "violet" ? "bg-violet-600" : "bg-amber-500"}`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Promotion Readiness */}
+        <div className="p-8 rounded-3xl bg-amber-500/5 border border-amber-500/20 space-y-4">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="text-amber-600" size={24} />
+            <h3 className="font-black uppercase tracking-wide text-amber-700 dark:text-amber-500">
+              {language === "ar" ? "استعداد الترقي" : language === "fr" ? "Aptitude à la Promotion" : "Promotion Readiness"}
+            </h3>
+          </div>
+          <p className="text-slate-700 dark:text-slate-200 font-medium text-lg leading-relaxed">{results.promotionReadiness}</p>
+          {results.promotionBlockers.length > 0 && (
+            <div className="space-y-2 mt-4">
+              <p className="text-xs font-black uppercase tracking-widest text-rose-600">
+                {language === "ar" ? "عوائق الترقي" : language === "fr" ? "Obstacles à la Promotion" : "Promotion Blockers"}
+              </p>
+              {results.promotionBlockers.map((b, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm text-rose-600 dark:text-rose-400">
+                  <span className="text-rose-500 mt-0.5">✗</span> {b}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Weaknesses */}
+        {results.weaknesses.length > 0 && (
+          <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+            <h3 className="font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
+              {language === "ar" ? "نقاط الضعف المكتشفة" : language === "fr" ? "Points Faibles Identifiés" : "Identified Weaknesses"}
+            </h3>
+            {results.weaknesses.map((w, i) => (
+              <div key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 font-medium">
+                <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] shrink-0 mt-0.5">{i + 1}</span> {w}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Overall verdict */}
+        <div className="p-8 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 space-y-3">
+          <h3 className="font-black uppercase tracking-widest text-sm opacity-70">
+            {language === "ar" ? "الحكم النهائي" : language === "fr" ? "Verdict Final" : "Overall Verdict"}
+          </h3>
+          <p className="text-xl font-black leading-relaxed">{results.overallVerdict}</p>
+        </div>
+
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={() => results && onComplete(results)}
+            className="group relative inline-flex items-center gap-4 px-14 py-6 rounded-4xl bg-linear-to-r from-violet-600 to-indigo-600 text-white font-black text-lg uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(139,92,246,0.3)] hover:shadow-[0_0_60px_rgba(139,92,246,0.5)] border border-white/10"
+          >
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+            <span className="relative z-10">
+              {language === "ar" ? "عرض التقرير النهائي" : language === "fr" ? "Voir le Rapport Final" : "View Final Report"}
+            </span>
+            <ArrowRight size={22} className="relative z-10 group-hover:translate-x-2 transition-transform" />
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // ── SCENARIO VIEW ──
+  if (scenarios.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+        <AlertTriangle size={48} className="text-rose-500" />
+        <p className="text-slate-500 font-medium">
+          {language === "ar" ? "تعذر تحميل الأحداث. يرجى المحاولة مرة أخرى." : "Failed to load scenarios. Please retry."}
+        </p>
+      </div>
+    );
+  }
+
+  const scenario = scenarios[currentIndex];
+  const totalScenarios = scenarios.length;
+  const progress = ((currentIndex) / totalScenarios) * 100;
+  const typeInfo = typeLabels[scenario.type];
+
+  return (
+    <motion.div
+      key={currentIndex}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="max-w-3xl mx-auto space-y-8 py-8"
+    >
+      {/* Header */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-black uppercase tracking-[0.2em] ${typeInfo.bg} ${typeInfo.color}`}>
+              <Sparkles size={12} />
+              {typeInfo[language as "en" | "fr" | "ar"] || typeInfo.en}
+            </div>
+            
+            {/* Global Timer UI */}
+            <div className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+              globalTimeLeft < 60 ? "bg-rose-500/10 border-rose-500 text-rose-500 animate-pulse" : "bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500"
+            )}>
+              <Clock size={12} />
+              <span>{Math.floor(globalTimeLeft / 60)}:{String(globalTimeLeft % 60).padStart(2, '0')}</span>
+            </div>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            {currentIndex + 1} / {totalScenarios}
+          </span>
+        </div>
+        <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <motion.div
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5 }}
+            className="h-full bg-linear-to-r from-violet-600 to-indigo-600 rounded-full"
+          />
+        </div>
+        <div className="text-[9px] font-black uppercase tracking-widest text-center text-slate-400">
+          {scenarios.filter(s => s.type === "hard").length} {language === "ar" ? "تقنية" : "Technical"} ·{" "}
+          {scenarios.filter(s => s.type === "soft").length} {language === "ar" ? "سلوكية" : "Behavioral"} ·{" "}
+          {scenarios.filter(s => s.type === "critical").length} {language === "ar" ? "مصيرية" : "Critical"}
+        </div>
+      </div>
+
+      {/* Scenario Card */}
+      <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-[0_20px_60px_rgba(139,92,246,0.06)] overflow-hidden">
+        {/* Category + Title */}
+        <div className={`p-8 border-b border-slate-100 dark:border-slate-800 bg-linear-to-br ${scenario.type === "hard" ? "from-blue-50 to-white dark:from-blue-950/20 dark:to-slate-950" : scenario.type === "soft" ? "from-violet-50 to-white dark:from-violet-950/20 dark:to-slate-950" : "from-amber-50 to-white dark:from-amber-950/20 dark:to-slate-950"}`}>
+          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">{scenario.category}</div>
+          <h2 className="text-2xl md:text-3xl font-black leading-tight text-slate-900 dark:text-white">{scenario.title}</h2>
+        </div>
+
+        <div className="p-8 space-y-8">
+          {/* Context */}
+          <div className="space-y-2">
+            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+              {language === "ar" ? "السياق" : language === "fr" ? "Contexte" : "Context"}
+            </div>
+            <p className="text-slate-600 dark:text-slate-400 text-sm font-medium leading-relaxed">{scenario.context}</p>
+          </div>
+
+          {/* Situation */}
+          <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3">
+              {language === "ar" ? "الحدث" : language === "fr" ? "Situation" : "Situation"}
+            </div>
+            <p className="text-slate-800 dark:text-slate-100 font-semibold text-base leading-relaxed">{scenario.situation}</p>
+          </div>
+
+          {/* Choices */}
+          <div className="space-y-3">
+            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+              {language === "ar" ? "ما هو قرارك؟" : language === "fr" ? "Quelle est votre décision?" : "What is your decision?"}
+            </div>
+            {scenario.choices.map((choice, i) => {
+              const isSelected = selectedChoice === i;
+              const isCorrect = i === scenario.correctChoice;
+              const showResult = showConsequence;
+              return (
+                <motion.button
+                  key={i}
+                  whileHover={selectedChoice === null ? { scale: 1.01 } : {}}
+                  whileTap={selectedChoice === null ? { scale: 0.99 } : {}}
+                  onClick={() => handleChoiceSelect(i)}
+                  disabled={selectedChoice !== null}
+                  className={cn(
+                    "w-full p-5 rounded-2xl border-2 text-left transition-all duration-300",
+                    selectedChoice === null
+                      ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-violet-400 hover:bg-violet-50/30 dark:hover:bg-violet-950/20 cursor-pointer"
+                      : showResult && isCorrect
+                      ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 cursor-default"
+                      : showResult && isSelected && !isCorrect
+                      ? "bg-rose-50 dark:bg-rose-950/20 border-rose-500 cursor-default"
+                      : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-50 cursor-default",
+                  )}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={cn(
+                      "w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 border",
+                      selectedChoice === null
+                        ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
+                        : showResult && isCorrect
+                        ? "bg-emerald-500 border-emerald-500 text-white"
+                        : showResult && isSelected && !isCorrect
+                        ? "bg-rose-500 border-rose-500 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400",
+                    )}>
+                      {String.fromCharCode(65 + i)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{choice.label}</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 leading-relaxed">{choice.description}</p>
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Consequence */}
+          <AnimatePresence>
+            {showConsequence && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className={cn(
+                  "p-6 rounded-2xl border space-y-2",
+                  selectedChoice === scenario.correctChoice
+                    ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-500/20"
+                    : "bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-500/20",
+                )}
+              >
+                <div className={cn(
+                  "text-[10px] font-black uppercase tracking-[0.3em]",
+                  selectedChoice === scenario.correctChoice ? "text-emerald-600" : "text-rose-600",
+                )}>
+                  {selectedChoice === scenario.correctChoice
+                    ? (language === "ar" ? "✓ قرار صحيح" : language === "fr" ? "✓ Bonne décision" : "✓ Correct Decision")
+                    : (language === "ar" ? "✗ قرار خاطئ" : language === "fr" ? "✗ Mauvaise décision" : "✗ Wrong Decision")}
+                </div>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{scenario.consequence}</p>
+                {scenario.promotionRelevance && scenario.type === "critical" && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400 font-medium italic border-t border-amber-200 dark:border-amber-500/20 pt-2 mt-2">
+                    🔑 {scenario.promotionRelevance}
+                  </p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Next button */}
+          {showConsequence && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-end"
+            >
+              <button
+                onClick={handleNext}
+                className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-linear-to-br from-violet-600 to-indigo-600 text-white font-black uppercase tracking-widest text-sm shadow-[0_10px_30px_rgba(139,92,246,0.3)] hover:shadow-[0_10px_40px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                {currentIndex < scenarios.length - 1
+                  ? (language === "ar" ? "الحدث التالي" : language === "fr" ? "Scénario Suivant" : "Next Scenario")
+                  : (language === "ar" ? "عرض النتائج" : language === "fr" ? "Voir les Résultats" : "View Results")}
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -1646,27 +2467,68 @@ function MCQAssessment({
 function FinalReport({
   report,
   t,
+  isPro,
+  onProRequired,
+  language,
 }: {
   report: FinalReportResult;
   t: StepTranslations;
+  isPro: boolean;
+  onProRequired: () => void;
+  language: string;
 }) {
+  const [documentId] = useState(() => {
+    const randomPart = Math.random().toString(36).substring(2, 9).toUpperCase();
+    return `MATC-${randomPart}`;
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="max-w-5xl mx-auto space-y-12 pb-20"
     >
-      <div className="text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-          <CheckCircle2 size={18} strokeWidth={2.5} /> Audit Strategicized & Certified
+      {/* === OFFICIAL DOCUMENT WRAPPER === */}
+      <div className="relative bg-white dark:bg-slate-950 p-12 md:p-20 rounded-2xl shadow-[0_40px_100px_rgba(0,0,0,0.1)] border-12 border-double border-slate-100 dark:border-slate-900 overflow-hidden print:p-8 print:border-8 print:shadow-none min-h-[1400px]">
+        
+        {/* Document Security Background / Watermark */}
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] select-none rotate-[-35deg] scale-150">
+          <div className="text-8xl font-black uppercase tracking-[2em]">M.A TRAINING & CONSULTING</div>
         </div>
-        <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight leading-[0.9] bg-clip-text text-transparent bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white">
-          {t.title}
-        </h1>
-        <p className="text-xl md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto tracking-wide">
-          {t.subtitle}
-        </p>
-      </div>
+
+        {/* Corporate Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-slate-900/10 dark:border-white/10 pb-10 mb-12 relative z-10">
+          <div className="space-y-2">
+            <div className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white flex items-center gap-2">
+              <Shield className="text-indigo-600" size={32} strokeWidth={2.5} />
+              M.A TRAINING & CONSULTING
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              {language === 'ar' ? 'قسم تدقيق المواهب الاستراتيجية' : language === 'fr' ? 'Département d\'Audit des Talents Stratégiques' : 'Department of Strategic Talent Auditing'} · ID: {documentId}
+            </div>
+          </div>
+          <div className="text-right mt-6 md:mt-0">
+            <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+              {language === 'ar' ? 'تاريخ التصديق' : language === 'fr' ? 'Date de Certification' : 'Date of Certification'}
+            </div>
+            <div className="text-lg font-bold text-slate-900 dark:text-white">
+              {new Date().toLocaleDateString(language === 'ar' ? 'ar-TN' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center space-y-6 mb-16 relative z-10">
+          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">
+            <CheckCircle2 size={16} strokeWidth={2.5} /> 
+            {language === 'ar' ? 'تصديق تنفيذي رسمي' : language === 'fr' ? 'Certification Exécutive Officielle' : 'Official Executive Certification'}
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none text-slate-900 dark:text-white">
+            {report.title || t.title}
+          </h1>
+          <p className="text-lg md:text-xl text-slate-500 font-bold max-w-2xl mx-auto tracking-wide border-t border-b border-slate-100 dark:border-slate-800 py-4 mt-6">
+            {report.subtitle || t.subtitle}
+          </p>
+        </div>
 
       {/* === TOP MODULE: STRATEGIC RADAR & AUTHORITY MATRIX === */}
       {(report.strategicRadar || report.authorityVsPotential) && (
@@ -1868,32 +2730,32 @@ function FinalReport({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Summary & Insights */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-2xl space-y-8">
+          <div className="p-10 rounded-4xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 relative z-10">
             <div className="flex items-center gap-4 text-blue-600">
-              <MessageSquare size={32} />
-              <h3 className="text-2xl font-black uppercase tracking-tight">
-                Strategic Synthesis
+              <MessageSquare size={24} strokeWidth={2.5} />
+              <h3 className="text-xl font-black uppercase tracking-widest border-b-2 border-blue-600/20 pb-2 flex-1">
+                {t.executiveSummary || "EXECUTIVE STRATEGIC SUMMARY"}
               </h3>
             </div>
-            <p className="text-lg text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic">
+            <p className="text-lg text-slate-700 dark:text-slate-300 font-medium leading-[1.6] italic font-serif">
               &quot;{report.profileSummary}&quot;
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-8 rounded-[2.5rem] bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-4">
-              <h4 className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
                 {t.maturity}
               </h4>
-              <div className="text-3xl font-black text-blue-600 uppercase">
+              <div className="text-2xl font-black text-blue-600 uppercase tracking-tight">
                 {report.maturityLevel}
               </div>
             </div>
-            <div className="p-8 rounded-[2.5rem] bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-4">
-              <h4 className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+            <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
                 {t.marketValue}
               </h4>
-              <div className="text-3xl font-black text-emerald-500 uppercase">
+              <div className="text-2xl font-black text-emerald-600 uppercase tracking-tight">
                 {report.marketValue}
               </div>
             </div>
@@ -2181,99 +3043,224 @@ function FinalReport({
         </div>
       )}
 
-      {/* SWOT Section */}
-      <div className="space-y-8">
-        <h2 className="text-3xl font-black uppercase tracking-tight text-center">
+      {/* SWOT Section - Structured as Document Grid */}
+      <div className="space-y-8 relative z-10 py-12 border-t border-slate-100 dark:border-slate-800">
+        <h2 className="text-2xl font-black uppercase tracking-[0.5em] text-center text-slate-400 mb-12">
           {t.swot}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <SWOTCard
-            title={t.strengths || "Strengths"}
-            items={report.swot.strengths}
-            color="emerald"
-            icon={<TrendingUp size={20} />}
-          />
-          <SWOTCard
-            title={t.weaknesses || "Weaknesses"}
-            items={report.swot.weaknesses}
-            color="red"
-            icon={<BarChart3 size={20} />}
-          />
-          <SWOTCard
-            title={t.opportunities || "Opportunities"}
-            items={report.swot.opportunities}
-            color="blue"
-            icon={<Target size={20} />}
-          />
-          <SWOTCard
-            title={t.threats || "Threats"}
-            items={report.swot.threats}
-            color="orange"
-            icon={<Shield size={20} />}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div className="p-8 border-2 border-emerald-500/10 bg-emerald-500/2 rounded-3xl space-y-6">
+              <div className="flex items-center gap-3 text-emerald-600">
+                <TrendingUp size={20} strokeWidth={3} />
+                <h3 className="font-black uppercase tracking-widest text-sm">{t.strengths}</h3>
+              </div>
+              <ul className="space-y-3">
+                {report.swot.strengths.map((s, i) => (
+                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-emerald-500">◆</span> {s}
+                  </li>
+                ))}
+              </ul>
+           </div>
+           <div className="p-8 border-2 border-rose-500/10 bg-rose-500/2 rounded-3xl space-y-6">
+              <div className="flex items-center gap-3 text-rose-600">
+                <BarChart3 size={20} strokeWidth={3} />
+                <h3 className="font-black uppercase tracking-widest text-sm">{t.weaknesses}</h3>
+              </div>
+              <ul className="space-y-3">
+                {report.swot.weaknesses.map((s, i) => (
+                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-rose-500">◆</span> {s}
+                  </li>
+                ))}
+              </ul>
+           </div>
+           <div className="p-8 border-2 border-blue-500/10 bg-blue-500/2 rounded-3xl space-y-6">
+              <div className="flex items-center gap-3 text-blue-600">
+                <Target size={20} strokeWidth={3} />
+                <h3 className="font-black uppercase tracking-widest text-sm">{t.opportunities}</h3>
+              </div>
+              <ul className="space-y-3">
+                {report.swot.opportunities.map((s, i) => (
+                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-blue-500">◆</span> {s}
+                  </li>
+                ))}
+              </ul>
+           </div>
+           <div className="p-8 border-2 border-amber-500/10 bg-amber-500/2 rounded-3xl space-y-6">
+              <div className="flex items-center gap-3 text-amber-600">
+                <Shield size={20} strokeWidth={3} />
+                <h3 className="font-black uppercase tracking-widest text-sm">{t.threats}</h3>
+              </div>
+              <ul className="space-y-3">
+                {report.swot.threats.map((s, i) => (
+                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-amber-500">◆</span> {s}
+                  </li>
+                ))}
+              </ul>
+           </div>
         </div>
       </div>
 
-      <div className="flex justify-center pt-8">
-        <a
-          href="/professional/executive-dashboard"
-          className="group flex items-center gap-6 px-16 py-7 bg-black dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.4em] text-xl rounded-4xl shadow-2xl hover:scale-105 transition-all outline-none"
+        {/* === DOCUMENT FOOTER: STAMP & SIGNATURE === */}
+        <div className="mt-24 pt-12 border-t-2 border-slate-900/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-12 relative z-10">
+          
+          {/* Official Stamp (Kashi) */}
+          <div className="relative">
+            <div className="w-40 h-40 rounded-full border-[6px] border-emerald-600/30 flex items-center justify-center rotate-[-15deg] group">
+              <div className="w-32 h-32 rounded-full border-2 border-emerald-600/40 border-dashed animate-[spin_10s_linear_infinite]" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter leading-none">MATC AI</div>
+                <div className="text-[14px] font-black text-emerald-700 uppercase leading-none my-1">{language === 'ar' ? 'معتمد' : language === 'fr' ? 'CERTIFIÉ' : 'CERTIFIED'}</div>
+                <div className="text-[8px] font-bold text-emerald-500 uppercase leading-none">{language === 'ar' ? 'مدقق استراتيجي' : language === 'fr' ? 'Auditeur Stratégique' : 'Strategic Auditor'}</div>
+              </div>
+              <Shield className="absolute top-0 right-0 text-emerald-600 opacity-20" size={40} />
+            </div>
+          </div>
+
+          <div className="flex-1 text-center md:text-left px-8">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-xs">
+              {language === 'ar' 
+                ? 'تعتبر هذه الوثيقة بمثابة تحقق استراتيجي رسمي للكفاءة المهنية والاستعداد التنفيذي كما تم تقييمها بواسطة محرك الذكاء الاصطناعي لـ M.A Training & Consulting.'
+                : language === 'fr'
+                ? 'Ce document sert de vérification stratégique officielle de la compétence professionnelle et de la préparation exécutive, évaluée par le moteur IA de M.A Training & Consulting.'
+                : 'This document serves as an official strategic verification of professional competence and executive readiness as assessed by the M.A Training & Consulting AI Engine.'
+              }
+            </p>
+          </div>
+
+          {/* Official Signature */}
+          <div className="text-center space-y-3">
+             <div className="font-serif italic text-3xl text-slate-800 dark:text-slate-200 mb-2 relative">
+               <span className="opacity-20 absolute -top-4 left-0 text-6xl">✒</span>
+               Dr. Ahmed .M
+               <div className="w-48 h-0.5 bg-slate-900/20 dark:bg-white/20 mt-1 mx-auto" />
+             </div>
+             <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                {language === 'ar' ? 'المدير العام والاستراتيجي العالمي' : language === 'fr' ? 'Directeur Général & Stratège Global' : 'Managing Director & Global Strategist'}
+              </div>
+          </div>
+
+        </div>
+
+        {/* Security QR Code Placeholder */}
+        <div className="absolute bottom-10 left-10 opacity-20">
+          <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center p-2">
+            <div className="w-full h-full border-2 border-slate-400 border-dotted" />
+          </div>
+          <div className="text-[6px] font-black mt-1 text-slate-400">VERIFY-MD-992</div>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-12 mt-10 opacity-70">
+            <div className="flex items-center gap-2">
+              <Shield size={16} className="text-indigo-600" />
+              <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ar' ? 'هوية مؤمنة' : language === 'fr' ? 'Identité Sécurisée' : 'Secure Identity'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BarChart3 size={16} className="text-emerald-600" />
+              <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ar' ? 'معتمد من SCI' : language === 'fr' ? 'Validé par SCI' : 'SCI Validated'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-amber-600" />
+              <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ar' ? 'تحليل استراتيجي' : language === 'fr' ? 'Analyse Stratégique' : 'Strategic Insights'}</span>
+            </div>
+          </div>
+      </div>
+
+      <div className="flex justify-center pt-8 gap-4 no-print">
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-3 px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-slate-200 transition-all border border-slate-200 dark:border-slate-700"
         >
-          {t.cta}{" "}
-          <ArrowRight
-            className="group-hover:translate-x-3 transition-transform"
-            size={28}
-          />
-        </a>
+          <BarChart3 size={18} /> {language === 'ar' ? 'تحميل التقرير (PDF)' : language === 'fr' ? 'Télécharger PDF' : 'Download PDF'}
+        </button>
+        {isPro ? (
+          <a
+            href="/professional/executive-dashboard"
+            className="group flex items-center gap-6 px-16 py-7 bg-black dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.4em] text-xl rounded-4xl shadow-2xl hover:scale-105 transition-all outline-none"
+          >
+            {t.cta}{" "}
+            <ArrowRight
+              className="group-hover:translate-x-3 transition-transform"
+              size={28}
+            />
+          </a>
+        ) : (
+          <button
+            onClick={onProRequired}
+            className="group flex items-center gap-6 px-16 py-7 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.4em] text-xl rounded-4xl shadow-2xl hover:scale-105 transition-all outline-none opacity-80 cursor-pointer"
+          >
+            {t.cta}{" "}
+            <Shield
+              className="group-hover:rotate-12 transition-transform opacity-50"
+              size={28}
+            />
+          </button>
+        )}
       </div>
     </motion.div>
   );
 }
 
-function SWOTCard({
-  title,
-  items,
-  color,
-  icon,
-}: {
-  title: string;
-  items: string[];
-  color: "emerald" | "red" | "blue" | "orange";
-  icon: React.ReactNode;
-}) {
-  const colors = {
-    emerald: "bg-emerald-500/5 text-emerald-600 border-emerald-500/20",
-    red: "bg-red-500/5 text-red-600 border-red-500/20",
-    blue: "bg-blue-500/5 text-blue-600 border-blue-500/20",
-    orange: "bg-orange-500/5 text-orange-600 border-orange-500/20",
-  };
 
+// ─── PRO GATE MODAL ────────────────────────────────────────────────────────
+function ProGateModal({ isOpen, onClose, t }: { isOpen: boolean; onClose: () => void; t: StepTranslations }) {
   return (
-    <div
-      className={cn(
-        "p-8 rounded-[2.5rem] border-2 space-y-6 flex flex-col items-center text-center",
-        colors[color],
-      )}
-    >
-      <div
-        className={cn(
-          "p-4 rounded-2xl bg-white dark:bg-slate-950 shadow-sm mb-2",
-        )}
-      >
-        {icon}
-      </div>
-      <h3 className="font-black uppercase tracking-widest text-sm">{title}</h3>
-      <div className="space-y-3 w-full">
-        {items.map((item, i) => (
-          <div
-            key={i}
-            className="text-[10px] font-black uppercase leading-tight tracking-tighter opacity-80"
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative w-full max-w-xl bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-200 dark:border-slate-800 p-10 md:p-14 shadow-2xl overflow-hidden"
           >
-            {item}
-          </div>
-        ))}
-      </div>
-    </div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -mr-32 -mt-32" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -ml-32 -mb-32" />
+            
+            <div className="relative z-10 flex flex-col items-center text-center space-y-8">
+              <div className="w-24 h-24 rounded-4xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-500/40">
+                <Shield size={48} strokeWidth={1} />
+              </div>
+              
+              <div className="space-y-4">
+                <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                  {t.proTitle}
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  {t.proDesc}
+                </p>
+              </div>
+
+              <div className="flex flex-col w-full gap-4 pt-4">
+                <Link
+                  href="/subscription"
+                  className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                >
+                  <Sparkles size={16} />
+                  {t.proUpgrade}
+                </Link>
+                <button
+                  onClick={onClose}
+                  className="w-full py-6 bg-slate-100 dark:bg-slate-900 text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-all"
+                >
+                  {t.proBack}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -2305,6 +3292,8 @@ export default function ProfessionalDashboard() {
     InterviewMessage[]
   >([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   const [newPosition, setNewPosition] = useState<Position>({
     title: "",
@@ -2317,16 +3306,15 @@ export default function ProfessionalDashboard() {
     const loadProgress = async () => {
       try {
         const storedProfile = localStorage.getItem("userProfile");
-        const email = storedProfile ? JSON.parse(storedProfile)?.email : null;
-
-        let loadedFromDB = false;
+        const profileData = storedProfile ? JSON.parse(storedProfile) : null;
+        setUserProfile(profileData);
+        const email = profileData?.email;
 
         if (email) {
           const response = await fetch(`/api/user/professional-progress?email=${encodeURIComponent(email)}`);
           const json = await response.json();
 
           if (json.success && json.data) {
-            loadedFromDB = true;
             const {
               step: savedStep,
               formData: savedFormData,
@@ -2352,36 +3340,14 @@ export default function ProfessionalDashboard() {
                 cv: null,
               }));
             }
-          }
-        }
-
-        if (!loadedFromDB) {
-          // Fallback to localStorage for smooth migration
-          const savedStep = localStorage.getItem("prof_step");
-          const savedFormData = localStorage.getItem("prof_formData");
-          const savedAuditResult = localStorage.getItem("prof_auditResult");
-          const savedFinalReport = localStorage.getItem("prof_finalReport");
-          const savedTranscript = localStorage.getItem("prof_transcript");
-          const savedPortfolioTranscript = localStorage.getItem(
-            "prof_portfolioTranscript",
-          );
-          const savedMcqResults = localStorage.getItem("prof_mcqResults");
-
-          if (savedStep) setStep(savedStep as Step);
-          if (savedAuditResult) setAuditResult(JSON.parse(savedAuditResult));
-          if (savedFinalReport) setFinalReport(JSON.parse(savedFinalReport));
-          if (savedTranscript) setInterviewTranscript(JSON.parse(savedTranscript));
-          if (savedPortfolioTranscript)
-            setPortfolioTranscript(JSON.parse(savedPortfolioTranscript));
-          if (savedMcqResults) setMcqResults(JSON.parse(savedMcqResults));
-
-          if (savedFormData) {
-            const parsed = JSON.parse(savedFormData);
-            setFormData((prev) => ({
-              ...prev,
-              ...parsed,
-              cv: null,
-            }));
+          } else {
+            // New user or no data in DB -> Clear any stale localStorage from previous sessions to prevent leakage
+            const profKeys = [
+              "prof_step", "prof_formData", "prof_auditResult", "prof_finalReport",
+              "prof_transcript", "prof_portfolioTranscript", "prof_mcqResults",
+              "prof_academy", "prof_roadmapResult"
+            ];
+            profKeys.forEach(k => localStorage.removeItem(k));
           }
         }
       } catch (error) {
@@ -2457,32 +3423,111 @@ export default function ProfessionalDashboard() {
     isHydrated,
   ]);
 
+  const isPro = userProfile?.activationType === "Pro" || userProfile?.activationType === "Unlimited";
+
   const t = TRANSLATIONS[(currentLang as "en" | "fr" | "ar") || "en"];
 
   const nextStep = useCallback(() => {
-    setStep((prev) => {
-      if (prev === "language") return "welcome";
-      if (prev === "welcome") return "audit-form";
-      if (prev === "audit-form") return "experience-input";
-      if (prev === "experience-input") return "initial-analysis";
-      if (prev === "initial-analysis") return "expert-interview";
-      if (prev === "expert-interview") return "mcq-assessment";
-      if (prev === "mcq-assessment") return "portfolio-interview";
-      if (prev === "portfolio-interview") return "final-report";
-      return prev;
-    });
-  }, []);
+    const order: Step[] = [
+      "language", "welcome", "audit-form", "experience-input", 
+      "initial-analysis", "expert-interview", "mcq-assessment", 
+      "portfolio-interview", "simulation", "final-report"
+    ];
+    const currentIndex = order.indexOf(step);
+    
+    // Inject Mock Data for skipped phases
+    if (step === "initial-analysis" && !auditResult) {
+      setAuditResult({
+        authorityScore: 50,
+        profileLevel: "Experience Matched",
+        alignment: "General Alignment",
+        gaps: ["Technical depth to be verified"],
+        strengths: ["Breadth of experience"],
+        visionAnalysis: "Vision aligned with trajectory",
+        nextEvolutionSteps: ["Complete all assessment phases"],
+        verdict: "Profile qualified for assessment"
+      });
+    }
+
+    if (step === "expert-interview" && interviewTranscript.length === 0) {
+      const msg = currentLang === "ar" ? "تم التحول للمسار التقييمي السريع بناءً على طلب المشارك." : "Transitioned to accelerated assessment path per participant request.";
+      setInterviewTranscript([{ role: "assistant", content: msg }]);
+    }
+
+    if (step === "mcq-assessment" && !mcqResults) {
+      setMcqResults({ hardScore: 0, softScore: 0, totalQuestions: 0 });
+    }
+
+    if (step === "portfolio-interview") {
+      if (portfolioTranscript.length === 0) {
+        const msg = currentLang === "ar" ? "تحليل منهجي مستمر لبيانات المحفظة المهنية." : "Ongoing systematic analysis of professional portfolio data.";
+        setPortfolioTranscript([{ role: "assistant", content: msg }]);
+      }
+      if (!finalReport) {
+        setFinalReport({
+          profileSummary: currentLang === "ar" ? "تحليل تمهيدي لنقاط الالتقاء الاستراتيجية" : "Preliminary Strategic Convergence Analysis",
+          maturityLevel: "Strategic",
+          marketValue: currentLang === "ar" ? "قيد التقييم المعمق" : "Strategic Valuation Pending",
+          finalVerdict: currentLang === "ar" 
+            ? "يُظهر الملف الشخصي نضجاً تنفيذياً عالياً. التوصية الحالية هي الانتقال إلى المسار المتقدم للتحقق من الكفاءات القيادية في بيئات معقدة."
+            : "The profile exhibits high executive maturity. Transition to advanced verification pathways is recommended to validate leadership competencies in complex environments.",
+          recommendedRoles: ["Executive Management", "Strategic Director"],
+          deepInsights: currentLang === "ar"
+            ? ["توازن استراتيجي ملحوظ في الرؤية العامة.", "كفاءة عالية في اتخاذ القرار وتجاوز المراحل النمطية."]
+            : ["Notable strategic balance in global vision.", "High efficiency in decision-making and bypassing standard operational phases."],
+          swot: { 
+            strengths: currentLang === "ar" ? ["الرؤية الشمولية", "سرعة التنفيذ الاستراتيجي"] : ["Holistic Vision", "Strategic Execution Velocity"], 
+            weaknesses: [], 
+            opportunities: [], 
+            threats: [] 
+          },
+          gapAnalysis: { currentJobVsReality: "", criticalCompetencyGaps: [], comparisonPositionReality: "", hardSkillsMatch: 75, softSkillsMatch: 85 },
+          careerAdvancement: []
+        } as FinalReportResult);
+      }
+    }
+
+    if (step === "simulation") {
+      if (!finalReport) {
+        setFinalReport({
+          profileSummary: currentLang === "ar" ? "التقرير الاستراتيجي الموحد (مسار التنفيذ السريع)" : "Unified Strategic Report (Rapid Execution Path)",
+          maturityLevel: "Strategic",
+          marketValue: currentLang === "ar" ? "قيمة سوقية عالية" : "High Strategic Market Value",
+          finalVerdict: currentLang === "ar"
+            ? "بناءً على المعطيات المتوفرة، يمتلك المشارك مهارات قيادية متميزة تسمح له بتجاوز المحاكاة النمطية والانتقال مباشرة لصياغة الخطط التنفيذية."
+            : "Based on available data, the participant possesses distinguished leadership skills allowing them to bypass standard simulation and move directly to executive planning.",
+          recommendedRoles: ["Chief Executive", "Senior Operations Director"],
+          deepInsights: currentLang === "ar"
+            ? ["قدرة استثنائية على التحليل الكلي للمواقف المهنية.", "استعداد تام للقيادة في ظروف عدم اليقين."]
+            : ["Exceptional capacity for macro-analysis of professional situations.", "Full readiness for leadership under uncertainty."],
+          swot: { 
+            strengths: currentLang === "ar" ? ["القدرة على الحسم", "الذكاء الاستراتيجي"] : ["Decisive Capacity", "Strategic Intelligence"], 
+            weaknesses: [], 
+            opportunities: [], 
+            threats: [] 
+          },
+          gapAnalysis: { currentJobVsReality: "", criticalCompetencyGaps: [], comparisonPositionReality: "", hardSkillsMatch: 85, softSkillsMatch: 90 },
+          careerAdvancement: []
+        } as FinalReportResult);
+      }
+    }
+
+    if (currentIndex !== -1 && currentIndex < order.length - 1) {
+      setStep(order[currentIndex + 1]);
+    }
+  }, [step, auditResult, interviewTranscript, mcqResults, portfolioTranscript, finalReport, currentLang]);
 
   const prevStep = useCallback(() => {
     setStep((prev) => {
-      if (prev === "final-report") return "portfolio-interview";
-      if (prev === "portfolio-interview") return "mcq-assessment";
-      if (prev === "mcq-assessment") return "expert-interview";
-      if (prev === "expert-interview") return "initial-analysis";
-      if (prev === "initial-analysis") return "experience-input";
-      if (prev === "experience-input") return "audit-form";
-      if (prev === "audit-form") return "welcome";
-      if (prev === "welcome") return "language";
+      const order: Step[] = [
+        "language", "welcome", "audit-form", "experience-input", 
+        "initial-analysis", "expert-interview", "mcq-assessment", 
+        "portfolio-interview", "simulation", "final-report"
+      ];
+      const currentIndex = order.indexOf(prev);
+      if (currentIndex > 0) {
+        return order[currentIndex - 1];
+      }
       return prev;
     });
   }, []);
@@ -2515,10 +3560,36 @@ export default function ProfessionalDashboard() {
     (report: FinalReportResult, transcript: InterviewMessage[]) => {
       setPortfolioTranscript(transcript);
       setFinalReport(report);
-      setStep("final-report");
+      setStep("simulation");
     },
     [],
   );
+
+  const handleSimulationComplete = useCallback(async (simulationResult: SimulationResult) => {
+    setStep("final-report"); // We could add a 'finalizing' state here too
+    // Trigger the ultimate strategic analysis that combines everything
+    try {
+      const res = await fetch("/api/professional/finalize-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          auditResult,
+          formData,
+          interviewTranscript,
+          portfolioTranscript,
+          mcqResults,
+          simulationResult,
+          language: currentLang
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFinalReport(data.report);
+      }
+    } catch (err) {
+      console.error("Ultimate finalization failed:", err);
+    }
+  }, [auditResult, formData, interviewTranscript, portfolioTranscript, mcqResults, currentLang]);
 
   const handleLogout = async () => {
     try {
@@ -2566,6 +3637,7 @@ export default function ProfessionalDashboard() {
     "expert-interview",
     "mcq-assessment",
     "portfolio-interview",
+    "simulation",
     "final-report",
   ];
 
@@ -2612,6 +3684,11 @@ export default function ProfessionalDashboard() {
       desc: currentLang === "ar" ? "غوص عميق في القيادة" : currentLang === "fr" ? "Deep-dive leadership" : "Leadership deep-dive",
     },
     {
+      icon: <Sparkles size={18} />,
+      label: currentLang === "ar" ? "المحاكاة" : currentLang === "fr" ? "Simulation" : "Simulation",
+      desc: currentLang === "ar" ? "أحداث مهنية محاكية" : currentLang === "fr" ? "Scénarios professionnels" : "Professional scenarios",
+    },
+    {
       icon: <TrendingUp size={18} />,
       label: currentLang === "ar" ? "التقرير النهائي" : currentLang === "fr" ? "Rapport" : "Report",
       desc: currentLang === "ar" ? "الحكم الاستراتيجي الشامل" : currentLang === "fr" ? "Verdict stratégique" : "Final strategic verdict",
@@ -2627,7 +3704,8 @@ export default function ProfessionalDashboard() {
     "expert-interview": STAGE_META[5].label,
     "mcq-assessment": STAGE_META[6].label,
     "portfolio-interview": STAGE_META[7].label,
-    "final-report": STAGE_META[8].label,
+    "simulation": STAGE_META[8].label,
+    "final-report": STAGE_META[9].label,
   };
   const currentStepIndex = STEPS.indexOf(step);
   const progressPercent = Math.round(
@@ -2858,8 +3936,8 @@ export default function ProfessionalDashboard() {
             )}
           </AnimatePresence>
 
-          {/* ── Back / Forward dev nav (hidden on final + analysis) ── */}
-          {step !== "welcome" && step !== "initial-analysis" && step !== "language" && (
+          {/* ── Back / Forward nav (Enabled for all steps) ── */}
+          {step !== "language" && (
             <div className="flex justify-between items-center mb-6 px-1">
               <button
                 onClick={prevStep}
@@ -2868,11 +3946,18 @@ export default function ProfessionalDashboard() {
                 <ChevronLeft className={cn("w-5 h-5 transition-transform group-hover:-translate-x-0.5", dir === "rtl" && "rotate-180")} />
                 <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">{t.welcome.back || "Back"}</span>
               </button>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-[8px] font-black uppercase text-slate-300 tracking-tighter">Diagnostic Navigation</span>
+              </div>
+
               <button
                 onClick={nextStep}
                 className="group flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-all hover:shadow-md text-slate-500"
               >
-                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">{t.welcome.next || "Skip"}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">
+                  {step === "final-report" ? (currentLang === "ar" ? "إنهاء" : "Finish") : (t.welcome.next || "Next")}
+                </span>
                 <ChevronRight className={cn("w-5 h-5 transition-transform group-hover:translate-x-0.5", dir === "rtl" && "rotate-180")} />
               </button>
             </div>
@@ -2928,6 +4013,7 @@ export default function ProfessionalDashboard() {
                 language={currentLang}
                 onComplete={handleAnalysisComplete}
                 onNext={nextStep}
+                existingResult={auditResult}
               />
             )}
 
@@ -2966,12 +4052,46 @@ export default function ProfessionalDashboard() {
               />
             )}
 
-            {step === "final-report" && finalReport && (
-              <FinalReport key="report" report={finalReport} t={t.finalReport} />
+            {step === "simulation" && auditResult && (
+              <SimulationAssessment
+                key="simulation"
+                auditResult={auditResult}
+                formData={formData}
+                interviewTranscript={interviewTranscript}
+                portfolioTranscript={portfolioTranscript}
+                mcqResults={mcqResults}
+                language={currentLang}
+                onComplete={handleSimulationComplete}
+              />
+            )}
+
+            {step === "final-report" && (
+              <div className="space-y-8">
+                {finalReport ? (
+                  <FinalReport 
+                    key="report" 
+                    report={finalReport} 
+                    t={t.finalReport} 
+                    isPro={isPro}
+                    onProRequired={() => setShowProModal(true)}
+                    language={currentLang}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-20 bg-white dark:bg-slate-950 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs">Generating Unified Strategic Report...</p>
+                  </div>
+                )}
+              </div>
             )}
           </AnimatePresence>
         </main>
       </div>
+
+      <ProGateModal 
+        isOpen={showProModal} 
+        onClose={() => setShowProModal(false)} 
+        t={t.finalReport}
+      />
     </div>
   );
 }
@@ -3371,11 +4491,11 @@ function ExperienceInput({
                 setConfirmed(false);
               }}
             />
-            {formData.careerStory.length >= 10 && !confirmed && (
+            {formData.careerStory.length >= 10 && (
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() => setConfirmed(true)}
+                onClick={onNext}
                 className="mt-10 relative z-10 w-full py-8 bg-linear-to-r from-indigo-700 to-violet-800 text-white font-black rounded-3xl hover:translate-y-[-4px] transition-all shadow-[0_25px_50px_rgba(79,70,229,0.4)] uppercase tracking-[0.3em] text-xs active:scale-95 border border-white/20"
               >
                 {language === "ar" ? "تحليل المسار المهني" : "Analyze My Executive Path"}
@@ -3403,17 +4523,7 @@ function ExperienceInput({
         </div>
       </div>
 
-      {confirmed && (
-        <div className="flex justify-center pt-8">
-          <button
-            onClick={onNext}
-            className="group flex items-center gap-4 px-16 py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.3em] rounded-3xl animate-bounce shadow-2xl hover:scale-110 transition-all"
-          >
-            {t.cta}{" "}
-            <Sparkles size={24} className="animate-spin duration-3000" />
-          </button>
-        </div>
-      )}
+
     </motion.div>
   );
 }
@@ -3425,20 +4535,22 @@ function InitialAnalysis({
   language,
   onComplete,
   onNext,
+  existingResult,
 }: {
   formData: FormData;
   t: StepTranslations;
   language: string;
   onComplete: (result: AuditResult) => void;
   onNext: () => void;
+  existingResult?: AuditResult | null;
 }) {
-  const [analyzing, setAnalyzing] = useState(true);
-  const [auditData, setAuditData] = useState<AuditResult | null>(null);
+  const [analyzing, setAnalyzing] = useState(!existingResult);
+  const [auditData, setAuditData] = useState<AuditResult | null>(existingResult || null);
   const [error, setError] = useState("");
-  const auditStarted = useRef(false);
+  const auditStarted = useRef(!!existingResult);
 
   useEffect(() => {
-    if (auditStarted.current) return;
+    if (auditStarted.current || existingResult) return;
 
     // Guard: Only start if we have the minimum required data
     // This prevents 400 errors if the component mounts during state hydration
@@ -3510,7 +4622,7 @@ function InitialAnalysis({
     };
 
     performAudit();
-  }, [formData, language, onComplete]);
+  }, [formData, language, onComplete, existingResult]);
 
   const [loadingStep, setLoadingStep] = useState(0);
 

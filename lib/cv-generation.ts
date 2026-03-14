@@ -276,7 +276,7 @@ Based on ALL the information you have:
 3. Selected Role: "${selectedRole.title}"
 4. Additional information from conversation
 
-Create THREE professional documents:
+Create FOUR professional documents:
 
 **1. ATS-OPTIMIZED CV:**
 - Format for Applicant Tracking Systems
@@ -287,7 +287,7 @@ Create THREE professional documents:
 - Clear, scannable structure
 - Action verbs and impact statements
 
-**2. COVER LETTER:**
+**2. COVER LETTER (Motivation Letter):**
 - Compelling opening that grabs attention
 - Specific examples demonstrating fit for "${selectedRole.title}"
 - Show enthusiasm and cultural fit
@@ -295,7 +295,13 @@ Create THREE professional documents:
 - Professional closing with call to action
 - 250-350 words
 
-**3. PROFESSIONAL MARKETING TIPS:**
+**3. RECOMMENDATION LETTER DRAFT:**
+- A draft that the candidate can provide to a former manager/supervisor to sign
+- Professional, glowing endorsement of the candidate's skills and achievements
+- Specifically mentions projects and impact discovered during the interview
+- High-level executive tone
+
+**4. PROFESSIONAL MARKETING TIPS:**
 - How to present their profile to companies
 - Key selling points to emphasize
 - Red flags to avoid
@@ -350,6 +356,7 @@ Create THREE professional documents:
     "certifications": ["string"]
   },
   "coverLetter": "string (complete cover letter)",
+  "recommendationLetter": "string (professional recommendation draft for a manager to sign)",
   "professionalTips": "string (marketing and presentation tips)",
   "keywords": ["array of key terms used for ATS optimization"]
 }`

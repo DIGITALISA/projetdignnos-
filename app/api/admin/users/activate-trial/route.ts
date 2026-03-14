@@ -16,13 +16,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const duration = existingUser.trialDurationHours || 0.25; 
+        const duration = existingUser.activationType === "Pro" ? 1 : 3; 
 
 
         const user = await User.findByIdAndUpdate(userId, {
             status: "Active",
             role: "Trial User",
-            isTrial: true
+            isTrial: true,
+            trialDurationHours: duration
             // trialExpiry remains null until the user starts their CV upload
         }, { new: true });
 

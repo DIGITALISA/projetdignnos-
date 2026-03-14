@@ -8,7 +8,6 @@ import { Send, Loader2, FileText, Mail, ArrowRight, ArrowLeft, CheckCircle, Spar
 import { useRouter } from "next/navigation";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { sanitizeForHtml2Canvas } from "@/lib/pdf-utils";
 
 interface Message {
     role: 'ai' | 'user';
@@ -59,6 +58,7 @@ interface CVData {
 interface GeneratedDocuments {
     cv: CVData;
     coverLetter: string;
+    recommendationLetter?: string;
     professionalTips?: string;
     keywords?: string[];
 }
@@ -98,8 +98,16 @@ export default function CVGenerationPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const cvRef = useRef<HTMLDivElement>(null);
     const letterRef = useRef<HTMLDivElement>(null);
+    const recommendationRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    // ✅ Profile and Plan checks (Locked downloads for free trial)
+    const userProfileRaw = typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}';
+    const userProfile = (() => { try { return JSON.parse(userProfileRaw); } catch { return {}; } })();
+    const isLimitedStudent = userProfile.activationType === 'Limited';
+    const isPaidPlan = ['Professional', 'Pro', 'Executive', 'Premium'].includes(userProfile.plan) || (userProfile.plan === 'Student' && !isLimitedStudent);
+    const canDownload = isPaidPlan;
     
     // Retry mechanism states
     const [retryCount, setRetryCount] = useState(0);
@@ -141,15 +149,8 @@ export default function CVGenerationPage() {
             const userId = userProfile.email || userProfile.fullName;
 
             // ✅ Student Free Trial Gate
-            const isStudentFreeTrial = userProfile.plan === 'Student' && 
-                                      (userProfile.role === 'Free Tier' || userProfile.role === 'Trial User');
+            // Gate removed by user request
             
-            if (isStudentFreeTrial) {
-                console.log("Student Free Trial user attempted to access cv-generation — redirecting to discovery completion");
-                router.push('/assessment/role-discovery');
-                return;
-            }
-
             if (userId) {
                 try {
                     const res = await fetch(`/api/user/progress?userId=${encodeURIComponent(userId)}`);
@@ -920,51 +921,81 @@ export default function CVGenerationPage() {
 
                 {/* Generated Documents Preview */}
                 <div className="grid lg:grid-cols-2 gap-8">
-                    {/* CV Column */}
-                    <div className="space-y-4">
+                    {/* CV Column - Spans 2 rows on lg if possible or just full width */}
+                    <div className="lg:col-span-2 space-y-4">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                <FileText className="w-5 h-5 text-blue-600" />
+                            <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <FileText className="w-6 h-6 text-blue-600" />
+                                </div>
                                 {t.cvGeneration.cvTitle}
                             </h2>
-                            <button
-                                onClick={() => handleDownloadPDF(cvRef, `CV-${generatedDocuments.cv.personalDetails?.fullName?.replace(/\s+/g, '_') || 'Professional'}`)}
-                                disabled={!!isExporting}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-600/20 text-sm"
-                            >
-                                {isExporting && isExporting.startsWith('CV-') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                {t.cvGeneration.download} PDF
-                            </button>
+                            {canDownload ? (
+                                <button
+                                    onClick={() => handleDownloadPDF(cvRef, `CV-${generatedDocuments.cv.personalDetails?.fullName?.replace(/\s+/g, '_') || 'Professional'}`)}
+                                    disabled={!!isExporting}
+                                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-600/20 text-sm"
+                                >
+                                    {isExporting && isExporting.startsWith('CV-') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                    {t.cvGeneration.download} PDF
+                                </button>
+                            ) : (
+                                <div
+                                    title={language === 'ar' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                                    className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl font-bold text-sm cursor-not-allowed select-none transition-all opacity-80"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span>Download PDF</span>
+                                    <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                        {language === 'ar' ? 'برو' : 'PRO'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* CV Preview Scrollbox */}
-                        <div className="bg-slate-200 rounded-2xl p-4 md:p-8 overflow-y-auto max-h-[800px] shadow-inner border border-slate-300 custom-scrollbar">
-                            <div ref={cvRef} style={{ backgroundColor: '#fff' }}>
+                        <div className="bg-slate-200/50 rounded-4xl p-4 md:p-12 overflow-y-auto max-h-[900px] shadow-inner border border-slate-300/50 custom-scrollbar backdrop-blur-sm">
+                            <div ref={cvRef} className="shadow-2xl">
                                 <CVDocument data={generatedDocuments.cv} language={selectedLanguage} />
                             </div>
                         </div>
                     </div>
 
                     {/* Cover Letter Column */}
-                    <div className="space-y-4">
+                    <div className="lg:col-span-2 space-y-4">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                <Mail className="w-5 h-5 text-purple-600" />
+                            <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <Mail className="w-6 h-6 text-purple-600" />
+                                </div>
                                 {t.cvGeneration.letterTitle}
                             </h2>
-                            <button
-                                onClick={() => handleDownloadPDF(letterRef, 'Cover_Letter')}
-                                disabled={!!isExporting}
-                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all font-bold shadow-lg shadow-purple-600/20 text-sm"
-                            >
-                                {isExporting === 'Cover_Letter' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                {t.cvGeneration.download} PDF
-                            </button>
+                            {canDownload ? (
+                                <button
+                                    onClick={() => handleDownloadPDF(letterRef, 'Cover_Letter')}
+                                    disabled={!!isExporting}
+                                    className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all font-bold shadow-lg shadow-purple-600/20 text-sm"
+                                >
+                                    {isExporting === 'Cover_Letter' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                    {t.cvGeneration.download} PDF
+                                </button>
+                            ) : (
+                                <div
+                                    title={language === 'ar' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                                    className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl font-bold text-sm cursor-not-allowed select-none transition-all opacity-80"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span>Download PDF</span>
+                                    <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                        {language === 'ar' ? 'برو' : 'PRO'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Letter Preview Scrollbox */}
-                        <div className="bg-slate-200 rounded-2xl p-4 md:p-8 overflow-y-auto max-h-[800px] shadow-inner border border-slate-300 custom-scrollbar">
-                            <div ref={letterRef} style={{ backgroundColor: '#fff' }}>
+                        <div className="bg-slate-200/50 rounded-4xl p-4 md:p-12 overflow-y-auto max-h-[900px] shadow-inner border border-slate-300/30 custom-scrollbar backdrop-blur-sm">
+                            <div ref={letterRef} className="shadow-2xl">
                                 <LetterDocument
                                     content={generatedDocuments.coverLetter}
                                     fullName={generatedDocuments.cv.personalDetails?.fullName || ''}
@@ -974,6 +1005,54 @@ export default function CVGenerationPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Recommendation Letter Column */}
+                    {generatedDocuments.recommendationLetter && (
+                        <div className="lg:col-span-2 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                    <div className="p-2 bg-emerald-100 rounded-lg">
+                                        <Award className="w-6 h-6 text-emerald-600" />
+                                    </div>
+                                    {language === 'ar' ? 'خطاب التوصية' : language === 'fr' ? 'Lettre de recommandation' : 'Recommendation Letter'}
+                                </h2>
+                                {canDownload ? (
+                                    <button
+                                        onClick={() => handleDownloadPDF(recommendationRef, 'Recommendation_Letter')}
+                                        disabled={!!isExporting}
+                                        className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-bold shadow-lg shadow-emerald-600/20 text-sm"
+                                    >
+                                        {isExporting === 'Recommendation_Letter' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                        {t.cvGeneration.download} PDF
+                                    </button>
+                                ) : (
+                                    <div
+                                        title={language === 'ar' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                                        className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl font-bold text-sm cursor-not-allowed select-none transition-all opacity-80"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        <span>Download PDF</span>
+                                        <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                            {language === 'ar' ? 'برو' : 'PRO'}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Recommendation Preview Scrollbox */}
+                            <div className="bg-slate-200/50 rounded-4xl p-4 md:p-12 overflow-y-auto max-h-[900px] shadow-inner border border-slate-300/30 custom-scrollbar backdrop-blur-sm">
+                                <div ref={recommendationRef} className="shadow-2xl">
+                                    <LetterDocument
+                                        content={generatedDocuments.recommendationLetter}
+                                        fullName={generatedDocuments.cv.personalDetails?.fullName || ''}
+                                        jobTitle={generatedDocuments.cv.personalDetails?.jobTitle || ''}
+                                        language={selectedLanguage}
+                                        isRecommendation={true}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Professional Tips - REIMAGINED UI */}
@@ -1335,138 +1414,208 @@ function CVDocument({ data, language }: { data: CVData, language: string }) {
     const docT = t.cvDocument;
 
     return (
-        <div id="cv-printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-12 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
-            {/* Header */}
-            <header className="border-b-2 border-blue-600 pb-6 mb-8">
-                <h1 className="text-4xl font-extrabold text-slate-900 mb-2">{data.personalDetails?.fullName}</h1>
-                <p className="text-xl text-blue-600 font-bold mb-4">{data.personalDetails?.jobTitle}</p>
-
-                <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                    {data.personalDetails?.email && <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {data.personalDetails.email}</span>}
-                    {data.personalDetails?.phone && <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> {data.personalDetails.phone}</span>}
-                    {data.personalDetails?.location && <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {data.personalDetails.location}</span>}
-                    {data.personalDetails?.linkedin && <span className="flex items-center gap-1"><Linkedin className="w-4 h-4" /> {data.personalDetails.linkedin}</span>}
+        <div id="cv-printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] flex flex-col md:flex-row shadow-2xl mx-auto overflow-hidden relative ${isAR ? 'flex-row-reverse' : ''}`} dir={isAR ? 'rtl' : 'ltr'}>
+            {/* Sidebar (Personal & Skills) */}
+            <aside className={`w-[32%] bg-[#0f172a] text-white p-10 flex flex-col shrink-0`}>
+                {/* Profile Section */}
+                <div className="mb-12 text-center md:text-start">
+                    <h1 className="text-2xl font-black mb-2 leading-tight tracking-tight uppercase">
+                        {data.personalDetails?.fullName}
+                    </h1>
+                    <div className="h-1 w-12 bg-blue-500 mb-4 rounded-full"></div>
+                    <p className="text-blue-400 font-bold text-sm uppercase tracking-widest leading-snug">
+                        {data.personalDetails?.jobTitle}
+                    </p>
                 </div>
-            </header>
 
-            {/* Content Body */}
-            <div className="space-y-8">
-                {/* Summary */}
-                <section>
-                    <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{docT.summary}</h2>
-                    <p className="leading-relaxed text-slate-700">{data.professionalSummary}</p>
+                {/* Contact Section */}
+                <div className="space-y-6 mb-12">
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Contact</h3>
+                    <div className="space-y-4">
+                        {data.personalDetails?.email && (
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                    <Mail className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-[11px] truncate">{data.personalDetails.email}</span>
+                            </div>
+                        )}
+                        {data.personalDetails?.phone && (
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                    <Phone className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-[11px]">{data.personalDetails.phone}</span>
+                            </div>
+                        )}
+                        {data.personalDetails?.location && (
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                    <MapPin className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-[11px]">{data.personalDetails.location}</span>
+                            </div>
+                        )}
+                        {data.personalDetails?.linkedin && (
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                    <Linkedin className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-[11px] truncate">LinkedIn Profile</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Skills Section */}
+                <div className="space-y-8 flex-1">
+                    <div>
+                        <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">{docT.skills}</h3>
+                        <div className="space-y-5">
+                            {/* Technical */}
+                            <div>
+                                <p className="text-[10px] text-blue-400 font-black uppercase mb-2 tracking-widest">{docT.tech}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {data.skills?.technical?.map((s, i) => (
+                                        <span key={i} className="px-2 py-1 bg-white/10 text-white text-[9px] font-bold rounded border border-white/5">{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Tools */}
+                            <div>
+                                <p className="text-[10px] text-purple-400 font-black uppercase mb-2 tracking-widest">{docT.tools}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {data.skills?.tools?.map((s, i) => (
+                                        <span key={i} className="px-2 py-1 bg-white/10 text-white text-[9px] font-bold rounded border border-white/5">{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Soft Skills */}
+                            <div>
+                                <p className="text-[10px] text-emerald-400 font-black uppercase mb-2 tracking-widest">{docT.soft}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {data.skills?.soft?.map((s, i) => (
+                                        <span key={i} className="px-2 py-1 bg-white/10 text-white text-[9px] font-bold rounded border border-white/5">{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Languages */}
+                    {data.languages?.length > 0 && (
+                        <div>
+                            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-3">{docT.lang}</h3>
+                            <div className="flex flex-wrap gap-2 text-[10px] text-slate-400 font-bold">
+                                {data.languages.map((l, i) => (
+                                    <span key={l} className="flex items-center gap-1">
+                                        {i > 0 && <span>•</span>} {l}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                
+                {/* Branding */}
+                <div className="mt-8 pt-6 border-t border-white/10 opacity-30">
+                    <p className="text-[8px] font-black uppercase tracking-widest italic text-white/50">DIGNNOS- Professional Protocol</p>
+                </div>
+            </aside>
+
+            {/* Main Content (Summary, Experience, Education) */}
+            <main className="flex-1 bg-slate-50 p-12">
+                {/* Professional Summary */}
+                <section className="mb-12">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-10 h-1 bg-blue-600 rounded-full"></div>
+                        <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em]">{docT.summary}</h2>
+                    </div>
+                    <p className="text-lg text-slate-700 leading-relaxed font-medium italic relative pl-4 border-l-4 border-blue-200">
+                         {data.professionalSummary}
+                    </p>
                 </section>
 
-                <div className="grid grid-cols-3 gap-8">
-                    {/* Left Column (Main Content) */}
-                    <div className="col-span-2 space-y-8">
-                        {/* Experience */}
-                        <section>
-                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{docT.experience}</h2>
-                            <div className="space-y-6">
-                                {data.experience?.map((exp: Experience, i: number) => (
-                                    <div key={i} className="relative">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-bold text-slate-900">{exp.title}</h3>
-                                            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">{exp.period}</span>
-                                        </div>
-                                        <p className="text-sm font-semibold text-blue-600 mb-2">{exp.company} • {exp.location}</p>
-                                        <ul className="list-disc list-outside ml-4 space-y-1 text-sm text-slate-600">
-                                            {exp.highlights?.map((point: string, j: number) => (
-                                                <li key={j}>{point}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* Education */}
-                        <section>
-                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{docT.education}</h2>
-                            <div className="space-y-4">
-                                {data.education?.map((edu: Education, i: number) => (
-                                    <div key={i}>
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h4 className="font-bold text-slate-900">{edu.degree}</h4>
-                                            <span className="text-xs font-bold text-slate-500">{edu.period}</span>
-                                        </div>
-                                        <p className="text-sm text-slate-600">{edu.institution} • {edu.location}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+                {/* Experience */}
+                <section className="mb-12">
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-10 h-1 bg-blue-600 rounded-full"></div>
+                        <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em]">{docT.experience}</h2>
                     </div>
-
-                    {/* Right Column (Sidebar) */}
-                    <div className="space-y-8">
-                        {/* Skills */}
-                        <section>
-                            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-1">{docT.skills}</h2>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="text-xs font-bold text-blue-600 uppercase mb-2">{docT.tech}</h3>
-                                    <div className="flex flex-wrap gap-1">
-                                        {data.skills?.technical?.map((s: string, i: number) => (
-                                            <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100">{s}</span>
-                                        ))}
+                    <div className="space-y-10">
+                        {data.experience?.map((exp, i) => (
+                            <div key={i} className="relative group">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-xl font-extrabold text-slate-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
+                                            {exp.title}
+                                        </h3>
+                                        <p className="text-blue-600 font-bold text-sm tracking-wide">
+                                            {exp.company} <span className="text-slate-300 mx-2">|</span> {exp.location}
+                                        </p>
+                                    </div>
+                                    <div className="px-5 py-1.5 bg-white border-2 border-slate-200 rounded-full text-[10px] font-black text-slate-500 shadow-sm whitespace-nowrap">
+                                        {exp.period}
                                     </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-purple-600 uppercase mb-2">{docT.tools}</h3>
-                                    <div className="flex flex-wrap gap-1">
-                                        {data.skills?.tools?.map((s: string, i: number) => (
-                                            <span key={i} className="px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded border border-purple-100">{s}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-emerald-600 uppercase mb-2">{docT.soft}</h3>
-                                    <div className="flex flex-wrap gap-1">
-                                        {data.skills?.soft?.map((s: string, i: number) => (
-                                            <span key={i} className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100">{s}</span>
-                                        ))}
-                                    </div>
-                                </div>
+                                <ul className="space-y-3 relative">
+                                    {exp.highlights?.map((point, j) => (
+                                        <li key={j} className="flex gap-4 text-slate-600 text-[13px] leading-relaxed">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0 shadow-sm shadow-blue-400"></span>
+                                            <span className="font-medium">{point}</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        </section>
-
-                        {/* Languages */}
-                        {data.languages?.length > 0 && (
-                            <section>
-                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{docT.lang}</h2>
-                                <div className="flex flex-wrap gap-2 text-sm text-slate-600">
-                                    {data.languages.map((l: string, i: number) => (
-                                        <span key={i}>{l}</span>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Certifications */}
-                        {data.certifications?.length > 0 && (
-                            <section>
-                                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider mb-3 border-b border-slate-200 pb-1">{docT.certs}</h2>
-                                <div className="space-y-2">
-                                    {data.certifications.map((c: string, i: number) => (
-                                        <div key={i} className="flex gap-2 text-sm text-slate-600">
-                                            <Award className="w-4 h-4 text-yellow-600 shrink-0" />
-                                            <span>{c}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                        ))}
                     </div>
-                </div>
-            </div>
+                </section>
+
+                {/* Education */}
+                <section>
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-10 h-1 bg-blue-600 rounded-full"></div>
+                        <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em]">{docT.education}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {data.education?.map((edu, i) => (
+                            <div key={i} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="text-xs font-black text-blue-600 uppercase mb-3 tracking-widest">{edu.period}</div>
+                                <h4 className="text-lg font-black text-slate-900 mb-2 leading-tight">{edu.degree}</h4>
+                                <p className="text-slate-500 font-bold text-[11px] leading-snug">
+                                    {edu.institution}<br/>{edu.location}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Certifications (Bottom Grid) */}
+                {data.certifications?.length > 0 && (
+                    <section className="mt-12 pt-12 border-t border-slate-200">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-10 h-1 bg-blue-600 rounded-full"></div>
+                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em]">{docT.certs}</h2>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            {data.certifications.map((c, i) => (
+                                <div key={i} className="flex items-center gap-3 px-5 py-3 bg-white border border-slate-200 rounded-xl shadow-sm text-xs font-bold text-slate-700">
+                                    <Award className="w-4 h-4 text-amber-500" />
+                                    <span>{c}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+            </main>
         </div>
     );
 }
 
 // PROFESSIONAL COVER LETTER DOCUMENT COMPONENT
-function LetterDocument({ content, fullName, jobTitle, language }: { content: string, fullName: string, jobTitle: string, language: string }) {
+function LetterDocument({ content, fullName, jobTitle, language, isRecommendation = false }: { content: string, fullName: string, jobTitle: string, language: string, isRecommendation?: boolean }) {
     const isAR = language === 'ar';
     const date = new Date().toLocaleDateString(language === 'ar' ? 'ar-SA' : language === 'fr' ? 'fr-FR' : 'en-US', {
         year: 'numeric',
@@ -1475,22 +1624,75 @@ function LetterDocument({ content, fullName, jobTitle, language }: { content: st
     });
 
     return (
-        <div id="letter-printable-doc" className={`bg-white w-full max-w-[210mm] min-h-[297mm] p-20 text-slate-800 shadow-xl mx-auto rounded-xl ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
-            <div className="border-b-2 border-slate-100 pb-10 mb-10">
-                <h1 className="text-3xl font-bold text-slate-900 mb-1">{fullName}</h1>
-                <p className="text-slate-500 uppercase tracking-widest text-sm">{jobTitle}</p>
-            </div>
+        <div id={isRecommendation ? "recommendation-printable-doc" : "letter-printable-doc"} className={`bg-white w-full max-w-[210mm] min-h-[297mm] shadow-2xl mx-auto rounded-4xl flex flex-col p-16 md:p-24 relative overflow-hidden ${isAR ? 'text-right' : 'text-left'}`} dir={isAR ? 'rtl' : 'ltr'}>
+            
+            {/* Design Accents */}
+            <div className={`absolute top-0 right-0 w-64 h-2 ${isRecommendation ? 'bg-linear-to-l from-emerald-600 to-green-700' : 'bg-linear-to-l from-blue-600 to-indigo-700'}`}></div>
+            <div className="absolute top-0 left-0 w-2 h-64 bg-slate-900"></div>
 
-            <p className="text-slate-500 mb-8">{date}</p>
-
-            <div className="prose prose-slate max-w-none">
-                <div className="text-slate-700 leading-[1.8] whitespace-pre-wrap text-lg">
-                    {content}
+            {/* Header Mirroring CV Style */}
+            <div className={`flex flex-col md:flex-row justify-between items-start mb-20 ${isAR ? 'flex-row-reverse' : ''}`}>
+                <div className="space-y-4">
+                    <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-2">
+                        {fullName}
+                    </h1>
+                    <div className="flex items-center gap-4">
+                        <div className={`h-1.5 w-12 rounded-full ${isRecommendation ? 'bg-emerald-600' : 'bg-blue-600'}`}></div>
+                        <p className={`${isRecommendation ? 'text-emerald-600' : 'text-blue-600'} font-extrabold text-sm uppercase tracking-[0.3em]`}>
+                            {jobTitle}
+                        </p>
+                    </div>
+                </div>
+                
+                <div className={`mt-8 md:mt-0 text-slate-400 font-black text-[10px] uppercase tracking-widest ${isAR ? 'md:text-left' : 'md:text-right'}`}>
+                    {date}<br/>
+                    DIGNNOS- Strategic Protocol
                 </div>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-slate-100">
-                <p className="font-bold text-slate-900">{fullName}</p>
+            {/* Letter Body */}
+            <div className="flex-1">
+                <div className="prose prose-slate max-w-none">
+                    {/* Identification labels if recommendation */}
+                    {isRecommendation && (
+                        <div className="mb-10 p-6 bg-slate-100 rounded-2xl border border-slate-200">
+                             <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Subject:</p>
+                             <p className="text-sm font-bold text-slate-900 italic">Professional Recommendation for {fullName}</p>
+                        </div>
+                    )}
+                    
+                    <div className="text-slate-700 leading-loose whitespace-pre-wrap text-[16px] font-medium tracking-tight bg-slate-50/50 p-8 rounded-3xl border border-slate-100 italic ql-editor">
+                        {content}
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer / Signature Area */}
+            <div className="mt-20 pt-12 border-t border-slate-100">
+                {isRecommendation ? (
+                    <div className="space-y-6">
+                        <div className="w-32 h-px bg-slate-300"></div>
+                        <div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Company Seal / Supervisor Signature</p>
+                            <p className="text-slate-300 text-[10px] italic">This draft is prepared by DIGNNOS- AI Expert Assessment Protocol.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-slate-900 text-white flex items-center justify-center font-black text-2xl rounded-2xl shadow-lg">
+                            {fullName.charAt(0)}
+                        </div>
+                        <div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Sincerely,</p>
+                            <p className="text-2xl font-black text-slate-900 italic tracking-tight">{fullName}</p>
+                            <p className="text-xs font-bold text-blue-600 mt-1 uppercase">{jobTitle}</p>
+                        </div>
+                    </div>
+                )}
+
+                <div className="mt-12 text-center opacity-30">
+                     <p className="text-[8px] font-black uppercase tracking-widest italic text-slate-900">DIGNNOS- Advanced Career Protocol • {new Date().getFullYear()}</p>
+                </div>
             </div>
         </div>
     );

@@ -46,6 +46,7 @@ interface Module {
   id: ModuleId;
   label: string;
   labelAr: string;
+  labelFr: string;
   icon: React.ReactNode;
   locked: boolean;
   color: string;
@@ -53,12 +54,12 @@ interface Module {
 }
 
 const MODULES: Module[] = [
-  { id: "diagnostic", label: "Advanced Diagnostic", labelAr: "التشخيص المتقدم", icon: <Brain size={18} />, locked: false, color: "indigo", badge: "NEW" },
-  { id: "roadmap", label: "Strategic Roadmap", labelAr: "خارطة الطريق", icon: <Target size={18} />, locked: false, color: "emerald" },
-  { id: "coaching", label: "Executive Coaching", labelAr: "التدريب التنفيذي", icon: <MessageSquare size={18} />, locked: false, color: "violet" },
-  { id: "positioning", label: "Elite Strategic Academy", labelAr: "أكاديمية النخبة الاستراتيجية", icon: <Globe size={18} />, locked: false, color: "blue" },
-  { id: "network", label: "Self-Marketing Studio", labelAr: "ستوديو التسويق الذاتي", icon: <Rocket size={18} />, locked: false, color: "amber" },
-  { id: "verdict", label: "Final Strategic Verdict", labelAr: "التقرير النهائي الشامل", icon: <Award size={18} />, locked: false, color: "rose" },
+  { id: "diagnostic", label: "Advanced Diagnostic", labelAr: "التشخيص المتقدم", labelFr: "Diagnostic Avancé", icon: <Brain size={18} />, locked: false, color: "indigo", badge: "NEW" },
+  { id: "roadmap", label: "Strategic Roadmap", labelAr: "خارطة الطريق", labelFr: "Feuille de Route Stratégique", icon: <Target size={18} />, locked: false, color: "emerald" },
+  { id: "coaching", label: "Executive Coaching", labelAr: "التدريب التنفيذي", labelFr: "Coaching Exécutif", icon: <MessageSquare size={18} />, locked: false, color: "violet" },
+  { id: "positioning", label: "Elite Strategic Academy", labelAr: "أكاديمية النخبة الاستراتيجية", labelFr: "Académie Stratégique d'Élite", icon: <Globe size={18} />, locked: false, color: "blue" },
+  { id: "network", label: "Self-Marketing Studio", labelAr: "ستوديو التسويق الذاتي", labelFr: "Studio de Marketing Personnel", icon: <Rocket size={18} />, locked: false, color: "amber" },
+  { id: "verdict", label: "Final Strategic Verdict", labelAr: "التقرير النهائي الشامل", labelFr: "Verdict Stratégique Final", icon: <Award size={18} />, locked: false, color: "rose" },
 ];
 
 // ─── RADAR BAR ────────────────────────────────────────────────────────────────
@@ -137,11 +138,11 @@ function LockedModule({ module }: { module: Module }) {
           {currentLang === 'ar' ? "الوحدة مغلقة" : currentLang === 'fr' ? "Module Verrouillé" : "Module Locked"}
         </h3>
         <p className="text-slate-500 text-sm font-medium">
-          <strong>{currentLang === 'ar' ? module.labelAr : module.label}</strong> {currentLang === 'ar' ? "ستتوفر قريباً. أكمل التشخيص أولاً لفتح بقية المسار." : "is coming soon. Complete your diagnostic first to unlock the strategic roadmap."}
+          <strong>{currentLang === 'ar' ? module.labelAr : currentLang === 'fr' ? module.labelFr : module.label}</strong> {({ en: "is coming soon. Complete your diagnostic first to unlock the strategic roadmap.", ar: "ستتوفر قريباً. أكمل التشخيص أولاً لفتح بقية المسار.", fr: "sera bientot disponible. Completez d'abord votre diagnostic pour debloquer le reste." }[currentLang as "en" | "ar" | "fr"] || "is coming soon. Complete your diagnostic first to unlock the strategic roadmap.")}
         </p>
       </div>
       <div className="px-8 py-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
-        {currentLang === 'ar' ? "متاح في المرحلة الثانية ←" : "Available in Phase 2 →"}
+        {({ en: "Available in Phase 2 →", ar: "متاح في المرحلة الثانية ←", fr: "Disponible en Phase 2 →" }[currentLang as "en" | "ar" | "fr"] || "Available in Phase 2 →")}
       </div>
     </motion.div>
   );
@@ -227,10 +228,10 @@ function StrategicAcademy({ report, currentLang }: { report: FinalReport, curren
                 </div>
                 <div className="space-y-4 max-w-xl">
                     <h2 className="text-3xl font-black uppercase tracking-tight">
-                        {currentLang === 'ar' ? "أكاديمية القادة الاستراتيجية" : "Elite Strategic Academy"}
+                        {({ en: "Elite Strategic Academy", ar: "أكاديمية القادة الاستراتيجية", fr: "Académie Stratégique d'Élite" }[currentLang as "en" | "ar" | "fr"] || "Elite Strategic Academy")}
                     </h2>
                     <p className="text-slate-500 font-medium">
-                        {currentLang === 'ar' ? "سنقوم بناءً على تقريرك ببناء أكاديمية متكاملة تشمل تدريباً عملياً، استشارات، ونصائح مخصصة لك." : "Based on your X-Ray, we will build a complete academy including practical training, consultancies, and custom advice."}
+                        {({ en: "Based on your X-Ray, we will build a complete academy including practical training, consultancies, and custom advice.", ar: "سنقوم بناءً على تقريرك ببناء أكاديمية متكاملة تشمل تدريباً عملياً، استشارات، ونصائح مخصصة لك.", fr: "Sur la base de votre diagnostic, nous allons construire une académie complète incluant des formations pratiques, des conseils et des recommandations personnalisées." }[currentLang as "en" | "ar" | "fr"] || "Based on your X-Ray, we will build a complete academy including practical training, consultancies, and custom advice.")}
                     </p>
                 </div>
                 <button 
@@ -239,7 +240,7 @@ function StrategicAcademy({ report, currentLang }: { report: FinalReport, curren
                     className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:bg-black transition-all flex items-center gap-3 disabled:opacity-50"
                 >
                     {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Zap className="text-amber-400" size={20} />}
-                    {currentLang === 'ar' ? "توليد الأكاديمية المخصصة (مدعوم بـ AI)" : "Generate Personalized Academy (AI Power)"}
+                    {({ en: "Generate Personalized Academy (AI Power)", ar: "توليد الأكاديمية المخصصة (مدعوم بـ AI)", fr: "Générer l'Académie Personnalisée (IA)" }[currentLang as "en" | "ar" | "fr"] || "Generate Personalized Academy (AI Power)")}
                 </button>
             </div>
         );
@@ -251,9 +252,9 @@ function StrategicAcademy({ report, currentLang }: { report: FinalReport, curren
             <div className="flex justify-center">
                 <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl flex gap-1">
                     {[
-                        { id: 'academy', label: currentLang === 'ar' ? 'التدريب العملي' : 'Practical Academy' },
-                        { id: 'consultancy', label: currentLang === 'ar' ? 'خدمات استشارية' : 'Consultancy Hub' },
-                        { id: 'advice', label: currentLang === 'ar' ? 'نصائح الخبراء' : 'Expert Advice' }
+                        { id: 'academy', label: ({ en: 'Practical Academy', ar: 'التدريب العملي', fr: "Académie Pratique" }[currentLang as "en" | "ar" | "fr"] || 'Practical Academy') },
+                        { id: 'consultancy', label: ({ en: 'Consultancy Hub', ar: 'خدمات استشارية', fr: "Centre de Conseil" }[currentLang as "en" | "ar" | "fr"] || 'Consultancy Hub') },
+                        { id: 'advice', label: ({ en: 'Expert Advice', ar: 'نصائح الخبراء', fr: "Conseils d'Experts" }[currentLang as "en" | "ar" | "fr"] || 'Expert Advice') }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -420,7 +421,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
     };
 
     const runAnalysis = async () => {
-        if (!ambition.trim()) return alert(currentLang === 'ar' ? "يرجى كتابة طموحك المهني" : "Please state your career ambition");
+        if (!ambition.trim()) return alert(({ en: "Please state your career ambition", ar: "يرجى كتابة طموحك المهني", fr: "Veuillez indiquer vos ambitions de carrière" }[currentLang as "en" | "ar" | "fr"] || "Please state your career ambition"));
         setIsAnalyzing(true);
         try {
             const res = await fetch("/api/strategic-roadmap/generate", {
@@ -451,7 +452,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                         onClick={() => setRoadmapResult(null)}
                         className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 flex items-center gap-2"
                     >
-                        <ArrowRight className="rotate-180" size={10} /> {currentLang === 'ar' ? "تعديل المداخلات" : "Edit Inputs"}
+                        <ArrowRight className="rotate-180" size={10} /> {({ en: "Edit Inputs", ar: "تعديل المداخلات", fr: "Modifier les entrées" }[currentLang as "en" | "ar" | "fr"] || "Edit Inputs")}
                     </button>
                     <div className="flex items-center gap-3">
                         <div className="h-px w-32 bg-slate-100" />
@@ -466,12 +467,12 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                             <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500">
                                 <AlertCircle size={20} />
                             </div>
-                            <h3 className="font-black text-sm uppercase tracking-widest">{currentLang === 'ar' ? "المرآة الحقيقية: الواقع الحالي" : "Honest Mirror: Current Reality"}</h3>
+                            <h3 className="font-black text-sm uppercase tracking-widest">{({ en: "Honest Mirror: Current Reality", ar: "المرآة الحقيقية: الواقع الحالي", fr: "Miroir Honnête : Réalité Actuelle" }[currentLang as "en" | "ar" | "fr"] || "Honest Mirror: Current Reality")}</h3>
                         </div>
                         <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-3">
-                                    <div className="text-[8px] font-black uppercase tracking-widest text-emerald-500">{currentLang === 'ar' ? "نقاط القوة الفعلية" : "Actual Strengths"}</div>
+                                    <div className="text-[8px] font-black uppercase tracking-widest text-emerald-500">{({ en: "Actual Strengths", ar: "نقاط القوة الفعلية", fr: "Forces Réelles" }[currentLang as "en" | "ar" | "fr"] || "Actual Strengths")}</div>
                                     <div className="space-y-2">
                                         {roadmapResult.currentRoleAnalysis.strengths.map((s, i) => (
                                             <div key={i} className="text-[10px] font-bold text-slate-600">• {s}</div>
@@ -479,7 +480,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="text-[8px] font-black uppercase tracking-widest text-rose-500">{currentLang === 'ar' ? "نقاط الضعف الجوهرية" : "Core Weaknesses"}</div>
+                                    <div className="text-[8px] font-black uppercase tracking-widest text-rose-500">{({ en: "Core Weaknesses", ar: "نقاط الضعف الجوهرية", fr: "Faiblesses Fondamentales" }[currentLang as "en" | "ar" | "fr"] || "Core Weaknesses")}</div>
                                     <div className="space-y-2">
                                         {roadmapResult.currentRoleAnalysis.weaknesses.map((w, i) => (
                                             <div key={i} className="text-[10px] font-bold text-slate-600">• {w}</div>
@@ -488,7 +489,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                                 </div>
                             </div>
                             <div className="pt-6 border-t border-slate-50 space-y-4">
-                                <div className="text-[8px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "المهارات المفقودة للتمكن" : "Missing Mastery Skills"}</div>
+                                <div className="text-[8px] font-black uppercase tracking-widest text-slate-400">{({ en: "Missing Mastery Skills", ar: "المهارات المفقودة للتمكن", fr: "Compétences Manquantes" }[currentLang as "en" | "ar" | "fr"] || "Missing Mastery Skills")}</div>
                                 <div className="flex flex-wrap gap-2">
                                     {roadmapResult.currentRoleAnalysis.missingHardSkills.map((s, i) => (
                                         <span key={i} className="px-3 py-1 bg-slate-50 dark:bg-slate-900 rounded-lg text-[9px] font-black text-slate-500 border border-slate-200 uppercase">{s}</span>
@@ -504,7 +505,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                     <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white space-y-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 opacity-5 -mr-10 -mt-10"><Target size={200} /></div>
                         <div className="relative z-10 space-y-4">
-                            <div className="text-emerald-400 font-black text-[9px] uppercase tracking-[0.4em]">{currentLang === 'ar' ? "تحليل طموحك" : "Ambition Viability"}</div>
+                            <div className="text-emerald-400 font-black text-[9px] uppercase tracking-[0.4em]">{({ en: "Ambition Viability", ar: "تحليل طموحك", fr: "Viabilité de l'Ambition" }[currentLang as "en" | "ar" | "fr"] || "Ambition Viability")}</div>
                             <p className="text-lg font-bold leading-relaxed text-indigo-100 italic">&ldquo;{roadmapResult.ambitionPathway.viability}&rdquo;</p>
                         </div>
                         <div className="relative z-10 space-y-4 pt-4 border-t border-white/10">
@@ -528,14 +529,14 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                             <Compass size={24} />
                         </div>
                         <div>
-                            <h3 className="font-black text-xl uppercase tracking-tighter">{currentLang === 'ar' ? "خارطة طريق المسيرة المهنية" : "Ultimate Career Roadmap"}</h3>
+                            <h3 className="font-black text-xl uppercase tracking-tighter">{({ en: "Ultimate Career Roadmap", ar: "خارطة طريق المسيرة المهنية", fr: "Feuille de Route Ultime" }[currentLang as "en" | "ar" | "fr"] || "Ultimate Career Roadmap")}</h3>
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{roadmapResult.ultimateRoadmap.strategicFocus}</p>
                         </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-12">
                         <div className="space-y-6">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-indigo-600">{currentLang === 'ar' ? "إجراءات الـ 30 يوماً القادمة" : "Next 30 Days Actions"}</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-indigo-600">{({ en: "Next 30 Days Actions", ar: "إجراءات الـ 30 يوماً القادمة", fr: "Actions des 30 Prochains Jours" }[currentLang as "en" | "ar" | "fr"] || "Next 30 Days Actions")}</div>
                             <div className="space-y-3">
                                 {roadmapResult.ultimateRoadmap.immediateActions.map((act, i) => (
                                     <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 flex items-center gap-4 group hover:border-indigo-500 transition-colors">
@@ -546,7 +547,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                             </div>
                         </div>
                         <div className="space-y-6">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{currentLang === 'ar' ? "محطات النجاح (Milestones)" : "Success Milestones"}</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{({ en: "Success Milestones", ar: "محطات النجاح (Milestones)", fr: "Jalons de Réussite" }[currentLang as "en" | "ar" | "fr"] || "Success Milestones")}</div>
                             <div className="space-y-3">
                                 {roadmapResult.ultimateRoadmap.milestones.map((m, i) => (
                                     <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-dashed border-slate-200">
@@ -566,10 +567,10 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12 pb-20 max-w-4xl mx-auto">
             <div className="text-center space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
-                    <Sparkles size={12} /> {currentLang === 'ar' ? "التخطيط الاستراتيجي للمسار" : "Strategic Career Pathing"}
+                    <Sparkles size={12} /> {({ en: "Strategic Career Pathing", ar: "التخطيط الاستراتيجي للمسار", fr: "Planification Stratégique de Carrière" }[currentLang as "en" | "ar" | "fr"] || "Strategic Career Pathing")}
                 </div>
-                <h2 className="text-4xl font-black uppercase tracking-tighter">{currentLang === 'ar' ? "ابنِ خارطة طريقك المهنية" : "Build Your Career Roadmap"}</h2>
-                <p className="text-slate-500 text-sm font-medium">{currentLang === 'ar' ? "أدخل تاريخك المهني وطموحاتك وسنقوم بتحليل الواقع بدقة." : "Input your career history and ambitions, and we'll analyze the reality with precision."}</p>
+                <h2 className="text-4xl font-black uppercase tracking-tighter">{({ en: "Build Your Career Roadmap", ar: "ابنِ خارطة طريقك المهنية", fr: "Construisez Votre Feuille de Route" }[currentLang as "en" | "ar" | "fr"] || "Build Your Career Roadmap")}</h2>
+                <p className="text-slate-500 text-sm font-medium">{({ en: "Input your career history and ambitions, and we'll analyze the reality with precision.", ar: "أدخل تاريخك المهني وطموحاتك وسنقوم بتحليل الواقع بدقة.", fr: "Saisissez votre historique et vos ambitions, et nous analyserons la réalité avec précision." }[currentLang as "en" | "ar" | "fr"] || "Input your career history and ambitions, and we'll analyze the reality with precision.")}</p>
             </div>
 
             <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-100 shadow-xl p-10 space-y-10">
@@ -577,10 +578,10 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600"><Briefcase size={20} /></div>
-                            <h3 className="font-black text-sm uppercase tracking-widest">{currentLang === 'ar' ? "المسيرة المهنية" : "Work History"}</h3>
+                            <h3 className="font-black text-sm uppercase tracking-widest">{({ en: "Work History", ar: "المسيرة المهنية", fr: "Historique Professionnel" }[currentLang as "en" | "ar" | "fr"] || "Work History")}</h3>
                         </div>
                         <button onClick={addHistory} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors">
-                            <Plus size={14} /> {currentLang === 'ar' ? "إضافة منصب" : "Add Position"}
+                            <Plus size={14} /> {({ en: "Add Position", ar: "إضافة منصب", fr: "Ajouter un Poste" }[currentLang as "en" | "ar" | "fr"] || "Add Position")}
                         </button>
                     </div>
 
@@ -591,16 +592,16 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                                     <Trash2 size={14} />
                                 </button>
                                 <div className="md:col-span-5 space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "المنصب" : "Position Title"}</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{({ en: "Position Title", ar: "المنصب", fr: "Titre du Poste" }[currentLang as "en" | "ar" | "fr"] || "Position Title")}</label>
                                     <input 
                                         value={h.title} 
                                         onChange={(e) => updateHistory(h.id, 'title', e.target.value)}
-                                        placeholder={currentLang === 'ar' ? "مثال: مدير تسويق" : "e.g. Marketing Director"}
+                                        placeholder={({ en: "e.g. Marketing Director", ar: "مثال: مدير تسويق", fr: "ex: Directeur Marketing" }[currentLang as "en" | "ar" | "fr"] || "e.g. Marketing Director")}
                                         className="w-full bg-white rounded-xl px-4 py-2 text-sm font-bold border border-slate-100 focus:border-indigo-500 outline-none" 
                                     />
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "مدة العمل" : "Duration"}</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{({ en: "Duration", ar: "مدة العمل", fr: "Durée" }[currentLang as "en" | "ar" | "fr"] || "Duration")}</label>
                                     <input 
                                         value={h.duration} 
                                         onChange={(e) => updateHistory(h.id, 'duration', e.target.value)}
@@ -609,7 +610,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                                     />
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "من" : "From"}</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{({ en: "From", ar: "من", fr: "De" }[currentLang as "en" | "ar" | "fr"] || "From")}</label>
                                     <input 
                                         value={h.from} 
                                         onChange={(e) => updateHistory(h.id, 'from', e.target.value)}
@@ -618,7 +619,7 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                                     />
                                 </div>
                                 <div className="md:col-span-3 space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "إلى" : "To"}</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">{({ en: "To", ar: "إلى", fr: "À" }[currentLang as "en" | "ar" | "fr"] || "To")}</label>
                                     <input 
                                         value={h.to} 
                                         onChange={(e) => updateHistory(h.id, 'to', e.target.value)}
@@ -634,12 +635,12 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600"><Target size={20} /></div>
-                        <h3 className="font-black text-sm uppercase tracking-widest">{currentLang === 'ar' ? "الطموح المهني" : "Career Ambition"}</h3>
+                        <h3 className="font-black text-sm uppercase tracking-widest">{({ en: "Career Ambition", ar: "الطموح المهني", fr: "Ambition de Carrière" }[currentLang as "en" | "ar" | "fr"] || "Career Ambition")}</h3>
                     </div>
                     <textarea 
                         value={ambition}
                         onChange={(e) => setAmbition(e.target.value)}
-                        placeholder={currentLang === 'ar' ? "صف ما تحلم بالوصول إليه (مثال: خبير مدرب دولي، مدير استراتيجي...)" : "Describe what you want to achieve..."}
+                        placeholder={({ en: "Describe what you want to achieve...", ar: "صف ما تحلم بالوصول إليه (مثال: خبير مدرب دولي، مدير استراتيجي...)", fr: "Décrivez ce que vous souhaitez accomplir..." }[currentLang as "en" | "ar" | "fr"] || "Describe what you want to achieve...")}
                         className="w-full h-32 bg-slate-50 rounded-4xl p-6 text-sm font-bold border border-slate-100 focus:border-indigo-500 outline-none resize-none"
                     />
                 </div>
@@ -652,12 +653,12 @@ function StrategicRoadmap({ report, currentLang }: { report: FinalReport, curren
                     {isAnalyzing ? (
                         <>
                             <Loader2 size={24} className="animate-spin" />
-                            {currentLang === 'ar' ? "جاري التحليل الاستراتيجي..." : "Strategic Analysis in Progress..."}
+                            {({ en: "Strategic Analysis in Progress...", ar: "جاري التحليل الاستراتيجي...", fr: "Analyse Stratégique en Cours..." }[currentLang as "en" | "ar" | "fr"] || "Strategic Analysis in Progress...")}
                         </>
                     ) : (
                         <>
                             <Shield className="text-indigo-400" size={24} />
-                            {currentLang === 'ar' ? "بدء التحليل الاستراتيجي الشامل" : "Start Comprehensive AI Analysis"}
+                            {({ en: "Start Comprehensive AI Analysis", ar: "بدء التحليل الاستراتيجي الشامل", fr: "Démarrer l'Analyse Complète (IA)" }[currentLang as "en" | "ar" | "fr"] || "Start Comprehensive AI Analysis")}
                         </>
                     )}
                 </button>
@@ -677,7 +678,7 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
 
     const startAudit = async () => {
         if (!formData.sector || !formData.tasks || !formData.goals) {
-            return alert(currentLang === 'ar' ? "يرجى إكمال جميع الحقول" : "Please fill all fields");
+            return alert(({ en: "Please fill all fields", ar: "يرجى إكمال جميع الحقول", fr: "Veuillez remplir tous les champs" }[currentLang as "en" | "ar" | "fr"] || "Please fill all fields"));
         }
         setIsBusy(true);
         try {
@@ -738,10 +739,10 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                         <Zap size={12} /> Real-Role Performance Lab
                     </div>
                     <h2 className="text-4xl font-black uppercase tracking-tighter">
-                        {currentLang === 'ar' ? "التدريب التنفيذي الاستراتيجي" : "Executive Strategic Coaching"}
+                        {({ en: "Executive Strategic Coaching", ar: "التدريب التنفيذي الاستراتيجي", fr: "Coaching Stratégique Exécutif" }[currentLang as "en" | "ar" | "fr"] || "Executive Strategic Coaching")}
                     </h2>
                     <p className="text-slate-500 font-medium text-sm">
-                        {currentLang === 'ar' ? "سنقوم باختبار قدراتك في منصبك الحالي وقياس مدى توافق استراتيجيتك مع الأهداف." : "We will test your performance in your current role and measure your strategic alignment."}
+                        {({ en: "We will test your performance in your current role and measure your strategic alignment.", ar: "سنقوم باختبار قدراتك في منصبك الحالي وقياس مدى توافق استراتيجيتك مع الأهداف.", fr: "Nous allons tester vos performances dans votre rôle actuel et mesurer votre alignement stratégique." }[currentLang as "en" | "ar" | "fr"] || "We will test your performance in your current role and measure your strategic alignment.")}
                     </p>
                 </div>
 
@@ -751,29 +752,29 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                     <div className="grid md:grid-cols-2 gap-8 relative z-10">
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "قطاع الشركة" : "Company Sector"}</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Company Sector", ar: "قطاع الشركة", fr: "Secteur de l'Entreprise" }[currentLang as "en" | "ar" | "fr"] || "Company Sector")}</label>
                                 <input 
                                     className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border border-slate-100 focus:border-violet-500 outline-none"
-                                    placeholder={currentLang === 'ar' ? "مثال: التكنولوجيا، الصناعة..." : "e.g. Fintech, Manufacturing..."}
+                                    placeholder={({ en: "e.g. Fintech, Manufacturing...", ar: "مثال: التكنولوجيا، الصناعة...", fr: "ex: FinTech, Industrie..." }[currentLang as "en" | "ar" | "fr"] || "e.g. Fintech, Manufacturing...")}
                                     value={formData.sector}
                                     onChange={e => setFormData({ ...formData, sector: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "الأهداف الاستراتيجية" : "Strategic Goals"}</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Strategic Goals", ar: "الأهداف الاستراتيجية", fr: "Objectifs Stratégiques" }[currentLang as "en" | "ar" | "fr"] || "Strategic Goals")}</label>
                                 <textarea 
                                     className="w-full h-32 bg-slate-50 rounded-2xl p-4 text-sm font-bold border border-slate-100 focus:border-violet-500 outline-none resize-none"
-                                    placeholder={currentLang === 'ar' ? "ما هي الأهداف التي تعمل على تحقيقها حالياً؟" : "What are your current key objectives?"}
+                                    placeholder={({ en: "What are your current key objectives?", ar: "ما هي الأهداف التي تعمل على تحقيقها حالياً؟", fr: "Quels sont vos objectifs clés actuels ?" }[currentLang as "en" | "ar" | "fr"] || "What are your current key objectives?")}
                                     value={formData.goals}
                                     onChange={e => setFormData({ ...formData, goals: e.target.value })}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "المهام اليومية الأساسية" : "Core Daily Tasks"}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Core Daily Tasks", ar: "المهام اليومية الأساسية", fr: "Tâches Quotidiennes Principales" }[currentLang as "en" | "ar" | "fr"] || "Core Daily Tasks")}</label>
                             <textarea 
                                 className="w-full h-58 bg-slate-50 rounded-2xl p-4 text-sm font-bold border border-slate-100 focus:border-violet-500 outline-none resize-none"
-                                placeholder={currentLang === 'ar' ? "اذكر المهام التي تقوم بها فعلياً في منصبك..." : "List your actual daily responsibilities..."}
+                                placeholder={({ en: "List your actual daily responsibilities...", ar: "اذكر المهام التي تقوم بها فعلياً في منصبك...", fr: "Listez vos responsabilités quotidiennes réelles..." }[currentLang as "en" | "ar" | "fr"] || "List your actual daily responsibilities...")}
                                 value={formData.tasks}
                                 onChange={e => setFormData({ ...formData, tasks: e.target.value })}
                             />
@@ -786,7 +787,7 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                         className="w-full py-6 rounded-3xl bg-violet-600 text-white font-black uppercase tracking-[0.3em] text-sm shadow-xl hover:bg-violet-700 transition-all flex items-center justify-center gap-4 hover:scale-[1.01]"
                     >
                         {isBusy ? <Loader2 className="animate-spin" size={24} /> : <Compass size={24} />}
-                        {currentLang === 'ar' ? "بدء التدقيق في المنصب" : "Start Role Audit"}
+                        {({ en: "Start Role Audit", ar: "بدء التدقيق في المنصب", fr: "Démarrer l'Audit du Rôle" }[currentLang as "en" | "ar" | "fr"] || "Start Role Audit")}
                     </button>
                 </div>
             </motion.div>
@@ -799,7 +800,7 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                 <div className="bg-slate-900 rounded-[3rem] p-12 text-white space-y-8 shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 opacity-10 -mr-16 -mt-16"><Brain size={300} /></div>
                     <div className="relative z-10 space-y-6">
-                        <div className="text-violet-400 font-black text-[9px] uppercase tracking-[0.5em]">{currentLang === 'ar' ? "تحليل الكفاءة في المنصب" : "Role Competency Audit"}</div>
+                        <div className="text-violet-400 font-black text-[9px] uppercase tracking-[0.5em]">{({ en: "Role Competency Audit", ar: "تحليل الكفاءة في المنصب", fr: "Audit des Compétences du Rôle" }[currentLang as "en" | "ar" | "fr"] || "Role Competency Audit")}</div>
                         <div className="text-xl font-bold leading-relaxed text-indigo-50 italic">
                             &ldquo;{auditFeedback}&rdquo;
                         </div>
@@ -810,10 +811,10 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                                 className="flex-1 py-5 rounded-2xl bg-white text-slate-900 font-black uppercase text-xs tracking-widest hover:bg-violet-50 transition-colors flex items-center justify-center gap-3"
                             >
                                 {isBusy ? <Loader2 className="animate-spin" size={16} /> : <Zap size={16} className="text-violet-600" />}
-                                {currentLang === 'ar' ? "الانتقال للمحاكاة الواقعية" : "Enter Life Simulation"}
+                                {({ en: "Enter Life Simulation", ar: "الانتقال للمحاكاة الواقعية", fr: "Entrer dans la Simulation Réelle" }[currentLang as "en" | "ar" | "fr"] || "Enter Life Simulation")}
                             </button>
                             <button onClick={() => setMode('setup')} className="px-8 py-5 rounded-2xl border border-white/20 text-white font-black uppercase text-xs tracking-widest hover:bg-white/10">
-                                {currentLang === 'ar' ? "تعديل البيانات" : "Adjust Data"}
+                                {({ en: "Adjust Data", ar: "تعديل البيانات", fr: "Ajuster les Données" }[currentLang as "en" | "ar" | "fr"] || "Adjust Data")}
                             </button>
                         </div>
                     </div>
@@ -878,7 +879,7 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                         }}>
                             <input 
                                 name="message"
-                                placeholder={currentLang === 'ar' ? "صف المهام التي ستقوم بها أو أجب على السؤال..." : "List your actions or answer the question..."}
+                                placeholder={({ en: "List your actions or answer the question...", ar: "صف المهام التي ستقوم بها أو أجب على السؤال...", fr: "Listez vos actions ou répondez à la question..." }[currentLang as "en" | "ar" | "fr"] || "List your actions or answer the question...")}
                                 className="flex-1 bg-white border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:border-violet-500 shadow-sm"
                                 disabled={isBusy}
                             />
@@ -900,8 +901,8 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
         return (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-12 pb-20">
                 <div className="text-center space-y-4">
-                    <h3 className="text-3xl font-black uppercase tracking-tight">{currentLang === 'ar' ? "النتيجة والتقييم الاستراتيجي" : "Strategic Performance Verdict"}</h3>
-                    <p className="text-slate-500 font-medium">{currentLang === 'ar' ? "تصحيح مطلق وشامل للأداء المهني والاستراتيجية المتبعة." : "Brutal and absolute correction of professional performance and strategy."}</p>
+                    <h3 className="text-3xl font-black uppercase tracking-tight">{({ en: "Strategic Performance Verdict", ar: "النتيجة والتقييم الاستراتيجي", fr: "Verdict de Performance Stratégique" }[currentLang as "en" | "ar" | "fr"] || "Strategic Performance Verdict")}</h3>
+                    <p className="text-slate-500 font-medium">{({ en: "Brutal and absolute correction of professional performance and strategy.", ar: "تصحيح مطلق وشامل للأداء المهني والاستراتيجية المتبعة.", fr: "Correction absolue et rigoureuse de la performance professionnelle et de la stratégie." }[currentLang as "en" | "ar" | "fr"] || "Brutal and absolute correction of professional performance and strategy.")}</p>
                 </div>
 
                 <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-100 shadow-2xl p-12 space-y-10">
@@ -947,7 +948,7 @@ function ExecutiveCoaching({ report, currentLang }: { report: FinalReport, curre
                         onClick={() => { setMode('setup'); setEvaluation(null); setChat([]); }}
                         className="w-full py-5 rounded-3xl border-2 border-slate-900 font-black uppercase text-xs tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center gap-3"
                     >
-                        <RefreshCw size={18} /> {currentLang === 'ar' ? "إعادة الاختبار من البداية" : "Reset & Test Again"}
+                        <RefreshCw size={18} /> {({ en: "Reset & Test Again", ar: "إعادة الاختبار من البداية", fr: "Réinitialiser & Retester" }[currentLang as "en" | "ar" | "fr"] || "Reset & Test Again")}
                     </button>
                 </div>
             </motion.div>
@@ -969,7 +970,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
     const startDiscovery = () => setPhase('discovery');
 
     const startNegotiation = async () => {
-        if (!preferences.job || !preferences.salary) return alert(currentLang === 'ar' ? "يرجى ملء البيانات لتحديد البوصلة" : "Please fill in details to set the compass");
+        if (!preferences.job || !preferences.salary) return alert(({ en: "Please fill in details to set the compass", ar: "يرجى ملء البيانات لتحديد البوصلة", fr: "Veuillez remplir les détails pour fixer le cap" }[currentLang as "en" | "ar" | "fr"] || "Please fill in details to set the compass"));
         setIsLoading(true);
         try {
             const userProfile = localStorage.getItem("userProfile");
@@ -977,6 +978,8 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
 
             const firstMsg = currentLang === 'ar' 
                 ? `بناءً على ملفي، أريد منصب ${preferences.job} براتب ${preferences.salary}. دوافعي هي: ${preferences.motivation}. جادلني بواقعية وبدون تمجيد.` 
+                : currentLang === 'fr'
+                ? `Basé sur mon profil, je souhaite un poste de ${preferences.job} avec un salaire de ${preferences.salary}. Mes motivations : ${preferences.motivation}. Challenge-moi de manière réaliste.`
                 : `Based on my profile, I want a ${preferences.job} role with ${preferences.salary} salary. My motives: ${preferences.motivation}. Challenge me realistically.`;
             
             const res = await fetch("/api/self-marketing/negotiate", {
@@ -1034,10 +1037,10 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                 </div>
                 <div className="space-y-4 max-w-2xl">
                     <h2 className="text-5xl font-black uppercase tracking-tighter leading-none">
-                        {currentLang === 'ar' ? "ستوديو التسويق الذاتي" : "Self-Marketing Studio"}
+                        {({ en: "Self-Marketing Studio", ar: "ستوديو التسويق الذاتي", fr: "Studio de Marketing Personnel" }[currentLang as "en" | "ar" | "fr"] || "Self-Marketing Studio")}
                     </h2>
                     <p className="text-slate-500 font-medium italic">
-                        {currentLang === 'ar' ? "ليس مجرد CV، بل استراتيجية كاملة لاقتناص الفرص الكبرى. سنقوم بمفاوضة طموحاتك وبناء أسلحتك التسويقية." : "Not just a CV, but a full strategy to capture major opportunities. We'll negotiate your ambitions and build your marketing arsenal."}
+                        {({ en: "Not just a CV, but a full strategy to capture major opportunities. We'll negotiate your ambitions and build your marketing arsenal.", ar: "ليس مجرد CV، بل استراتيجية كاملة لاقتناص الفرص الكبرى. سنقوم بمفاوضة طموحاتك وبناء أسلحتك التسويقية.", fr: "Pas seulement un CV, mais une stratégie complète pour saisir les grandes opportunités. Nous négocierons vos ambitions et construirons votre arsenal marketing." }[currentLang as "en" | "ar" | "fr"] || "Not just a CV, but a full strategy to capture major opportunities. We'll negotiate your ambitions and build your marketing arsenal.")}
                     </p>
                 </div>
                 <button 
@@ -1045,7 +1048,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                     className="px-12 py-6 bg-slate-900 text-white rounded-4xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-4 hover:bg-black transition-all shadow-2xl hover:scale-105"
                 >
                     <Target size={20} className="text-amber-400" />
-                    {currentLang === 'ar' ? "ابدأ هندسة مستقبلك" : "Start Engineering Your Future"}
+                    {({ en: "Start Engineering Your Future", ar: "ابدأ هندسة مستقبلك", fr: "Commencez l'Ingénierie de Votre Avenir" }[currentLang as "en" | "ar" | "fr"] || "Start Engineering Your Future")}
                 </button>
             </motion.div>
         );
@@ -1056,13 +1059,13 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-10 pb-20">
                 <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-100 p-12 shadow-2xl space-y-10">
                     <div className="space-y-2">
-                        <h3 className="text-3xl font-black uppercase tracking-tighter">{currentLang === 'ar' ? "أين ترى نفسك غداً؟" : "Where do you see yourself?"}</h3>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{currentLang === 'ar' ? "الصدق مع النفس هو أول خطوة للتسويق الناجح" : "Self-honesty is the first step to successful marketing"}</p>
+                        <h3 className="text-3xl font-black uppercase tracking-tighter">{({ en: "Where do you see yourself?", ar: "أين ترى نفسك غداً؟", fr: "Où vous voyez-vous demain ?" }[currentLang as "en" | "ar" | "fr"] || "Where do you see yourself?")}</h3>
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{({ en: "Self-honesty is the first step to successful marketing", ar: "الصدق مع النفس هو أول خطوة للتسويق الناجح", fr: "L'honnêteté envers soi-même est la première étape d'un marketing réussi" }[currentLang as "en" | "ar" | "fr"] || "Self-honesty is the first step to successful marketing")}</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "المنصب المستهدف" : "Target Role"}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Target Role", ar: "المنصب المستهدف", fr: "Rôle Cible" }[currentLang as "en" | "ar" | "fr"] || "Target Role")}</label>
                             <input 
                                 value={preferences.job}
                                 onChange={(e) => setPreferences({...preferences, job: e.target.value})}
@@ -1071,7 +1074,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "الراتب المتوقع" : "Expected Salary"}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Expected Salary", ar: "الراتب المتوقع", fr: "Salaire Espéré" }[currentLang as "en" | "ar" | "fr"] || "Expected Salary")}</label>
                             <input 
                                 value={preferences.salary}
                                 onChange={(e) => setPreferences({...preferences, salary: e.target.value})}
@@ -1080,7 +1083,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                             />
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "الامتيازات المطلوبة" : "Required Benefits"}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Required Benefits", ar: "الامتيازات المطلوبة", fr: "Avantages Souhaités" }[currentLang as "en" | "ar" | "fr"] || "Required Benefits")}</label>
                             <input 
                                 value={preferences.benefits}
                                 onChange={(e) => setPreferences({...preferences, benefits: e.target.value})}
@@ -1089,7 +1092,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                             />
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "لماذا تريد التغيير / الترقية؟" : "Why change / promotion?"}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Why change / promotion?", ar: "لماذا تريد التغيير / الترقية؟", fr: "Pourquoi ce changement / cette promotion ?" }[currentLang as "en" | "ar" | "fr"] || "Why change / promotion?")}</label>
                             <textarea 
                                 value={preferences.motivation}
                                 onChange={(e) => setPreferences({...preferences, motivation: e.target.value})}
@@ -1102,7 +1105,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                         onClick={startNegotiation}
                         className="w-full py-6 rounded-4xl bg-amber-600 text-white font-black uppercase text-xs tracking-[0.3em] hover:bg-amber-700 transition-all shadow-xl"
                     >
-                        {isLoading ? <Loader2 className="animate-spin mx-auto" /> : (currentLang === 'ar' ? "دخول جلسة المفاوضة الصادقة" : "Enter Brutal Negotiation Table")}
+                        {isLoading ? <Loader2 className="animate-spin mx-auto" /> : (({ en: "Enter Brutal Negotiation Table", ar: "دخول جلسة المفاوضة الصادقة", fr: "Entrer dans la Négociation" }[currentLang as "en" | "ar" | "fr"] || "Enter Brutal Negotiation Table"))}
                     </button>
                 </div>
             </motion.div>
@@ -1144,7 +1147,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                         <div className="flex gap-4">
                             <input 
                                 onKeyDown={(e) => { if (e.key === 'Enter') { sendMessage(e.currentTarget.value); e.currentTarget.value = ""; } }}
-                                placeholder={currentLang === 'ar' ? "أجب بصدق، أو واجه الحقيقة..." : "Speak the truth, or face it..."}
+                                placeholder={({ en: "Speak the truth, or face it...", ar: "أجب بصدق، أو واجه الحقيقة...", fr: "Dites la vérité, ou affrontez-la..." }[currentLang as "en" | "ar" | "fr"] || "Speak the truth, or face it...")}
                                 className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-amber-500/50 transition-all"
                             />
                             <button 
@@ -1192,7 +1195,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                             <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg"><Award size={24} /></div>
                             <div>
                                 <h3 className="text-xl font-black uppercase tracking-tighter">
-                                    {currentLang === 'ar' ? "التقرير الاستراتيجي التنفيذي" : "Executive Strategic Report"}
+                                    {({ en: "Executive Strategic Report", ar: "التقرير الاستراتيجي التنفيذي", fr: "Rapport Stratégique Exécutif" }[currentLang as "en" | "ar" | "fr"] || "Executive Strategic Report")}
                                 </h3>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-500/70 italic">Board-ready synthesis & value proposition</p>
                             </div>
@@ -1203,7 +1206,7 @@ function SelfMarketingStudio({ report, currentLang }: { report: FinalReport, cur
                             </div>
                         </div>
                         <div className="p-4 rounded-2xl bg-emerald-500 text-slate-900 text-center font-black uppercase text-[10px] tracking-widest">
-                            {currentLang === 'ar' ? "تم تحديث بوصلتك المهنية بنجاح" : "Strategic Compass Updated Successfully"}
+                            {({ en: "Strategic Compass Updated Successfully", ar: "تم تحديث بوصلتك المهنية بنجاح", fr: "Boussole Stratégique Mise à Jour avec Succès" }[currentLang as "en" | "ar" | "fr"] || "Strategic Compass Updated Successfully")}
                         </div>
                     </div>
                 </div>
@@ -1225,17 +1228,17 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
                     <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
                         <div className="space-y-4">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[9px] font-black uppercase tracking-[0.4em]">
-                                <Sparkles size={12} /> {currentLang === 'ar' ? "التوليد الاستراتيجي النهائي" : "Final Strategic Synthesis"}
+                                <Sparkles size={12} /> {({ en: "Final Strategic Synthesis", ar: "التوليد الاستراتيجي النهائي", fr: "Synthèse Stratégique Finale" }[currentLang as "en" | "ar" | "fr"] || "Final Strategic Synthesis")}
                             </div>
                             <h2 className="text-5xl font-black uppercase tracking-tighter leading-none">
-                                {currentLang === 'ar' ? "حكم الخبير الاستراتيجي" : "The Ultimate Strategic Verdict"}
+                                {({ en: "The Ultimate Strategic Verdict", ar: "حكم الخبير الاستراتيجي", fr: "Le Verdict Stratégique Ultime" }[currentLang as "en" | "ar" | "fr"] || "The Ultimate Strategic Verdict")}
                             </h2>
                             <p className="text-rose-100/60 max-w-2xl text-lg font-medium leading-relaxed italic">
                                 &ldquo;{report.finalVerdict}&rdquo;
                             </p>
                         </div>
-                        <div className="shrink-0 min-w-[10rem] max-w-[18rem] p-6 md:p-8 rounded-4xl bg-white/5 border border-white/10 flex flex-col items-center justify-center backdrop-blur-xl text-center space-y-2">
-                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2">{currentLang === 'ar' ? "الوزن السوقي" : "Market Weight"}</div>
+                        <div className="shrink-0 min-w-40 max-w-[18rem] p-6 md:p-8 rounded-4xl bg-white/5 border border-white/10 flex flex-col items-center justify-center backdrop-blur-xl text-center space-y-2">
+                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2">{({ en: "Market Weight", ar: "الوزن السوقي", fr: "Poids sur le Marché" }[currentLang as "en" | "ar" | "fr"] || "Market Weight")}</div>
                             <div className={cn("font-black leading-tight", report.marketValue && report.marketValue.length > 15 ? "text-xl md:text-2xl" : "text-4xl md:text-5xl")}>
                                 {report.marketValue}
                             </div>
@@ -1245,7 +1248,7 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-10">
                         {/* Card 1 */}
                         <div className="p-8 rounded-4xl bg-white/5 border border-white/10 space-y-4 min-w-0 w-full shadow-lg">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "العنصر الجوهري" : "The Core Element"}</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "The Core Element", ar: "العنصر الجوهري", fr: "L'Élément Central" }[currentLang as "en" | "ar" | "fr"] || "The Core Element")}</h4>
                             <div className="text-sm font-bold leading-relaxed text-slate-200">
                                 {report.profileSummary}
                             </div>
@@ -1253,18 +1256,18 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
                         
                         {/* Card 2 */}
                         <div className="p-8 rounded-4xl bg-white/5 border border-white/10 space-y-4 min-w-0 w-full shadow-lg">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{currentLang === 'ar' ? "بصمة القيادة" : "Leadership Impact"}</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{({ en: "Leadership Impact", ar: "بصمة القيادة", fr: "Impact du Leadership" }[currentLang as "en" | "ar" | "fr"] || "Leadership Impact")}</h4>
                             <div className="text-sm font-bold leading-relaxed text-slate-200">
-                                {report.leadershipFingerprint?.description || (currentLang === 'ar' ? "قائد استراتيجي ذو أثر عالٍ" : "High Impact Strategist")}
+                                {report.leadershipFingerprint?.description || (({ en: "High Impact Strategist", ar: "قائد استراتيجي ذو أثر عالٍ", fr: "Stratège à Fort Impact" }[currentLang as "en" | "ar" | "fr"] || "High Impact Strategist"))}
                             </div>
                         </div>
 
                         {/* Card 3 - Red Focus */}
                         <div className="p-8 rounded-4xl bg-rose-600 text-white space-y-6 min-w-0 w-full shadow-2xl flex flex-col justify-between">
                             <div className="space-y-4">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest opacity-70 text-white">{currentLang === 'ar' ? "الأولوية الكبرى" : "Mission Priority"}</h4>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest opacity-70 text-white">{({ en: "Mission Priority", ar: "الأولوية الكبرى", fr: "Priorité de la Mission" }[currentLang as "en" | "ar" | "fr"] || "Mission Priority")}</h4>
                                 <div className="text-lg font-black leading-tight">
-                                    {report.gapAnalysis.criticalCompetencyGaps[0] || (currentLang === 'ar' ? "التحول الاستراتيجي" : "Strategic Transformation")}
+                                    {report.gapAnalysis.criticalCompetencyGaps[0] || (({ en: "Strategic Transformation", ar: "التحول الاستراتيجي", fr: "Transformation Stratégique" }[currentLang as "en" | "ar" | "fr"] || "Strategic Transformation"))}
                                 </div>
                             </div>
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/20 text-[8px] font-black uppercase tracking-tighter w-fit">
@@ -1279,7 +1282,7 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
                 <div className="bg-white dark:bg-slate-950 rounded-[3.5rem] p-12 border border-slate-100 shadow-xl space-y-8">
                     <h3 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
                         <TrendingUp className="text-rose-500" />
-                        {currentLang === 'ar' ? "التوسع المهني الموصى به" : "Recommended Career Ascension"}
+                        {({ en: "Recommended Career Ascension", ar: "التوسع المهني الموصى به", fr: "Ascension de Carrière Recommandée" }[currentLang as "en" | "ar" | "fr"] || "Recommended Career Ascension")}
                     </h3>
                     <div className="space-y-4">
                         {report.recommendedRoles.map((role, i) => (
@@ -1295,7 +1298,7 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
                     <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
                     <h3 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
                         <Zap className="text-amber-400" />
-                        {currentLang === 'ar' ? "رؤية الخبير العميقة" : "Expert Deep Insight"}
+                        {({ en: "Expert Deep Insight", ar: "رؤية الخبير العميقة", fr: "Vision Approfondie de l'Expert" }[currentLang as "en" | "ar" | "fr"] || "Expert Deep Insight")}
                     </h3>
                     <div className="space-y-6">
                         {report.deepInsights.map((insight, i) => (
@@ -1316,21 +1319,23 @@ function FinalStrategicVerdict({ report, currentLang }: { report: FinalReport, c
             <div className="text-center py-20 bg-linear-to-b from-transparent to-slate-100/50 dark:to-slate-900/20 rounded-[4rem] space-y-8">
                 <div className="space-y-4">
                     <h3 className="text-3xl font-black uppercase tracking-tighter">
-                        {currentLang === 'ar' ? "هل أنت مستعد للتنفيذ؟" : "Ready for Execution?"}
+                        {({ en: "Ready for Execution?", ar: "هل أنت مستعد للتنفيذ؟", fr: "Prêt pour l'Exécution ?" }[currentLang as "en" | "ar" | "fr"] || "Ready for Execution?")}
                     </h3>
                     <p className="text-slate-500 font-medium max-w-xl mx-auto">
-                        {currentLang === 'ar' 
-                            ? "انتقل الآن إلى استوديو الأداء التنفيذي لبدء ورش العمل وتفعيل استراتيجية نموك." 
-                            : "Proceed to your Executive Performance Studio to begin workshops and activate your growth strategy."}
+                        {({
+                            en: "Proceed to your Executive Performance Studio to begin workshops and activate your growth strategy.",
+                            ar: "انتقل الآن إلى استوديو الأداء التنفيذي لبدء ورش العمل وتفعيل استراتيجية نموك.",
+                            fr: "Rendez-vous dans votre Performance Studio Exécutif pour commencer les ateliers et activer votre stratégie de croissance."
+                        }[currentLang as "en" | "ar" | "fr"] || "Proceed to your Executive Performance Studio to begin workshops and activate your growth strategy.")}
                     </p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-3xl font-bold uppercase text-[10px] tracking-widest shadow-xl hover:bg-slate-50 transition-all flex items-center gap-2">
                         <FileText size={16} className="text-rose-500" />
-                        {currentLang === 'ar' ? "تحميل التقرير النهائي (PDF)" : "Download Full Thesis (PDF)"}
+                        {({ en: "Download Full Thesis (PDF)", ar: "تحميل التقرير النهائي (PDF)", fr: "Télécharger la Thèse Complète (PDF)" }[currentLang as "en" | "ar" | "fr"] || "Download Full Thesis (PDF)")}
                     </button>
                     <a href="/professional/performance-studio" className="px-10 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase text-[10px] tracking-widest shadow-2xl hover:bg-black hover:scale-105 transition-all flex items-center gap-2 group">
-                        {currentLang === 'ar' ? "دخول استوديو الأداء" : "Enter Performance Studio"}
+                        {({ en: "Enter Performance Studio", ar: "دخول استوديو الأداء", fr: "Entrer dans le Studio de Performance" }[currentLang as "en" | "ar" | "fr"] || "Enter Performance Studio")}
                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                     </a>
                 </div>
@@ -1523,10 +1528,10 @@ function DiagnosticAvance({ report, currentLang }: { report: FinalReport, curren
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { key: "strengths" as const, label: currentLang === 'ar' ? "نقاط القوة" : "Strengths", color: "emerald", icon: <TrendingUp size={16} /> },
-            { key: "weaknesses" as const, label: currentLang === 'ar' ? "نقاط الضعف" : "Weaknesses", color: "rose", icon: <X size={16} /> },
-            { key: "opportunities" as const, label: currentLang === 'ar' ? "الفرص" : "Opportunities", color: "blue", icon: <Zap size={16} /> },
-            { key: "threats" as const, label: currentLang === 'ar' ? "المخاطر" : "Threats", color: "amber", icon: <Shield size={16} /> },
+            { key: "strengths" as const, label: ({ en: "Strengths", ar: "نقاط القوة", fr: "Forces" }[currentLang as "en" | "ar" | "fr"] || "Strengths"), color: "emerald", icon: <TrendingUp size={16} /> },
+            { key: "weaknesses" as const, label: ({ en: "Weaknesses", ar: "نقاط الضعف", fr: "Faiblesses" }[currentLang as "en" | "ar" | "fr"] || "Weaknesses"), color: "rose", icon: <X size={16} /> },
+            { key: "opportunities" as const, label: ({ en: "Opportunities", ar: "الفرص", fr: "Opportunités" }[currentLang as "en" | "ar" | "fr"] || "Opportunities"), color: "blue", icon: <Zap size={16} /> },
+            { key: "threats" as const, label: ({ en: "Threats", ar: "المخاطر", fr: "Menaces" }[currentLang as "en" | "ar" | "fr"] || "Threats"), color: "amber", icon: <Shield size={16} /> },
           ].map(({ key, label, color, icon }) => {
             const colorMap: Record<string, string> = {
               emerald: "bg-emerald-500/5 border-emerald-500/20 text-emerald-600",
@@ -1663,7 +1668,7 @@ function DiagnosticAvance({ report, currentLang }: { report: FinalReport, curren
 
         <div className="bg-white dark:bg-slate-950 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl p-10 space-y-6">
           <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.4em] text-indigo-600">
-            <Target size={14} /> {currentLang === 'ar' ? "مسارات التقدم المهني" : "Career Advancement Paths"}
+            <Target size={14} /> {({ en: "Career Advancement Paths", ar: "مسارات التقدم المهني", fr: "Parcours d'Avancement de Carrière" }[currentLang as "en" | "ar" | "fr"] || "Career Advancement Paths")}
           </div>
           <div className="space-y-4">
             {report.careerAdvancement.slice(0, 3).map((path, i) => (
@@ -1766,7 +1771,7 @@ export default function ExecutiveDashboard() {
 
   if (!report) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8 text-center" dir={({ en: 'ltr', ar: 'rtl', fr: "ltr" }[currentLang as "en" | "ar" | "fr"] || 'ltr')}>
         <div className="w-20 h-20 rounded-4xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
           <AlertCircle className="text-slate-400" size={36} />
         </div>
@@ -1816,7 +1821,7 @@ export default function ExecutiveDashboard() {
                 )}
               >
                 {mod.icon}
-                <span className="hidden sm:inline">{currentLang === 'ar' ? mod.labelAr : mod.label}</span>
+                <span className="hidden sm:inline">{currentLang === 'ar' ? mod.labelAr : currentLang === 'fr' ? mod.labelFr : mod.label}</span>
                 {mod.badge && (
                   <span className="ml-1 px-1.5 py-0.5 text-[7px] font-black bg-emerald-500 text-white rounded-full">{mod.badge}</span>
                 )}
@@ -1828,7 +1833,7 @@ export default function ExecutiveDashboard() {
           {/* Right Actions */}
           <div className="flex flex-wrap items-center justify-center gap-3 shrink-0 w-full xl:w-auto">
             <button className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest shadow-xl hover:bg-black transition-all">
-              <Sparkles size={12} className="text-amber-400" /> {currentLang === 'ar' ? "تحميل التقرير" : "Download PDF"}
+              <Sparkles size={12} className="text-amber-400" /> {({ en: "Download PDF", ar: "تحميل التقرير", fr: "Télécharger le PDF" }[currentLang as "en" | "ar" | "fr"] || "Download PDF")}
             </button>
             <a href="/professional" className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900">
               {t_ui.back}
@@ -1852,16 +1857,16 @@ export default function ExecutiveDashboard() {
                 }
               }}
               className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all group"
-              title={currentLang === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
+              title={({ en: 'Log Out', ar: 'تسجيل الخروج', fr: "Déconnexion" }[currentLang as "en" | "ar" | "fr"] || 'Log Out')}
             >
-              <LogOut size={16} className={currentLang === 'ar' ? 'rotate-180' : ''} />
+              <LogOut size={16} className={({ en: '', ar: 'rotate-180', fr: "" }[currentLang as "en" | "ar" | "fr"] || '')} />
             </button>
           </div>
         </div>
       </div>
 
       {/* ── MODULE CONTENT AREA ── */}
-      <div className="max-w-7xl mx-auto px-6 py-10" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="max-w-7xl mx-auto px-6 py-10" dir={({ en: 'ltr', ar: 'rtl', fr: "ltr" }[currentLang as "en" | "ar" | "fr"] || 'ltr')}>
 
         {/* Module Header */}
         <div className="mb-10 flex items-center gap-4">
@@ -1870,7 +1875,7 @@ export default function ExecutiveDashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-black uppercase tracking-tight">
-              {currentLang === 'ar' ? activeModuleData.labelAr : activeModuleData.label}
+              {currentLang === 'ar' ? activeModuleData.labelAr : currentLang === 'fr' ? activeModuleData.labelFr : activeModuleData.label}
             </h1>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
               {activeModule === "diagnostic" ? t_ui.subtitle : t_ui.soon}

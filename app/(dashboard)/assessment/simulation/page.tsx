@@ -83,6 +83,7 @@ export default function SimulationPage() {
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [cvAnalysis, setCvAnalysis] = useState<CVAnalysis | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>(language);
+    const [retryCount, setRetryCount] = useState(0);
     const [currentScenario, setCurrentScenario] = useState(1);
     const [totalScenarios] = useState(4); // 2 major + 2 minor scenarios
     const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
@@ -95,14 +96,16 @@ export default function SimulationPage() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [comprehensiveReport, setComprehensiveReport] = useState<string | null>(null);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-    const [retryCount, setRetryCount] = useState(0);
     const [lastError, setLastError] = useState<string | null>(null);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const hasInitializedRef = useRef(false);
     const comprehensiveReportRef = useRef<HTMLDivElement>(null);
 
+    // Profile and Plan checks (Locked for all)
+    const canDownload = false;
+
     const handleDownloadReport = async () => {
-        if (!finalReport || !selectedRole) return;
+        if (!finalReport || !selectedRole || !canDownload) return;
         setIsDownloading(true);
 
         try {
@@ -273,7 +276,7 @@ export default function SimulationPage() {
     };
 
     const handleDownloadComprehensivePDF = async () => {
-        if (!comprehensiveReport) return;
+        if (!comprehensiveReport || !canDownload) return;
         setIsDownloading(true);
 
         try {
@@ -447,14 +450,7 @@ export default function SimulationPage() {
             const userId = userProfile.email || userProfile.fullName;
 
             // ✅ Student Free Trial Gate
-            const isStudentFreeTrial = userProfile.plan === 'Student' && 
-                                      (userProfile.role === 'Free Tier' || userProfile.role === 'Trial User');
-            
-            if (isStudentFreeTrial) {
-                console.log("Student Free Trial user attempted to access simulation — redirecting to discovery completion");
-                router.push('/assessment/role-discovery');
-                return;
-            }
+            // Gate removed by user request
             
             let storedRole = localStorage.getItem('selectedRole');
             let storedCV = localStorage.getItem('cvAnalysis');
@@ -852,19 +848,32 @@ export default function SimulationPage() {
                                     {t.simulation.reviewChat}
                                 </button>
 
-                                <button
-                                    onClick={handleDownloadReport}
-                                    disabled={isDownloading}
-                                    data-html2canvas-ignore
-                                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all font-bold text-purple-700 shadow-sm active:scale-95"
-                                >
-                                    {isDownloading ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
+                                {canDownload ? (
+                                    <button
+                                        onClick={handleDownloadReport}
+                                        disabled={isDownloading}
+                                        data-html2canvas-ignore
+                                        className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all font-bold text-purple-700 shadow-sm active:scale-95"
+                                    >
+                                        {isDownloading ? (
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <Download className="w-5 h-5" />
+                                        )}
+                                        {t.simulation.downloadPdf}
+                                    </button>
+                                ) : (
+                                    <div
+                                        title={dir === 'rtl' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                                        className="flex items-center gap-2 px-6 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-400 cursor-not-allowed select-none transition-all"
+                                    >
                                         <Download className="w-5 h-5" />
-                                    )}
-                                    {t.simulation.downloadPdf}
-                                </button>
+                                        {t.simulation.downloadPdf}
+                                        <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                            {dir === 'rtl' ? 'برو' : 'PRO'}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -1005,20 +1014,33 @@ export default function SimulationPage() {
                                     </div>
                                 </div>
                                 <div data-html2canvas-ignore className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={handleDownloadComprehensivePDF}
-                                        disabled={isDownloading}
-                                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all flex items-center gap-2 text-sm shadow-lg shadow-indigo-200"
-                                    >
-                                        {isDownloading ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
+                                    {canDownload ? (
+                                        <button
+                                            onClick={handleDownloadComprehensivePDF}
+                                            disabled={isDownloading}
+                                            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all flex items-center gap-2 text-sm shadow-lg shadow-indigo-200"
+                                        >
+                                            {isDownloading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <Download className="w-4 h-4" />
+                                            )}
+                                            <span>
+                                                {t.simulation.downloadPdf}
+                                            </span>
+                                        </button>
+                                    ) : (
+                                        <div
+                                            title={dir === 'rtl' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                                            className="px-5 py-2.5 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl font-bold flex items-center gap-2 text-sm cursor-not-allowed select-none"
+                                        >
                                             <Download className="w-4 h-4" />
-                                        )}
-                                        <span>
-                                            {t.simulation.downloadPdf}
-                                        </span>
-                                    </button>
+                                            <span>{t.simulation.downloadPdf}</span>
+                                            <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                                {dir === 'rtl' ? 'برو' : 'PRO'}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

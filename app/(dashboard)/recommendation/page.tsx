@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import domtoimage from "dom-to-image-more";
-import jsPDF from "jspdf";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ShieldCheck,
@@ -135,90 +133,6 @@ export default function RecommendationPage() {
     }, []);
 
     const downloadRef = useRef<HTMLDivElement>(null);
-    const [isDownloading, setIsDownloading] = useState(false);
-
-    const handleDownload = async () => {
-        if (!downloadRef.current || !recommendation) return;
-        setIsDownloading(true);
-        try {
-            await document.fonts.ready;
-            const original = downloadRef.current;
-            const clone = original.cloneNode(true) as HTMLElement;
-            clone.style.position  = "fixed";
-            clone.style.top       = "-9999px";
-            clone.style.left      = "-9999px";
-            clone.style.width     = `${original.offsetWidth}px`;
-            clone.style.height    = `${original.offsetHeight}px`;
-            clone.style.overflow  = "visible";
-            document.body.appendChild(clone);
-
-            const unsupported = /oklch|oklab|lab\(|lch\(|hwb\(|color-mix/i;
-            const resolveColor = (raw: string): string => {
-                const tmp = document.createElement("span");
-                tmp.style.color = raw;
-                document.body.appendChild(tmp);
-                const resolved = getComputedStyle(tmp).color;
-                document.body.removeChild(tmp);
-                return resolved || "rgb(0,0,0)";
-            };
-            [clone, ...Array.from(clone.querySelectorAll("*"))].forEach(node => {
-                const el = node as HTMLElement;
-                const computed = getComputedStyle(el);
-                el.style.setProperty("transition", "none", "important");
-                el.style.setProperty("animation", "none", "important");
-                el.style.setProperty("backdrop-filter", "none", "important");
-                el.style.setProperty("-webkit-backdrop-filter", "none", "important");
-                (["color", "backgroundColor", "outlineColor"] as const).forEach(key => {
-                    const val = computed[key] as string;
-                    if (val && unsupported.test(val)) {
-                        el.style.setProperty(key.replace(/([A-Z])/g, "-$1").toLowerCase(), resolveColor(val), "important");
-                    }
-                });
-                (["Top", "Right", "Bottom", "Left"] as const).forEach(side => {
-                    const w = computed[`border${side}Width` as keyof CSSStyleDeclaration] as string;
-                    if (!w || w === "0px") {
-                        el.style.setProperty(`border-${side.toLowerCase()}-width`, "0px", "important");
-                    } else {
-                        const c = computed[`border${side}Color` as keyof CSSStyleDeclaration] as string;
-                        if (c && unsupported.test(c)) el.style.setProperty(`border-${side.toLowerCase()}-color`, resolveColor(c), "important");
-                    }
-                });
-                const bg = computed.backgroundImage;
-                if (bg && bg !== "none" && (bg.includes("http://") || bg.includes("https://"))) {
-                    el.style.setProperty("background-image", "none", "important");
-                }
-            });
-
-            const dataUrl = await domtoimage.toPng(clone, {
-                scale: 2,
-                bgcolor: "#ffffff",
-                width:  original.offsetWidth,
-                height: original.offsetHeight,
-            });
-            document.body.removeChild(clone);
-
-            const img = new window.Image();
-            img.src = dataUrl;
-            await new Promise<void>(resolve => { img.onload = () => resolve(); });
-
-            const pdf  = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-            const pdfW = pdf.internal.pageSize.getWidth();
-            const pdfH = pdf.internal.pageSize.getHeight();
-            pdf.setFillColor(255, 255, 255);
-            pdf.rect(0, 0, pdfW, pdfH, "F");
-            const ratio    = img.width / img.height;
-            const pdfRatio = pdfW / pdfH;
-            let imgW = pdfW, imgH = pdfH;
-            if (ratio > pdfRatio) { imgH = pdfW / ratio; } else { imgW = pdfH * ratio; }
-            pdf.addImage(dataUrl, "PNG", (pdfW - imgW) / 2, (pdfH - imgH) / 2, imgW, imgH);
-            pdf.save(`Lettre-Recommandation-${recommendation.referenceId || "OFFICIAL"}.pdf`);
-        } catch (err) {
-            console.error("Download failed:", err);
-            alert("Échec de la génération du PDF.");
-        } finally {
-            setIsDownloading(false);
-        }
-    };
 
     if (loading) {
         return (
@@ -254,7 +168,7 @@ export default function RecommendationPage() {
     }
 
     return (
-        <div className="flex-1 p-4 md:p-10 max-w-7xl mx-auto space-y-10 bg-slate-50/30 min-h-screen">
+        <div className="flex-1 p-4 md:p-10 max-w-5xl mx-auto space-y-10 bg-slate-50/30 min-h-screen">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200">
                 <div className="space-y-4">
                     <motion.div
@@ -279,14 +193,16 @@ export default function RecommendationPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex items-center gap-3"
                     >
-                        <button
-                            onClick={handleDownload}
-                            disabled={isDownloading}
-                            className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 font-bold hover:bg-slate-50 hover:border-blue-300 transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-60"
+                        <div
+                            title="التصدير متاح للمشتركين فقط"
+                            className="flex items-center gap-2 px-5 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-400 font-bold cursor-not-allowed select-none shadow-sm"
                         >
                             <Download className="w-4 h-4" />
-                            {isDownloading ? "Génération..." : "Télécharger PDF"}
-                        </button>
+                            Télécharger PDF
+                            <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                PRO
+                            </span>
+                        </div>
                         <button
                             onClick={generateRecommendation}
                             disabled={generating}
@@ -375,10 +291,10 @@ export default function RecommendationPage() {
                         key="content"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="grid lg:grid-cols-4 gap-10"
+                        className="space-y-10"
                     >
                         {/* Letter Preview - Optimized for Prestige */}
-                        <div className="lg:col-span-3 space-y-6">
+                        <div className="space-y-6">
                             <motion.div
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
@@ -498,8 +414,8 @@ export default function RecommendationPage() {
                             </motion.div>
                         </div>
 
-                        {/* Sidebar Info */}
-                        <div className="lg:col-span-1 space-y-6">
+                        {/* Additional Info */}
+                        <div className="grid md:grid-cols-2 gap-6">
                             <motion.div
                                 initial={{ x: 30, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
@@ -546,14 +462,16 @@ export default function RecommendationPage() {
                                     <p className="text-sm text-slate-500 group-hover:text-blue-100 mb-8 font-medium leading-relaxed">
                                         Prenez possession de votre recommandation officielle.
                                     </p>
-                                    <button
-                                        onClick={handleDownload}
-                                        disabled={isDownloading}
-                                        className="w-full py-5 bg-slate-900 text-white group-hover:bg-white group-hover:text-blue-900 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:opacity-60"
+                                    <div
+                                        title="التصدير متاح للمشتركين فقط"
+                                        className="w-full py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-sm border border-slate-200 cursor-not-allowed select-none"
                                     >
                                         <Download className="w-6 h-6" />
-                                        {isDownloading ? "Génération..." : "Télécharger PDF"}
-                                    </button>
+                                        Télécharger PDF
+                                        <span className="text-[10px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                            PRO
+                                        </span>
+                                    </div>
                                 </div>
                             </motion.div>
                         </div>

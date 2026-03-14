@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -43,6 +43,9 @@ export default function StrategicReportPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'history' | 'professional'>('professional');
     const [userName, setUserName] = useState<string>("");
+
+    // Check if user can download/export
+    const canDownload = false;
 
     // Set initial tab from query param if available
     useEffect(() => {
@@ -165,8 +168,7 @@ export default function StrategicReportPage() {
 
     return (
         <TrialGate 
-            module="strategic-report" 
-            moduleHref="/strategic-report"
+            module="strategic-report"
             dir={dir}
             language={language}
         >
@@ -200,8 +202,9 @@ export default function StrategicReportPage() {
                 {activeTab === 'professional' ? (
                     /* ── PROFESSIONAL REPORT TAB ── */
                     <div id="professional-report" className="space-y-0 print:space-y-0">
-                        {/* Print Button */}
+                        {/* Export/Print Button */}
                         <div className="flex justify-end mb-6 print:hidden">
+                            {canDownload ? (
                             <button
                                 onClick={() => window.print()}
                                 className="flex items-center gap-3 px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-slate-900/20"
@@ -209,6 +212,18 @@ export default function StrategicReportPage() {
                                 <Download size={18} />
                                 {t.strategicReport.export}
                             </button>
+                            ) : (
+                            <div
+                                title={dir === 'rtl' ? 'التصدير متاح للمشتركين فقط' : 'Export available for paid plans only'}
+                                className="flex items-center gap-3 px-8 py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-sm cursor-not-allowed select-none border border-slate-200"
+                            >
+                                <Download size={18} />
+                                {t.strategicReport.export}
+                                <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                    {dir === 'rtl' ? 'برو' : 'PRO'}
+                                </span>
+                            </div>
+                            )}
                         </div>
 
                         {/* ── PROFESSIONAL REPORT CARD ── */}

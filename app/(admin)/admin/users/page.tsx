@@ -56,7 +56,7 @@ export default function ParticipantsManagement() {
         canAccessScorecard: false,
         canAccessSCI: false,
         memberId: "",
-        activationType: "Limited"
+        activationType: "Gratuit"
     });
 
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -141,7 +141,7 @@ export default function ParticipantsManagement() {
             canAccessScorecard: !!user.canAccessScorecard,
             canAccessSCI: !!user.canAccessSCI,
             memberId: user.memberId || "",
-            activationType: user.activationType || "Limited"
+            activationType: user.activationType || "Gratuit"
         });
         setIsAddModalOpen(true);
     };
@@ -229,7 +229,7 @@ export default function ParticipantsManagement() {
             canAccessScorecard: false,
             canAccessSCI: false,
             memberId: "",
-            activationType: "Limited"
+            activationType: "Gratuit"
         });
         setIsAddModalOpen(true);
     }
@@ -428,23 +428,23 @@ export default function ParticipantsManagement() {
                                                 "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest",
                                                 user.plan === "Professional" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
                                                 user.plan === "Student" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                                user.plan === "Expert" ? "bg-violet-50 text-violet-700 border-violet-200" :
                                                         "bg-slate-50 text-slate-500 border-slate-200"
                                             )}>
                                                 {user.plan === "Professional" ? <ShieldCheck size={12} /> :
                                                  user.plan === "Student" ? <Zap size={12} /> :
+                                                 user.plan === "Expert" ? <ShieldCheck size={12} /> :
                                                  <Clock size={12} />}
                                                 {user.plan || "No Plan"}
                                             </div>
-                                            {user.plan === "Student" && (
-                                                <span className={cn(
-                                                    "inline-flex items-center w-fit px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border",
-                                                    user.activationType === "Unlimited" 
-                                                        ? "bg-blue-600 text-white border-blue-500 shadow-sm" 
-                                                        : "bg-slate-100 text-slate-500 border-slate-200"
-                                                )}>
-                                                    {user.activationType === "Unlimited" ? "Illimité" : "Limité (3h)"}
-                                                </span>
-                                            )}
+                                            <span className={cn(
+                                                "inline-flex items-center w-fit px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border",
+                                                user.activationType === "Pro" 
+                                                    ? "bg-blue-600 text-white border-blue-500 shadow-sm" 
+                                                    : "bg-slate-100 text-slate-500 border-slate-200"
+                                            )}>
+                                                {user.activationType === "Pro" ? "Pro" : "Gratuit"}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">
@@ -612,13 +612,14 @@ export default function ParticipantsManagement() {
                                                 <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
                                                     <option>Professional</option>
                                                     <option>Student</option>
+                                                    <option>Expert</option>
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Activation</label>
                                                 <select className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none transition-all font-bold text-slate-900 appearance-none" value={formData.activationType} onChange={(e) => setFormData({ ...formData, activationType: e.target.value })}>
-                                                    <option value="Limited">Limited (3h)</option>
-                                                    <option value="Unlimited">Unlimited</option>
+                                                    <option value="Gratuit">Gratuit</option>
+                                                    <option value="Pro">Pro</option>
                                                 </select>
                                             </div>
                                         </div>

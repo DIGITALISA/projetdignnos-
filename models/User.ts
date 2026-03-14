@@ -58,8 +58,19 @@ const UserSchema = new Schema(
     },
     plan: {
       type: String,
-      enum: ["Free Trial", "Pro Essential", "Student", "Professional", "None"],
+      enum: ["Free Trial", "Pro Essential", "Student", "Professional", "Expert", "None"],
       default: "None",
+    },
+    expertInterviewStatus: {
+      type: String,
+      enum: ["Pending", "InProgress", "Completed", "Approved", "Rejected"],
+      default: "Pending",
+    },
+    expertInterviewData: {
+      type: Schema.Types.Mixed, // stores conversation history + final score
+    },
+    expertDomain: {
+      type: String, // e.g. "HR", "Tech", "Marketing", etc.
     },
     subscriptionExpiry: {
       type: Date,
@@ -165,8 +176,8 @@ const UserSchema = new Schema(
     },
     activationType: {
       type: String,
-      enum: ["Limited", "Unlimited"],
-      default: "Limited",
+      enum: ["Gratuit", "Pro"],
+      default: "Gratuit",
     },
     firstLoginAt: {
       type: Date,

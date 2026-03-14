@@ -1,321 +1,412 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, User, Building2, CheckCircle2, Zap, Sparkles, Brain, Rocket, Globe2, Shield } from "lucide-react";
+import {
+  ArrowRight, CheckCircle2, Sparkles, Brain,
+  GraduationCap, Briefcase, Shield, Zap, FileText, MessageSquare, Timer,
+} from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
-    const { dir, language } = useLanguage();
+  const { dir, language } = useLanguage();
+  const lang = (language as "en" | "fr" | "ar") || "fr";
 
-    const stats = {
-        en: [
-            { label: "AI Diagnostic Accuracy", value: "98%" },
-            { label: "Certified Alumni", value: "2,500+" },
-            { label: "Strategic Partners", value: "120+" },
-            { label: "Success Rate", value: "95%" },
+  const T = {
+    en: {
+      badge: "100% Free Diagnostics — No Credit Card Required",
+      title: "Choose Your",
+      titleHl: "Professional Path",
+      sub: "Each account type has its own free AI diagnostic. Register, complete your diagnostic, and start your personalized journey.",
+      freeBadge: "Free",
+      student: {
+        tag: "Student",
+        title: "Student Account",
+        desc: "A comprehensive 8-stage AI journey that transforms your profile into a professional career roadmap with high-level simulations.",
+        diagnostic: "Full 8-Stage Student Diagnostic",
+        steps: [
+          "AI ATS CV Audit & Analysis",
+          "Executive Verification Interview",
+          "Skills Accuracy & Readiness Report",
+          "Role Discovery & AI Matching",
+          "Professional CV & Cover Letter Studio",
+          "Executive Behavioral Simulation",
+          "Strategic Career Roadmap (Final)"
         ],
-        fr: [
-            { label: "Précision Diagnostic IA", value: "98%" },
-            { label: "Alumni Certifiés", value: "2 500+" },
-            { label: "Partenaires Stratégiques", value: "120+" },
-            { label: "Taux de Réussite", value: "95%" },
+        cta: "Start Free — Student",
+        href: "/register?plan=s-free",
+        color: "blue",
+      },
+      pro: {
+        tag: "Professional",
+        title: "Professional Account",
+        desc: "Navigate your career transformation with an elite 7-stage AI journey, expert-led workshops, and deep executive simulations.",
+        diagnostic: "7-Stage Executive Diagnostic",
+        steps: [
+          "Global Competency & Gap Analysis",
+          "Verification & Integrity Interview",
+          "Role Discovery & Strategic Alignment",
+          "AI-Powered High-Level Role Matching",
+          "Executive CV & Portfolio Studio",
+          "Scenario-Based Behavioral Simulation",
+          "Full Executive Diagnostic Report"
         ],
-        ar: [
-            { label: "دقة التشخيص الذكي", value: "98%" },
-            { label: "خريجون معتمدون", value: "+2500" },
-            { label: "شركاء استراتيجيون", value: "120" },
-            { label: "نسبة النجاح", value: "95%" },
-        ]
-    }[language as 'en' | 'fr' | 'ar'] || [
-        { label: "AI Diagnostic Accuracy", value: "98%" },
-        { label: "Certified Alumni", value: "2,500+" },
-        { label: "Strategic Partners", value: "120+" },
-        { label: "Success Rate", value: "95%" },
-    ];
+        cta: "Start Free — Professional",
+        href: "/register?plan=p-pro",
+        color: "indigo",
+      },
+      expert: {
+        tag: "Expert / Trainer",
+        title: "Expert Account",
+        desc: "Join our elite network. An AI Senior Peer evaluates your mastery, identifies strategic gaps, and validates your professional accreditation.",
+        diagnostic: "AI-Expert Accreditation Process",
+        steps: [
+          "Live AI-Peer Assessment (5min/Q)",
+          "Deep Methodology & Logic Analysis",
+          "Anti-Fraud & Integrity Verification",
+          "Professional Accreditation Report",
+          "Visibility in Global Expert Directory"
+        ],
+        cta: "Apply as Expert",
+        href: "/register?plan=x-expert",
+        color: "violet",
+      },
+      trust: ["100% Free — No Card", "Instant AI Results", "3 Specialized Paths"],
+      footer: "MA-TRAINING-CONSULTING © 2026 · All diagnostics are free · No hidden fees",
+    },
+    fr: {
+      badge: "Diagnostics 100% Gratuits — Sans carte bancaire",
+      title: "Choisissez votre",
+      titleHl: "Parcours Professionnel",
+      sub: "Chaque type de compte dispose d'un diagnostic IA gratuit. Inscrivez-vous, complétez votre diagnostic et commencez votre parcours personnalisé.",
+      freeBadge: "Gratuit",
+      student: {
+        tag: "Étudiant",
+        title: "Compte Étudiant",
+        desc: "Un parcours IA complet en 8 étapes qui transforme votre profil en une feuille de route professionnelle avec des simulations exécutives de haut niveau.",
+        diagnostic: "Diagnostic Étudiant en 8 Étapes",
+        steps: [
+          "Audit & Analyse CV ATS par l'IA",
+          "Entretien Exécutif de Vérification",
+          "Bilan de Précision & Aptitude",
+          "Découverte de Rôle & Matching IA",
+          "Studio CV Professional & Lettres",
+          "Simulation Comportementale Exécutive",
+          "Roadmap de Carrière (Rapport Final)"
+        ],
+        cta: "Commencer Gratuit — Étudiant",
+        href: "/register?plan=s-free",
+        color: "blue",
+      },
+      pro: {
+        tag: "Professionnel",
+        title: "Compte Professionnel",
+        desc: "Naviguez votre transformation de carrière avec un parcours IA d'élite en 7 étapes, des ateliers d'experts et des simulations exécutives profondes.",
+        diagnostic: "Diagnostic Exécutif en 7 Étapes",
+        steps: [
+          "Analyse Compétences & Lacunes Globales",
+          "Entretien de Vérification & Intégrité",
+          "Découverte de Rôle & Alignement Stratégique",
+          "Matching IA de Haut Niveau",
+          "Studio CV & Portfolio Exécutif",
+          "Simulation de Mise en Situation",
+          "Rapport Diagnostique Exécutif Complet"
+        ],
+        cta: "Commencer Gratuit — Pro",
+        href: "/register?plan=p-pro",
+        color: "indigo",
+      },
+      expert: {
+        tag: "Expert / Formateur",
+        title: "Compte Expert",
+        desc: "Rejoignez notre réseau d'élites. Un pair senior IA évalue votre maîtrise, identifie vos lacunes stratégiques et valide votre accréditation.",
+        diagnostic: "Accréditation Expert par l'IA",
+        steps: [
+          "Évaluation IA par les Pairs (5min/Q)",
+          "Analyse de Méthodologie & Logique",
+          "Vérification Anti-Fraude & Intégrité",
+          "Rapport d'Accréditation Professionnel",
+          "Visibilité dans l'Annuaire Global"
+        ],
+        cta: "Candidater comme Expert",
+        href: "/register?plan=x-expert",
+        color: "violet",
+      },
+      trust: ["100% Gratuit — Sans carte", "Résultats IA instantanés", "3 Parcours spécialisés"],
+      footer: "MA-TRAINING-CONSULTING © 2026 · Tous les diagnostics sont gratuits · Aucun frais caché",
+    },
+    ar: {
+      badge: "تشخيص مجاني 100% — بدون بطاقة بنكية",
+      title: "اختر مسارك",
+      titleHl: "المهني",
+      sub: "كل نوع حساب له تشخيص ذكاء اصطناعي مجاني خاص به. سجّل، أكمل تشخيصك وابدأ رحلتك الشخصية.",
+      freeBadge: "مجاني",
+      student: {
+        tag: "طالب",
+        title: "حساب طالب",
+        desc: "رحلة ذكاء اصطناعي متكاملة من 8 مراحل تحول ملفك الشخصي إلى خارطة طريق مهنية احترافية مع محاكاة تنفيذية عالية المستوى.",
+        diagnostic: "تشخيص الطالب المتكامل (8 مراحل)",
+        steps: [
+          "تدقيق وتحليل الـ CV بمقاييس ATS",
+          "مقابلة التحقق التنفيذية (AI)",
+          "تقرير دقة المهارات والجاهزية",
+          "اكتشاف الأدوار والمطابقة الذكية",
+          "استوديو الـ CV والخطابات الاحترافية",
+          "محاكاة السلوك التنفيذي للمهام",
+          "خارطة الطريق الاستراتيجية (التقرير النهائي)"
+        ],
+        cta: "ابدأ مجاناً — طالب",
+        href: "/register?plan=s-free",
+        color: "blue",
+      },
+      pro: {
+        tag: "محترف",
+        title: "حساب محترف",
+        desc: "شق مسار تحولك المهني عبر رحلة ذكاء اصطناعي نخبوية من 7 مراحل، ورشات خبراء ومحاكاة تنفيذية عميقة.",
+        diagnostic: "تشخيص تنفيذي من 7 مراحل",
+        steps: [
+          "تحليل الكفاءات والفجوات العالمية",
+          "مقابلة التحقق والنزاهة المهنية",
+          "اكتشاف الأدوار والalignment الاستراتيجي",
+          "مطابقة الأدوار القيادية بالذكاء الاصطناعي",
+          "استوديو الـ CV والبروفايل التنفيذي",
+          "محاكاة سلوكية لمواقف العمل",
+          "تقرير التشخيص التنفيذي المتكامل"
+        ],
+        cta: "ابدأ مجاناً — محترف",
+        href: "/register?plan=p-pro",
+        color: "indigo",
+      },
+      expert: {
+        tag: "خبير / مدرب",
+        title: "حساب خبير",
+        desc: "انضم لشبكة النخبة لدينا. خبير ذكاء اصطناعي أقدم يقيم مدى إتقانك، يحدد فجواتك الاستراتيجية ويعتمد كفاءتك.",
+        diagnostic: "عملية اعتماد الخبراء بالـ AI",
+        steps: [
+          "تقييم مباشر من خبير افتراضي (5د/س)",
+          "تحليل المنهجية والمنطق المهني",
+          "التحقق من النزاهة وكشف التلاعب",
+          "تقرير الاعتماد المهني النهائي",
+          "ظهور في دليل الخبراء العالمي"
+        ],
+        cta: "التقدم كخبير",
+        href: "/register?plan=x-expert",
+        color: "violet",
+      },
+      trust: ["مجاني تماماً — بدون بطاقة", "تشخيص فوري بالذكاء الاصطناعي", "3 أنواع حسابات متخصصة"],
+      footer: "MA-TRAINING-CONSULTING © 2026 · جميع التشخيصات مجانية · لا رسوم خفية",
+    },
+  }[lang];
 
-    const content = {
-        en: {
-            badge: "The Future of Career Management",
-            title: "Reinvent Your Career with",
-            titleHighlight: "AI & Human Mastery",
-            subtitle: "The world's first integrated ecosystem for professionals, students, and researchers, combining high-precision AI diagnostics with human-led executive coaching.",
-            professional: {
-                title: "For Professionals & Researchers",
-                desc: "Navigate your career transformation with our 7-stage AI journey and certified expert workshops.",
-                features: ["7-Stage AI Diagnostic", "Verified Accreditation", "Executive Simulation Missions"]
-            },
-            enterprise: {
-                title: "For Enterprises",
-                desc: "Scale organizational excellence with AI-driven audits, digitalization roadmaps, and corporate training.",
-                features: ["Digital Audit & Strategy", "Performance Benchmarking", "Custom Corporate Mastery"]
-            },
-            ctaProfessional: "Start Your Transformation",
-            ctaEnterprise: "Scalable Solutions",
-            footer: "MA-TRAINING-CONSULTING © 2026 • Defining the Gold Standard in Career Architecture."
-        },
-        fr: {
-            badge: "L'Avenir de la Gestion de Carrière",
-            title: "Réinventez votre carrière avec l'IA",
-            titleHighlight: "et l'Expertise Humaine",
-            subtitle: "Le premier écosystème intégré pour professionnels, étudiants et chercheurs, combinant diagnostic IA de haute précision et coaching exécutif humain.",
-            professional: {
-                title: "Pour les Professionnels & Chercheurs",
-                desc: "Naviguez votre transformation de carrière avec notre parcours IA en 7 étapes et ateliers d'experts certifiés.",
-                features: ["Diagnostic IA en 7 étapes", "Accréditation Vérifiée", "Missions de Simulation Exécutive"]
-            },
-            enterprise: {
-                title: "Pour les Entreprises",
-                desc: "Développez l'excellence organisationnelle avec des audits IA, des feuilles de route digitales et des formations sur mesure.",
-                features: ["Audit Digital & Stratégie", "Analyse de Performance", "Maîtrise d'Entreprise Customisée"]
-            },
-            ctaProfessional: "Démarrer Votre Transformation",
-            ctaEnterprise: "Solutions d'Entreprise",
-            footer: "MA-TRAINING-CONSULTING © 2026 • Définir le Standard d'Excellence en Architecture de Carrière."
-        },
-        ar: {
-            badge: "مستقبل إدارة المسارات المهنية",
-            title: "أعد ابتكار مسارك بالذكاء الاصطناعي",
-            titleHighlight: "والخبرة البشرية",
-            subtitle: "أول نظام متكامل في العالم للمحترفين والطلبة والباحثين، يجمع بين التشخيص الذكي عالي الدقة والتدريب التنفيذي البشري.",
-            professional: {
-                title: "للمحترفين والباحثين",
-                desc: "قد جولة تحولك المهني عبر رحلتنا الذكية المكونة من 7 مراحل وورش عمل الخبراء المعتمدين.",
-                features: ["تشخيص ذكي من 7 مراحل", "اعتمادات مهنية موثّقة", "مهام محاكاة تنفيذية"]
-            },
-            enterprise: {
-                title: "للمؤسسات",
-                desc: "ارتقِ بتميز مؤسستك عبر التدقيق الذكي، وخرائط التحول الرقمي، والتدريب المؤسسي المتطور.",
-                features: ["التدقيق الرقمي والاستراتيجية", "قياس مؤشرات الأداء", "برامج تميز مؤسسي مخصصة"]
-            },
-            ctaProfessional: "ابدأ تحولك المهني",
-            ctaEnterprise: "حلول المؤسسات",
-            footer: "مكتب MA-TRAINING-CONSULTING © 2026 • وضع معايير التميز في هندسة المسارات المهنية."
-        }
-    }[language as 'en' | 'fr' | 'ar'] || {
-        badge: "The Future of Career Management",
-        title: "Reinvent Your Career with",
-        titleHighlight: "AI & Human Mastery",
-        subtitle: "The world's first integrated ecosystem combining high-precision AI diagnostics with human-led executive coaching.",
-        professional: {
-            title: "For Professionals",
-            desc: "Navigate your career transformation with our 7-stage AI journey and certified expert workshops.",
-            features: ["7-Stage AI Diagnostic", "Verified Accreditation", "Executive Simulation Missions"]
-        },
-        enterprise: {
-            title: "For Enterprises",
-            desc: "Scale organizational excellence with AI-driven audits, digitalization roadmaps, and corporate training.",
-            features: ["Digital Audit & Strategy", "Performance Benchmarking", "Custom Corporate Mastery"]
-        },
-        ctaProfessional: "Start Your Transformation",
-        ctaEnterprise: "Scalable Solutions",
-        footer: "MA-TRAINING-CONSULTING © 2026 • Defining the Gold Standard in Career Architecture."
-    };
+  const COLOR = {
+    blue: {
+      border: "border-blue-500/20",
+      bg: "bg-blue-500/5",
+      accent: "text-blue-400",
+      badge: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+      btn: "from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-blue-600/20",
+      icon: "bg-blue-500/10 text-blue-400",
+      check: "text-blue-400",
+    },
+    indigo: {
+      border: "border-indigo-500/20",
+      bg: "bg-indigo-500/5",
+      accent: "text-indigo-400",
+      badge: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
+      btn: "from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 shadow-indigo-600/20",
+      icon: "bg-indigo-500/10 text-indigo-400",
+      check: "text-indigo-400",
+    },
+    violet: {
+      border: "border-violet-500/20",
+      bg: "bg-violet-500/5",
+      accent: "text-violet-400",
+      badge: "bg-violet-500/10 text-violet-300 border-violet-500/20",
+      btn: "from-violet-600 to-indigo-700 hover:from-violet-500 hover:to-indigo-600 shadow-violet-600/20",
+      icon: "bg-violet-500/10 text-violet-400",
+      check: "text-violet-400",
+    },
+  } as const;
 
-    return (
-        <div className={cn(
-            "min-h-screen bg-slate-50 dark:bg-[#020617] selection:bg-blue-500 selection:text-white pb-12 overflow-hidden",
-            language === 'ar' ? 'font-arabic' : 'font-sans'
-        )} dir={dir}>
+  const cards = [T.student, T.pro, T.expert] as const;
+  const CardIcons = [GraduationCap, Briefcase, Shield] as const;
+  const DiagIcons = [FileText, Brain, MessageSquare] as const;
+  const TrustIcons = [Sparkles, Shield, Zap] as const;
+  const trustColors = ["text-emerald-400", "text-blue-400", "text-violet-400"] as const;
 
-            {/* Premium Background Effects */}
-            <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }}></div>
-            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-20%] left-[20%] w-[1000px] h-[1000px] bg-blue-500/10 rounded-full blur-[150px] animate-pulse" style={{ animationDuration: '8s' }} />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-[120px]" />
-                <div className="absolute top-[40%] left-[-10%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px]" />
-            </div>
+  return (
+    <div
+      className={cn(
+        "min-h-screen bg-[#050810] text-white overflow-x-hidden selection:bg-blue-500/30",
+        lang === "ar" ? "font-arabic" : "font-sans"
+      )}
+      dir={dir}
+    >
+      {/* ── Ambient background ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-[700px] h-[500px] bg-blue-600/8 rounded-full blur-[160px]" />
+        <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-violet-600/8 rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 left-1/2 w-[600px] h-[400px] bg-indigo-600/8 rounded-full blur-[150px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-size-[56px_56px]" />
+      </div>
 
-            <main className="relative z-10 container mx-auto px-6 pt-32">
+      <main className="relative z-10 container mx-auto px-5 py-24 md:py-32 max-w-7xl">
 
-                {/* Hero Section */}
-                <div className="max-w-6xl mx-auto text-center mb-32 relative">
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="absolute -top-20 right-0 w-64 h-64 grayscale opacity-10 pointer-events-none hidden lg:block"
-                    >
-                        <Image src="/images/landing_hero_visual.png" alt="Visual Decor" fill className="object-cover rounded-full" />
-                    </motion.div>
+        {/* ══ Hero ══ */}
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-8"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-300">
+              {T.badge}
+            </span>
+          </motion.div>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 mb-12 shadow-2xl shadow-blue-500/5 hover:shadow-blue-500/10 transition-all cursor-default"
-                    >
-                        <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
-                        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-700 dark:text-slate-200">
-                            {content.badge}
-                        </span>
-                    </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 leading-[1.02]"
+          >
+            {T.title}{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 via-indigo-400 to-violet-400">
+              {T.titleHl}
+            </span>
+          </motion.h1>
 
-                    <motion.h1
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.1 }}
-                        className="text-7xl md:text-9xl font-serif font-medium text-slate-900 dark:text-white mb-10 tracking-tighter leading-[0.95]"
-                    >
-                        {content.title} <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-linear-to-b from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 drop-shadow-sm">
-                            {content.titleHighlight}
-                        </span>
-                    </motion.h1>
-
-                    <motion.p
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="text-2xl md:text-3xl text-slate-600 dark:text-slate-400 max-w-4xl mx-auto leading-relaxed mb-16 italic font-medium opacity-90"
-                    >
-                        {content.subtitle}
-                    </motion.p>
-
-                    {/* Stats Row */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 40 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-12 max-w-5xl mx-auto border-t-2 border-slate-200/50 dark:border-slate-800/50 pt-16"
-                    >
-                        {stats.map((stat, index) => (
-                            <div key={index} className="flex flex-col items-center group cursor-default">
-                                <span className="text-4xl md:text-5xl font-serif font-bold text-slate-900 dark:text-white mb-2 group-hover:scale-110 transition-transform duration-500">{stat.value}</span>
-                                <span className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400 text-center">{stat.label}</span>
-                            </div>
-                        ))}
-                    </motion.div>
-                </div>
-
-                {/* Main Navigation Cards */}
-                <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto mb-32">
-
-                    {/* Professionals Card */}
-                    <Link href="/professionals" className="group">
-                        <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8 }}
-                            className="relative h-[600px] bg-white dark:bg-slate-900/60 backdrop-blur-2xl rounded-[4rem] border border-slate-200 dark:border-slate-800 p-12 md:p-20 overflow-hidden hover:shadow-[0_0_100px_-20px_rgba(37,99,235,0.15)] hover:border-blue-500/40 transition-all duration-700"
-                        >
-                            <div className="absolute top-0 right-0 p-16 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 group-hover:rotate-6 transition-all duration-1000">
-                                <User strokeWidth={0.5} size={400} />
-                            </div>
-
-                            <div className="relative z-10 flex flex-col h-full justify-between">
-                                <div className="space-y-10">
-                                    <div className="w-20 h-20 rounded-3xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-12 border border-blue-100 dark:border-blue-500/20 group-hover:rotate-12 transition-all duration-700 shadow-xl shadow-blue-500/10">
-                                        <Brain size={40} />
-                                    </div>
-                                    <h3 className="text-5xl font-serif font-medium text-slate-900 dark:text-white tracking-tight">{content.professional.title}</h3>
-                                    <p className="text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md italic">
-                                        {content.professional.desc}
-                                    </p>
-                                    <ul className="space-y-6">
-                                        {content.professional.features.map((f, i) => (
-                                            <li key={i} className="flex items-center gap-4 text-sm font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
-                                                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-sm"><CheckCircle2 className="w-4 h-4" /></div>
-                                                {f}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                
-                                <div className="flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400 group-hover:gap-8 transition-all duration-500 mt-10">
-                                    {content.ctaProfessional} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                                </div>
-                            </div>
-                        </motion.div>
-                    </Link>
-
-                    {/* Enterprises Card */}
-                    <Link href="/digitalization" className="group">
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8 }}
-                            className="relative h-[600px] bg-slate-900 dark:bg-white rounded-[4rem] border border-slate-800 dark:border-slate-200 p-12 md:p-20 overflow-hidden hover:shadow-[0_0_100px_-20px_rgba(99,102,241,0.2)] transition-all duration-700"
-                        >
-                            <div className="absolute top-0 right-0 p-16 opacity-[0.06] group-hover:opacity-[0.1] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-1000">
-                                <Building2 strokeWidth={0.5} size={400} className="text-white dark:text-slate-900" />
-                            </div>
-
-                            <div className="relative z-10 flex flex-col h-full justify-between">
-                                <div className="space-y-10">
-                                    <div className="w-20 h-20 rounded-3xl bg-white/10 dark:bg-slate-100 flex items-center justify-center text-white dark:text-slate-900 mb-12 border border-white/10 dark:border-slate-200 group-hover:-rotate-12 transition-all duration-700 shadow-xl shadow-white/5 dark:shadow-slate-200/50">
-                                        <Rocket size={40} />
-                                    </div>
-                                    <h3 className="text-5xl font-serif font-medium text-white dark:text-slate-900 tracking-tight">{content.enterprise.title}</h3>
-                                    <p className="text-xl text-slate-400 dark:text-slate-600 font-medium leading-relaxed max-w-md italic">
-                                        {content.enterprise.desc}
-                                    </p>
-                                    <ul className="space-y-6">
-                                        {content.enterprise.features.map((f, i) => (
-                                            <li key={i} className="flex items-center gap-4 text-sm font-black uppercase tracking-widest text-slate-300 dark:text-slate-600">
-                                                <div className="p-2 rounded-xl bg-white/10 dark:bg-slate-200 text-white dark:text-slate-900 shadow-sm"><Zap className="w-4 h-4" /></div>
-                                                {f}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <div className="flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] text-white dark:text-slate-900 group-hover:gap-8 transition-all duration-500 mt-10">
-                                    {content.ctaEnterprise} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                                </div>
-                            </div>
-                        </motion.div>
-                    </Link>
-
-                </div>
-
-                {/* Additional Trust Section */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="max-w-6xl mx-auto mb-32 grid grid-cols-1 md:grid-cols-3 gap-16 text-center"
-                >
-                    <div className="space-y-4">
-                        <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto text-blue-600 dark:text-blue-400 mb-6">
-                            <Globe2 size={24} />
-                        </div>
-                        <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.25em]">Global Standards</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Aligning talent with international benchmarks and C-suite expectations.</p>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center mx-auto text-indigo-600 dark:text-indigo-400 mb-6">
-                            <Shield size={24} />
-                        </div>
-                        <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.25em]">Verified Accuracy</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">High-precision AI diagnostics cross-validated by industry executive experts.</p>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center mx-auto text-purple-600 dark:text-purple-400 mb-6">
-                            <Sparkles size={24} />
-                        </div>
-                        <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.25em]">Elite Network</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Access to an exclusive ecosystem of leaders, researchers, and innovators.</p>
-                    </div>
-                </motion.div>
-
-                {/* Footer Minimal */}
-                <motion.div 
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="text-center border-t border-slate-200 dark:border-slate-800/50 pt-16"
-                >
-                    <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 dark:text-slate-500 opacity-60">
-                        {content.footer}
-                    </p>
-                </motion.div>
-
-            </main>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed"
+          >
+            {T.sub}
+          </motion.p>
         </div>
-    );
+
+        {/* ══ 3 Account Cards ══ */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {cards.map((card, i) => {
+            const c = COLOR[card.color as keyof typeof COLOR];
+            const Icon = CardIcons[i];
+            const DiagIcon = DiagIcons[i];
+            const isExpert = i === 2;
+
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12, duration: 0.6 }}
+                whileHover={{ y: -6 }}
+                className={cn(
+                  "relative flex flex-col rounded-4xl border p-8 transition-all duration-300",
+                  "bg-slate-900/50 backdrop-blur-sm hover:shadow-2xl",
+                  c.border,
+                  isExpert && "md:ring-1 md:ring-violet-500/30"
+                )}
+              >
+                {/* Expert pill */}
+                {isExpert && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap px-4 py-1.5 rounded-full bg-linear-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/30 flex items-center gap-1.5">
+                    <Zap className="w-3 h-3" />
+                    Experts &amp; Trainers
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className="mb-6 mt-2">
+                  <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-5", c.icon)}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className={cn("inline-block text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border mb-3", c.badge)}>
+                    {card.tag}
+                  </span>
+                  <h2 className="text-2xl font-black text-white mb-2">{card.title}</h2>
+                  <p className="text-slate-400 text-sm leading-relaxed font-medium">{card.desc}</p>
+                </div>
+
+                {/* Diagnostic box */}
+                <div className={cn("rounded-2xl border p-5 mb-6", c.bg, c.border)}>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <DiagIcon className={cn("w-4 h-4 shrink-0", c.accent)} />
+                    <span className={cn("text-[10px] font-black uppercase tracking-widest", c.accent)}>
+                      {card.diagnostic}
+                    </span>
+                    <span className="ml-auto text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                      {T.freeBadge}
+                    </span>
+                  </div>
+
+                  <ul className="space-y-2.5">
+                    {card.steps.map((step, j) => (
+                      <li key={j} className="flex items-start gap-2.5">
+                        <CheckCircle2 className={cn("w-4 h-4 shrink-0 mt-0.5", c.check)} />
+                        <span className="text-slate-300 text-xs font-medium leading-snug">{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {isExpert && (
+                    <div className="mt-4 flex items-center gap-2 text-amber-400/80 text-[10px] font-bold">
+                      <Timer className="w-3.5 h-3.5 shrink-0" />
+                      <span>5 min max / question · Anti-triche</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA */}
+                <Link
+                  href={card.href}
+                  className={cn(
+                    "mt-auto w-full flex items-center justify-center gap-3 py-4 rounded-2xl",
+                    "bg-linear-to-r text-white font-black text-xs uppercase tracking-widest",
+                    "transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg",
+                    c.btn
+                  )}
+                >
+                  {card.cta}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* ══ Trust row ══ */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
+          className="mt-20 flex flex-col sm:flex-row items-center justify-center gap-8"
+        >
+          {T.trust.map((text, i) => {
+            const TIcon = TrustIcons[i];
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <TIcon className={cn("w-4 h-4 shrink-0", trustColors[i])} />
+                <span className="text-slate-400 text-xs font-bold">{text}</span>
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {/* ══ Footer ══ */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center text-[11px] font-bold uppercase tracking-widest text-slate-700 mt-16 pt-8 border-t border-slate-800/50"
+        >
+          {T.footer}
+        </motion.p>
+      </main>
+    </div>
+  );
 }

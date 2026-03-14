@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Sparkles, Globe, AlertCircle, ArrowRight, ArrowLeft, Lock, ShieldCheck, BookOpen } from "lucide-react";
+import { Send, Loader2, Sparkles, Globe, AlertCircle, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { Language } from "@/lib/i18n/translations";
 import { StageProgressBanner, NextStageTeaser } from "@/components/assessment/NextStageTeaser";
@@ -609,83 +608,39 @@ export default function InterviewPage() {
                             ))}
                         </div>
 
-                        {/* Teaser Context for Free Tier */}
-                        {isFreeTier ? (
-                            <div className="space-y-6">
-                                <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 shadow-2xl relative overflow-hidden">
-                                     {/* Background Graphic */}
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full -mr-16 -mt-16" />
-                                    
-                                    <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2 relative z-10">
-                                        <AlertCircle className="w-5 h-5 text-amber-500" />
-                                        {selectedLanguage === 'ar' ? 'تقرير أولي - الدخول محدود' : 'Preliminary Report - Limited Access'}
-                                    </h2>
-                                    <p className="text-slate-300 leading-relaxed text-sm relative z-10">
-                                        {selectedLanguage === 'ar' 
-                                            ? 'انتباه: هذا التقييم غير مكتمل ولا يشمل كامل البيانات لأنك حالياً في الخطة المجانية. لقد قمنا فقط بتحليل القشرة السطحية لملفك المهني.' 
-                                            : 'Note: This assessment is incomplete and does not include full data because you are currently on the free plan. We have only analyzed the surface level of your professional profile.'}
-                                    </p>
-                                    <div className="mt-4 pt-4 border-t border-slate-800 flex items-center gap-2 text-amber-400 font-bold text-xs relative z-10">
-                                        <Lock className="w-3 h-3" />
-                                        <span>
-                                            {selectedLanguage === 'ar' ? 'هناك 4 ميزات استراتيجية ما زالت مغلقة في انتظارك' : '4 Strategic features are still locked awaiting you'}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {[
-                                        { title: selectedLanguage === 'ar' ? 'التدقيق الاستراتيجي العميق (SCI)' : 'Deep Strategic Audit (SCI)', desc: selectedLanguage === 'ar' ? 'كشف نقاط العمى التي تمنع ترقيتك' : 'Unlock blind spots blocking your promotion' },
-                                        { title: selectedLanguage === 'ar' ? 'خارطة الطريق التنفيذية' : 'Executive Roadmap', desc: selectedLanguage === 'ar' ? 'خطة عمل لـ 18 شهراً القادمة' : 'Action plan for the next 18 months' },
-                                        { title: selectedLanguage === 'ar' ? 'محاكاة القيادة والضغط' : 'Leadership & Pressure Simulation', desc: selectedLanguage === 'ar' ? 'اختبار قدراتك في مواجهة الأزمات' : 'Test your crisis management skills' },
-                                        { title: selectedLanguage === 'ar' ? 'تحليل التنافسية السوقية' : 'Market Competitiveness Analysis', desc: selectedLanguage === 'ar' ? 'أين أنت فعلياً مقارنة بالمحترفين؟' : 'Where you really stand vs pros?' }
-                                    ].map((item, idx) => (
-                                        <div key={idx} className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:border-indigo-300 transition-colors">
-                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center mt-0.5 shrink-0">
-                                                <Lock className="w-3 h-3 text-slate-400" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-xs font-bold text-slate-800">{item.title}</h4>
-                                                <p className="text-[10px] text-slate-500">{item.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                                <h2 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                                    <Sparkles className="w-5 h-5 text-amber-500" />
-                                    {t.interview.completeTitle}
-                                </h2>
-                                <p className="text-slate-700 leading-relaxed text-base italic">
-                                    &ldquo;{String(finalEvaluation.summary)}&rdquo;
-                                </p>
-                            </div>
-                        )}
+                        {/* Diagnostic Summary */}
+                        <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-xs relative overflow-hidden">
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
+                             
+                             <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2 relative z-10">
+                                 <Sparkles className="w-6 h-6 text-amber-500" />
+                                 {t.interview.completeTitle}
+                             </h2>
+                             <p className="text-slate-700 leading-relaxed text-lg italic relative z-10">
+                                 &ldquo;{String(finalEvaluation.summary)}&rdquo;
+                             </p>
+                        </div>
 
                         {/* Action Button */}
                         <div className="relative pt-4">
                             <motion.button
                                 onClick={async () => {
-                                    if (isFreeTier) {
-                                        // Mark as used if trial student
-                                        if (isLimitedStudent) {
-                                            const userId = userProfile.email || userProfile.fullName;
-                                            if (userId) {
-                                                await fetch('/api/user/trial-gate', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ userId, module: 'strategic-report', moduleHref: '/strategic-report' })
-                                                });
-                                                window.dispatchEvent(new Event("profileUpdated"));
-                                            }
+                                    // Mark as used if trial student
+                                    if (isLimitedStudent) {
+                                        const userId = userProfile.email || userProfile.fullName;
+                                        if (userId) {
+                                            await fetch('/api/user/trial-gate', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ userId, module: 'strategic-report', moduleHref: '/strategic-report' })
+                                            });
+                                            window.dispatchEvent(new Event("profileUpdated"));
                                         }
-                                        router.push('/subscription');
-                                    } else {
-                                        localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
-                                        router.push('/assessment/results');
                                     }
+                                    
+                                    // Always allow proceeding to results for a seamless "Complete" experience
+                                    localStorage.setItem('interviewEvaluation', JSON.stringify(finalEvaluation));
+                                    router.push('/assessment/results');
                                 }}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -695,7 +650,7 @@ export default function InterviewPage() {
                                     <>
                                         <ShieldCheck className="w-6 h-6 text-yellow-400" />
                                         <span>
-                                            {selectedLanguage === 'ar' ? 'اكتشف التشخيص الكامل الآن' : 'Unlock Full Diagnosis Now'}
+                                            {selectedLanguage === 'ar' ? 'أكمل تشخيصك بالكامل الآن' : 'Complete Your Full Diagnosis Now'}
                                         </span>
                                     </>
                                 ) : (
@@ -709,20 +664,7 @@ export default function InterviewPage() {
                             </motion.button>
                         </div>
 
-                        {isFreeTier && (
-                             <div className="mt-8 pt-6 border-t border-slate-100">
-                                <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                                    {selectedLanguage === 'ar' ? 'ورش عمل مخصصة لفجواتك' : 'Workshops Tailored to Your Gaps'}
-                                </p>
-                                <div className="flex justify-center gap-4">
-                                    <Link href="/training" className="group flex items-center gap-2 text-indigo-600 font-bold hover:text-indigo-800 transition-colors">
-                                        <BookOpen className="w-5 h-5" />
-                                        <span>{selectedLanguage === 'ar' ? 'تصفح الورش المقترحة بك' : 'Explore Your Recommended Workshops'}</span>
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </Link>
-                                </div>
-                             </div>
-                        )}
+
                     </div>
                 </motion.div>
             </div>

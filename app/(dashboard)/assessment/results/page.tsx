@@ -246,10 +246,8 @@ export default function ResultsPage() {
         }
     };
 
-    const userProfile = JSON.parse(typeof window !== 'undefined' ? (localStorage.getItem('userProfile') || '{}') : '{}');
-    const isLimitedStudent = userProfile.activationType === "Limited";
-    const isPaidPlan = ["Professional", "Pro", "Executive", "Premium"].includes(userProfile.plan) || (userProfile.plan === "Student" && !isLimitedStudent);
-    const isFreeTier = !isPaidPlan;
+
+    const canDownload = false;
 
     if (!evaluation) {
         return (
@@ -265,9 +263,7 @@ export default function ResultsPage() {
     return (
         <TrialGate 
             module="strategic-report" 
-            moduleHref="/strategic-report"
             dir={dir}
-            manualMark={false} 
         >
         <div className="flex-1 p-4 md:p-8 max-w-6xl mx-auto space-y-6" dir={dir}>
             {/* ── Next Stage Top Banner ── */}
@@ -302,6 +298,7 @@ export default function ResultsPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            {canDownload ? (
                             <button
                                 onClick={handleDownloadReport}
                                 disabled={isDownloading}
@@ -311,16 +308,25 @@ export default function ResultsPage() {
                                 {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                 {t.results.pdfReport}
                             </button>
+                            ) : (
+                            <div
+                                data-html2canvas-ignore
+                                title={dir === 'rtl' ? 'التحميل متاح للمشتركين فقط' : 'Download available for paid plans only'}
+                                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-sm gap-2 cursor-not-allowed select-none"
+                            >
+                                <Download className="w-4 h-4" />
+                                {t.results.pdfReport}
+                                <span className="text-[9px] bg-amber-100 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter ml-1">
+                                    {dir === 'rtl' ? 'برو' : 'PRO'}
+                                </span>
+                            </div>
+                            )}
                             <motion.button
                                 initial={{ scale: 1 }}
                                 animate={{ scale: [1, 1.1, 1] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                 onClick={() => {
-                                    if (isFreeTier) {
-                                        router.push('/subscription');
-                                    } else {
-                                        router.push("/assessment/role-discovery");
-                                    }
+                                    router.push("/assessment/role-discovery");
                                 }}
                                 className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-600/20 group"
                                 data-html2canvas-ignore
@@ -540,11 +546,7 @@ export default function ResultsPage() {
             <NextStageTeaser 
                 stage="results" 
                 onNavigate={() => {
-                    if (isFreeTier) {
-                        router.push('/subscription');
-                    } else {
-                        router.push('/assessment/role-discovery');
-                    }
+                    router.push('/assessment/role-discovery');
                 }} 
             />
         </div>

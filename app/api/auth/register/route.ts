@@ -32,23 +32,44 @@ export async function POST(req: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // Generate Member ID
+        const memberId = `EXP-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
         // Map planId to actual roles/types
         let role = "Free Tier";
         let accountType = "Free";
         let plan = "Student";
+        let activationType = "Gratuit";
+        let trialDurationHours = 3;
 
         if (planId?.startsWith("p-")) {
             role = "Premium Member";
             accountType = "Premium";
             plan = "Professional";
-        } else if (planId?.startsWith("e-")) {
-            role = "Premium Member"; // Experts are premium by default or pending
-            accountType = "Premium";
-            plan = "None"; // Or update enum in User model later
+            activationType = "Gratuit";
+            trialDurationHours = 1;
+        } else if (planId?.startsWith("e-") || planId?.startsWith("x-")) {
+            role = "Free Tier";
+            accountType = "Free";
+            plan = "Expert";
+            trialDurationHours = 0;
+            const expertInterviewStatus = "Pending";
+            
+            // Create user for expert/trainer
+            await User.create({
+                fullName: `${firstName} ${lastName}`,
+                email,
+                password: hashedPassword,
+                whatsapp,
+                role,
+                status: "Pending",
+                accountType,
+                plan,
+                memberId,
+                expertInterviewStatus
+            });
+            return NextResponse.json({ success: true, message: "Registration request submitted" });
         }
-
-        // Generate Member ID
-        const memberId = `EXP-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 
         // Create user
         await User.create({
@@ -59,8 +80,9 @@ export async function POST(req: NextRequest) {
             role,
             status: "Pending",
             accountType,
-            isTrial: planId === "s-free",
-            trialDurationHours: planId === "s-free" ? 0.25 : 0,
+            isTrial: true,
+            trialDurationHours,
+            activationType,
             plan,
             mandateDuration,
             mandateCurrency,

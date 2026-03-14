@@ -2,16 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
-// Configuration for the student free trial
-const TRIAL_DURATION_HOURS = 3; // 3 hours trial period
-const TRIAL_MODULES = [
-    'ai-path',          // ⚡ مسار الذكاء الاصطناعي التلقائي
-    'strategic-resources', // الموارد الاستراتيجية
-    'ai-experts',       // 🔥 خبراء الذكاء الاصطناعي
-    'strategic-roadmap', // 🚀 خارطة الطريق الاستراتيجية
-    'resources',         // الموارد
-    'performance-scorecard', // بطاقة الأداء
-    'job-alignment'     // 🌍 مواءمة المهنة
+/**
+ * GATING RULES FOR FREE/STUDENT TRIAL USERS:
+ * 
+ * ✅ ALWAYS FREE (no gating):
+ *   - Full Diagnostic: CV Audit, Interview, Role Discovery, Results, Strategic Report
+ *   - Assessment steps (cv-upload, cv-generation, interview, role-discovery, role-suggestions, results, simulation)
+ * 
+ * 🔒 ALWAYS PAID (gated with 'paid_only'):
+ *   - AI Modules: ai-path (mentor), strategic-resources (academy), ai-experts (expert), strategic-roadmap (roadmap)
+ *   - Tools: resources (library), performance-scorecard, job-alignment
+ * 
+ * ❌ REMOVED: 3-hour timer, one-time visit per module
+ */
+const PAID_ONLY_MODULES = [
+    'ai-path',              // ⚡ AI Path (mentor)
+    'strategic-resources',  // 📚 Academy / Strategic Resources
+    'ai-experts',           // 🔥 AI Expert Chat
+    'strategic-roadmap',    // 🚀 Roadmap
+    'resources',            // 📂 Library
+    'performance-scorecard',// 📈 Performance Scorecard
+    'job-alignment',        // 🌍 Job Alignment
+];
+
+// Diagnostic modules are always free for everyone
+const FREE_DIAGNOSTIC_MODULES = [
+    'strategic-report',     // Full diagnostic report — FREE
+    'assessment-results',   // Interview results — FREE
 ];
 
 /**
@@ -38,103 +55,54 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        // Identify users subject to trial gating: Student plan + (Free Tier/Trial User) OR plan 'None' (Registered but no plan)
-        // Identify users subject to trial gating
-        // A user is NOT a trial user if they have activationType === 'Unlimited'
+        // Identify if this is a trial/free user
         const isStudentFreeTrial = user.activationType !== 'Unlimited' && (
-            (user.plan === 'Student' && (user.role === 'Free Tier' || user.role === 'Trial User')) || 
-            (user.activationType === 'Limited') || 
+            (user.plan === 'Student' && (user.role === 'Free Tier' || user.role === 'Trial User')) ||
+            (user.activationType === 'Limited') ||
             (user.plan === 'None')
         );
 
+        // Non-trial users (paid/admin): full access everywhere
         if (!isStudentFreeTrial) {
-            // Paid plan or admin: full access
-            return NextResponse.json({ 
-                allowed: true, 
+            return NextResponse.json({
+                allowed: true,
                 reason: 'not_trial',
-                trialInfo: null 
+                trialInfo: null
             });
         }
 
-        const now = new Date();
+        // ── FREE DIAGNOSTIC MODULE CHECK ──
+        // strategic-report and assessment results are always free
+        if (FREE_DIAGNOSTIC_MODULES.includes(moduleName) || moduleName === 'strategic-report') {
+            return NextResponse.json({
+                allowed: true,
+                reason: 'diagnostic_free',
+                trialInfo: null
+            });
+        }
 
-        // Check if module is in trial-gated (one-time access) list
-        if (!TRIAL_MODULES.includes(moduleName)) {
-            // If it's not in the trial list but we are here (TrialGate component used), 
-            // it means it's a PAID ONLY module for this user.
-            return NextResponse.json({ 
-                allowed: false, 
+        // ── PAID-ONLY MODULE CHECK ──
+        // These modules require a paid plan - no free access
+        if (PAID_ONLY_MODULES.includes(moduleName)) {
+            return NextResponse.json({
+                allowed: false,
                 reason: 'paid_only',
                 trialInfo: {
-                    startedAt: user.firstLoginAt ? new Date(user.firstLoginAt).toISOString() : now.toISOString(),
-                    expiresAt: user.firstLoginAt ? new Date(new Date(user.firstLoginAt).getTime() + TRIAL_DURATION_HOURS * 60 * 60 * 1000).toISOString() : now.toISOString(),
-                    durationHours: TRIAL_DURATION_HOURS,
+                    startedAt: user.firstLoginAt ? new Date(user.firstLoginAt).toISOString() : new Date().toISOString(),
+                    expiresAt: null,
+                    durationHours: null,
                     isExpired: false,
                     moduleUsed: false,
                     isPaidOnly: true
-                } 
-            });
-        }
-
-        const firstLogin = user.firstLoginAt ? new Date(user.firstLoginAt) : now;
-
-        // Set firstLoginAt if not set
-        if (!user.firstLoginAt) {
-            await User.findByIdAndUpdate(user._id, { 
-                $set: { firstLoginAt: now } 
-            });
-        }
-
-        // Check if 3-hour trial window has expired
-        const trialExpiryTime = new Date(firstLogin.getTime() + TRIAL_DURATION_HOURS * 60 * 60 * 1000);
-        const isTrialExpired = now > trialExpiryTime;
-
-        if (isTrialExpired) {
-            return NextResponse.json({
-                allowed: false,
-                reason: 'trial_expired',
-                trialInfo: {
-                    startedAt: firstLogin.toISOString(),
-                    expiresAt: trialExpiryTime.toISOString(),
-                    durationHours: TRIAL_DURATION_HOURS,
-                    isExpired: true,
-                    moduleUsed: (user.visitedModules || []).includes(moduleName)
                 }
             });
         }
 
-        // Check if this specific module was already used
-        const visitedModules: string[] = user.visitedModules || [];
-        const moduleAlreadyUsed = visitedModules.includes(moduleName);
-
-        if (moduleAlreadyUsed) {
-            return NextResponse.json({
-                allowed: false,
-                reason: 'module_used',
-                trialInfo: {
-                    startedAt: firstLogin.toISOString(),
-                    expiresAt: trialExpiryTime.toISOString(),
-                    durationHours: TRIAL_DURATION_HOURS,
-                    isExpired: false,
-                    moduleUsed: true,
-                    minutesRemaining: Math.max(0, Math.floor((trialExpiryTime.getTime() - now.getTime()) / 60000))
-                }
-            });
-        }
-
-        // Module is accessible - return allowed
+        // ── UNKNOWN MODULE: fail open (allow access) ──
         return NextResponse.json({
             allowed: true,
-            reason: 'trial_active',
-            trialInfo: {
-                startedAt: firstLogin.toISOString(),
-                expiresAt: trialExpiryTime.toISOString(),
-                durationHours: TRIAL_DURATION_HOURS,
-                isExpired: false,
-                moduleUsed: false,
-                minutesRemaining: Math.max(0, Math.floor((trialExpiryTime.getTime() - now.getTime()) / 60000)),
-                visitedModules
-            }
+            reason: 'module_not_gated',
+            trialInfo: null
         });
 
     } catch (error: unknown) {
@@ -145,62 +113,23 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST - Mark a module as used for a Student Free Trial user
- * Body: { userId, module }
+ * POST - Legacy: used to mark modules as visited. Now a no-op for free users.
+ * Kept for backwards compatibility with sidebar trackVisit calls.
  */
 export async function POST(request: NextRequest) {
     try {
         await connectDB();
-        const { userId, module: moduleName, moduleHref } = await request.json();
+        const { userId, module: moduleName } = await request.json();
 
         if (!userId || !moduleName) {
             return NextResponse.json({ error: "userId and module required" }, { status: 400 });
         }
 
-        const isObjectId = userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId);
-        const user = await User.findOne(
-            isObjectId ? { $or: [{ _id: userId }, { email: userId }] } : { email: userId }
-        );
-
-        if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        interface MongoUpdate {
-            $set?: Record<string, unknown>;
-            $addToSet?: {
-                visitedModules?: { $each: string[] };
-            };
-        }
-
-        const mongoUpdate: MongoUpdate = {};
-
-        // Set firstLoginAt if not already set
-        if (!user.firstLoginAt) {
-            mongoUpdate.$set = { firstLoginAt: new Date() };
-        }
-
-        // Add modules to visitedModules
-        const modulesToAdd: string[] = [];
-        if (!user.visitedModules?.includes(moduleName)) {
-            modulesToAdd.push(moduleName);
-        }
-        if (moduleHref && !user.visitedModules?.includes(moduleHref)) {
-            modulesToAdd.push(moduleHref);
-        }
-
-        if (modulesToAdd.length > 0) {
-            mongoUpdate.$addToSet = { visitedModules: { $each: modulesToAdd } };
-        }
-
-        if (Object.keys(mongoUpdate).length > 0) {
-            await User.findByIdAndUpdate(user._id, mongoUpdate);
-        }
-
-        return NextResponse.json({ 
-            success: true, 
-            message: `Module '${moduleName}' marked as used`,
-            visitedModules: [...(user.visitedModules || []), moduleName, ...(moduleHref ? [moduleHref] : [])]
+        // No longer tracking visited modules — one-time rule removed
+        return NextResponse.json({
+            success: true,
+            message: `Module tracking disabled — no restrictions apply`,
+            visitedModules: []
         });
 
     } catch (error: unknown) {

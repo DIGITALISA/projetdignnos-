@@ -1,0 +1,30 @@
+﻿        console.error('âŒ Student Expert Report Error:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to generate student expert report'
+        };
+    }
+}
+export async function generateProfessionalExpertReport(
+    professionalData: {
+        userInfo: {
+            name: string;
+            email: string;
+            plan?: string;
+            joinedDate?: unknown;
+        };
+        auditResult: AuditResult;
+        formData: ProfessionalData;
+- MCQ Assessment (Hard & Soft Skills)
+- Portfolio Interview (5-phase deep dive)
+- Ultimate Strategic Report
+
+${languageInstruction}
+
+**REQUIRED JSON OUTPUT STRUCTURE:**
+{
+  "reportType": "PROFESSIONAL",
+  "reportTitle": "string (e.g. 'Executive Intelligence Brief â€” Advisor Edition')",
+
+  "executiveBrief": "string (3-4 sentences: Who is this professional? What is their real market weight? What is the #1 strategic priority for the advisor?)",
+
