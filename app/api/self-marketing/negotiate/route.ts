@@ -7,23 +7,34 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { message, preferences, report, language, history, userId } = body;
 
+        const isEvaluationPhase = history.length >= 8; // Roughly 4 rounds of Q&A
+
         const systemPrompt = `
-        You are a Top-Tier Executive Career Negotiator and Market Strategist.
-        Your goal is to have a realistic, blunt, and highly strategic negotiation with a high-level professional.
+        You are a Master Executive Headhunter and Global Compensation Auditor.
+        Your goal is to perform a "Market Value & Positioning Stress Test" on this professional.
         
         CONTEXT:
-        - User's Current Profile (Audit Report): ${JSON.stringify(report)}
-        - User's Desired Target: Role (${preferences.job}), Salary (${preferences.salary}), Benefits (${preferences.benefits})
-        - User's Motivation: ${preferences.motivation}
+        - Current Audit Data: ${JSON.stringify(report)}
+        - User's Target: Role (${preferences.job}), Target Salary (${preferences.salary}), Perks (${preferences.benefits})
+        - Motivation for Move: ${preferences.motivation}
 
-        RULES:
-        1. NO FLATTERY. You must be realistic. If their profile doesn't match their salary expectation, tell them why.
-        2. Negotiate and challenge them. Ask deep questions: Why do they deserve this? Is it the right timing? Are they running away from a problem or moving towards a goal?
-        3. Use a tone of an elite headhunter (McKinsey/Bain style).
-        4. Provide advice based on market friction vs. their current "Value Weight".
-        5. If they seem "ready" or have defended their position well, you can acknowledge it, but always keep a "higher standard" bar.
-        6. Response must be in ${language === 'ar' ? 'Arabic' : 'English'}.
-        7. Keep responses concise but powerful.
+        YOUR TASK:
+        1. Probe the gap between their "Ambition" and their "Data-Driven Reality".
+        2. Challenge their ROI. Ask: "If a company pays you ${preferences.salary}, what is the 3X value you bring in the first 12 months?"
+        3. Audit their exit/entry logic. Are they overvaluing themselves or playing it too safe?
+        4. Detect "Mercenary" vs "Strategic Leader" patterns.
+        
+        CRITICAL RULES:
+        - TONE: Clinical, elite, skeptical. You are a gatekeeper for top-tier roles.
+        - NO SYMPATHY. Focus only on Market Value, Leverage, and Risk.
+        - Respond in ${language === 'ar' ? 'Arabic' : 'English'}.
+        
+        ${isEvaluationPhase ? `
+        EVALUATION MODE TRIGGERED:
+        You must now conclude the stress test. 
+        Provide a final "Positioning Verdict" in JSON format at the end of your message:
+        { "verdict": "string", "marketAlignmentScore": 0-100, "leveragePoints": [], "redFlags": [], "readyForAssets": true }
+        ` : 'Continue the probe with one sharp, investigative question.'}
         `;
 
         const response = (await generateDeepSeekChat([
@@ -32,8 +43,10 @@ export async function POST(req: Request) {
             { role: "user", content: message }
         ])) as OpenAI.Chat.Completions.ChatCompletion;
 
-        const reply = response.choices?.[0]?.message?.content || 
-                      (language === 'ar' ? "عذراً، لم أستطع تحليل طلبك. حاول مجدداً." : "Sorry, I couldn't process that. Try again.");
+        const content = response.choices?.[0]?.message?.content || "";
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        const evaluation = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+        const reply = content.replace(/\{[\s\S]*\}/, "").trim();
 
         // SAVE TO DB persistence
         if (userId) {
@@ -44,16 +57,21 @@ export async function POST(req: Request) {
                 { userId: userId },
                 { 
                     $set: { 
-                        negotiationHistory: [...history, { role: 'user', content: message, timestamp: new Date() }, { role: 'assistant', content: reply, timestamp: new Date() }] 
+                        positioningAuditHistory: [...history, { role: 'user', content: message }, { role: 'assistant', content: reply }] 
                     } 
                 },
                 { upsert: true }
             );
         }
 
-        return NextResponse.json({ success: true, reply });
+        return NextResponse.json({ 
+            success: true, 
+            reply, 
+            evaluation,
+            readyForAssets: !!evaluation?.readyForAssets 
+        });
     } catch (error) {
-        console.error("Negotiation Error:", error);
+        console.error("Positioning Audit Error:", error);
         return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
     }
 }

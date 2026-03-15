@@ -9,54 +9,57 @@ interface Message {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { phase, formData, report, history, language } = body as {
-            phase: 'init' | 'scenario' | 'probe',
-            formData: { sector: string, goals: string, tasks: string },
-            report: unknown,
-            history: Message[],
-            language: string
-        };
+        const { phase, history, report, language, phase1Data } = body;
 
         let systemPrompt = "";
         let userPrompt = "";
 
-        if (phase === 'init') {
-            systemPrompt = `You are a Senior Strategic Auditor. Review the user's job sector, goals, and tasks. 
-            Provide a CONCISE (2-3 sentences), BRUTAL summary of whether they actually understand their role or if they are just doing "busy work".
-            Be direct and elite. Language: ${language || 'ar'}.`;
-            userPrompt = `SECTOR: ${formData.sector}\nGOALS: ${formData.goals}\nTASKS: ${formData.tasks}\nPREVIOUS_DIAGNOSTIC: ${JSON.stringify(report)}`;
-        } 
-        
-        else if (phase === 'scenario') {
-            systemPrompt = `You are a Master of Professional Simulations. Based on the user's role and previous diagnostic, generate ONE highly realistic, complex, and urgent scenario that could happen in their specific sector (${formData.sector}) TODAY.
-            The scenario must test their strategic alignment with their goals: ${formData.goals}.
-            End the scenario by asking: "List exactly the 3-5 major actions you would take in the first 24 hours to handle this."
-            Language: ${language || 'ar'}.`;
-            userPrompt = `DATA: ${JSON.stringify(formData)}\nAUDIT: ${JSON.stringify(report)}`;
-        }
+        // Total target: ~10 questions (Past) + ~5 scenarios (Future/Decision)
+        const totalMessages = history.filter((m: Message) => m.role === 'assistant').length;
 
-        else if (phase === 'probe') {
-            // Check if it's time to end the simulation (e.g. after 3-4 questions)
-            const assistantMessages = history.filter(m => m.role === 'assistant').length;
-            
-            if (assistantMessages >= 4) {
-                // Return Final Evaluation
-                systemPrompt = `You are the Final Strategic Judge. provide a BRUTAL EVALUATION of the user's performance in the simulation.
+        if (phase === 'interview') {
+            if (totalMessages >= 15) {
+                // Trigger Evaluation
+                systemPrompt = `You are a Master HR Strategic Auditor. You have completed a deep probe into the user's career logic.
+                Analyze the transcript and provide a BRUTAL yet ELITE professional character report.
+                Focus on: Is this person a "Mercenary" (money-driven), a "Builder" (growth-driven), or a "Stagnator" (comfort-driven)? 
+                Do they have a real career plan or just reacting to life?
+                
                 Return ONLY a JSON object:
                 {
-                    "score": number (0-100),
-                    "summary": "Masterful executive summary of their performance",
-                    "corrections": ["list of brutal strategic corrections"],
-                    "alignmentNotes": ["how their actions matched or failed their goals"],
-                    "actionPlan": "A short, sharp 3-step growth plan"
+                    "score": number (Strategic Maturity 0-100),
+                    "summary": "Deep psychological & professional profile (4-5 sentences)",
+                    "corrections": ["Specific mindset shifts needed"],
+                    "alignmentNotes": ["Logic gaps identified in their career choices"],
+                    "actionPlan": "A sharp 3-step strategy to fix their career trajectory",
+                    "archetype": "Mercenary | Builder | Comfort-Seeker | Visionary"
                 }
                 Language: ${language || 'ar'}.`;
-                userPrompt = `Transcript: ${JSON.stringify(history)}\nOriginal Goals: ${formData.goals}`;
+                userPrompt = `Full Transcript: ${JSON.stringify(history)}\nOriginal Report: ${JSON.stringify(report)}\nCareer History: ${JSON.stringify(phase1Data)}`;
+            } else if (totalMessages < 10) {
+                // Phase: Investigation (10 Questions)
+                systemPrompt = `You are an Elite HR Strategic Auditor. Your goal is to dissect the user's professional history.
+                Based on their career history (${JSON.stringify(phase1Data?.positions || [])}), ask ONE sharp, deep question at a time.
+                Focus on:
+                1. Logic of transitions (Why move from Job A to B?).
+                2. Tenure duration (Why stay for X years? What held them there?).
+                3. The "Trigger" (What exactly made them leave or stay?).
+                
+                Be direct, clinical, and high-level. Avoid pleasantries. 
+                Current progress: ${totalMessages + 1}/10 investigative questions.
+                Language: ${language || 'ar'}.`;
+                userPrompt = `History: ${JSON.stringify(phase1Data)}\nTranscript: ${JSON.stringify(history)}`;
             } else {
-                // Ask next probing question
-                systemPrompt = `You are probing the user's action plan. Pick ONE action they mentioned and challenge it. 
-                Ask a deep, strategic question that forces them to defend the logic behind that action.
-                Be concise and authoritative. Language: ${language || 'ar'}.`;
+                // Phase: 5 Scenarios (Future Decisions)
+                systemPrompt = `You are a Master of Professional Scenarios. You have investigated their past, now test their FUTURE logic.
+                Present ONE complex decision scenario at a time.
+                Examples: 
+                - "If you are in this role and get a 40% higher offer from a competitor but a toxic environment, what is your logic for the choice?"
+                - "A startup offers you equity but 0 salary for 6 months. How do you evaluate this against your current plan?"
+                
+                The goal is to see if they choose growth, money, or comfort.
+                Current progress: Scenario ${totalMessages - 9}/5.
+                Language: ${language || 'ar'}.`;
                 userPrompt = `Transcript: ${JSON.stringify(history)}`;
             }
         }
@@ -69,19 +72,15 @@ export async function POST(req: NextRequest) {
         const content = response.choices[0].message.content;
         if (!content) throw new Error("Empty response from AI");
 
-        if (phase === 'probe' && history.filter(m => m.role === 'assistant').length >= 4) {
+        if (totalMessages >= 15) {
             const jsonStr = content.match(/\{[\s\S]*\}/)?.[0] || content;
             return NextResponse.json({ success: true, evaluation: JSON.parse(jsonStr) });
         }
 
-        if (phase === 'init') return NextResponse.json({ success: true, feedback: content });
-        if (phase === 'scenario') return NextResponse.json({ success: true, scenario: content });
-        if (phase === 'probe') return NextResponse.json({ success: true, nextQuestion: content });
+        return NextResponse.json({ success: true, nextQuestion: content });
 
-        return NextResponse.json({ success: false });
     } catch (error) {
         console.error("Simulation API Error:", error);
-        const errMsg = error instanceof Error ? error.message : "Internal Error";
-        return NextResponse.json({ success: false, error: errMsg }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal Error" }, { status: 500 });
     }
 }

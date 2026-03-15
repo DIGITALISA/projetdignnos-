@@ -5,36 +5,34 @@ import OpenAI from "openai";
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { chat, preferences, report, language, userId } = body;
+        const { chat, preferences, report, language, userId, evaluation } = body;
 
         const systemPrompt = `
-        You are a Top-Tier Executive Career Asset Generator.
-        Analyze the previous conversation history, the user's audit report (${JSON.stringify(report)}), and their desires (Target: ${preferences.job}, Salary: ${preferences.salary}) to generate two professional products.
-
-        PRODUCTS (Must be returned in valid JSON):
-        - assets: { cv: string (Markdown formatted), report: string (Strategic text - Markdown formatted) }
-
-        CV RULES:
-        - Must be highly ATS-optimized.
-        - Must highlight achievements over duties.
-        - Must focus on the "Value Weight" required for a ${preferences.job}.
-        - Format the CV with a header, profile, experience, education, and skills.
+        You are a Master Executive Assets Auditor.
+        Your mission is to synthesize the results of a "Positioning Stress Test" and create a professional Audit Package.
         
-        REPORT RULES:
-        - This is NOT just advice; it is a "Comprehensive Executive Strategic Report" (التقرير الاستراتيجي التنفيذي الشامل).
-        - Structure it as a formal document to be presented to a Board of Directors or Elite Hiring Committees.
-        - Sections must include: I. Executive Summary, II. Strategic Maturity & Value Prop, III. Leadership Impact Analysis (based on audit data), IV. Market Positioning & Synergy, V. Five-Year Strategic Roadmap.
-        - Integrate the participant's "Value Weight", leadership fingerprint, and audit results to prove their readiness for ${preferences.job}.
-        - Use evidence-based language. It should justify why they deserve ${preferences.salary}.
-        - Format with professional markdown headers and clean structure.
+        INPUT DATA:
+        - Preliminary Audit: ${JSON.stringify(report)}
+        - Target Ambition: ${preferences.job} at ${preferences.salary}
+        - Stress-Test Verdict & Evaluation: ${JSON.stringify(evaluation)}
         
-        TONE: Formal, High-Level, Analytical, Uncompromisingly Professional.
+        PRODUCTS REQUIRED (Return as valid JSON):
+        - assets: { cv: string (Markdown), report: string (Strategic Audit Report - Markdown) }
+
+        AUDIT REPORT STRUCTURE:
+        1. Executive Positioning Verdict: Based on the stress test.
+        2. Leverage Points: What the candidate can use to win.
+        3. Critical Risk Mitigation: Addressing the "Red Flags" found.
+        4. Performance-to-Salary Alignment: Justifying the ${preferences.salary} ask or correcting it.
+        5. Final Implementation Roadmap.
+
+        TONE: Board-level, clinical, high-authority.
         LANGUAGE: ${language === 'ar' ? 'Arabic' : 'English'}.
         `;
 
         const response = (await generateDeepSeekChat([
             { role: "system", content: systemPrompt },
-            { role: "user", content: "Analyze our negotiation and generate the final assets. Previous Chat: " + JSON.stringify(chat) }
+            { role: "user", content: "Synthesize the positioning audit and finalize the assets. Transcript: " + JSON.stringify(chat.slice(-10)) }
         ])) as OpenAI.Chat.Completions.ChatCompletion;
 
         const content = response.choices?.[0]?.message?.content || "";

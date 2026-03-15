@@ -157,7 +157,33 @@ const DiagnosisSchema = new Schema({
         type: String,
         unique: true,
         sparse: true
-    }
+    },
+    // ─── Professional HR Audit Fields ─────────────────────────────
+    professionalAuditResult: {
+        type: Schema.Types.Mixed,
+    },
+    professionalInterviewTranscript: [{
+        role: String,
+        content: String,
+        timestamp: { type: Date, default: Date.now }
+    }],
+    professionalMCQResults: {
+        type: Schema.Types.Mixed,
+    },
+    professionalSimulationResult: {
+        type: Schema.Types.Mixed,
+    },
+    professionalFinalReport: {
+        type: Schema.Types.Mixed,
+    },
+    professionalExpertReviewStatus: {
+        type: String,
+        enum: ['not_started', 'in_progress', 'completed', 'pending_review', 'reviewed', 'rejected'],
+        default: 'not_started'
+    },
+    professionalExpertNotes: String,
+    professionalExpertReviewedAt: Date,
+    professionalExpertReviewedBy: String
 }, {
     timestamps: true,
     strict: false, // Ensure we can save extra fields if needed

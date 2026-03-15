@@ -144,6 +144,18 @@ interface FinalReportResult {
     summaryFocus: string;
     networkingAdvice: string;
   };
+  academicBackground?: {
+    degree: string;
+    institution: string;
+    country: string;
+    legitimacyAudit: string;
+  };
+  roadmap369?: {
+    year3: { targetRole: string; keySkillsToAcquire: string[]; action: string };
+    year6: { targetRole: string; keySkillsToAcquire: string[]; action: string };
+    year9: { targetRole: string; keySkillsToAcquire: string[]; action: string };
+    feasibilityVerdict: string;
+  };
   title?: string;
   subtitle?: string;
 }
@@ -163,7 +175,7 @@ interface MCQQuestion {
   explanation: string;
 }
 
-interface StepTranslations {
+interface ProfessionalStepTranslations {
   tag?: string;
   title?: string;
   subtitle?: string;
@@ -233,23 +245,36 @@ interface StepTranslations {
   longTerm?: string;
   masteryReqs?: string;
   executiveSummary?: string;
+  // Next Steps
+  nextStepsTitle?: string;
+  nextStepsSubtitle?: string;
+  aiConsultationsTitle?: string;
+  aiConsultationsDesc?: string;
+  strategicWorkshopsTitle?: string;
+  strategicWorkshopsDesc?: string;
+  professionalEvolutionTitle?: string;
+  professionalEvolutionDesc?: string;
+  // Review Status
+  submitReview?: string;
+  reviewPending?: string;
+  reviewDone?: string;
 }
 
-interface LanguageTranslations {
-  welcome: StepTranslations;
-  language: StepTranslations;
-  auditForm: StepTranslations;
-  experience: StepTranslations;
-  analysis: StepTranslations;
-  interview: StepTranslations;
-  finalReport: StepTranslations;
-  mcq: StepTranslations;
+interface ProfessionalLanguageTranslations {
+  welcome: ProfessionalStepTranslations;
+  language: ProfessionalStepTranslations;
+  auditForm: ProfessionalStepTranslations;
+  experience: ProfessionalStepTranslations;
+  analysis: ProfessionalStepTranslations;
+  interview: ProfessionalStepTranslations;
+  finalReport: ProfessionalStepTranslations;
+  mcq: ProfessionalStepTranslations;
 }
 
 interface Translations {
-  en: LanguageTranslations;
-  fr: LanguageTranslations;
-  ar: LanguageTranslations;
+  en: ProfessionalLanguageTranslations;
+  fr: ProfessionalLanguageTranslations;
+  ar: ProfessionalLanguageTranslations;
 }
 
 const TRANSLATIONS: Translations = {
@@ -350,8 +375,8 @@ const TRANSLATIONS: Translations = {
       analysisStep: "Executing multi-dimensional analysis...",
     },
     finalReport: {
-      title: "Executive Strategic Verdict",
-      subtitle: "The definitive analysis of your trajectory and potential.",
+      title: "Initial Strategic Diagnosis",
+      subtitle: "Comprehensive trajectory analysis - Phase 1.",
       maturity: "Strategic Maturity Level",
       marketValue: "Market Perception",
       finalVerdict: "Veteran's Final Judgment",
@@ -370,6 +395,17 @@ const TRANSLATIONS: Translations = {
       opportunities: "Market Expansion Potential",
       threats: "Strategic Vulnerabilities",
       executiveSummary: "Executive Strategic Summary",
+      nextStepsTitle: "Upcoming Strategic Assets",
+      nextStepsSubtitle: "Activate Pro to unlock these high-precision modules",
+      aiConsultationsTitle: "AI Consultations",
+      aiConsultationsDesc: "Advanced AI models for expert guidance.",
+      strategicWorkshopsTitle: "Strategic Workshops",
+      strategicWorkshopsDesc: "Personalized high-impact sessions.",
+      professionalEvolutionTitle: "Evolution Path",
+      professionalEvolutionDesc: "Complete your strategic roadmap.",
+      submitReview: "Submit for Expert Review",
+      reviewPending: "Review Pending",
+      reviewDone: "Reviewed by Expert",
     },
     mcq: {
       mcqTitle: "Competency Verification",
@@ -479,9 +515,8 @@ const TRANSLATIONS: Translations = {
       analysisStep: "Exécution de l'analyse multidimensionnelle...",
     },
     finalReport: {
-      title: "Verdict Stratégique Exécutif",
-      subtitle:
-        "L'analyse définitive de votre trajectoire et de votre potentiel.",
+      title: "Diagnostic Stratégique Initial",
+      subtitle: "Analyse complète de votre trajectoire - Phase 1.",
       maturity: "Niveau de Maturité Stratégique",
       marketValue: "Perception du Marché",
       finalVerdict: "Jugement Final du Vétéran",
@@ -500,6 +535,17 @@ const TRANSLATIONS: Translations = {
       opportunities: "Potentiel d'Expansion du Marché",
       threats: "Vulnérabilités Stratégiques",
       executiveSummary: "Résumé Stratégique Exécutif",
+      nextStepsTitle: "Actifs Stratégiques à Venir",
+      nextStepsSubtitle: "Activez Pro pour débloquer ces modules de haute précision",
+      aiConsultationsTitle: "Consultations IA",
+      aiConsultationsDesc: "Modèles d'IA avancés pour un guidage expert.",
+      strategicWorkshopsTitle: "Ateliers Stratégiques",
+      strategicWorkshopsDesc: "Sessions personnalisées à fort impact.",
+      professionalEvolutionTitle: "Parcours d'Évolution",
+      professionalEvolutionDesc: "Complétez votre feuille de route.",
+      submitReview: "Soumettre pour Révision Expert",
+      reviewPending: "Révision en attente",
+      reviewDone: "Révisé par un Expert",
     },
     mcq: {
       mcqTitle: "Vérification des Compétences",
@@ -589,8 +635,8 @@ const TRANSLATIONS: Translations = {
     analysis: {
       loading: "محرك الذكاء الاصطناعي يجري تدقيقاً عميقاً",
       loadingSub: "تحليل البيانات مقارنة بالمعايير العالمية...",
-      complete: "اكتملت مرحلة التدقيق",
-      completeSub: "تم إنشاء تقرير التحليل الاستراتيجي الأولي",
+      complete: "اكتملت مرحلة التدقيق الرقمي",
+      completeSub: "تم إجراء التدقيق الأولي للبيانات الخام",
       profile: "ملف الخبرة",
       authority: "مستوى السلطة",
       alignment: "التوافق مع السوق",
@@ -608,8 +654,8 @@ const TRANSLATIONS: Translations = {
       analysisStep: "تنفيذ عملية التركيب والتحليل الشامل...",
     },
     finalReport: {
-      title: "الحكم الاستراتيجي النهائي",
-      subtitle: "التحليل النهائي لمسارك وإمكانياتك.",
+      title: "التشخيص الاستراتيجي الأولي",
+      subtitle: "التحليل الاستراتيجي الشامل لمسارك - المرحلة الأولى.",
       maturity: "مستوى النضج الاستراتيجي",
       marketValue: "تصور السوق",
       finalVerdict: "الحكم النهائي للخبير",
@@ -628,6 +674,17 @@ const TRANSLATIONS: Translations = {
       opportunities: "فرص التوسع في السوق",
       threats: "المخاطر الاستراتيجية المحتملة",
       executiveSummary: "الملخص الاستراتيجي التنفيذي",
+      nextStepsTitle: "الأصول الاستراتيجية القادمة",
+      nextStepsSubtitle: "فعل الحساب الاحترافي لفتح هذه الوحدات عالية الدقة",
+      aiConsultationsTitle: "استشارات ذكاء اصطناعي",
+      aiConsultationsDesc: "نماذج متطورة للتوجيه الخبير.",
+      strategicWorkshopsTitle: "ورشات استراتيجية",
+      strategicWorkshopsDesc: "جلسات مخصصة عالية التأثير.",
+      professionalEvolutionTitle: "مسار التطور",
+      professionalEvolutionDesc: "أكمل خارطة طريقك الاستراتيجية.",
+      submitReview: "إرسال للمراجعة من قبل خبير",
+      reviewPending: "المراجعة قيد الانتظار",
+      reviewDone: "تمت المراجعة من قبل خبير",
     },
     mcq: {
       mcqTitle: "التحقق من الكفاءات",
@@ -652,7 +709,7 @@ function ExpertInterview({
 }: {
   formData: FormData;
   auditResult: AuditResult;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
   language: string;
   onComplete: (
     report: FinalReportResult,
@@ -665,8 +722,8 @@ function ExpertInterview({
   const [currentInput, setCurrentInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(480);
-  const maxQuestions = 20;
+  const [timeLeft, setTimeLeft] = useState(180);
+  const maxQuestions = 40;
 
   const handleSend = useCallback(async (e?: React.FormEvent, isSpecialAction: 'timeout' | 'skip' | 'finish' | 'none' = 'none') => {
     if (e) e.preventDefault();
@@ -754,7 +811,7 @@ function ExpertInterview({
   // Reset timer when new assistant message arrives
   useEffect(() => {
     if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
-      setTimeLeft(480);
+      setTimeLeft(180);
     }
   }, [messages]);
 
@@ -820,9 +877,11 @@ function ExpertInterview({
         <p className="text-lg md:text-xl text-slate-500 font-medium px-4 max-w-2xl mx-auto tracking-wide">{t.subtitle}</p>
       </div>
 
-      <div className="bg-white dark:bg-slate-950 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 h-[600px] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(37,99,235,0.1)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
-        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl relative z-10 shadow-sm">
+      <div className="bg-white dark:bg-[#0d1117] rounded-[4rem] border border-slate-100 dark:border-slate-800/50 min-h-[750px] flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative group">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-blue-600/10 transition-colors duration-1000" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-indigo-600/10 transition-colors duration-1000" />
+        
+        <div className="p-10 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl relative z-10">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)] border border-white/20 group-hover:rotate-3 transition-transform">
               <Shield size={32} strokeWidth={1} />
@@ -880,13 +939,26 @@ function ExpertInterview({
               </div>
               <div
                 className={cn(
-                  "max-w-[85%] p-6 md:p-8 text-base font-medium leading-relaxed shadow-xl group transition-all",
+                  "max-w-[85%] p-7 md:p-10 text-base md:text-lg font-medium leading-relaxed shadow-2xl group transition-all relative overflow-hidden",
                   m.role === "assistant"
-                    ? "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-[2.5rem] rounded-bl-none"
-                    : "bg-linear-to-br from-indigo-600 to-blue-700 text-white rounded-[2.5rem] rounded-br-none shadow-[0_15px_30px_rgba(37,99,235,0.15)] border border-white/10",
+                    ? "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-[3rem] rounded-bl-none"
+                    : "bg-linear-to-br from-indigo-600 to-blue-700 text-white rounded-[3rem] rounded-br-none shadow-[0_20px_40px_rgba(37,99,235,0.2)] border border-white/10",
                 )}
               >
-                {m.content}
+                {m.role === "assistant" && (
+                  <div className="flex items-center gap-2 mb-4 opacity-60">
+                    <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-[0.3em]">
+                      {language === "ar" ? "تحليل استراتيجي خبير" : language === "fr" ? "Analyse Stratégique Experte" : "Expert Strategic Analysis"}
+                    </div>
+                    <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+                  </div>
+                )}
+                <div className={cn(
+                  "whitespace-pre-wrap",
+                  language === "ar" ? "leading-[1.8] font-arabic" : "leading-relaxed"
+                )}>
+                  {m.content}
+                </div>
               </div>
             </motion.div>
           ))}
@@ -906,42 +978,52 @@ function ExpertInterview({
             )}
         </div>
 
-        <div className="p-8 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4 relative z-10 backdrop-blur-md">
-          <div className="flex gap-4">
+        <div className="p-10 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800/50 flex flex-col gap-6 relative z-10 backdrop-blur-3xl">
+          <div className="flex gap-4 items-end">
             <div className={cn(
-              "flex flex-col items-center justify-center px-4 py-2 rounded-2xl border transition-colors",
-              timeLeft < 60 ? "bg-rose-500/10 border-rose-500/20 text-rose-500" : "bg-blue-500/10 border-blue-500/20 text-blue-500"
+              "flex flex-col items-center justify-center px-6 py-4 rounded-3xl border transition-all shadow-sm",
+              timeLeft < 60 ? "bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-blue-600"
             )}>
-              <div className="text-[8px] font-black uppercase tracking-widest mb-1">Time Left</div>
-              <div className="text-lg font-black font-mono">
+              <div className="text-[7px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-60">Session Timer</div>
+              <div className="text-xl font-black font-mono leading-none">
                 {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
               </div>
             </div>
-            <textarea
-              value={currentInput}
-              onChange={(e) => setCurrentInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={t.placeholder}
-              className="flex-1 bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-4xl px-8 py-5 text-sm font-medium outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all resize-none shadow-inner"
-              rows={1}
-            />
+            <div className="flex-1 relative group">
+              <textarea
+                value={currentInput}
+                onChange={(e) => setCurrentInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder={t.placeholder}
+                className="w-full bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] px-10 py-6 text-sm font-medium outline-none focus:border-blue-600/50 focus:ring-8 focus:ring-blue-600/5 transition-all resize-none shadow-xl shadow-blue-900/5 placeholder:text-slate-400"
+                rows={1}
+              />
+            </div>
             <button
               onClick={() => handleSend()}
               disabled={!currentInput.trim() || loading}
-              className="w-16 h-16 shrink-0 rounded-4xl bg-linear-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center hover:bg-linear-to-br hover:from-indigo-500 hover:to-blue-500 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.3)]"
+              className="w-[72px] h-[72px] shrink-0 rounded-[2.5rem] bg-linear-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all shadow-2xl shadow-blue-600/40 relative overflow-hidden group/btn"
             >
-              <Send size={24} strokeWidth={2.5} className="ml-1" />
+               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
+               <Send size={28} strokeWidth={2.5} className="relative z-10 transition-transform group-hover/btn:rotate-12" />
             </button>
           </div>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2">
-            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">
-              Protocol: Career Deep-Dive Assessment — Question {messages.filter(m => m.role === 'assistant').length} of {maxQuestions}
-            </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1.5">
+                {Array.from({length: 4}).map((_, i) => (
+                  <div key={i} className="w-1 h-3 rounded-full bg-blue-500/20 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-400">
+                Protocol: Strategic Evaluation — {messages.filter(m => m.role === 'assistant').length} / {maxQuestions}
+              </p>
+            </div>
                 <div className="flex gap-4">
                   <button
                     onClick={() => handleSend(undefined, 'skip')}
@@ -1335,32 +1417,32 @@ function PortfolioInterview({
           /* ─── PHASE 1 MODE: Standard chat interface ─── */
           <motion.div
             key="phase1"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-[3.5rem] shadow-[0_20px_60px_rgba(37,99,235,0.08)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] overflow-hidden relative"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-[#0d1117] rounded-[4rem] border border-slate-100 dark:border-slate-800/50 min-h-[700px] flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative group"
           >
-            <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
-            
-            {/* Chat header */}
-            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center gap-5 bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-md relative z-10">
-              <div className="w-14 h-14 rounded-full bg-linear-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-[0_0_20px_rgba(79,70,229,0.3)]">
-                <Shield size={28} strokeWidth={1.5} />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-indigo-600/10 transition-colors duration-1000" />
+          
+          <div className="p-10 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-white shadow-xl border border-white/20">
+                <Target size={28} strokeWidth={1.5} />
               </div>
-              <div>
-                <div className="font-black text-xs uppercase tracking-widest text-indigo-600">
+              <div className="space-y-1">
+                <div className="font-black text-sm uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">
                   Executive Portfolio Auditor
                 </div>
-                <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">
-                  Phase 1 · Profile Deep-Dive · McKinsey Standard
+                <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                  Phase 1 · Profile Deep-Dive · High Stakes
                 </div>
               </div>
-              <div className="ml-auto flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[9px] font-black uppercase text-slate-400">
-                  Live Evaluation
-                </span>
-              </div>
             </div>
+            <div className="ml-auto hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secure Audit Feed</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            </div>
+          </div>
 
             {/* Messages */}
             <div className="p-8 space-y-6 max-h-[420px] overflow-y-auto">
@@ -1396,13 +1478,26 @@ function PortfolioInterview({
                   </div>
                   <div
                     className={cn(
-                      "max-w-[85%] p-5 md:p-6 rounded-4xl text-sm font-medium leading-relaxed shadow-sm transition-shadow hover:shadow-md",
+                      "max-w-[85%] p-6 md:p-8 rounded-[2.5rem] text-base font-medium shadow-sm transition-shadow hover:shadow-md relative overflow-hidden",
                       m.role === "assistant"
                         ? "bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-100 dark:border-slate-800"
                         : "bg-linear-to-br from-indigo-600 to-blue-600 text-white rounded-br-none shadow-[0_10px_20px_rgba(79,70,229,0.2)]",
                     )}
                   >
-                    {m.content}
+                    {m.role === "assistant" && (
+                      <div className="flex items-center gap-2 mb-3 opacity-60">
+                        <div className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[8px] font-black uppercase tracking-[0.2em]">
+                          {language === "ar" ? "تغذية التقييم الخبير" : language === "fr" ? "Flux d'Évaluation Experte" : "Expert Evaluation Feed"}
+                        </div>
+                        <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+                      </div>
+                    )}
+                    <div className={cn(
+                      "whitespace-pre-wrap",
+                      language === "ar" ? "leading-[1.8] font-arabic" : "leading-relaxed"
+                    )}>
+                      {m.content}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -1425,81 +1520,81 @@ function PortfolioInterview({
       {/* ─── INPUT AREA ───────────────────────────────────────────────────── */}
       <div
         className={cn(
-          "rounded-4xl border-2 overflow-hidden transition-all",
+          "rounded-[3rem] border-2 overflow-hidden transition-all duration-700 relative z-20",
           isPivotalPhase
-            ? "border-amber-500/30 bg-black shadow-2xl shadow-amber-500/10"
-            : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl",
+            ? "border-amber-500/50 bg-slate-950 shadow-[0_30px_90px_rgba(245,158,11,0.2)]"
+            : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.05)]",
         )}
       >
-        <textarea
-          value={currentInput}
-          onChange={(e) => setCurrentInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder={
-            isPivotalPhase
-              ? "Deliver your 5 precise steps. Be specific. No safe answers."
-              : "Provide a strategic, honest response..."
-          }
-          rows={isPivotalPhase ? 5 : 3}
-          className={cn(
-            "w-full px-8 py-6 text-sm font-medium outline-none resize-none bg-transparent transition-colors",
-            isPivotalPhase
-              ? "text-white placeholder:text-slate-600 font-bold"
-              : "placeholder:text-slate-400",
-          )}
-        />
-        <div
-          className={cn(
-            "flex items-center justify-between px-6 py-4 border-t gap-4",
-            isPivotalPhase
-              ? "border-amber-500/20"
-              : "border-slate-100 dark:border-slate-800",
-          )}
-        >
-          <div className="flex items-center gap-3">
-            {!isPivotalPhase && (
-              <button
-                onClick={handleSkipQuestion}
-                disabled={loading}
-                className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all border border-slate-200 dark:border-slate-800"
-              >
-                {language === "ar" ? "تخطي السؤال " : language === "fr" ? "Passer la question" : "Skip Question"}
-              </button>
-            )}
-            
-            {assistantCount >= 10 && (
-              <button
-                onClick={() => finalizeInterview(messages)}
-                disabled={loading}
-                className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-2"
-              >
-                <CheckCircle2 size={12} />
-                {language === "ar" ? "إنهاء المرحلة الآن" : language === "fr" ? "Terminer la phase" : "Finish Phase Now"}
-              </button>
-            )}
+        {isPivotalPhase && (
+          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500 via-orange-500 to-red-600 animate-pulse" />
+        )}
+        <div className="flex items-end gap-2 p-4 md:p-6 bg-slate-50/50 dark:bg-slate-950/20 backdrop-blur-xl">
+           <div className="flex-1 relative">
+            <textarea
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={
+                isPivotalPhase
+                  ? (language === "ar" ? "أدخل خطواتك الاستراتيجية الخمس..." : "Deliver your 5 precise steps. Be specific...")
+                  : (language === "ar" ? "قدم ردًا استراتيجيًا وصادقًا..." : "Provide a strategic, honest response...")
+              }
+              rows={isPivotalPhase ? 4 : 2}
+              className={cn(
+                "w-full px-8 py-6 text-base font-medium outline-none resize-none bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] focus:border-indigo-500/50 focus:ring-8 focus:ring-indigo-500/5 transition-all shadow-inner",
+                isPivotalPhase
+                  ? "text-amber-50 font-bold placeholder:text-slate-600"
+                  : "text-slate-800 dark:text-slate-100 placeholder:text-slate-400",
+              )}
+            />
           </div>
-
           <button
             onClick={handleSend}
-            disabled={loading || !currentInput.trim()}
+            disabled={!currentInput.trim() || loading}
             className={cn(
-              "flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-40 disabled:scale-100",
-              isPivotalPhase
-                ? "bg-amber-500 text-black hover:bg-amber-400 hover:scale-105 shadow-lg shadow-amber-500/30"
-                : "bg-indigo-600 text-white hover:scale-105 shadow-lg shadow-indigo-600/20",
+              "w-[70px] h-[70px] shrink-0 rounded-4xl flex items-center justify-center transition-all shadow-2xl relative overflow-hidden group/send disabled:opacity-30",
+              isPivotalPhase 
+                ? "bg-linear-to-br from-amber-500 to-orange-700 text-white shadow-amber-500/30"
+                : "bg-linear-to-br from-indigo-600 to-blue-700 text-white shadow-indigo-600/30"
             )}
           >
-            <Send size={14} />
-            {isPivotalPhase ? "Submit Judgment" : "Send Response"}
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/send:translate-y-0 transition-transform" />
+            <Send size={26} strokeWidth={2.5} className="relative z-10 transition-transform group-hover/send:rotate-12" />
           </button>
         </div>
+        
+        <div className="px-10 py-4 bg-white/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <div className="flex gap-1">
+               {Array.from({length: 3}).map((_, i) => (
+                 <div key={i} className="w-1 h-1 rounded-full bg-indigo-500/40 animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
+               ))}
+             </div>
+             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400">
+               Protocol Level: High Integrity
+             </p>
+           </div>
+           <div className="flex items-center gap-6">
+             {timeLeft < 60 && (
+               <div className="text-[10px] font-black text-rose-500 animate-pulse flex items-center gap-2">
+                 <Clock size={12} /> {timeLeft}s remaining
+               </div>
+             )}
+             <button
+               onClick={handleSkipQuestion}
+               className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors"
+             >
+               Skip Audit Step
+             </button>
+           </div>
+        </div>
       </div>
-
       <div ref={chatEndRef} />
     </motion.div>
   );
@@ -1521,7 +1616,7 @@ function MCQAssessment({
     report: FinalReportResult | null,
     results: { hardScore: number; softScore: number; totalQuestions: number },
   ) => void;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
   language: string;
 }) {
   const [phase, setPhase] = useState<"hard" | "soft">("hard");
@@ -2472,7 +2567,7 @@ function FinalReport({
   language,
 }: {
   report: FinalReportResult;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
   isPro: boolean;
   onProRequired: () => void;
   language: string;
@@ -2481,6 +2576,49 @@ function FinalReport({
     const randomPart = Math.random().toString(36).substring(2, 9).toUpperCase();
     return `MATC-${randomPart}`;
   });
+
+  const [reviewStatus, setReviewStatus] = useState<'idle' | 'loading' | 'submitted' | 'already_submitted'>(() => {
+    if (typeof window === 'undefined') return 'idle';
+    const saved = localStorage.getItem('prof_reviewStatus');
+    if (saved === 'pending_review' || saved === 'reviewed') {
+      return 'already_submitted';
+    }
+    return 'idle';
+  });
+
+  const submitForReview = async () => {
+    setReviewStatus('loading');
+    try {
+      const userProfileRaw = localStorage.getItem('userProfile');
+      const email = userProfileRaw ? JSON.parse(userProfileRaw).email : null;
+      const auditResult = JSON.parse(localStorage.getItem('prof_auditResult') || '{}');
+      const formData = JSON.parse(localStorage.getItem('prof_formData') || '{}');
+      const interviewMessages = JSON.parse(localStorage.getItem('prof_interviewMessages') || '[]');
+
+      const res = await fetch('/api/professional/submit-for-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          finalReport: report,
+          auditResult,
+          formData,
+          interviewTranscript: interviewMessages,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('prof_reviewStatus', 'pending_review');
+        setReviewStatus('submitted');
+      } else {
+        setReviewStatus('idle');
+        alert(data.error || 'Failed to submit for review');
+      }
+    } catch {
+      setReviewStatus('idle');
+      alert('Network error. Please try again.');
+    }
+  };
 
   return (
     <motion.div
@@ -2529,6 +2667,40 @@ function FinalReport({
             {report.subtitle || t.subtitle}
           </p>
         </div>
+
+        {/* === ACADEMIC LEGITIMACY SECTION === */}
+        {report.academicBackground && (
+          <div className="mb-16 p-10 rounded-[2.5rem] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform">
+              <Languages size={120} />
+            </div>
+            <div className="flex flex-col md:flex-row gap-10 items-start relative z-10">
+              <div className="space-y-4 flex-1">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 font-black uppercase text-[10px] tracking-widest">
+                  Academic Credentials Check
+                </div>
+                <h3 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                  {report.academicBackground.degree}
+                </h3>
+                <div className="flex items-center gap-4 text-slate-500 font-bold">
+                  <div className="flex items-center gap-2"><Globe size={16}/> {report.academicBackground.country}</div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  <div>{report.academicBackground.institution}</div>
+                </div>
+              </div>
+              <div className="flex-1 p-6 rounded-3xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm relative">
+                <div className="absolute top-4 right-4">
+                  <CheckCircle2 className="text-emerald-500" size={20} />
+                </div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Legitimacy Audit</h4>
+                <p className="text-sm font-bold leading-relaxed text-slate-700 dark:text-slate-300 italic">
+                  &quot;{report.academicBackground.legitimacyAudit}&quot;
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
 
       {/* === TOP MODULE: STRATEGIC RADAR & AUTHORITY MATRIX === */}
       {(report.strategicRadar || report.authorityVsPotential) && (
@@ -2779,7 +2951,7 @@ function FinalReport({
               <div className="flex items-center gap-3 text-indigo-500">
                 <Globe size={24} />
                 <h3 className="text-xl font-black uppercase tracking-tight">
-                  Market Perception Verdict
+                  {language === "ar" ? "قرار تصور السوق" : language === "fr" ? "Verdict de la Perception du Marché" : "Market Perception Verdict"}
                 </h3>
               </div>
               <p className="text-sm font-bold text-slate-600 dark:text-slate-400 leading-relaxed italic">
@@ -2827,7 +2999,7 @@ function FinalReport({
           {report.expertInterviewNotes && (
             <div className="p-10 rounded-[2.5rem] bg-slate-900 text-slate-400 border border-slate-800 space-y-6 shadow-2xl">
               <h3 className="font-black uppercase text-[10px] tracking-[0.3em] text-amber-500 flex items-center gap-2">
-                <Mic size={16} /> Expert Observations Feed
+                <Mic size={16} /> {language === "ar" ? "تغذية ملاحظات الخبراء" : language === "fr" ? "Flux d'Observations des Experts" : "Expert Observations Feed"}
               </h3>
               <div className="space-y-4">
                 {report.expertInterviewNotes.map((note, i) => (
@@ -2840,7 +3012,7 @@ function FinalReport({
                 ))}
               </div>
               <div className="pt-4 border-t border-slate-800 text-[8px] font-black uppercase tracking-widest text-slate-600">
-                Raw behavioral signals captured from strategic transcripts.
+                {language === "ar" ? "إشارات سلوكية خام مستخلصة من النصوص الاستراتيجية." : language === "fr" ? "Signaux comportementaux bruts capturés à partir des transcriptions." : "Raw behavioral signals captured from strategic transcripts."}
               </div>
             </div>
           )}
@@ -2848,12 +3020,12 @@ function FinalReport({
           {report.linkedInStrategy && (
             <div className="p-10 rounded-[2.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
               <h3 className="font-black uppercase text-[10px] tracking-[0.3em] text-blue-600 flex items-center gap-2">
-                <Globe size={16} /> LinkedIn Authority Strategy
+                <Globe size={16} /> {language === "ar" ? "استراتيجية سلطة LinkedIn" : language === "fr" ? "Stratégie d'Autorité LinkedIn" : "LinkedIn Authority Strategy"}
               </h3>
               <div className="space-y-4">
                 <div>
                   <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">
-                    Recommended Headline
+                    {language === "ar" ? "العنوان الموصى به" : language === "fr" ? "Titre Recommandé" : "Recommended Headline"}
                   </span>
                   <p className="text-xs font-bold text-slate-800 dark:text-white mt-1">
                     {report.linkedInStrategy.headline}
@@ -2861,7 +3033,7 @@ function FinalReport({
                 </div>
                 <div>
                   <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">
-                    Profile Focus
+                    {language === "ar" ? "تركيز الملف الشخصي" : language === "fr" ? "Focus du Profil" : "Profile Focus"}
                   </span>
                   <p className="text-[10px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
                     {report.linkedInStrategy.summaryFocus}
@@ -2991,13 +3163,94 @@ function FinalReport({
         <div className="space-y-10 pt-10">
           <div className="text-center space-y-2">
             <h2 className="text-4xl font-black uppercase tracking-tight">
-              Strategic Path & Advancement
+              Strategic Evolution Roadmap (3-6-9 Years)
             </h2>
             <p className="text-slate-500 font-medium">
-              Probabilistic evolution paths based on your current portfolio and
-              vision
+              A dynamic trajectory designed by AI to secure your long-term authority
             </p>
           </div>
+
+          {report.roadmap369 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-4 border-slate-900/10 dark:border-white/10 rounded-[3rem] overflow-hidden shadow-2xl bg-white dark:bg-slate-950">
+              {/* Left Page of the "Book" */}
+              <div className="p-12 border-r-2 border-slate-900/5 dark:border-white/5 space-y-10">
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-lg">3</div>
+                    <div>
+                      <h4 className="font-black uppercase tracking-widest text-blue-600 text-xs">Horizon 1: Consolidation</h4>
+                      <div className="text-xl font-black text-slate-900 dark:text-white uppercase">{report.roadmap369.year3.targetRole}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-sm font-bold leading-relaxed text-slate-600 dark:text-slate-400">{report.roadmap369.year3.action}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {report.roadmap369.year3.keySkillsToAcquire.map((s, i) => (
+                        <span key={i} className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg">6</div>
+                    <div>
+                      <h4 className="font-black uppercase tracking-widest text-indigo-600 text-xs">Horizon 2: Expansion</h4>
+                      <div className="text-xl font-black text-slate-900 dark:text-white uppercase">{report.roadmap369.year6.targetRole}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-sm font-bold leading-relaxed text-slate-600 dark:text-slate-400">{report.roadmap369.year6.action}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {report.roadmap369.year6.keySkillsToAcquire.map((s, i) => (
+                        <span key={i} className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Page of the "Book" */}
+              <div className="p-12 flex flex-col justify-between bg-slate-50/50 dark:bg-slate-900/30">
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-xl shadow-lg">9</div>
+                    <div>
+                      <h4 className="font-black uppercase tracking-widest text-slate-500 text-xs">Horizon 3: Legacy</h4>
+                      <div className="text-xl font-black text-slate-900 dark:text-white uppercase">{report.roadmap369.year9.targetRole}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-sm font-bold leading-relaxed text-slate-600 dark:text-slate-400">{report.roadmap369.year9.action}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {report.roadmap369.year9.keySkillsToAcquire.map((s, i) => (
+                        <span key={i} className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-12 p-8 rounded-4xl bg-indigo-600 text-white shadow-2xl relative overflow-hidden group">
+                  <Shield className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-4">Strategic Feasibility Verdict</h4>
+                  <p className="text-lg font-black leading-tight italic font-serif">
+                    &quot;{report.roadmap369.feasibilityVerdict}&quot;
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center space-y-2 pt-16">
+            <h2 className="text-4xl font-black uppercase tracking-tight">
+              Alternative Advancement Paths
+            </h2>
+            <p className="text-slate-500 font-medium">
+              Probabilistic lateral and vertical evolution options
+            </p>
+          </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {report.careerAdvancement.map((path, i) => (
@@ -3176,6 +3429,32 @@ function FinalReport({
         >
           <BarChart3 size={18} /> {language === 'ar' ? 'تحميل التقرير (PDF)' : language === 'fr' ? 'Télécharger PDF' : 'Download PDF'}
         </button>
+
+        {/* Submit for Expert Review Button */}
+        <button
+          onClick={submitForReview}
+          disabled={reviewStatus !== 'idle'}
+          className={cn(
+            "flex items-center gap-3 px-8 py-4 font-black uppercase tracking-widest text-xs rounded-2xl transition-all border shadow-lg",
+            reviewStatus === 'idle' 
+              ? "bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-700 hover:shadow-indigo-500/20" 
+              : reviewStatus === 'loading'
+              ? "bg-indigo-100 text-indigo-400 border-indigo-200 cursor-not-allowed"
+              : "bg-emerald-500 text-white border-emerald-400 cursor-default"
+          )}
+        >
+          {reviewStatus === 'loading' ? (
+            <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          ) : reviewStatus === 'submitted' || reviewStatus === 'already_submitted' ? (
+            <CheckCircle2 size={18} />
+          ) : (
+            <Shield size={18} />
+          )}
+          {reviewStatus === 'idle' ? t.submitReview : 
+           reviewStatus === 'loading' ? 'Submitting...' : 
+           t.reviewPending}
+        </button>
+
         {isPro ? (
           <a
             href="/professional/executive-dashboard"
@@ -3206,7 +3485,7 @@ function FinalReport({
 
 
 // ─── PRO GATE MODAL ────────────────────────────────────────────────────────
-function ProGateModal({ isOpen, onClose, t }: { isOpen: boolean; onClose: () => void; t: StepTranslations }) {
+function ProGateModal({ isOpen, onClose, t }: { isOpen: boolean; onClose: () => void; t: ProfessionalStepTranslations }) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -3239,6 +3518,23 @@ function ProGateModal({ isOpen, onClose, t }: { isOpen: boolean; onClose: () => 
                 <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                   {t.proDesc}
                 </p>
+              </div>
+
+              {/* Strategic Horizons Grid inside Modal */}
+              <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 py-6">
+                 {[
+                   { title: t.aiConsultationsTitle, icon: Sparkles, color: "text-blue-500", bg: "bg-blue-500/5", desc: t.aiConsultationsDesc },
+                   { title: t.strategicWorkshopsTitle, icon: Target, color: "text-indigo-500", bg: "bg-indigo-500/5", desc: t.strategicWorkshopsDesc },
+                   { title: t.professionalEvolutionTitle, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/5", desc: t.professionalEvolutionDesc }
+                 ].map((item, idx) => (
+                   <div key={idx} className="p-4 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-center space-y-2">
+                     <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2", item.bg, item.color)}>
+                        <item.icon size={20} strokeWidth={2} />
+                     </div>
+                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white line-clamp-1">{item.title}</h4>
+                     <p className="text-[8px] text-slate-400 font-bold leading-tight">{item.desc}</p>
+                   </div>
+                 ))}
               </div>
 
               <div className="flex flex-col w-full gap-4 pt-4">
@@ -3566,9 +3862,11 @@ export default function ProfessionalDashboard() {
   );
 
   const handleSimulationComplete = useCallback(async (simulationResult: SimulationResult) => {
-    setStep("final-report"); // We could add a 'finalizing' state here too
-    // Trigger the ultimate strategic analysis that combines everything
+    setStep("final-report");
     try {
+      const storedProfile = localStorage.getItem("userProfile");
+      const email = storedProfile ? JSON.parse(storedProfile)?.email : null;
+
       const res = await fetch("/api/professional/finalize-all", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -3579,7 +3877,8 @@ export default function ProfessionalDashboard() {
           portfolioTranscript,
           mcqResults,
           simulationResult,
-          language: currentLang
+          language: currentLang,
+          userId: email
         })
       });
       const data = await res.json();
@@ -3665,8 +3964,8 @@ export default function ProfessionalDashboard() {
     },
     {
       icon: <Cpu size={18} />,
-      label: currentLang === "ar" ? "التحليل الأولي" : currentLang === "fr" ? "Analyse" : "Analysis",
-      desc: currentLang === "ar" ? "تقرير الذكاء الاصطناعي الأولي" : currentLang === "fr" ? "Rapport IA initial" : "AI initial audit report",
+      label: currentLang === "ar" ? "التدقيق الرقمي" : currentLang === "fr" ? "Audit Numérique" : "Digital Audit",
+      desc: currentLang === "ar" ? "تحليل البيانات الخام المسجلة" : currentLang === "fr" ? "Analyse des données brutes" : "Raw data analysis",
     },
     {
       icon: <MessageSquare size={18} />,
@@ -3690,8 +3989,8 @@ export default function ProfessionalDashboard() {
     },
     {
       icon: <TrendingUp size={18} />,
-      label: currentLang === "ar" ? "التقرير النهائي" : currentLang === "fr" ? "Rapport" : "Report",
-      desc: currentLang === "ar" ? "الحكم الاستراتيجي الشامل" : currentLang === "fr" ? "Verdict stratégique" : "Final strategic verdict",
+      label: currentLang === "ar" ? "التشخيص الأولي" : currentLang === "fr" ? "Diagnostic" : "Diagnosis",
+      desc: currentLang === "ar" ? "الحكم الاستراتيجي للمرحلة الأولى" : currentLang === "fr" ? "Verdict stratégique phase 1" : "Phase 1 strategic verdict",
     },
   ];
 
@@ -3732,44 +4031,46 @@ export default function ProfessionalDashboard() {
       )}
       dir={dir}
     >
-      {/* ── TOP BAR ── */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#06080a]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Logo / Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-              <Shield size={16} className="text-white" strokeWidth={2.5} />
+      {/* ── TOP BAR: Unified Strategic Control ── */}
+      <header className="sticky top-0 z-50 bg-white/40 dark:bg-slate-950/40 backdrop-blur-3xl border-b border-indigo-500/10 transition-all duration-500 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-6">
+          {/* Logo / Brand / Global Mode */}
+          <div className="flex items-center gap-5">
+            <div className="relative group">
+               <div className="absolute inset-0 bg-indigo-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
+               <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-white shadow-2xl border border-white/20 relative z-10">
+                 <Cpu size={22} className="animate-spin-slow" strokeWidth={2} />
+               </div>
             </div>
-            <span className="font-black text-sm uppercase tracking-[0.2em] text-slate-800 dark:text-white hidden sm:block">
-              {currentLang === "ar" ? "الحساب التنفيذي" : currentLang === "fr" ? "Compte Exécutif" : "Executive Account"}
-            </span>
-          </div>
-
-          {/* Mobile: current step pill */}
-          <div className="flex md:hidden items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest">{STEP_LABELS[step]} — {currentStepIndex + 1}/{STEPS.length}</span>
-          </div>
-
-          {/* Right: progress % + logout */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="h-full bg-indigo-500 rounded-full"
-                />
+            <div className="hidden sm:block">
+              <span className="font-black text-sm uppercase tracking-[0.4em] bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
+                {currentLang === "ar" ? "نظام التشخيص الاستراتيجي" : currentLang === "fr" ? "Système de Diagnostic Stratégique" : "Strategic Diagnosis System"}
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Quantum Intelligence Layer Active</span>
               </div>
-              <span className="text-indigo-600 dark:text-indigo-400">{progressPercent}%</span>
             </div>
+          </div>
+
+          {/* Core Navigation Stats */}
+          <div className="flex items-center gap-6">
+            {/* Phase Indicator */}
+            <div className="hidden lg:flex flex-col items-end">
+                <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Current Intelligence Phase</div>
+                <div className="text-[11px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/10">
+                   {currentStepIndex + 1} of {STEPS.length} · {STEP_LABELS[step]}
+                </div>
+            </div>
+
+            <div className="h-10 w-px bg-slate-200 dark:bg-slate-800" />
+
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:border-rose-200 dark:hover:border-rose-500/20 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
+              className="group flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
             >
-              <LogOut size={13} strokeWidth={2.5} />
-              <span className="hidden sm:block">{t.welcome.logout || "Log Out"}</span>
+              <LogOut size={16} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t.welcome.logout || "Exit System"}</span>
             </button>
           </div>
         </div>
@@ -3778,111 +4079,103 @@ export default function ProfessionalDashboard() {
       {/* ── MAIN LAYOUT ── */}
       <div className="max-w-7xl mx-auto flex gap-0 md:gap-8 px-4 md:px-8 py-8">
 
-        {/* ────────────────── SIDEBAR STEPPER ────────────────── */}
+        {/* ────────────────── UNIFIED INTELLIGENCE SIDEBAR ────────────────── */}
         {step !== "language" && step !== "welcome" && (
-          <aside className="hidden md:flex flex-col w-72 shrink-0">
-            <div className="sticky top-24 space-y-2">
-              {/* Title */}
-              <div className="px-4 pb-4">
-                <p className="text-[9px] font-black uppercase tracking-[0.35em] text-slate-400">
-                  {currentLang === "ar" ? "مسار التقييم" : currentLang === "fr" ? "Parcours d'évaluation" : "Assessment Journey"}
-                </p>
+          <aside className="hidden md:flex flex-col w-80 shrink-0">
+            <div className="sticky top-28 space-y-6">
+              
+              {/* === INTELLIGENCE FEED (Real-time Integration) === */}
+              <div className="p-6 rounded-3xl bg-linear-to-br from-indigo-950/90 to-slate-900 border border-indigo-500/20 shadow-2xl relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+                 <div className="flex items-center gap-3 mb-5">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                       <Sparkles size={16} className="text-indigo-400 animate-pulse" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Intelligence Feed</span>
+                 </div>
+                 
+                 <div className="space-y-4">
+                    {/* Dynamic Statuses based on Journey progress */}
+                    {[
+                      { show: true, label: "Identity Verified", status: "Validated", active: true },
+                      { show: auditResult, label: "Evidence Map", status: "Extracted", active: true },
+                      { show: interviewTranscript.length > 0, label: "Behavioral DNA", status: "Synthesized", active: true },
+                      { show: mcqResults, label: "Capability Probe", status: "Verified", active: mcqResults !== null }
+                    ].filter(i => i.show).map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-[10px] font-bold">
+                         <span className="text-slate-400 uppercase tracking-tighter">{item.label}</span>
+                         <span className={cn("px-2 py-0.5 rounded-md border", item.active ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-slate-500/10 border-slate-500/20 text-slate-500")}>
+                           {item.status}
+                         </span>
+                      </div>
+                    ))}
+                    {!auditResult && (
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-[9px] text-slate-400 italic">
+                         Waiting for professional audit data...
+                      </div>
+                    )}
+                 </div>
               </div>
 
-              {/* Steps */}
-              {STEPS.map((s, i) => {
-                const meta = STAGE_META[i];
-                const isDone = i < currentStepIndex;
-                const isActive = i === currentStepIndex;
-                const isSkip = s === "language" || (s === "welcome" && currentStepIndex > 1);
-                if (isSkip && !isDone) return null;
+              {/* === JOURNEY MAPPER === */}
+              <div className="space-y-1.5">
+                <div className="px-4 pb-3 flex justify-between items-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Assessment Journey</p>
+                  <span className="text-[10px] font-black text-indigo-500">{progressPercent}%</span>
+                </div>
 
-                return (
-                  <motion.div
-                    key={s}
-                    initial={{ opacity: 0, x: dir === "rtl" ? 20 : -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className={cn(
-                      "flex items-start gap-3 px-4 py-3 rounded-2xl transition-all cursor-default group",
-                      isActive
-                        ? "bg-white dark:bg-slate-900 shadow-lg shadow-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20"
-                        : isDone
-                        ? "hover:bg-white/60 dark:hover:bg-slate-900/40"
-                        : "opacity-40",
-                    )}
-                  >
-                    {/* Step Icon */}
-                    <div
-                      className={cn(
-                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all",
-                        isActive
-                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/40"
-                          : isDone
-                          ? "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : "bg-slate-100 dark:bg-slate-900 text-slate-400",
-                      )}
-                    >
-                      {isDone ? <CheckCircle2 size={16} strokeWidth={2.5} /> : meta.icon}
-                    </div>
+                <div className="space-y-1.5">
+                  {STEPS.map((s, i) => {
+                    const meta = STAGE_META[i];
+                    const isDone = i < currentStepIndex;
+                    const isActive = i === currentStepIndex;
+                    const isSkip = s === "language" || (s === "welcome" && currentStepIndex > 1);
+                    if (isSkip && !isDone) return null;
 
-                    {/* Label + Desc */}
-                    <div className="min-w-0 flex-1 pt-0.5">
-                      <p
+                    return (
+                      <div
+                        key={s}
                         className={cn(
-                          "text-sm font-black uppercase tracking-tight leading-tight truncate",
+                          "flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all relative",
                           isActive
-                            ? "text-indigo-600 dark:text-indigo-400"
+                            ? "bg-white dark:bg-slate-900 border border-indigo-500/10 shadow-lg shadow-indigo-500/5"
                             : isDone
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-slate-500",
+                            ? "opacity-60 grayscale-[0.5]"
+                            : "opacity-30",
                         )}
                       >
-                        {meta.label}
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5 leading-snug">
-                        {meta.desc}
-                      </p>
-                    </div>
+                        {/* Step Marker */}
+                        <div className={cn(
+                          "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-all",
+                          isActive ? "bg-indigo-600 border-indigo-400 text-white" : isDone ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
+                        )}>
+                          {isDone ? <CheckCircle2 size={12} strokeWidth={3} /> : meta.icon}
+                        </div>
+                        
+                        <div className="min-w-0 flex-1">
+                           <p className={cn("text-[10px] font-black uppercase tracking-tight", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500")}>
+                              {meta.label}
+                           </p>
+                        </div>
 
-                    {/* Status dot */}
-                    {isActive && (
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shrink-0 mt-1" />
-                    )}
-                    {isDone && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1" />
-                    )}
-                  </motion.div>
-                );
-              })}
-
-              {/* Footer: global progress ring */}
-              <div className="mt-6 px-4 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center gap-4">
-                <div className="relative w-14 h-14 shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="14" fill="none" stroke="#e2e8f0" strokeWidth="3" />
-                    <circle
-                      cx="18" cy="18" r="14" fill="none"
-                      stroke="#6366f1" strokeWidth="3"
-                      strokeDasharray={`${progressPercent * 0.88} 88`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-indigo-600">{progressPercent}%</span>
-                </div>
-                <div>
-                  <p className="text-xs font-black text-slate-800 dark:text-white">
-                    {currentLang === "ar" ? "التقدم الكلي" : currentLang === "fr" ? "Progression globale" : "Overall progress"}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                    {currentLang === "ar"
-                      ? `${currentStepIndex + 1} من ${STEPS.length} مراحل`
-                      : currentLang === "fr"
-                      ? `Étape ${currentStepIndex + 1} sur ${STEPS.length}`
-                      : `Step ${currentStepIndex + 1} of ${STEPS.length}`}
-                  </p>
+                        {isActive && (
+                           <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_5px_rgba(99,102,241,0.5)]" />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Professional Persona Preview (if available) */}
+              {auditResult && (
+                <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-3">
+                  <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Extracted Profile DNA</div>
+                  <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 group-hover:underline">
+                    {auditResult.profileLevel}
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
         )}
@@ -4102,7 +4395,7 @@ function WelcomeScreen({
   t,
 }: {
   onNext: () => void;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
 }) {
   const icons = [
     <Globe key="1" className="text-blue-500" />,
@@ -4145,7 +4438,7 @@ function WelcomeScreen({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-        {t.steps?.map((s, i) => (
+        {t.steps?.map((s: { title: string; desc: string }, i: number) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, x: -20 }}
@@ -4194,7 +4487,7 @@ function LanguageSelection({
 }: {
   selected: string;
   onSelect: (l: "en" | "fr" | "ar") => void;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
 }) {
   const options = [
     {
@@ -4274,7 +4567,7 @@ function AuditForm({
   setNewPosition: React.Dispatch<React.SetStateAction<Position>>;
   addPosition: () => void;
   onNext: () => void;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
 }) {
   return (
     <motion.div
@@ -4420,7 +4713,7 @@ function ExperienceInput({
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   onNext: () => void;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
   language: string;
 }) {
   const [confirmed, setConfirmed] = useState(false);
@@ -4538,7 +4831,7 @@ function InitialAnalysis({
   existingResult,
 }: {
   formData: FormData;
-  t: StepTranslations;
+  t: ProfessionalStepTranslations;
   language: string;
   onComplete: (result: AuditResult) => void;
   onNext: () => void;

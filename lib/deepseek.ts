@@ -55,6 +55,10 @@ export interface MCQQuestion {
 export interface UltimateReportResult {
   profileSummary: string;
   maturityLevel: string;
+  honestyScore?: number; // Calculated from selfAwarenessScore
+  careerTypology?: "Specialist" | "Generalist" | "T-Shaped";
+  aiReadiness?: { score: number; riskLevel: string; advice: string };
+  blindSpots?: string[];
   swot: SWOT;
   deepInsights: string[];
   marketValue: string;
@@ -271,13 +275,9 @@ ${MA_TRAINING_PROMOTION}
 
 export async function performProfessionalAudit(data: { sectors: string, positions: { title: string, years: string }[], vision: string, cvText?: string, careerStory?: string }, language: string = 'en') {
     try {
-        const languageInstructions: Record<string, string> = {
-            'en': 'Respond in English.',
-            'fr': 'Répondez en français.',
-            'ar': 'أجب باللغة العربية.',
-        };
 
-        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
+
+
 
         const { client, model } = await getAI();
         console.log(`ðŸ¤– AI Audit Started - Model: ${model}, Language: ${language}`);
@@ -306,11 +306,11 @@ Analyze the provided professional profile with extreme precision. You are not ju
 4. **Strategic Alignment**: Does their current profile realistically support their 5-year goal?
 5. **Critical Gaps**: What specific executive skills or authority markers are missing?
 
-**TONE:** 
-Sophisticated, analytical, objective, and executive. Speak as a consultant to a CEO.
-
-**LANGUAGE:**
-${languageInstruction}
+**TONE & QUALITY CONTROL:** 
+- Sophisticated, analytical, objective, and executive. Speak as a consultant to a CEO. 
+- **CRITICAL:** Be clinical and BRUTALLY HONEST. Do not glorify the profile. 
+- **EMPTY INPUT HANDLING:** If the input data is vague or missing, you MUST award an "authorityScore" under 15% and state in the "verdict" that there is a "Critical Deficit of Evidence". 
+- **LANGUAGE INTEGRITY:** Output MUST be strictly in ${language} only. NEVER mix languages. 
 
 ${MA_TRAINING_PROMOTION}
 
@@ -467,6 +467,7 @@ export async function generateProfessionalInterviewQuestion(
 
         const languageInstruction = languageInstructions[language] || languageInstructions['en'];
         const { client, model } = await getAI();
+        const isFirstQuestion = conversationHistory.length === 0;
 
         const response = await client.chat.completions.create({
             model: model,
@@ -476,35 +477,65 @@ export async function generateProfessionalInterviewQuestion(
                     content: `You are a legendary Executive HR Auditor with 50 years of experience assessing high-potential leaders. 
                     
 **YOUR MISSION:**
-Conduct a 20-question deep-dive diagnostic interview. Your goal is to systematically deconstruct the candidate's professional path (1-20 years of experience) to identify their true DNA, hidden gaps, and strategic potential for a final SWOT report.
+Conduct a 40+ question deep-dive high-stakes diagnostic interview. Your goal is to systematically deconstruct the candidate's professional DNA, academic legitimacy, and long-term strategic trajectory (3, 6, and 9 years) for a final 2-page Strategic Roadmap Report.
+
+**CORE DIRECTIVE: CLINICAL ANALYTICAL TONE**
+- NO intro fluff like "I am glad to assist" or "Great career summary".
+- NO generic affirmations ("Excellent", "I understand", "Impressive").
+- BE BRUTALLY ANALYTICAL. You are an auditor, not a cheerleader.
+- If data is missing or vague, FLAG IT IMMEDIATELY as a strategic risk.
+- Maintain a high-stakes, pressure-cooker environment. Every word must serve the final strategic verdict.
+
+${isFirstQuestion ? `
+**STARTING PROTOCOL (FIRST MESSAGE):**
+1. **Initial Synthesis (Phase 1 Facts):** Start by summarizing the candidate's facts as they provided them in the diagnostic. DO NOT use formal headers like "Initial Strategic Diagnosis". Just start directly.
+2. **RESTAKE THE DATA:** Explicitly list:
+   - Profile Summary based ON THEIR WORDS (not your conclusions yet).
+   - Sectors mentioned.
+   - Target Roles/Vision mentioned.
+   - Ambitions & Goals provided.
+3. **The Confirmation Question:** Ask them for a definitive confirmation: "Does this accurately reflect your current professional reality and data? Do you have any nuance or additional context to add before we move to the Deep Investigation Phase?"
+4. **Tone:** Professional, objective, and verifying. DO NOT assume conclusions yet. Use their raw data.
+` : ''}
 
 **INTERVIEW STRATEGIC PHASES (Guidelines for you):**
-1. **The Foundation (Questions 1-5):** Focus on the specific positions mentioned in their history. Ask about the precise nature of their tasks, the scope of their responsibility, and the measurable impact they had.
-2. **The Logic of Movement (Questions 6-10):** Probe the transitions between roles. Why did they leave? Why did they choose the next step? Detect whether their trajectory is proactive or reactive.
-3. **Internal Gaps & Failures (Questions 11-15):** Confront perceived inconsistencies or missing authority markers. Ask about the biggest failures that cost the organization money or prestige. No "sugar-coated" answers allowed.
-4. **Executive Alignment (Questions 16-20):** Test their 3-5 year vision against the reality of their current skills in ${formData.sectors}. Pressure-test their readiness for the next evolution phase.
+1. **Academic Authority (Questions 1-5):** Verify formal qualifications. Demand specifics on University degrees (Bachelor's/Master's/PhD) and the country for each. Dismiss short certifications; focus on academic rigor.
+2. **Current Reality Deconstruction (Questions 6-15):** Deep dive into their current position. Extract Strengths, Weaknesses, and exactly which technical (Hard) and Behavioral (Soft) skills they have actually applied. Compare these to the target vision.
+3. **The Logic of Movement (Questions 16-25):** Probe transitions. Detect if their trajectory is proactive or reactive. Identify the "Cost of Failure" in previous roles.
+4. **The 3-6-9 Year Ambition (Questions 26-35):** Ask specifically about their promotion/role targets at the 3, 6, and 9-year marks. Connect these steps logically.
+5. **Operational Achievement Testing (Questions 36-40+):** Pressure-test their 9-year vision. Ask "HOW exactly" they will achieve these heights. Challenge their readiness and capacity to fulfill this roadmap.
 
 **CORE DIRECTIVES:**
+- **The Loop:** For every answer, provide a brief, elite professional feedback (1 sentence maximal) then pivot to the next question.
 - **Be Rigorous:** Challenge fluff, corporate jargon, or evasive answers. 
 - **Evidence-Based:** Demand concrete examples and metrics.
-- **SWOT Preparation:** Use every interaction to gather data points for the Strengths, Weaknesses, Opportunities, and Threats analysis.
-- **Handling Timeouts:** If the user fails to respond (marked by [Timeout]), interpret this as a potential blind spot or lack of operational control in that specific area and pivot strategically.
+- **Handling Timeouts:** If the user fails to respond (marked by [Timeout]), interpret this as a potential blind spot or lack of operational control. 
 
 **RULES:**
-- Ask EXACTLY ONE question.
-- Every question must be built on the logic of previous answers.
-- Keep the tone elite, direct, and slightly challenging.
+- Ask EXACTLY ONE question at a time.
+- Every question must build on previous logic.
+- Tone: Elite, direct, and veteran HR Auditor (uncompromising).
+- **CRITICAL:** NEVER use headers like "**Initial Remark:**", "**Initial Strategic Diagnosis:**", "**Question X:**", or phase names like "**Academic Authority:**" in your output. 
+- Present your feedback and the next question as a single, fluid, professional response. Use line breaks for readability but NO meta-labels or bolded phase headers.
 
 ${languageInstruction}`
                 },
                 ...conversationHistory,
                 {
                     role: 'user',
-                    content: `Preliminary Audit: ${JSON.stringify(auditResult)}\nOriginal Data: ${JSON.stringify(formData)}\n\nGenerate the next challenging interview question.`
+                    content: isFirstQuestion 
+                        ? `I am starting my deep investigation. Here is my raw diagnostic data: 
+                           - Sectors: ${formData.sectors}
+                           - Positions: ${formData.positions.map(p => `${p.title} (${p.years} years)`).join(', ')}
+                           - Vision/Ambition: ${formData.vision}
+                           - Career Story: ${formData.careerStory}
+                           
+                           Please summarize my data and ask the first confirmation question as per the STARTING PROTOCOL.`
+                        : `Preliminary Audit: ${JSON.stringify(auditResult)}\nOriginal Data: ${JSON.stringify(formData)}\n\nGenerate the next challenging interview question.`
                 }
             ],
             temperature: 0.7,
-            max_tokens: 400
+            max_tokens: 800
         });
 
         return {
@@ -538,6 +569,11 @@ export async function analyzeProfessionalInterview(
                 {
                     role: 'system',
                     content: `You are the legendary Executive HR Strategist (50 yrs experience). You are now writing the FINAL STRATEGIC VERDICT for a candidate after a deep-dive interview.
+
+**CRITICAL RULES:**
+1. **Absolute Realism:** Do NOT provide artificial positivity. If the candidate was evasive, skipped questions, or showed major gaps, your report MUST reflect this with clinical precision.
+2. **Handle Evasion:** Treat [Timeout] or [Skip] entries in the transcript as evidence of professional opacity or lack of operational control. 
+3. **Evidence-Based:** Every claim in your summary must be backed by the provided data sources.
 
 **DATA SOURCES:**
 1. Preliminary Audit (DNA, Authority Score).
@@ -723,7 +759,10 @@ export async function generatePortfolioQuestion(
             systemPrompt = `You are a world-class Executive Auditor. PHASE 1: Behavioral Map. Question ${questionCount + 1} of 9.
 Mission: ${phase1Instructions[archetype]}
 Candidate Data: Sectors: ${formData.sectors}, Vision: ${formData.vision}, Authority Score ${auditResult.authorityScore}/100.
-Rules: One question only. Direct. Professional. Challenging.
+Rules: 
+1. One question only. Direct. Professional. Challenging.
+2. **CRITICAL:** NEVER use headers like "**Initial Remark:**", "**Question X:**", or phase names like "**Academic Authority:**" in your output.
+3. Present your feedback and the next question as a single, fluid, professional response. Use line breaks for readability but NO meta-labels.
 ${languageInstruction}`;
 
         } else { // Question 10 (0-indexed 9)
@@ -733,6 +772,7 @@ Rules:
 1. Set a high-stakes crisis situation.
 2. Demand exactly 5 sequential strategic steps to resolve it.
 3. Challenging, technical, and urgent tone.
+4. **CRITICAL:** NO headers or meta-labels. Just the scenario.
 ${languageInstruction}`;
         }
 
@@ -763,7 +803,6 @@ export async function analyzePortfolioInterview(
 ) {
     try {
         const { client, model } = await getAI();
-        const languageInstruction = (language === 'ar' ? 'أجب باللغة العربية.' : language === 'fr' ? 'Répondez en français.' : 'Respond in English.');
 
         const response = await client.chat.completions.create({
             model: model,
@@ -771,10 +810,16 @@ export async function analyzePortfolioInterview(
                 {
                     role: 'system',
                     content: `You are the most rigorous Executive HR Evaluator in the world. Perform a clinical, data-driven X-RAY audit.
+**ZERO TOLERANCE FOR FLUFF:** If the interview results are poor, or questions were skipped without depth, you must be extremely critical. 
+**EVALUATION RULES:**
+- If the participant skipped more than 3 questions or gave vague answers, the "maturityLevel" must be flagged as "Insufficient Evidence" and the "selfAwarenessScore" must be under 30.
+- Output must be STERN, professional, and DIRECT. NEVER glorify weak performances.
+- **LANGUAGE:** Strictly in ${language} only. DO NOT mix languages.
+
 REQUIRED OUTPUT (JSON ONLY):
 {
   "profileSummary": "string",
-  "maturityLevel": "string (Junior Operator / Mid-level Manager / Senior Strategist / Executive / C-Suite Ready)",
+  "maturityLevel": "string (Junior Operator / Senior Strategist / Executive / C-Suite Ready / Insufficient Evidence)",
   "leadershipFingerprint": { "archetype": "string", "description": "string", "riskContext": "string" },
   "selfAwarenessScore": { "score": "number", "verdict": "string", "evidence": "string" },
   "trajectoryVelocity": { "assessment": "string", "rationale": "string" },
@@ -788,8 +833,7 @@ REQUIRED OUTPUT (JSON ONLY):
   "authorityVsPotential": { "currentAuthority": "number", "futurePotential": "number", "quadrant": "string" },
   "strategicRadar": { "technical": "number", "leadership": "number", "strategy": "number", "execution": "number", "influence": "number" },
   "finalVerdict": "string"
-}
-${languageInstruction}`
+}`
                 },
                 {
                     role: 'user',
@@ -820,12 +864,6 @@ export async function generateUltimateStrategicReport(
 ) {
     try {
         const { client, model } = await getAI();
-        const languageInstructions: Record<string, string> = {
-            'en': 'Respond in English.',
-            'fr': 'Répondez en français.',
-            'ar': 'أجب باللغة العربية.'
-        };
-        const languageInstruction = languageInstructions[language] || languageInstructions['en'];
 
         const response = await client.chat.completions.create({
             model: model,
@@ -861,10 +899,12 @@ export async function generateUltimateStrategicReport(
   }
 }
 
-**TONE:** 
-Elite, visionary, and high-impact.
-
-${languageInstruction}`
+**TONE & RIGOR:** 
+Elite, visionary, and high-impact. You are the final judge. If the data shows inconsistencies or lack of effort from the candidate (e.g., skipped questions), highlight it as a major "Executive Failure".
+**LANGUAGE RULES:**
+- STRICTLY in ${language} only. 
+- DO NOT mix languages in strengths, swot, or verdict.
+- For Arabic (ar), use high-level MSA (Modern Standard Arabic).`
                 },
                 {
                     role: 'user',
@@ -1288,7 +1328,9 @@ You will conduct a structured interview with 15 targeted questions to:
 - Be professional but direct
 - Ask specific, probing questions
 - Focus on verification, not just conversation
-- Each question should help assess CV accuracy`
+- Each question should help assess CV accuracy
+- **CRITICAL:** If the candidate gives vague, short, or evasive answers, or tries to skip a question, you MUST flag this as "Evasion Detected" and probe deeper. Do not accept "I don't know" or "I forgot" without a critical follow-up.
+- You are here to find the truth, even if it is negative.`
                 },
                 {
                     role: 'user',
@@ -1320,7 +1362,7 @@ Respond in JSON format:
             success: true,
             welcomeMessage: parsed.welcomeMessage,
             firstQuestion: parsed.firstQuestion,
-            totalQuestions: 15,
+            totalQuestions: 40,
         };
     } catch (error) {
         console.error('DeepSeek API Error:', error);
@@ -3028,7 +3070,9 @@ export async function generateProfessionalSimulation(
         });
         const content = response.choices[0]?.message?.content;
         if (!content) throw new Error('No response from AI');
-        const parsed = JSON.parse(content);
+        
+        const parsed = safeParseJSON(content);
+        if (!parsed || !parsed.scenarios) throw new Error('Invalid simulation format');
         return { success: true, scenarios: parsed.scenarios };
     } catch (error) {
         console.error('Simulation generate error:', error);
@@ -3103,7 +3147,8 @@ Respond in ${lang}.
         });
         const content = response.choices[0]?.message?.content;
         if (!content) throw new Error('No AI response');
-        return { success: true, results: JSON.parse(content) };
+        const parsed = safeParseJSON(content);
+        return { success: true, results: parsed };
     } catch (error) {
         console.error('Simulation analyze error:', error);
         return { success: false, error: 'Failed to analyze simulation' };
@@ -3141,63 +3186,60 @@ export async function generateUltimateMasterReport(
     portfolioTranscript: InterviewMessage[],
     mcqResults: { hardScore: number; softScore: number; totalQuestions: number },
     simulationResult: SimulationResult,
-    language: string = 'en'
+    language: string = 'en',
+    interviewAnalysis?: string,
+    expertNotes?: string
 ) {
     const langMap: Record<string, string> = { en: 'English', fr: 'French', ar: 'Arabic' };
     const lang = langMap[language] || 'English';
 
-    const prompt = `You are the Chief Executive Auditor at a prestigious Global Strategic Talent Firm (McKinsey/BCG level). 
-Generate a COMPREHENSIVE STRATEGIC CERTIFICATION REPORT for a high-level professional. 
+    const prompt = `You are a Legendary Senior Executive HR Auditor and Strategic Talent Partner with 50 years of experience in elite executive search (ex-McKinsey/Egon Zehnder). 
+Generate a COMPREHENSIVE STRATEGIC VERDICT & CERTIFICATION REPORT.
 
-**STRICT REQUIREMENTS:**
-1. **Official Tone:** Use extremely professional, clinical, and sophisticated corporate language.
-2. **Total Depth:** Analyze the candidate’s professional DNA, tactical maturity, and long-term executive viability.
-3. **Internal Logic:** Connect the Audit (claims), the Interview (narrative), the MCQ (knowledge), and the Simulation (behavior).
-4. **Consistency:** ALL text content in the report MUST be in ${lang}. DO NOT mix languages.
-5. **No Placeholders:** Provide concrete, high-level psychological and strategic insights.
+**CRITICAL MANDATE: ABSOLUTE HR CREDIBILITY & REALISM**
+1. **No Sugar-Coating:** Use a clinical, brilliant, and BRUTALLY HONEST tone. Do NOT provide generic positive feedback.
+2. **Handle Missing Evidence:** If any data source (Audit, Interview, MCQ, or Simulation) is empty, null, or indicates a "skip", you MUST address this directly in the report. 
+   - Interpret missing data as a "Refusal to provide evidence", "Lack of professional engagement", or "Evidence of strategic evasion".
+   - A skip in a high-stakes phase (like Simulation) is a major red flag in an executive profile.
+3. **Internal Logic:** Deconstruct the candidate's professional DNA by connecting the Audit (intent), the Interview (narrative), the MCQ (knowledge), and the Simulation (behavioral execution).
+4. **Consistency:** ALL content MUST be in ${lang}.
+5. **Realism:** If the candidate performed poorly or skipped phases, the verdict must be severe and realistic, not encouraging. Support your judgment with the available evidence.
 
 **CANDIDATE DATA CONTEXT:**
-- Audit Profile: ${auditResult?.profileLevel} (Authority: ${auditResult?.authorityScore}/100)
-- Interview Insights: ${interviewTranscript.slice(-10).map(m => m.content).join(' ')}
-- MCQ Performance: Hard Score ${mcqResults?.hardScore}, Soft Score ${mcqResults?.softScore}
-- Simulation Analysis: ${simulationResult?.overallVerdict}
-- Simulation Blockers: ${simulationResult?.promotionBlockers?.join(', ')}
+- Audit Profile: ${auditResult?.profileLevel || "Phase Skipped - No Data"} (Authority: ${auditResult?.authorityScore || 0}/100)
+- Interview Insights: ${interviewAnalysis || (interviewTranscript.length > 0 ? interviewTranscript.slice(-10).map(m => m.content).join(' ') : "Participant skipped the strategic interview phase.") }
+- Expert Domain Notes: ${expertNotes || "No specific domain expert context provided."}
+- MCQ Performance: Hard Score ${mcqResults?.hardScore || 0}, Soft Score ${mcqResults?.softScore || 0} (${mcqResults ? "Completed" : "Phase Skipped"})
+- Simulation Analysis: ${simulationResult?.overallVerdict || "No behavioral simulation data provided - Participant bypassed this assessment."}
+- Simulation Blockers: ${simulationResult?.promotionBlockers?.join(', ') || "Assessment Incomplete"}
 
 **JSON OUTPUT STRUCTURE (MANDATORY):**
 {
-  "title": "string (Official Strategic Certification Title)",
-  "subtitle": "string (Professional Designation)",
-  "profileSummary": "string (3-4 sentences of deep executive synthesis)",
-  "maturityLevel": "string (Executive / Senior Strategist / etc.)",
-  "leadershipFingerprint": { 
-    "archetype": "string", 
-    "description": "string", 
-    "riskContext": "string" 
-  },
-  "selfAwarenessScore": { 
-    "score": number (0-100), 
-    "verdict": "string", 
-    "evidence": "string" 
-  },
-  "trajectoryVelocity": { 
-    "assessment": "string (Accelerating/Stabilizing/etc.)", 
-    "rationale": "string" 
-  },
+  "title": "string",
+  "subtitle": "string",
+  "profileSummary": "string",
+  "maturityLevel": "string",
+  "leadershipFingerprint": { "archetype": "string", "description": "string", "riskContext": "string" },
+  "careerTypology": "Specialist | Generalist | T-Shaped",
+  "aiReadiness": { "score": number, "riskLevel": "Low | Medium | High", "advice": "string" },
+  "selfAwarenessScore": { "score": number, "verdict": "string (HR clinical assessment of their honesty vs data)", "evidence": "string (discrepancies found between interview/MCQ and their self-claims)" },
+  "blindSpots": ["string (2-3 uncomfortable truths they ignore)"],
+  "trajectoryVelocity": { "score": number (0-100), "status": "string (Accelerated | Stagnant | Lagging)", "assessment": "string", "rationale": "string" },
   "swot": {
-    "strengths": ["string", "string", "string", "string"],
-    "weaknesses": ["string", "string", "string"],
-    "opportunities": ["string", "string"],
-    "threats": ["string", "string"]
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "opportunities": ["string"],
+    "threats": ["string"]
   },
-  "deepInsights": ["string", "string", "string (hidden cognitive patterns)"],
-  "marketValue": "string (Current Valuation vs Potential)",
-  "finalVerdict": "string (The ultimate 1-paragraph strategic judgment)",
-  "recommendedRoles": ["string", "string"],
+  "deepInsights": ["string"],
+  "marketValue": "string",
+  "finalVerdict": "string",
+  "recommendedRoles": ["string"],
   "gapAnalysis": {
     "currentJobVsReality": "string",
     "hardSkillsMatch": number,
     "softSkillsMatch": number,
-    "criticalCompetencyGaps": ["string", "string"],
+    "criticalCompetencyGaps": ["string"],
     "comparisonPositionReality": "string"
   },
   "actionPlan90Days": [
@@ -3206,28 +3248,27 @@ Generate a COMPREHENSIVE STRATEGIC CERTIFICATION REPORT for a high-level profess
     { "week": "Weeks 9-12", "action": "string", "rationale": "string" }
   ],
   "careerAdvancement": [
-    { "role": "string", "shortTermProbability": number, "longTermProbability": number, "requirements": ["string", "string"] }
+    { "role": "string", "shortTermProbability": number, "longTermProbability": number, "requirements": ["string"] }
   ],
-  "authorityVsPotential": { 
-    "currentAuthority": number, 
-    "futurePotential": number, 
-    "quadrant": "string" 
+  "academicBackground": {
+    "degree": "string (Highest degree like Bachelor/Master/PhD)",
+    "institution": "string",
+    "country": "string",
+    "legitimacyAudit": "string (HR expert's view on the academic rigor)"
   },
-  "strategicRadar": { 
-    "technical": number, 
-    "leadership": number, 
-    "strategy": number, 
-    "execution": number, 
-    "influence": number 
+  "roadmap369": {
+    "year3": { "targetRole": "string", "keySkillsToAcquire": ["string"], "action": "string" },
+    "year6": { "targetRole": "string", "keySkillsToAcquire": ["string"], "action": "string" },
+    "year9": { "targetRole": "string", "keySkillsToAcquire": ["string"], "action": "string" },
+    "feasibilityVerdict": "string (Pressure-test result: How and if they can achieve this)"
   },
+  "authorityVsPotential": { "currentAuthority": number, "futurePotential": number, "quadrant": "string" },
+  "strategicRadar": { "technical": number, "leadership": number, "strategy": number, "execution": number, "influence": number },
   "marketPerceptionVerdict": "string",
-  "linkedInStrategy": {
-    "headline": "string",
-    "summaryFocus": "string",
-    "networkingAdvice": "string"
-  },
-  "expertInterviewNotes": ["string", "string (Behavioral notes from AI evaluator)"]
-}`;
+  "linkedInStrategy": { "headline": "string", "summaryFocus": "string", "networkingAdvice": "string" },
+  "expertInterviewNotes": ["string"]
+}
+`;
 
     try {
         const { client, model } = await getAI();
@@ -3244,10 +3285,14 @@ Generate a COMPREHENSIVE STRATEGIC CERTIFICATION REPORT for a high-level profess
 
         const content = response.choices[0]?.message?.content;
         if (!content) throw new Error('AI output empty');
-        return { success: true, report: JSON.parse(content) };
+        const parsed = safeParseJSON(content);
+        return { success: true, report: parsed };
     } catch (error) {
         console.error('Finalize all error:', error);
         return { success: false, error: 'Failed to generate ultimate report' };
     }
 }
+
+
+
 

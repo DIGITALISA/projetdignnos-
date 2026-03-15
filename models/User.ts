@@ -187,6 +187,36 @@ const UserSchema = new Schema(
         type: String,
       },
     ],
+    // ─── Professional Report Review Flow ─────────────────────────────
+    professionalReportStatus: {
+      type: String,
+      enum: ["not_started", "in_progress", "completed", "pending_review", "reviewed", "rejected"],
+      default: "not_started",
+    },
+    professionalReportCompletedAt: {
+      type: Date,
+    },
+    professionalFinalReport: {
+      type: Schema.Types.Mixed, // The full generateUltimateMasterReport result
+    },
+    professionalAuditData: {
+      type: Schema.Types.Mixed, // auditResult + formData
+    },
+    professionalInterviewTranscript: [
+      {
+        role: String,
+        content: String,
+      },
+    ],
+    professionalExpertNotes: {
+      type: String, // Admin/Expert review notes added after reviewing
+    },
+    professionalExpertReviewedAt: {
+      type: Date,
+    },
+    professionalExpertReviewedBy: {
+      type: String,
+    },
   },
   {
     timestamps: true,

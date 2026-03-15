@@ -25,6 +25,7 @@ interface AdminStats {
     totalSimulations: number;
     totalInquiries: number;
     corporateReady: number;
+    pendingProfessionalReports: number;
 }
 
 export default function AdminDashboard() {
@@ -35,7 +36,8 @@ export default function AdminDashboard() {
         completedDiagnoses: 0,
         totalSimulations: 0,
         totalInquiries: 0,
-        corporateReady: 0
+        corporateReady: 0,
+        pendingProfessionalReports: 0
     });
     const [activities, setActivities] = useState<Activity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +96,14 @@ export default function AdminDashboard() {
             icon: AlertCircle,
             color: (stats?.pendingUsers || 0) > 0 ? "red" : "green",
             link: "/admin/users"
+        },
+        {
+            name: "Expert Reviews",
+            value: stats?.pendingProfessionalReports || "0",
+            change: (stats?.pendingProfessionalReports || 0) > 0 ? "Action Required" : "Clean",
+            icon: ShieldCheck,
+            color: (stats?.pendingProfessionalReports || 0) > 0 ? "red" : "green",
+            link: "/admin/professional-reviews"
         },
     ];
 

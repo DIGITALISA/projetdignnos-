@@ -14,6 +14,7 @@ interface CachedStats {
   totalSimulations: number;
   corporateReady: number;
   totalInquiries: number;
+  pendingProfessionalReports: number;
 }
 
 let cachedStats: CachedStats | null = null;
@@ -46,6 +47,7 @@ export async function GET() {
       attestationRequests,
       scorecardRequests,
       workshopAccessRequests,
+      pendingProReports,
     ] = await Promise.all([
       User.countDocuments({ 
         role: { $nin: ["Admin", "Moderator"] }, 
@@ -62,18 +64,20 @@ export async function GET() {
       User.countDocuments({ resetRequested: true }),
       User.countDocuments({ workshopAttestationStatus: "Requested" }),
       User.countDocuments({ scorecardRequested: true }),
-      User.countDocuments({ "workshopAccessRequests.0": { $exists: true } })
+      User.countDocuments({ "workshopAccessRequests.0": { $exists: true } }),
+      User.countDocuments({ plan: "Professional", professionalReportStatus: "pending_review" })
     ]);
 
     const stats = {
       totalUsers,
       pendingUsers:
-        pendingUsers + resetRequests + attestationRequests + scorecardRequests + workshopAccessRequests,
+        pendingUsers + resetRequests + attestationRequests + scorecardRequests + workshopAccessRequests + pendingProReports,
       activeTrials,
       completedDiagnoses,
       totalSimulations,
       corporateReady,
       totalInquiries,
+      pendingProfessionalReports: pendingProReports,
     };
 
     // Update cache
