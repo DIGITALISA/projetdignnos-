@@ -358,15 +358,15 @@ export const PRICING = {
         plans: [
           {
             id: "p-exec", name: "Executive", icon: "⚡", price: "79", priceTND: "249 DT", period: "/ month", highlight: false,
-            desc: "Advanced diagnostic + roadmap + executive coaching in one hub.",
-            features: ["Advanced X-Ray Diagnostic (SWOT + Radar)", "AI Strategic Roadmap (18 months)", "Executive Coaching simulation", "Elite Strategic Academy (AI-generated)", "Dashboard & analytics"],
+            desc: "Advanced diagnostic + roadmap + executive logic audit in one hub.",
+            features: ["Advanced X-Ray Diagnostic (SWOT + Radar)", "AI Strategic Roadmap (18 months)", "Executive Logic Audit simulation", "Skill Assessment Center (Operations)", "Dashboard & analytics"],
             notIncluded: ["Self-Marketing Studio", "Final Verdict PDF", "Human expert session"],
             cta: "Activate Executive", href: "/register"
           },
           {
             id: "p-strategic", name: "Strategic", icon: "💼", price: "189", priceTND: "599 DT", period: "/ 3 months", highlight: true, popular: true,
             desc: "Complete professional transformation — from diagnosis to market authority.",
-            features: ["Everything in Executive", "Self-Marketing Studio (CV + Report + Negotiation)", "Final Strategic Verdict (PDF)", "3 Executive Coaching simulations", "1 Human Expert Session (45 min)", "Job Alignment Testing"],
+            features: ["Everything in Executive", "Self-Marketing Studio (CV + Report + Negotiation)", "Final Strategic Verdict (PDF)", "3 Executive Logic Audit simulations", "1 Human Expert Session (45 min)", "Job Alignment Testing"],
             notIncluded: ["Multiple human expert sessions"],
             cta: "Start Strategic Plan", href: "/register"
           },
@@ -449,15 +449,15 @@ export const PRICING = {
         plans: [
           {
             id: "p-exec", name: "Exécutif", icon: "⚡", price: "79", priceTND: "249 DT", period: "/ mois", highlight: false,
-            desc: "Diagnostic avancé + roadmap + coaching exécutif en un seul endroit.",
-            features: ["Diagnostic X-Ray avancé (SWOT + Radar)", "Roadmap IA (18 mois)", "Simulation coaching exécutif", "Académie stratégique élite (IA)", "Dashboard & analytics"],
+            desc: "Diagnostic avancé + roadmap + audit logique exécutif en un seul endroit.",
+            features: ["Diagnostic X-Ray avancé (SWOT + Radar)", "Roadmap IA (18 mois)", "Simulation d'audit logique exécutif", "Centre d'Évaluation des Compétences", "Dashboard & analytics"],
             notIncluded: ["Studio Self-Marketing", "Verdict Final PDF", "Session expert humain"],
             cta: "Activer Exécutif", href: "/register"
           },
           {
             id: "p-strategic", name: "Stratégique", icon: "💼", price: "189", priceTND: "599 DT", period: "/ 3 mois", highlight: true, popular: true,
             desc: "Transformation professionnelle complète — du diagnostic à l'autorité.",
-            features: ["Tout de l'Exécutif", "Studio Self-Marketing complet", "Verdict Final (PDF)", "3 simulations coaching", "1 Session Expert Humain (45 min)", "Test alignement emploi"],
+            features: ["Tout de l'Exécutif", "Studio Self-Marketing complet", "Verdict Final (PDF)", "3 simulations d'audit logique", "1 Session Expert Humain (45 min)", "Test alignement emploi"],
             notIncluded: ["Sessions multiples expert humain"],
             cta: "Démarrer Plan Stratégique", href: "/register"
           },
@@ -540,15 +540,15 @@ export const PRICING = {
         plans: [
           {
             id: "p-exec", name: "التنفيذي", icon: "⚡", price: "79", priceTND: "249 DT", period: "/ شهر", highlight: false,
-            desc: "تشخيص متقدم + خارطة طريق + تدريب تنفيذي في مكان واحد.",
-            features: ["تشخيص X-Ray متقدم (SWOT + Radar)", "خارطة طريق استراتيجية AI (18 شهراً)", "محاكاة تدريب تنفيذي", "أكاديمية استراتيجية (AI)", "لوحة تحكم وتحليلات"],
+            desc: "تشخيص متقدم + خارطة طريق + تدقيق المنطق التنفيذي في مكان واحد.",
+            features: ["تشخيص X-Ray متقدم (SWOT + Radar)", "خارطة طريق استراتيجية AI (18 شهراً)", "محاكاة تدقيق المنطق التنفيذي", "مركز تقييم الكفاءات (تفاعلي)", "لوحة تحكم وتحليلات"],
             notIncluded: ["ستوديو التسويق الذاتي", "حكم استراتيجي نهائي PDF", "جلسة خبير بشري"],
             cta: "تفعيل التنفيذي", href: "/register"
           },
           {
             id: "p-strategic", name: "الاستراتيجي", icon: "💼", price: "189", priceTND: "599 DT", period: "/ 3 أشهر", highlight: true, popular: true,
             desc: "التحول المهني الكامل — من التشخيص إلى السلطة في السوق.",
-            features: ["كل ما في التنفيذي", "ستوديو التسويق الذاتي (CV + تقرير + تفاوض)", "الحكم الاستراتيجي النهائي (PDF)", "3 محاكاة تدريب تنفيذي", "جلسة خبير بشري (45 دقيقة)", "اختبار التوافق الوظيفي"],
+            features: ["كل ما في التنفيذي", "ستوديو التسويق الذاتي (CV + تقرير + تفاوض)", "الحكم الاستراتيجي النهائي (PDF)", "3 محاكاة لتدقيق المنطق التنفيذي", "جلسة خبير بشري (45 دقيقة)", "اختبار التوافق الوظيفي"],
             notIncluded: ["جلسات متعددة مع خبير بشري"],
             cta: "ابدأ الخطة الاستراتيجية", href: "/register"
           },

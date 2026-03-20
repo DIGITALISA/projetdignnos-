@@ -73,16 +73,22 @@ export default function AdminLayout({
   const ADMIN_EMAIL = "ahmed@matc.com";
   const ADMIN_PASSWORD = "ahmedmatc@20388542";
 
-  const [userName, setUserName] = useState("Dev Admin");
-  const [userRole, setUserRole] = useState("Super Admin");
+  const userName = "Dev Admin";
+  const userRole = "Super Admin";
 
   const pathname = usePathname();
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    const unlocked =
-      sessionStorage.getItem("admin_section_unlocked") === "true";
-    setIsSectionUnlocked(unlocked);
-    setIsCheckingAuth(false);
+    // Avoid synchronous setState in effect body to prevent cascading renders
+    Promise.resolve().then(() => {
+      setMounted(true);
+      const unlocked =
+        sessionStorage.getItem("admin_section_unlocked") === "true";
+      setIsSectionUnlocked(unlocked);
+      setIsCheckingAuth(false);
+    });
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -123,23 +129,27 @@ export default function AdminLayout({
     null,
   );
 
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const latest = notifications[0];
+      if (!latest.read && unreadCount > 0) {
+        // Use a small delay to avoid cascading synchronous render warnings
+        const toastTimer = setTimeout(() => setActiveToast(latest), 10);
+        const hideTimer = setTimeout(() => setActiveToast(null), 6010);
+        return () => {
+          clearTimeout(toastTimer);
+          clearTimeout(hideTimer);
+        };
+      }
+    }
+  }, [notifications, unreadCount]);
+
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/notifications");
       const data = await res.json();
       if (data.notifications) {
-        // Check if we have a new unread notification to show as toast
-        setUnreadCount((prev) => {
-          const newCount = data.unreadCount || 0;
-          if (newCount > prev && data.notifications.length > 0) {
-            const latest = data.notifications[0];
-            if (!latest.read) {
-              setActiveToast(latest);
-              setTimeout(() => setActiveToast(null), 6000); // Auto-hide after 6s
-            }
-          }
-          return newCount;
-        });
+        setUnreadCount(data.unreadCount || 0);
         setNotifications(data.notifications);
       }
     } catch (error) {
@@ -148,9 +158,13 @@ export default function AdminLayout({
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Polling every 30s instead of 5s
-    return () => clearInterval(interval);
+    // Initiation fetch moved to end of current tick
+    const startInitialFetch = setTimeout(fetchNotifications, 0);
+    const interval = setInterval(fetchNotifications, 30000); 
+    return () => {
+      clearTimeout(startInitialFetch);
+      clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
   const markAsRead = async (id: string, e: React.MouseEvent) => {
@@ -167,8 +181,8 @@ export default function AdminLayout({
     }
   };
 
-  // Show loading state while checking session
-  if (isCheckingAuth) {
+  // Ensure no hydration mismatch by waiting for mount
+  if (!mounted || isCheckingAuth) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <Loader2 className="animate-spin text-blue-500" size={32} />
@@ -519,17 +533,17 @@ export default function AdminLayout({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-4 mb-1">
                 <h4 className="font-bold text-sm truncate">
-                  {activeToast.title}
+                  <span suppressHydrationWarning>{activeToast.title}</span>
                 </h4>
                 <button
                   onClick={() => setActiveToast(null)}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-white transition-colors p-1"
                 >
                   <X size={14} />
                 </button>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-                {activeToast.message}
+                <span suppressHydrationWarning>{activeToast.message}</span>
               </p>
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">

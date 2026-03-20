@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Diagnosis from '@/models/Diagnosis';
+import Notification from '@/models/Notification';
 
 export const runtime = 'nodejs';
 
@@ -100,6 +101,22 @@ export async function PATCH(req: NextRequest) {
         }
       }
     );
+
+    // Create user notification
+    try {
+      await Notification.create({
+        type: 'professional_report_update',
+        title: action === 'approve' ? 'تمت مراجعة تقريرك بنجاح' : 'تحديث بخصوص تقريرك الإستراتيجي',
+        message: action === 'approve' 
+          ? `تهانينا! قام الخبير بمراجعة تقريرك وإضافة ملاحظات استراتيجية. يمكنك الآن الاطلاع عليها.`
+          : `قام الخبير بمراجعة تقريرك وطلب بعض التعديلات أو أضاف ملاحظات هامة.`,
+        recipientEmail: targetEmail,
+        metadata: { action, adminEmail, reviewedAt: new Date() },
+        read: false,
+      });
+    } catch (notifError) {
+      console.warn('User notification failed:', notifError);
+    }
 
     return NextResponse.json({
       success: true,

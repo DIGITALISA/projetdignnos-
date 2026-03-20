@@ -34,7 +34,9 @@ Your response MUST be in JSON format with the following structure:
   }
 }
 
-Be direct, rigorous, and professional. Use the language: ${language || 'ar'}.`;
+Be direct, rigorous, and professional. Use the language: ${language || 'ar'}.
+**LANGUAGE CLARITY:** Use simple, accessible, and direct language. Avoid complex buzzwords or academic jargon. Use general or context-relevant examples. Do NOT use irrelevant geographic examples (e.g., Nigerian). Keep the tone "easy to understand" (كلام ساهل).
+`;
 
         const userPrompt = `
 HISTORY: ${JSON.stringify(history)}

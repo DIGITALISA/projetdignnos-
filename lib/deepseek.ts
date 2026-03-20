@@ -72,7 +72,81 @@ export interface UltimateReportResult {
   };
 }
 
-async function getAI() {
+export interface AssessmentQuestion {
+  id: string;
+  category: "technical" | "soft" | "scenario";
+  question: string;
+  options: string[];
+  correctIndex: number;
+  feedback: {
+    explanation: string;
+    evidence: string;
+    advice: string;
+  };
+}
+
+export interface AssessmentAnalysis {
+  score: number;
+  total: number;
+  technicalProficiency: string;
+  behavioralInsight: string;
+  decisionMakingQuality: string;
+  finalConclusion: string;
+}
+
+export interface MindsetAnalysis {
+    mindsetType: "Growth" | "Financial" | "Stability" | "Entrepreneurial";
+    satisfactionLevel: "High" | "Medium" | "Low";
+    futureDirection: "Stay" | "Change Job" | "Change Sector" | "Entrepreneurship";
+    psychologicalProfile: {
+        motivation: string;
+        stressHandling: string;
+        ambitionScore: number;
+        loyaltyPattern: string;
+    };
+    recommendation: string;
+}
+
+export interface GrandFinalReport {
+    professionalIdentity: {
+        verdict: string;
+        maturityScore: number;
+        psychologicalFootprint: string;
+    };
+    competencyMatrix: {
+        skillRadar: { name: string; score: number }[];
+        gapAnalysis: string;
+        decisionQualityVerdict: string;
+    };
+    marketPositioning: {
+        jobAlignmentScore: number;
+        stabilityProfile: string;
+        marketValueVerdict: string;
+    };
+    actionableRoadmap: {
+        shortTerm: string[];
+        mediumTerm: string;
+        longTermVision: string;
+    };
+    expertSynthesis: string;
+}
+
+export interface StrategicPath {
+    title: string;
+    description: string;
+    matchPercentage: number;
+    rationale: string;
+    pros: string[];
+    cons: string[];
+    risks: string[];
+}
+
+export interface StrategicPathsAnalysis {
+    paths: StrategicPath[];
+    finalRecommendation: string;
+}
+
+export async function getAI() {
     const config = await getAIConfig();
     const isOpenAI = config.activeProvider === 'openai';
     
@@ -809,39 +883,155 @@ export async function analyzePortfolioInterview(
             messages: [
                 {
                     role: 'system',
-                    content: `You are the most rigorous Executive HR Evaluator in the world. Perform a clinical, data-driven X-RAY audit.
-**ZERO TOLERANCE FOR FLUFF:** If the interview results are poor, or questions were skipped without depth, you must be extremely critical. 
-**EVALUATION RULES:**
-- If the participant skipped more than 3 questions or gave vague answers, the "maturityLevel" must be flagged as "Insufficient Evidence" and the "selfAwarenessScore" must be under 30.
-- Output must be STERN, professional, and DIRECT. NEVER glorify weak performances.
-- **LANGUAGE:** Strictly in ${language} only. DO NOT mix languages.
+                    content: `You are a world-class Senior HR Consultant and Certified Professional Career Analyst with 20+ years of experience in talent assessment, workforce development, and professional career management. You specialize in evaluating professionals with 1 to 15 years of work experience.
 
-REQUIRED OUTPUT (JSON ONLY):
+**YOUR MISSION:**
+Generate a COMPREHENSIVE, OFFICIAL PROFESSIONAL DIAGNOSTIC DOCUMENT that can be submitted to any company, HR department, or manager for decision-making purposes (promotions, hiring, career development planning, training needs analysis). This document must be based entirely on evidence collected from the participant's multi-stage assessment.
+
+**PARTICIPANT CONTEXT:**
+This is a PROFESSIONAL with real work experience (minimum 1 year). NOT a student. Evaluate them as an active professional seeking to understand their market standing, growth potential, and career trajectory.
+
+**CRITICAL EVALUATION RULES:**
+- CLINICALLY PRECISE: Every statement must be traceable to evidence from the data provided.
+- BRUTALLY HONEST: Do not inflate scores. Do not glorify mediocre performances.
+- If the participant skipped questions or gave vague answers, flag it clearly as "Insufficient Evidence" in the relevant sections.
+- LANGUAGE: STRICTLY in ${language} only. NEVER mix languages.
+
+REQUIRED JSON OUTPUT — COMPLETE PROFESSIONAL DIAGNOSTIC DOCUMENT:
 {
-  "profileSummary": "string",
-  "maturityLevel": "string (Junior Operator / Senior Strategist / Executive / C-Suite Ready / Insufficient Evidence)",
+  "participantProfile": {
+    "currentRole": "string (inferred from data)",
+    "yearsOfExperience": "string (estimated total years)",
+    "seniority": "Junior Professional (1-2 yrs) | Mid-Level Professional (3-5 yrs) | Senior Professional (6-10 yrs) | Expert Level (10+ yrs)",
+    "sector": "string (primary sector identified)",
+    "profileSummary": "string (3-4 sentences: professional identity, distinctive qualities, workforce positioning)"
+  },
+
+  "professionalCompetencyAssessment": {
+    "hardSkillsScore": "number (0-100)",
+    "softSkillsScore": "number (0-100)",
+    "overallCompetencyScore": "number (0-100)",
+    "confirmedStrengths": ["string (evidence-based strengths — NOT just CV claims)"],
+    "criticalWeaknesses": ["string (specific gaps limiting current performance or career growth)"],
+    "hiddenPotential": ["string (latent abilities not yet fully leveraged)"],
+    "skillsRadar": {
+      "technicalExpertise": "number (0-10)",
+      "communicationAndInfluence": "number (0-10)",
+      "problemSolvingAndDecision": "number (0-10)",
+      "teamworkAndCollaboration": "number (0-10)",
+      "adaptabilityAndLearning": "number (0-10)"
+    }
+  },
+
+  "marketPositioning": {
+    "currentMarketValue": "string (realistic market standing assessment)",
+    "marketDifferentiators": ["string (what makes them stand out vs peers)"],
+    "marketWeaknesses": ["string (what limits their market value)"],
+    "recommendedSalaryRange": "string (realistic range based on experience, skills, sector)",
+    "negotiationStrength": "Weak | Below Average | Average | Above Average | Strong"
+  },
+
+  "careerAnalysis": {
+    "careerProgressionAssessment": "Stalled | Slow | On-Track | Accelerating | Exceptional",
+    "careerProgressionRationale": "string (analysis of trajectory speed and pattern)",
+    "currentJobFitScore": "number (0-100)",
+    "bestFitEnvironment": "Startup | SME | Corporate | Public Sector | Consulting",
+    "careerRisks": ["string (specific risks that could derail professional growth)"]
+  },
+
+  "developmentPlan": {
+    "immediatePriority": "string (the ONE most important action in the next 30 days)",
+    "actionPlan90Days": [
+      { "phase": "Days 1-30", "action": "string", "expectedOutcome": "string" },
+      { "phase": "Days 31-60", "action": "string", "expectedOutcome": "string" },
+      { "phase": "Days 61-90", "action": "string", "expectedOutcome": "string" }
+    ],
+    "priorityCertificationsOrTraining": ["string (specific, named certifications or training programs)"],
+    "shouldChangeJob": "Yes - Urgently | Yes - Within 1 Year | Stay and Grow | Undetermined",
+    "shouldChangeJobRationale": "string (honest analysis)"
+  },
+
+  "swot": {
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "opportunities": ["string"],
+    "threats": ["string"]
+  },
+
+  "promotionReadiness": {
+    "readinessScore": "number (0-100)",
+    "readinessVerdict": "Not Ready | Conditionally Ready | Ready | Highly Ready",
+    "readinessRationale": "string",
+    "promotionBlockers": ["string"],
+    "timeToPromotion": "string (realistic estimate)"
+  },
+
+  "professionalBehaviorProfile": {
+    "decisionMakingStyle": "string (style + brief description)",
+    "workingStyleUnderPressure": "string",
+    "blindSpots": ["string (specific — things they cannot see about themselves)"],
+    "selfAwarenessLevel": "Low | Moderate | High | Exceptional",
+    "selfAwarenessEvidence": "string (evidence from assessment)"
+  },
+
+  "gapAnalysis": {
+    "currentJobVsReality": "string (over-qualified, well-matched, or under-qualified?)",
+    "criticalCompetencyGaps": ["string"],
+    "hardSkillsMatch": "number (0-100)",
+    "softSkillsMatch": "number (0-100)",
+    "comparisonPositionReality": "string"
+  },
+
+  "recommendedRoles": ["string (3-5 realistic job titles matching current assessed profile)"],
+
+  "careerRoadmap": {
+    "shortTerm": { "horizon": "1-2 Years", "targetRole": "string", "keyMilestones": ["string"] },
+    "mediumTerm": { "horizon": "3-5 Years", "targetRole": "string", "keyMilestones": ["string"] },
+    "longTerm": { "horizon": "5-10 Years", "targetRole": "string", "keyMilestones": ["string"] }
+  },
+
+  "hrDecisionSupport": {
+    "overallAssessmentVerdict": "string (2-3 sentence summary for HR manager — direct, honest, actionable)",
+    "recommendForPromotion": "Yes | No | Conditional",
+    "promotionConditions": ["string (conditions if Conditional)"],
+    "recommendForLeadershipTrack": "Yes | No | Too Early to Determine",
+    "keyRisksForEmployer": ["string"],
+    "keyBenefitsForEmployer": ["string"],
+    "developmentInvestmentRequired": "Low | Medium | High"
+  },
+
+  "strategicRadar": { "technical": "number (0-10)", "leadership": "number (0-10)", "strategy": "number (0-10)", "execution": "number (0-10)", "influence": "number (0-10)" },
+  "authorityVsPotential": { "currentAuthority": "number (0-100)", "futurePotential": "number (0-100)", "quadrant": "string" },
   "leadershipFingerprint": { "archetype": "string", "description": "string", "riskContext": "string" },
-  "selfAwarenessScore": { "score": "number", "verdict": "string", "evidence": "string" },
-  "trajectoryVelocity": { "assessment": "string", "rationale": "string" },
-  "swot": { "strengths": ["string"], "weaknesses": ["string"], "opportunities": ["string"], "threats": ["string"] },
-  "deepInsights": ["string"],
+  "selfAwarenessScore": { "score": "number (0-100)", "verdict": "string", "evidence": "string" },
+  "trajectoryVelocity": { "assessment": "Stalled | Declining | Stable | Progressing | Accelerating", "rationale": "string" },
+  "deepInsights": ["string (3-5 non-obvious expert observations)"],
   "marketValue": "string",
-  "gapAnalysis": { "currentJobVsReality": "string", "hardSkillsMatch": "number", "softSkillsMatch": "number", "criticalCompetencyGaps": ["string"], "comparisonPositionReality": "string" },
+  "maturityLevel": "string",
   "actionPlan90Days": [{ "week": "string", "action": "string", "rationale": "string" }],
   "careerAdvancement": [{ "role": "string", "shortTermProbability": "number", "longTermProbability": "number", "requirements": ["string"] }],
-  "recommendedRoles": ["string"],
-  "authorityVsPotential": { "currentAuthority": "number", "futurePotential": "number", "quadrant": "string" },
-  "strategicRadar": { "technical": "number", "leadership": "number", "strategy": "number", "execution": "number", "influence": "number" },
-  "finalVerdict": "string"
+  "finalVerdict": "string (powerful, conclusive statement for the official HR dossier)"
 }`
                 },
                 {
                     role: 'user',
-                    content: `Data: ${JSON.stringify({ auditResult, formData, mcqResults, portfolioTranscript })}`
+                    content: `Generate the complete Professional Diagnostic Document based on ALL the following assessment data:
+
+INITIAL PROFESSIONAL AUDIT: ${JSON.stringify(auditResult, null, 2)}
+
+PROFESSIONAL BACKGROUND & DECLARED DATA: ${JSON.stringify(formData, null, 2)}
+
+EXPERT INTERVIEW TRANSCRIPT (Interview 1): ${JSON.stringify(interview1Transcript, null, 2)}
+
+MCQ ASSESSMENT RESULTS (Hard & Soft Skills): ${JSON.stringify(mcqResults, null, 2)}
+
+PORTFOLIO & DEPTH INTERVIEW TRANSCRIPT (Interview 2): ${JSON.stringify(portfolioTranscript, null, 2)}
+
+Cross-reference ALL data sources. Flag contradictions or weak answers clearly. Produce a document worthy of an official HR dossier.`
                 }
             ],
             temperature: 0.3,
-            max_tokens: 4000,
+            max_tokens: 5000,
             response_format: { type: 'json_object' }
         });
 
@@ -1596,7 +1786,7 @@ ALL content must be in ${language}.`
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function chatWithExpert(messages: any[], language: string = 'en', expertType: 'hr' | 'learning' | 'advice' | 'strategic' = 'strategic') {
+export async function chatWithExpert(messages: any[], language: string = 'en', expertType: 'hr' | 'learning' | 'advice' | 'strategic' | 'technical' = 'strategic') {
     try {
         const languageInstructions: Record<string, string> = {
             'en': 'Respond in English.',
@@ -1611,35 +1801,48 @@ export async function chatWithExpert(messages: any[], language: string = 'en', e
             **PROMOTIONAL & TRAINING DIRECTIVE:**
             - Whenever the user asks about training, skill development, or career advancement, you must explicitly mention how they can benefit from the premium workshops of **MA-TRAINING-CONSULTING**.
             - Highlight that these workshops are designed to "bridge complex professional gaps that require direct human intervention and expert coaching," which AI tools cannot fully address alone.
-            - When providing examples of high-quality training providers or consultancy firms, ALWAYS include **MA-TRAINING-CONSULTING** as a primary example alongside other global or industry leaders.`;
+            - When providing examples of high-quality training providers or consultancy firms, ALWAYS include **MA-TRAINING-CONSULTING** as a primary example alongside other global or industry leaders.
+            
+            **LANGUAGE & CLARITY DIRECTIVE:**
+            - Use simple, accessible, and direct language. Avoid complex corporate buzzwords or overly academic jargon.
+            - Keep the tone professional but clear and "easy to understand" (كلام ساهل ومفهوم).
+            - Use general examples or examples relevant to the user's context (North Africa/Middle East/International).
+            - **CRITICAL:** Avoid irrelevant or mismatched geographic examples (e.g., do NOT use Nigerian examples unless specifically relevant to the user).`;
 
         const expertPrompts = {
             hr: `You are an Elite HR & Recruitment Specialist. 
             **YOUR DOMAIN:** Job search strategies, Interview preparation, Career promotions, HR policies, Salary negotiation, and Recruitment processes.
-            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain (like coding, technical troubleshooting, general life advice, etc.), you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Recruitment, HR, and Career Progression topics."
+            Provide authoritative, executive-grade advice to help the user advance their career.
             ${promotionalDirective}
             ${languageInstruction}`,
 
             learning: `You are an Elite Learning & Development Consultant. 
             **YOUR DOMAIN:** Educational advice, Skill acquisition strategies, Certification recommendations, Learning pathways, and Academic growth.
-            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain, you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Learning, Education, and Skill Development topics."
+            Help the user identify the best learning journey to achieve their career goals.
             ${promotionalDirective}
             ${languageInstruction}`,
 
             advice: `You are a Senior Professional Mentor & Advisor. 
             **YOUR DOMAIN:** Professional conduct, Soft skills, Workplace dynamics, Conflict resolution, and General professional mentoring.
-            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain, you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Professional Mentoring and Workplace Advice."
+            Provide nuanced, experienced guidance for navigating complex workplace environments.
             ${promotionalDirective}
             ${languageInstruction}`,
 
-            strategic: `You are a Chief Career Strategy Officer. 
-            **YOUR DOMAIN:** Long-term career roadmaps, Strategic career pivoting, High-level industry positioning, and Executive career planning.
-            **STRICT CONSTRAINT:** If the user asks about anything OUTSIDE this domain, you MUST REFUSE by saying (in the correct language): "This is not my area of expertise. I can only assist you with Strategic Career Planning and Roadmap development."
+            strategic: `You are a Chief Career Strategy Officer from MA-TRAINING-CONSULTING. 
+            **YOUR MISSION:** Long-term career roadmaps, Strategic career pivoting, High-level industry positioning, and Executive career planning.
+            Help the user navigate their trajectory with 10+ years of foresight.
+            ${promotionalDirective}
+            ${languageInstruction}`,
+
+            technical: `You are an Elite Technical & Operational Solutions Architect. 
+            **YOUR DOMAIN:** Technical implementation of professional tasks, domain-specific methodologies (Marketing, Management, Engineering, Finance), Software architecture, Excel automation, and specialized professional tools.
+            **CAPABILITIES:** You are an expert at explaining complex technical concepts, writing code, designing Excel structures, and creating technical documentation. If asked for a file structure (like Excel), describe it in detail or provide the logic/data.
+            Provide deep, actionable technical insights to solve the user's operational challenges.
             ${promotionalDirective}
             ${languageInstruction}`
         };
 
-        const systemPrompt = expertPrompts[expertType] || expertPrompts.strategic;
+        const systemPrompt = expertPrompts[expertType as keyof typeof expertPrompts] || expertPrompts.strategic;
 
         const { client, model } = await getAI();
         const response = await client.chat.completions.create({
@@ -3033,6 +3236,7 @@ export async function generateProfessionalSimulation(
 - ALL scenarios must be realistic and specific to the candidate's sector and positions
 - Each scenario has EXACTLY 3 choices (A, B, C). One correct, one acceptable, one wrong.
 - Respond in ${lang}.
+- **LANGUAGE CLARITY:** Use simple, direct, and accessible language. Avoid overly complex jargon. Ensure examples are general or context-relevant (North Africa/ME/International). Do NOT use irrelevant geographic examples (e.g., Nigerian).
 
 **OUTPUT (JSON ONLY):**
 {
@@ -3204,6 +3408,7 @@ Generate a COMPREHENSIVE STRATEGIC VERDICT & CERTIFICATION REPORT.
 3. **Internal Logic:** Deconstruct the candidate's professional DNA by connecting the Audit (intent), the Interview (narrative), the MCQ (knowledge), and the Simulation (behavioral execution).
 4. **Consistency:** ALL content MUST be in ${lang}.
 5. **Realism:** If the candidate performed poorly or skipped phases, the verdict must be severe and realistic, not encouraging. Support your judgment with the available evidence.
+6. **LANGUAGE CLARITY:** Use simple, accessible, and direct language. Avoid complex buzzwords or academic jargon. Use general or context-relevant examples. Do NOT use irrelevant geographic examples (e.g., Nigerian). Keep it "easy to read" (كلام ساهل).
 
 **CANDIDATE DATA CONTEXT:**
 - Audit Profile: ${auditResult?.profileLevel || "Phase Skipped - No Data"} (Authority: ${auditResult?.authorityScore || 0}/100)
@@ -3296,3 +3501,395 @@ Generate a COMPREHENSIVE STRATEGIC VERDICT & CERTIFICATION REPORT.
 
 
 
+
+export async function generateProfessionalAssessment(
+    auditResult: AuditResult,
+    narrative: string,
+    messages: InterviewMessage[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        
+        const categories = [
+            { name: "technical" as const, count: 10, focus: "Technical Mastery, Market Hard Skills, and Operational Excellence" },
+            { name: "soft" as const, count: 10, focus: "Behavioral Intelligence, Leadership Signals, and EQ" },
+            { name: "scenario" as const, count: 10, focus: "High-Stakes Strategic Decision-Making & Crisis Management" }
+        ];
+
+        console.log(`🧠 Generating ${language} Professional Assessment (3 batches of 10)...`);
+
+        const results = await Promise.all(categories.map(async (cat) => {
+            try {
+                const systemPrompt = `You are an Elite Executive Assessor. 
+Generate EXACTLY 10 highly sophisticated ${cat.name} MCQs for a professional diagnosis.
+
+CONTEXT:
+1. Candidate Narrative: ${narrative}
+2. Professional Audit: ${JSON.stringify(auditResult)}
+3. Recent Interview Context: ${JSON.stringify(messages.slice(-3))}
+
+MCQ SPECIFICATIONS:
+- Focus: ${cat.focus}.
+- Difficulty: Senior Executive Level.
+- Language: ${language === 'ar' ? 'Arabic (Modern Standard/Strategic)' : language === 'fr' ? 'French (Executive)' : 'English (Global Business)'}.
+- Structure: 4 nuanced options, 1 correctIndex (0-3), and detailed strategic feedback.
+
+FEEDBACK MUST BE IN ${language === 'ar' ? 'ARABIC' : language === 'fr' ? 'FRENCH' : 'ENGLISH'}:
+- explanation: The logical reason behind the correct choice.
+- evidence: Connect the answer to the candidate's specific sector or market standards.
+- advice: A strategic tip to improve in this specific competency.
+
+OUTPUT ONLY PURE JSON:
+{
+  "questions": [
+    {
+      "category": "${cat.name}",
+      "question": "...",
+      "options": ["...", "...", "...", "..."],
+      "correctIndex": 0,
+      "feedback": { "explanation": "...", "evidence": "...", "advice": "..." }
+    }
+  ]
+}`;
+
+                const response = await client.chat.completions.create({
+                    model: model,
+                    messages: [{ role: "system", content: systemPrompt }],
+                    response_format: { type: 'json_object' },
+                    temperature: 0.8,
+                    max_tokens: 3500
+                });
+
+                const content = response.choices[0]?.message?.content || '{}';
+                const parsed = safeParseJSON(content);
+                return Array.isArray(parsed?.questions) ? parsed.questions : [];
+            } catch (err) {
+                console.error(`Error generating ${cat.name} questions:`, err);
+                return [];
+            }
+        }));
+
+        const allQuestions = results.flat();
+
+        if (allQuestions.length === 0) {
+            throw new Error("Failed to generate any assessment questions from AI across all categories.");
+        }
+
+        console.log(`✅ Successfully generated ${allQuestions.length} professional assessment questions.`);
+
+        return {
+            success: true,
+            questions: allQuestions
+        };
+    } catch (error) {
+        console.error("Assessment generation failed:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Failed to generate assessment questions" };
+    }
+}
+
+export async function analyzeAssessmentResults(
+    questions: AssessmentQuestion[],
+    userAnswers: number[],
+    auditResult: AuditResult,
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const score = userAnswers.reduce((acc, ans, idx) => acc + (ans === questions[idx].correctIndex ? 1 : 0), 0);
+        
+        const summary = questions.map((q, idx) => ({
+            question: q.question,
+            correct: userAnswers[idx] === q.correctIndex,
+            category: q.category
+        }));
+
+        const systemPrompt = `You are a Master Talent Strategist. Analyze these assessment results.
+        
+Score: ${score} / ${questions.length}
+Candidate Profile: ${JSON.stringify(auditResult)}
+Performance Log: ${JSON.stringify(summary)}
+
+Provide a strategic analysis in ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'English'}.
+Structure (JSON):
+{
+  "technicalProficiency": "string (Analysis of their technical score)",
+  "behavioralInsight": "string (Analysis of their soft skills performance)",
+  "decisionMakingQuality": "string (Analysis of their scenario/simulation performance)",
+  "finalConclusion": "string (Final verdict combining assessment + previous audit insights)"
+}`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [{ role: "system", content: systemPrompt }],
+            response_format: { type: 'json_object' }
+        });
+
+        const analysis = safeParseJSON(response.choices[0]?.message?.content || '{}');
+        return {
+            success: true,
+            analysis: {
+                ...analysis,
+                score,
+                total: questions.length
+            } as AssessmentAnalysis
+        };
+    } catch (error) {
+        console.error("Assessment analysis failed:", error);
+        return { success: false, error: "Failed to analyze results" };
+    }
+}
+
+export async function generateMindsetQuestion(
+    currentHistory: InterviewMessage[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+        const questionCount = currentHistory.filter(m => m.role === 'assistant').length;
+
+        const mindsetPhases = [
+            { 
+                name: "Current Job Relationship", 
+                focus: "Satisfaction, pressure, loyalty",
+                suggestedQuestions: [
+                    "How do you rate your current job experience from 0 to 10? Why?",
+                    "What do you love most vs what causes you the most stress?",
+                    "If offered the same role at another company today, would you accept? Why?"
+                ]
+            },
+            { 
+                name: "Previous Career Changes", 
+                focus: "Stability patterns, reasons for leaving",
+                suggestedQuestions: [
+                    "Why did you leave your previous roles? Was it your choice?",
+                    "What were you looking for that you didn't find there?",
+                    "If you could go back in time, would you still leave? Why?"
+                ]
+            },
+            { 
+                name: "True Motivations", 
+                focus: "Money vs Growth vs Balance vs Independence",
+                suggestedQuestions: [
+                    "What is the single most important thing for you in a job?",
+                    "Choose: salary, promotion, continuous learning, balance, stability, or your own project?"
+                ]
+            },
+            { 
+                name: "Future Vision", 
+                focus: "3-year goal, sector shift, entrepreneurship",
+                suggestedQuestions: [
+                    "Where do you see yourself in 3 years? Still in this sector?",
+                    "Do you think about starting your own project? What is your biggest ambition?"
+                ]
+            }
+        ];
+
+        const currentPhaseIdx = Math.min(Math.floor(questionCount / 2), 3);
+        const currentPhase = mindsetPhases[currentPhaseIdx];
+
+        const systemPrompt = `You are a Master HR Psychologist and Career Strategist.
+Your mission is to conduct a "Mindset & Psychological Profile" interview based on 4 critical phases.
+
+CURRENT PHASE: ${currentPhase.name}
+PHASE FOCUS: ${currentPhase.focus}
+
+PHASE GUIDELINES:
+- Use these themes as inspiration: ${JSON.stringify(currentPhase.suggestedQuestions)}
+- Ask ONE deep, psychological question at a time.
+- If the candidate gives a generic answer, PROBE deep into the "Why".
+- Analyze: Satisfaction, Stability, Core Motivations (Financial/Growth/Stability/Entrepreneurial), and Future Vision.
+
+RULES:
+1. Tone: Calm, professional, and highly observant.
+2. Language: ${language === 'ar' ? 'Arabic (Formal/Strategic)' : language === 'fr' ? 'French' : 'English'}.
+3. The interview is short (approx 8-10 messages total).
+4. NO HEADERS, NO META-LABELS. Just the feedback/question.`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: "system", content: systemPrompt },
+                ...currentHistory
+            ],
+            temperature: 0.7
+        });
+
+        return {
+            success: true,
+            question: response.choices[0]?.message?.content || ""
+        };
+    } catch (error) {
+        console.error("Mindset question generation failed:", error);
+        return { success: false, error: "Failed to generate mindset question" };
+    }
+}
+
+export async function analyzeMindsetResults(
+    transcript: InterviewMessage[],
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+
+        const systemPrompt = `You are a Master HR Psychologist. Analyze this Mindset Interview transcript.
+        
+OUTPUT JSON:
+{
+  "mindsetType": "Growth | Financial | Stability | Entrepreneurial",
+  "satisfactionLevel": "High | Medium | Low",
+  "futureDirection": "Stay | Change Job | Change Sector | Entrepreneurship",
+  "psychologicalProfile": {
+    "motivation": "A deep analysis of what drives them",
+    "stressHandling": "How they perceive and manage pressure",
+    "ambitionScore": 0-100,
+    "loyaltyPattern": "Stable vs Opportunistic vs Visionary"
+  },
+  "recommendation": "Strategic HR recommendation for their next move"
+}
+
+Language: ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'English'}.`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Interview Transcript: ${JSON.stringify(transcript)}` }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        return {
+            success: true,
+            analysis: safeParseJSON(response.choices[0]?.message?.content || '{}') as MindsetAnalysis
+        };
+    } catch (error) {
+        console.error("Mindset analysis failed:", error);
+        return { success: false, error: "Failed to analyze mindset" };
+    }
+}
+
+export async function generateGrandFinalReport(
+    auditResult: AuditResult,
+    interviewTranscript: InterviewMessage[],
+    assessmentAnalysis: AssessmentAnalysis,
+    mindsetAnalysis: MindsetAnalysis,
+    language: string = 'en'
+) {
+    try {
+        const { client, model } = await getAI();
+
+        const dataBundle = {
+            initialAudit: auditResult,
+            interview: interviewTranscript,
+            skillsAssessment: assessmentAnalysis,
+            mindset: mindsetAnalysis
+        };
+
+        const systemPrompt = `You are a Master Strategic Talent Arbitrator. Your task is to generate the "Grand Final Career Diagnosis Report".
+This is the ultimate synthesis of all previous stages.
+
+OUTPUT JSON STRUCTURE:
+{
+  "professionalIdentity": {
+    "verdict": "One powerful sentence summarizing their professional state",
+    "maturityScore": 0-100,
+    "psychologicalFootprint": "Short definition of their professional psyche"
+  },
+  "competencyMatrix": {
+    "skillRadar": [{"name": "Technical", "score": 0-100}, {"name": "Behavioral", "score": 0-100}, {"name": "Leadership", "score": 0-100}],
+    "gapAnalysis": "Deep analysis of the difference between current state and market needs",
+    "decisionQualityVerdict": "Analysis of their decision-making speed and quality from assessment"
+  },
+  "marketPositioning": {
+    "jobAlignmentScore": 0-100,
+    "stabilityProfile": "Analysis of their loyalty pattern vs ambition",
+    "marketValueVerdict": "Analysis of their value in the current market"
+  },
+  "actionableRoadmap": {
+    "shortTerm": ["Action 1", "Action 2", "Action 3"],
+    "mediumTerm": "The targeted promotion or transition in 12-24 months",
+    "longTermVision": "Where they should be in 5 years to achieve peak potential"
+  },
+  "expertSynthesis": "A profound HR expert analysis (10 lines) connecting all dots."
+}
+
+Language: ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'English'}.`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Full Synthesis Data: ${JSON.stringify(dataBundle)}` }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        return {
+            success: true,
+            report: safeParseJSON(response.choices[0]?.message?.content || '{}') as GrandFinalReport
+        };
+    } catch (error) {
+        console.error("Grand Final Report generation failed:", error);
+        return { success: false, error: "Failed to generate grand report" };
+    }
+}
+
+export async function generateStrategicPaths(
+    grandReport: GrandFinalReport,
+    language: string = 'en',
+    simulationContext?: { role: string, content: string }[]
+) {
+    try {
+        const { client, model } = await getAI();
+
+        const systemPrompt = `You are a Senior Strategic Career Advisor. Your task is to propose 3 to 4 distinct "Strategic Career Paths" based on the user's comprehensive diagnosis AND their expressed desires during the recent strategic simulation.
+
+STRATEGIC DIALOGUE CONTEXT (The user's ambitions and choices):
+${JSON.stringify(simulationContext)}
+
+For EACH path, you must provide:
+1. Title and Description.
+2. Match Percentage (0-100%) - This must be realistic based on the alignment between their current profile and the path's requirements.
+3. Rationale (Why this path based on their diagnostic results?).
+4. Pros & Cons (Be honest and blunt).
+5. Critical Risks (What could go wrong for THIS specific person?).
+
+IMPORTANT GUIDELINE: Your advice must be PURELY based on the profile diagnosis (MCQ scores, Mindset patterns, Narrative audit). Do not claim to know their specific company's internal politics or the global market. Present these as "Possible Strategic Options" based on their demonstrated strengths and weaknesses.
+
+JSON STRUCTURE:
+{
+  "paths": [
+    {
+      "title": "Path Title",
+      "description": "Specific path description",
+      "matchPercentage": 85,
+      "rationale": "Detailed explanation using diagnostic evidence...",
+      "pros": ["Pro 1", "Pro 2"],
+      "cons": ["Con 1", "Con 2"],
+      "risks": ["Risk 1", "Risk 2"]
+    }
+  ],
+  "finalRecommendation": "One final powerful piece of advice that ties their ambition to their data."
+}
+
+DIAGNOSTIC CONTEXT: ${JSON.stringify(grandReport)}
+Language: ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'English'}.`;
+
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: "system", content: systemPrompt }
+            ],
+            response_format: { type: 'json_object' }
+        });
+
+        return {
+            success: true,
+            analysis: safeParseJSON(response.choices[0]?.message?.content || '{}') as StrategicPathsAnalysis
+        };
+    } catch (error) {
+        console.error("Strategic paths generation failed:", error);
+        return { success: false, error: "Failed to generate strategic paths" };
+    }
+}

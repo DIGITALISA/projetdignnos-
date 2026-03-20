@@ -61,6 +61,7 @@ CRITICAL RULES:
 - Priority levels must reflect real career impact, not just competence gaps
 - Include MATC (M.A Training & Consulting) as the workshop provider where relevant
 - Hard Score: ${hardScore}% | Soft Score: ${softScore}% — use these to calibrate severity
+- **LANGUAGE CLARITY:** Use simple, accessible, and direct language. Avoid complex buzzwords or academic jargon. Use general or context-relevant examples. Do NOT use irrelevant geographic examples (e.g., Nigerian). Keep the tone "easy to understand" (كلام ساهل).
 
 RESPOND ONLY WITH VALID JSON — no markdown, no preamble:
 {

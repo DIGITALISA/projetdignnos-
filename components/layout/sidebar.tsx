@@ -75,6 +75,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 icon: Crown,
                 items: [
                     { name: t.sidebar.items.expertDashboard as string, icon: LayoutDashboard, href: "/expert-dashboard" },
+                    { name: t.sidebar.items.resumeStudio as string, icon: FileText, href: "/professional/resume-studio" },
                 ]
             }
         ] : []),
@@ -86,6 +87,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 icon: ShieldCheck,
                 items: [
                     { name: t.sidebar.items.professionalDashboard as string, icon: LayoutDashboard, href: "/professional" },
+                    { name: t.sidebar.items.resumeStudio as string, icon: FileText, href: "/professional/resume-studio" },
                 ]
             }
         ] : []),
@@ -119,6 +121,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 icon: Sparkles,
                 items: [
                     { name: t.sidebar.items.mentor, icon: Sparkles, href: "/mentor", isAI: true },
+                    { name: t.sidebar.items.resumeStudio, icon: FileText, href: "/professional/resume-studio", isAI: true },
                     { name: t.sidebar.items.academy, icon: BookOpen, href: "/academy", isAI: true },
                     { name: t.sidebar.items.expert, icon: MessageSquare, href: "/expert", isAI: true },
                     { name: t.sidebar.items.roadmap, icon: TrendingUp, href: "/roadmap", isAI: true },
@@ -293,7 +296,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             "/job-alignment", 
             "/performance-scorecard", 
             "/strategic-report",
-            "/library"
+            "/library",
+            "/professional/resume-studio"
         ];
         if (premiumPaths.some(p => href === p || href.startsWith(p + '/'))) return true;
 

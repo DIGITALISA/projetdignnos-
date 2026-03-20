@@ -14,6 +14,10 @@ interface TrialGateProps {
     dir?: 'ltr' | 'rtl';
     /** Language code */
     language?: string;
+    /** Optional href for the module */
+    moduleHref?: string;
+    /** Whether to manually mark as accessible/seen */
+    manualMark?: boolean;
     /** Called when access is confirmed */
     onAccessGranted?: () => void;
 }

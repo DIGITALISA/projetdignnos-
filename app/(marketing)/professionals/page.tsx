@@ -136,7 +136,7 @@ export default function ProfessionalsPage() {
                 title: lang === 'ar' ? "حساب محترف" : lang === 'fr' ? "Compte Professionnel" : "Professional Account",
                 desc: lang === 'ar' ? "شق مسار تحولك المهني عبر رحلة ذكية من 7 مراحل، ورشات خبراء ومحاكاة تنفيذية." : lang === 'fr' ? "Naviguez votre transformation via un parcours en 7 étapes, ateliers experts et simulations." : "Navigate your transformation via a 7-stage journey, expert workshops and simulations.",
                 diag: lang === 'ar' ? "تشخيص المحترف" : lang === 'fr' ? "Diagnostic Professionnel" : "Professional Diagnostic",
-                steps: lang === 'ar' ? ["تحليل الفجوات", "رحلة 7 مراحل", "تدريب تنفيذي"] : lang === 'fr' ? ["Analyse des lacunes", "Parcours 7 étapes", "Coaching exécutif"] : ["Gap Analysis", "7-Stage Journey", "Executive Coaching"],
+                steps: lang === 'ar' ? ["تحليل الفجوات", "مركز تقييم الكفاءات", "تدقيق المنطق التنفيذي"] : lang === 'fr' ? ["Analyse des lacunes", "Centre d'Évaluation", "Audit logique exécutif"] : ["Gap Analysis", "Skill Assessment Center", "Executive Logic Audit"],
                 cta: lang === 'ar' ? "ابدأ مجاناً — محترف" : lang === 'fr' ? "Commencer Gratuit — Pro" : "Start Free — Professional",
                 href: "/register?plan=p-pro", icon: Briefcase, diagIcon: Brain
               },

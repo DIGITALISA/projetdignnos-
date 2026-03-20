@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  BookOpen, Target, FileText, 
-  ChevronRight, ArrowLeft, Shield, Sparkles, TrendingUp,
+  BookOpen, FileText, 
+  ChevronRight, ArrowLeft, Shield, Sparkles, 
   Zap, Award, Briefcase, Globe,
   Download, PlayCircle, LogOut, Video, Calendar, User, Clock,
-  CheckCircle, Loader2, ExternalLink,
-  Send, CheckCircle2, ShieldCheck
+  CheckCircle, Loader2, ExternalLink, Layout,
+  Send, CheckCircle2, ShieldCheck, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -16,16 +16,33 @@ import SimulationPage from "../../simulation/page";
 
 // --- TYPES ---
 interface FinalReport {
-    profileSummary: string;
-    maturityLevel: string;
-    leadershipFingerprint?: { archetype: string; description: string; riskContext: string };
-    selfAwarenessScore?: { score: number; verdict: string; evidence: string };
-    trajectoryVelocity?: { assessment: string; rationale: string };
-    deepInsights: string[];
-    marketValue: string;
-    finalVerdict: string;
-    recommendedRoles: string[];
-    gapAnalysis: { hardSkillsMatch: number; softSkillsMatch: number; criticalCompetencyGaps: string[] };
+  profileSummary: string;
+  maturityLevel: string;
+  leadershipFingerprint?: { archetype: string; description: string; riskContext: string };
+  careerTypology?: "Specialist" | "Generalist" | "T-Shaped";
+  aiReadiness?: { score: number; riskLevel: "Low" | "Medium" | "High"; advice: string };
+  selfAwarenessScore?: { score: number; verdict: string; evidence: string };
+  blindSpots?: string[];
+  trajectoryVelocity?: { score: number; status: string; assessment: string; rationale: string };
+  swot: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[] };
+  deepInsights: string[];
+  marketValue: string;
+  finalVerdict: string;
+  recommendedRoles: string[];
+  gapAnalysis: {
+    currentJobVsReality: string;
+    hardSkillsMatch: number;
+    softSkillsMatch: number;
+    criticalCompetencyGaps: string[];
+    comparisonPositionReality?: string;
+  };
+  actionPlan90Days?: { week: string; action: string; rationale: string }[];
+  careerAdvancement: { role: string; shortTermProbability: number; longTermProbability: number; requirements: string[] }[];
+  expertInterviewNotes?: string[];
+  authorityVsPotential?: { currentAuthority: number; futurePotential: number; quadrant: string };
+  strategicRadar?: { technical: number; leadership: number; strategy: number; execution: number; influence: number };
+  marketPerceptionVerdict?: string;
+  linkedInStrategy?: { headline: string; summaryFocus: string; networkingAdvice: string };
 }
 
 interface Course {
@@ -78,7 +95,7 @@ interface Tool {
     visibility?: string;
 }
 
-type TabId = "overview" | "workshops" | "sessions" | "resources" | "missions" | "roads" | "attestations";
+type TabId = "overview" | "workshops" | "sessions" | "resources" | "missions" | "technical_ai" | "attestations";
 
 interface NavItem {
     id: TabId;
@@ -88,17 +105,16 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { id: "overview",      label: "Executive Synthesis",       labelAr: "التلخيص التنفيذي",          icon: <Shield size={18} /> },
-    { id: "workshops",     label: "Strategic Workshops",       labelAr: "ورش العمل الاستراتيجية",    icon: <BookOpen size={18} /> },
+    { id: "technical_ai",  label: "Technical AI Expert",       labelAr: "الخبير التقني (AI)",        icon: <Zap size={18} /> },
+    { id: "workshops",     label: "Strategic Workshops",       labelAr: "الورشات الاستراتيجية",    icon: <BookOpen size={18} /> },
+    { id: "missions",      label: "Strategic Simulation",      labelAr: "محاكاة استراتيجية",         icon: <Zap size={18} /> },
+    { id: "overview",      label: "AI Strategic Advisor",      labelAr: "الخبير الاستراتيجي (AI)",    icon: <Sparkles size={18} /> },
     { id: "sessions",      label: "Live Sessions",             labelAr: "الجلسات المباشرة",           icon: <Video size={18} /> },
-    { id: "resources",     label: "Strategic Assets",          labelAr: "الموارد والأدوات",           icon: <Briefcase size={18} /> },
-    { id: "missions",      label: "Missions & Simulations",    labelAr: "المهام والمحاكاة",           icon: <Zap size={18} /> },
-    { id: "roads",         label: "Career Ascension",          labelAr: "المسار المهني",              icon: <Target size={18} /> },
     { id: "attestations",  label: "Official Documents",        labelAr: "احصل على وثائقك الرسمية",    icon: <Award size={18} /> },
 ];
 
 export default function PerformanceStudio() {
-    const [activeTab, setActiveTab] = useState<TabId>("overview");
+    const [activeTab, setActiveTab] = useState<TabId>("technical_ai");
     const [report, setReport] = useState<FinalReport | null>(null);
     const [currentLang, setCurrentLang] = useState('ar');
     const [loading, setLoading] = useState(true);
@@ -166,10 +182,10 @@ export default function PerformanceStudio() {
                         </div>
 
                         {/* Status Badge */}
-                        <div className="hidden sm:flex px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{report.maturityLevel}</span>
-                        </div>
+                            <div className="hidden sm:flex px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{report?.maturityLevel || "EXECUTIVE"}</span>
+                            </div>
                     </div>
 
                     {/* Navigation Items (Horizontal) */}
@@ -264,13 +280,13 @@ export default function PerformanceStudio() {
                                 </Link>
                             </div>
 
-                            {activeTab === "overview"      && <Overview report={report} isRTL={isRTL} />}
-                            {activeTab === "workshops"     && <Workshops isRTL={isRTL} userEmail={userEmail} />}
-                            {activeTab === "sessions"      && <Sessions isRTL={isRTL} userEmail={userEmail} />}
-                            {activeTab === "resources"     && <Resources isRTL={isRTL} />}
-                            {activeTab === "missions"      && <div className="-mx-6 md:-mx-12 -my-8"><SimulationPage /></div>}
-                            {activeTab === "roads"         && <CareerAscension report={report} isRTL={isRTL} />}
-                            {activeTab === "attestations"  && <Attestations isRTL={isRTL} userEmail={userEmail} />}
+                            {activeTab === "overview"      && <div key="overview"><AIAdvisor report={report} isRTL={isRTL} userEmail={userEmail} /></div>}
+                            {activeTab === "workshops"     && <div key="workshops"><Workshops isRTL={isRTL} userEmail={userEmail} /></div>}
+                            {activeTab === "sessions"      && <div key="sessions"><Sessions isRTL={isRTL} userEmail={userEmail} /></div>}
+                            {activeTab === "resources"     && <div key="resources"><Resources isRTL={isRTL} /></div>}
+                            {activeTab === "missions"      && <div key="missions" className="-mx-6 md:-mx-12 -my-8"><SimulationPage /></div>}
+                            {activeTab === "technical_ai"  && <div key="technical_ai"><TechnicalAI report={report} isRTL={isRTL} userEmail={userEmail} /></div>}
+                            {activeTab === "attestations"  && <div key="attestations"><Attestations isRTL={isRTL} userEmail={userEmail} /></div>}
                         </motion.div>
                     </AnimatePresence>
                 </div>
@@ -279,82 +295,178 @@ export default function PerformanceStudio() {
     );
 }
 
-// ─── OVERVIEW ──────────────────────────────────────────────────────────────────
-function Overview({ report, isRTL }: { report: FinalReport, isRTL: boolean }) {
+// ─── AI STRATEGIC ADVISOR (Chat Interface) ──────────────────────────────────────
+function AIAdvisor({ report, isRTL, userEmail }: { report: FinalReport, isRTL: boolean, userEmail: string }) {
+    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+    const [input, setInput] = useState("");
+    const [isTyping, setIsTyping] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Initial welcome message
+        const welcome = isRTL 
+            ? `مرحباً بك. أنا خبيرك الاستراتيجي المخصص. بناءً على تشخيصك الأخير في قطاع **${report.recommendedRoles?.[0] || 'تخصصك'}**، أنا هنا لمساعدتك في أي استفسار يتعلق بمسارك المهني، تموضعك السوقي، أو كيفية تنفيذ خطتك الاستراتيجية. ما هو سؤالك الأول؟`
+            : `Welcome. I am your specialized Strategic Advisor. Based on your recent diagnosis in the **${report.recommendedRoles?.[0] || 'professional'}** sector, I am here to assist with any inquiry regarding your career path, market positioning, or strategic execution. What is your first question?`;
+        
+        setMessages([{ role: 'assistant', content: welcome }]);
+    }, [isRTL, report.recommendedRoles]);
+
+    const handleSendMessage = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!input.trim() || isTyping) return;
+
+        const userMsg = input.trim();
+        setInput("");
+        setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+        setIsTyping(true);
+
+        try {
+            // Enhanced context for the expert
+            const expertContext = `User is in the ${report.marketValue || 'N/A'} market. Maturity: ${report.maturityLevel || 'N/A'}. 
+            Recommended Roles: ${(report.recommendedRoles || []).join(', ')}. 
+            Strategic Gaps: ${(report.gapAnalysis?.criticalCompetencyGaps || []).join(', ')}.
+            Final Verdict Context: ${report.finalVerdict || 'N/A'}`;
+
+            const response = await fetch("/api/expert/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: [
+                        { 
+                            role: 'system', 
+                            content: `Context about user: ${expertContext}. 
+                            You must act as an elite Strategic CSO for this specific user. 
+                            You are an expert in their domain (${report.recommendedRoles?.[0] || 'listed roles'}).
+                            IMPORTANT: Use simple, direct, and accessible language (كلام ساهل). 
+                            Avoid niche or irrelevant geographic examples (e.g., Nigerian). 
+                            Use general examples or none at all if not necessary. 
+                            Keep the tone professional but easy to converse with.`
+                        },
+                        ...messages,
+                        { role: 'user', content: userMsg }
+                    ],
+                    language: isRTL ? 'ar' : 'en',
+                    expertType: 'strategic'
+                })
+            });
+
+            const data = await response.json();
+            if (data.content) {
+                setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+            }
+        } catch (err) {
+            console.error("Chat error", err);
+        } finally {
+            setIsTyping(false);
+        }
+    };
+
+    if (!mounted) return null;
+
     return (
-        <div className="space-y-12">
-            <div className="bg-slate-900 rounded-[3.5rem] p-16 text-white relative overflow-hidden shadow-2xl border border-white/5">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-rose-500/10 rounded-full blur-[100px] -mr-64 -mt-64" />
-                <div className="relative z-10 grid xl:grid-cols-2 gap-16 items-center">
-                    <div className="space-y-8">
-                        <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20">
-                            <Briefcase size={14} /> {isRTL ? "ملخص الحالة الإستراتيجية" : "Strategic Status Summary"}
-                        </div>
-                        <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none">
-                            {isRTL ? "التشخيص النهائي" : "The Core Verdict"}
-                        </h2>
-                        <p className="text-xl text-rose-100/60 font-medium leading-relaxed italic">
-                            &ldquo;{report.finalVerdict}&rdquo;
-                        </p>
-                        <div className="grid sm:grid-cols-2 gap-6 pt-8">
-                            <div className="bg-white/5 rounded-3xl p-6 border border-white/10 flex flex-col justify-center">
-                                <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2">{isRTL ? "الوزن السوقي" : "Market Weight"}</div>
-                                <div className={cn("font-black leading-tight", report.marketValue && report.marketValue.length > 15 ? "text-lg" : "text-4xl")}>
-                                    {report.marketValue}
-                                </div>
-                            </div>
-                            <div className="bg-white/5 rounded-3xl p-6 border border-white/10 flex flex-col justify-center">
-                                <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2">{isRTL ? "نظام النضج" : "Maturity Level"}</div>
-                                <div className={cn("font-black uppercase leading-tight", report.maturityLevel && report.maturityLevel.length > 15 ? "text-lg" : "text-2xl")}>
-                                    {report.maturityLevel}
-                                </div>
-                            </div>
-                        </div>
+        <div className="max-w-4xl mx-auto space-y-8 pb-12">
+            <div className="bg-slate-900 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl border border-white/5">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl -mr-20 -mt-20" />
+                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-indigo-500 to-rose-600 flex items-center justify-center shadow-2xl shadow-rose-500/20 shrink-0">
+                        <Sparkles size={32} className="text-white animate-pulse" />
                     </div>
-                    <div className="bg-linear-to-br from-slate-800 to-slate-950 p-10 rounded-[3rem] border border-white/10 space-y-8">
-                        <div className="space-y-2">
-                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">{isRTL ? "المنظور الاستراتيجي" : "The Strategic Lens"}</h4>
-                            <p className="text-slate-300 text-sm font-medium leading-relaxed">{report.profileSummary}</p>
-                        </div>
-                        <div className="h-px bg-white/5" />
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-rose-500">{isRTL ? "الأولويات المكتشفة" : "Deep Insights"}</h4>
-                            <ul className="space-y-3">
-                                {report.deepInsights.slice(0, 3).map((insight, i) => (
-                                    <li key={i} className="flex gap-3 items-start text-[11px] font-bold text-slate-200">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                                        {insight}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                    <div className="text-center md:text-right space-y-2">
+                        <h3 className="text-2xl font-black uppercase tracking-tight">
+                            {isRTL ? "مستشارك الاستراتيجي المعتمد" : "Your Certified Strategic Advisor"}
+                        </h3>
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-2">
+                           <Shield size={12} className="text-emerald-500" /> {isRTL ? "خبير متخصص في قطاعك العملي" : "Domain-Specific Executive Expert"}
+                        </p>
                     </div>
                 </div>
             </div>
-            <div className="grid md:grid-cols-3 gap-8 pb-12">
-                {[
-                    { label: isRTL ? "التأثير القيادي" : "Leadership Impact", val: report.gapAnalysis.softSkillsMatch, color: "rose" },
-                    { label: isRTL ? "القدرة التقنية" : "Technical Depth", val: report.gapAnalysis.hardSkillsMatch, color: "blue" },
-                    { label: isRTL ? "الوعي الذاتي" : "Self-Awareness", val: report.selfAwarenessScore?.score || 85, color: "emerald" },
-                ].map((stat, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-xl space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
-                            <span className={cn("text-xs font-black", `text-${stat.color}-500`)}>{stat.val}%</span>
-                        </div>
-                        <div className="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${stat.val}%` }}
-                                className={cn("h-full rounded-full", stat.color === 'rose' ? "bg-rose-500" : stat.color === 'blue' ? "bg-blue-500" : "bg-emerald-500")}
-                            />
-                        </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-white/5 shadow-2xl flex flex-col h-[600px] overflow-hidden">
+                {/* Chat Header */}
+                <div className="p-6 border-b border-slate-50 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{isRTL ? "وضع الاستشارة النشط" : "Active Consultation Mode"}</span>
                     </div>
+                </div>
+
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                    {messages.map((msg, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={cn(
+                                "flex flex-col max-w-[85%]",
+                                msg.role === 'user' ? (isRTL ? "mr-auto items-start" : "ml-auto items-end") : (isRTL ? "ml-auto items-end" : "mr-auto items-start")
+                            )}
+                        >
+                            <div className={cn(
+                                "p-5 rounded-3xl text-sm leading-relaxed font-medium shadow-sm",
+                                msg.role === 'user' 
+                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-bl-none"
+                                    : "bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300 rounded-br-none border border-slate-100 dark:border-white/5"
+                            )}>
+                                {msg.content}
+                            </div>
+                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-2 px-2">
+                                {msg.role === 'user' ? (isRTL ? "أنت" : "You") : (isRTL ? "الخبير الاستراتيجي" : "Lead Strategist")}
+                            </span>
+                        </motion.div>
+                    ))}
+                    {isTyping && (
+                        <div className={cn("flex items-center gap-2 text-slate-400", isRTL ? "ml-auto" : "mr-auto")}>
+                            <Loader2 className="animate-spin" size={12} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{isRTL ? "الخبير يحلل الآن..." : "Expert is analyzing..."}</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Input Area */}
+                <form onSubmit={handleSendMessage} className="p-6 border-t border-slate-50 dark:border-white/5 bg-slate-50/30">
+                    <div className="relative group">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={isRTL ? "اسأل خبيرك الاستراتيجي عن أي شيء..." : "Ask your strategist anything..."}
+                            className="w-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 rounded-2xl py-4 px-6 pr-16 text-sm font-medium focus:border-rose-500 transition-all outline-hidden text-slate-900 dark:text-white"
+                        />
+                        <button 
+                            type="submit"
+                            disabled={!input.trim() || isTyping}
+                            className="absolute right-3 top-2 bottom-2 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:bg-rose-600 dark:hover:bg-rose-600 dark:hover:text-white transition-all disabled:opacity-50"
+                        >
+                            <Send size={18} />
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {/* Suggestions */}
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                    { textAr: "كيف يمكنني تحسين تموضعي في السوق الحالي؟", textEn: "How can I improve my current market positioning?" },
+                    { textAr: "ما هي المهارات التقنية التي تنقصني للوصول لرؤيتي؟", textEn: "Which technical skills am I missing for my vision?" },
+                    { textAr: "أعطني نصيحة بخصوص التحديات الاستراتيجية في قطاعي.", textEn: "Give me advice on strategic challenges in my sector." }
+                ].map((s, i) => (
+                    <button 
+                        key={i}
+                        onClick={() => { setInput(isRTL ? s.textAr : s.textEn); }}
+                        className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-500 hover:border-rose-500 hover:text-rose-500 transition-all text-center"
+                    >
+                        {isRTL ? s.textAr : s.textEn}
+                    </button>
                 ))}
             </div>
         </div>
     );
 }
+
+
 
 // ─── WORKSHOPS (Real data from admin) ──────────────────────────────────────────
 function Workshops({ isRTL, userEmail }: { isRTL: boolean; userEmail: string }) {
@@ -538,7 +650,7 @@ function Workshops({ isRTL, userEmail }: { isRTL: boolean; userEmail: string }) 
         <div className="space-y-12 pb-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-2">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter">{isRTL ? "ورش العمل المحاكية" : "Executive Workshops"}</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-tighter">{isRTL ? "الورشات الاستراتيجية" : "Strategic Workshops"}</h2>
                     <p className="text-slate-500 text-sm font-medium">{isRTL ? "جلسات مكثفة لمعالجة الثغرات المكتشفة في تشخيصك." : "Intensive sessions designed to close the gaps in your diagnosis."}</p>
                 </div>
                 <div className="px-6 py-3 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2">
@@ -549,16 +661,105 @@ function Workshops({ isRTL, userEmail }: { isRTL: boolean; userEmail: string }) 
             {isLoading ? (
                 <div className="py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-rose-500" /></div>
             ) : courses.length === 0 ? (
-                <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-white/10 space-y-4">
-                    <BookOpen size={48} className="mx-auto text-slate-300" />
-                    <p className="text-slate-500 font-medium">{isRTL ? "لا توجد ورش متاحة لحسابك حتى الآن." : "No workshops assigned to your account yet."}</p>
-                    <p className="text-slate-400 text-xs">{isRTL ? "سيقوم المسؤول بتخصيص الورشات المناسبة لك." : "The admin will assign workshops tailored to you."}</p>
+                <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 md:p-16 border border-slate-100 dark:border-white/5 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-rose-500 to-indigo-600" />
+                    
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                        <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 rounded-4xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0 shadow-lg">
+                                <ShieldCheck size={32} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white leading-tight">
+                                    {isRTL ? "بروتوكول تخصيص المهام الاستراتيجية (DIGNNOS- التخصيص)" : "Strategic Task Allocation Protocol (DIGNNOS- Allocation)"}
+                                </h3>
+                                <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-500/20">
+                                    <Sparkles size={12} /> {isRTL ? "خدمة مدفوعة مميزة" : "Premium Paid Service"}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-3">
+                            <a href="mailto:support@matc.com" className="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
+                                <Send size={14} /> {isRTL ? "دعم عبر البريد" : "Email Support"}
+                            </a>
+                            <a href="#" className="flex items-center gap-2 px-6 py-3 bg-emerald-500/10 text-emerald-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all">
+                                <Globe size={14} /> WhatsApp
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="max-w-4xl">
+                        <p className="text-slate-600 dark:text-slate-400 text-base leading-relaxed mb-12 font-medium">
+                            {isRTL 
+                              ? "يبدأ خبراؤنا بتصميم مهمتك الاستراتيجية فور تواصلك معنا. ثم نصمم لك \"محاكاة دور تنفيذي\" مخصصة بالكامل، حيث ستواجه مهامًا مهنية واقعية وتحديات استراتيجية مصممة خصيصًا لنتائج تشخيصك."
+                              : "Our experts begin designing your strategic mission immediately upon contact. We then design a fully customized 'Executive Role Simulation' where you will face realistic professional tasks and strategic challenges tailored to your diagnosis."
+                            }
+                        </p>
+
+                        <div className="grid sm:grid-cols-2 gap-6 mb-12">
+                            {[
+                                {
+                                    id: "1",
+                                    titleAr: "تصميم السيناريو (24-72 ساعة)",
+                                    titleEn: "Scenario Design (24-72 hours)",
+                                    descAr: "يقوم الخبير ببناء سياق \"المهمة الاستراتيجية\" ويحدد المهام التكتيكية بناءً على نتائج التشخيص العميق التي توصلت إليها.",
+                                    descEn: "The expert builds the 'Strategic Mission' context and defines tactical tasks based on your deep diagnosis results."
+                                },
+                                {
+                                    id: "2",
+                                    titleAr: "محاكاة فائقة التخصيص",
+                                    titleEn: "Ultra-Personalized Simulation",
+                                    descAr: "صُممت هذه المهمة خصيصاً لك. وتُعدّ التفاعلات الجماعية وحدةً خاصةً لتعلم \"قيادة الفريق\" والتنفيذ التعاوني.",
+                                    descEn: "This mission is designed specifically for you. Group interactions are a special unit for learning 'Team Leadership' and collaboration."
+                                },
+                                {
+                                    id: "3",
+                                    titleAr: "المرونة التكتيكية",
+                                    titleEn: "Tactical Flexibility",
+                                    descAr: "اختر بين مهمة فردية مركزة أو سيناريو بقيادة فريق. أنت تتحكم في نطاق المهمة والاستثمار.",
+                                    descEn: "Choose between a focused individual mission or a team-led scenario. You control the scope and investment of the mission."
+                                },
+                                {
+                                    id: "4",
+                                    titleAr: "نشر المهمة (7 أيام)",
+                                    titleEn: "Mission Deployment (7 days)",
+                                    descAr: "بمجرد الانتهاء من تصميم هيكل المهمة، يبدأ النشر في غضون 7 أيام من التأكيد.",
+                                    descEn: "Once the mission structure design is complete, deployment begins within 7 days of confirmation."
+                                }
+                            ].map((step, idx) => (
+                                <div key={idx} className="p-8 rounded-[2.5rem] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-black mb-4 shadow-lg shadow-indigo-600/20">
+                                        {step.id}
+                                    </div>
+                                    <h4 className="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white mb-2">
+                                        {isRTL ? step.titleAr : step.titleEn}
+                                    </h4>
+                                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        {isRTL ? step.descAr : step.descEn}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="p-8 rounded-3xl bg-slate-900 text-white relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/20 rounded-full blur-3xl" />
+                           <div className="relative z-10 flex items-start gap-4">
+                               <AlertCircle size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+                               <p className="text-[11px] font-bold text-slate-300 leading-relaxed italic">
+                                  {isRTL 
+                                    ? "* ملاحظة: مهمة CareerUpgrade.AI هي خدمة متميزة تتضمن إرشادات مباشرة من الخبراء ومحاكاة معتمدة."
+                                    : "* Note: The CareerUpgrade.AI mission is a premium service that includes direct expert guidance and certified simulations."
+                                  }
+                               </p>
+                           </div>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div className="grid md:grid-cols-2 gap-8">
                     {courses.map((course) => {
-                        const profile = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('userProfile') || '{}') : {};
-                        const email = (profile.email || "").toLowerCase().trim();
+                        const email = (userEmail || "").toLowerCase().trim();
                         const allowed = (course.allowedUsers || []).map((u: string) => u.toLowerCase().trim());
                         const isAllowed = allowed.length === 0 || allowed.includes(email);
                         const isOpen = course.isAccessOpen;
@@ -867,57 +1068,224 @@ function Attestations({ isRTL, userEmail }: { isRTL: boolean; userEmail: string 
 
 
 
-// ─── CAREER ASCENSION ──────────────────────────────────────────────────────────
-function CareerAscension({ report, isRTL }: { report: FinalReport, isRTL: boolean }) {
+// ─── TECHNICAL AI EXPERT (Strategic Workshop & Content Generator) ──────────
+function TechnicalAI({ report, isRTL, userEmail }: { report: FinalReport, isRTL: boolean, userEmail: string }) {
+    const [query, setQuery] = useState("");
+    const [generatedContent, setGeneratedContent] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const handleGenerate = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!query.trim() || isGenerating) return;
+
+        setIsGenerating(true);
+        setGeneratedContent(null);
+
+        try {
+            const techContext = `User Position: ${report.marketValue || 'Executive'}. Domain: ${(report.recommendedRoles || []).join(', ')}.
+            Goal: Generate a high-level, structured TRAINING COURSE or DETAILED TECHNICAL REPORT based on the user's prompt.
+            Structure: Use headings, bullet points, and strategic modules. Format it for an elite professional.`;
+
+            const response = await fetch("/api/expert/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: [
+                        { 
+                            role: 'system', 
+                            content: `You are an Elite Instructional Designer and Technical Solutions Architect. ${techContext}. 
+                            Provide the response in a structured course/report format.
+                            IMPORTANT: Use simple, direct, and accessible language (كلام ساهل). 
+                            Avoid niche or irrelevant geographic examples (e.g., Nigerian). 
+                            Use general examples or none at all if not necessary. 
+                            The user wants to understand easily without complex jargon.` 
+                        },
+                        { role: 'user', content: `Please generate a detailed technical training course or strategic report on: ${query}` }
+                    ],
+                    language: isRTL ? 'ar' : 'en',
+                    expertType: 'technical'
+                })
+            });
+
+            const data = await response.json();
+            if (data.content) {
+                setGeneratedContent(data.content);
+            }
+        } catch (err) {
+            console.error("Technical generation error", err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    if (!mounted) return null;
+
     return (
-        <div className="space-y-12 pb-12">
-            <div className="space-y-2">
-                <h2 className="text-3xl font-black uppercase tracking-tighter">{isRTL ? "خارطة الصعود المهني" : "The Ascension Roadmap"}</h2>
-                <p className="text-slate-500 text-sm font-medium">{isRTL ? "تحليل الأدوار والمسارات الأكثر تطابقاً مع قيمتك السوقية." : "Analysis of roles most aligned with your current market value."}</p>
-            </div>
-            <div className="grid lg:grid-cols-2 gap-10">
-                <div className="bg-white dark:bg-slate-900 rounded-[3.5rem] p-12 border border-slate-100 dark:border-white/5 shadow-xl space-y-10">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-                            <TrendingUp size={24} />
-                        </div>
-                        <h3 className="text-2xl font-black uppercase tracking-tighter">{isRTL ? "الأدوار المقترحة فوراً" : "Immediate Target Roles"}</h3>
+        <div className="max-w-5xl mx-auto space-y-12 pb-24">
+            {/* Executive Header Section - REDESIGNED */}
+            <div className="bg-slate-950 rounded-4xl p-16 text-white relative overflow-hidden border border-white/10 text-center shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+                <div className="relative z-10 space-y-6">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-white/20 flex items-center justify-center mx-auto shadow-2xl">
+                        <Shield size={28} className="text-slate-400" />
                     </div>
-                    <div className="space-y-4">
-                        {report.recommendedRoles.map((role, i) => (
-                            <div key={i} className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group hover:border-indigo-500 transition-all cursor-default">
-                                <div className="space-y-1">
-                                    <div className="font-black text-slate-800 dark:text-white uppercase tracking-tight">{role}</div>
-                                    <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{isRTL ? "مطابقة عالية" : "High Strategic Match"}</div>
+                    <div className="space-y-2">
+                        <h2 className="text-4xl font-black uppercase tracking-tighter leading-tight">
+                            {isRTL ? "محرر الاستراتيجيات التنفيذية" : "Executive Strategy Architect"}
+                        </h2>
+                        <div className="w-20 h-1 bg-amber-500/50 mx-auto rounded-full" />
+                    </div>
+                    <p className="text-slate-400 text-sm font-medium max-w-xl mx-auto tracking-wide">
+                        {isRTL 
+                            ? "تحويل الرؤى التقنية إلى وثائق استراتيجية معتمدة. أدخل النطاق الهندسي أو الاستراتيجي لتبدأ عملية الهندسة العكسية للمحتوى." 
+                            : "Transform technical insights into certified strategic documents. Enter the engineering or strategic scope to begin the content reverse-engineering process."}
+                    </p>
+                </div>
+            </div>
+
+            {!generatedContent ? (
+                <div className="space-y-16">
+                    {/* Input Form - Architectural Design */}
+                    <form onSubmit={handleGenerate} className="max-w-3xl mx-auto -mt-16 relative z-20">
+                        <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-white/5 flex flex-col md:flex-row gap-3">
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder={isRTL ? "ما هو النطاق الاستراتيجي المطلوب؟..." : "Define the strategic scope..."}
+                                className="flex-1 bg-transparent py-5 px-8 text-lg font-bold outline-hidden text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-700"
+                            />
+                            <button
+                                type="submit"
+                                disabled={!query.trim() || isGenerating}
+                                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-12 py-5 rounded-xl font-black uppercase tracking-widest hover:bg-amber-600 dark:hover:bg-amber-600 dark:hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                            >
+                                {isGenerating ? <Loader2 className="animate-spin" /> : <Award size={18} />}
+                                {isRTL ? "بدء البناء" : "Begin Build"}
+                            </button>
+                        </div>
+                    </form>
+
+                    {/* Quick Suggestions - Minimalist */}
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        {[
+                            { textAr: "بروتوكول إدارة الأزمات التقنية", textEn: "Technical Crisis Management Protocol", icon: <Shield size={20} /> },
+                            { textAr: "هندسة النطاق الوظيفي المتقدم", textEn: "Advanced Functional Scope Engineering", icon: <Layout size={20} /> },
+                            { textAr: "نموذج التشغيل الرقمي الموحد", textEn: "Unified Digital Operating Model", icon: <Briefcase size={20} /> }
+                        ].map((s, i) => (
+                            <button 
+                                key={i}
+                                onClick={() => { setQuery(isRTL ? s.textAr : s.textEn); handleGenerate(); }}
+                                className="group p-8 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-white/5 text-left flex flex-col gap-6 hover:border-amber-500/50 transition-all duration-500 shadow-sm hover:shadow-2xl"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors">
+                                    {s.icon}
                                 </div>
-                                <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                                    <ArrowLeft size={16} className={cn("transition-transform", isRTL ? "rotate-180 group-hover:translate-x-1" : "rotate-180 group-hover:translate-x-1")} />
+                                <div>
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">{isRTL ? "قالب استراتيجي" : "STRATEGIC TEMPLATE"}</h4>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-200 leading-tight">
+                                        {isRTL ? s.textAr : s.textEn}
+                                    </p>
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>
-                <div className="bg-slate-900 rounded-[3.5rem] p-12 text-white border border-white/5 shadow-2xl space-y-10 relative overflow-hidden">
-                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] -mb-32 -mr-32" />
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
-                            <Award size={24} />
-                        </div>
-                        <h3 className="text-2xl font-black uppercase tracking-tighter">{isRTL ? "استراتيجية التوسع" : "Expansion Strategy"}</h3>
-                    </div>
-                    <div className="space-y-8">
-                        {report.gapAnalysis.criticalCompetencyGaps.map((gap, i) => (
-                            <div key={i} className="flex gap-6 group">
-                                <div className="w-1 bg-emerald-500/30 rounded-full group-hover:bg-emerald-500 transition-all shrink-0" />
-                                <div className="space-y-2 pb-2">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500">{isRTL ? "فجوة حرجة" : "CRITICAL GAP"}</div>
-                                    <p className="text-slate-300 text-sm font-bold leading-relaxed">{gap}</p>
+            ) : (
+                /* Generated Content Result - UPGRADED EXECUTIVE DESIGN */
+                <motion.div 
+                    key="generated-content"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative group"
+                >
+                    {/* Background Decorative Elements */}
+                    <div className="absolute -inset-4 bg-slate-200/50 dark:bg-slate-800/20 rounded-[3rem] blur-2xl opacity-50" />
+                    
+                    <div className="relative bg-white dark:bg-slate-950 rounded-4xl border border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden">
+                        {/* Professional Metadata / Cover Section - Redesigned to be serious */}
+                        <div className="p-12 md:p-16 border-b border-slate-50 dark:border-white/10 bg-slate-950 text-white flex flex-col md:flex-row items-center gap-10">
+                            <div className="w-24 h-24 rounded-2xl bg-slate-900 border border-white/20 flex items-center justify-center shrink-0">
+                                <Award size={40} className="text-amber-500" />
+                            </div>
+                            <div className="text-center md:text-right flex-1 space-y-4">
+                                <div className="inline-block px-4 py-1 rounded-full bg-white/5 text-slate-400 text-[9px] font-black uppercase tracking-[0.3em] border border-white/10">
+                                    {isRTL ? "وثيقة استراتيجية معتمدة" : "CERTIFIED STRATEGIC DOCUMENT"}
+                                </div>
+                                <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-tight text-white">
+                                    {query}
+                                </h3>
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                                    <span className="flex items-center gap-2 underline decoration-amber-500/50 flex-row-reverse">{isRTL ? "النطاق:" : "SCOPE:"} {report.marketValue || 'N/A'}</span>
+                                    <span className="flex items-center gap-2 underline decoration-amber-500/50 flex-row-reverse">{isRTL ? "التصنيف:" : "CLASSIFIED:"} MATC-INTERNAL</span>
                                 </div>
                             </div>
-                        ))}
+                        </div>
+
+                        {/* Action Toolbar - Business Style */}
+                        <div className="p-4 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 flex items-center justify-center gap-6">
+                            <button 
+                                onClick={() => { setGeneratedContent(null); setQuery(""); }}
+                                className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-2"
+                            >
+                                <ArrowLeft size={14} className={isRTL ? "rotate-180" : ""} /> {isRTL ? "مسار جديد" : "NEW PATH"}
+                            </button>
+                            <div className="w-px h-6 bg-slate-200 dark:bg-white/10" />
+                            <button 
+                                onClick={() => window.print()}
+                                className="px-10 py-3 rounded-xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 dark:hover:bg-amber-600 dark:hover:text-white transition-all flex items-center gap-3"
+                            >
+                                <Download size={16} /> {isRTL ? "تصدير بصيغة PDF" : "EXPORT AS PDF"}
+                            </button>
+                        </div>
+
+                        {/* Content Area - Architectural Strategic Layout */}
+                        <div className="p-10 md:p-20 space-y-20">
+                            {generatedContent?.split('\n\n').map((block, idx) => {
+                                const isHeader = block.trim().startsWith('#');
+                                
+                                if (isHeader) {
+                                    const text = block.replace(/^#+\s*/, '').trim();
+                                    return (
+                                        <div key={idx} className="space-y-6 pt-10 border-t border-slate-100 dark:border-white/5">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-4xl font-black text-slate-200 dark:text-white/5 tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                                                <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                                                    {text}
+                                                </h2>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div key={idx} className="relative group">
+                                        <div className="pl-8 border-l-2 border-slate-100 dark:border-white/5 group-hover:border-amber-500/50 transition-colors">
+                                            <div className="prose prose-slate dark:prose-invert max-w-none prose-p:text-lg prose-p:font-medium prose-p:leading-relaxed prose-li:font-bold prose-li:text-slate-600 dark:prose-li:text-slate-400 whitespace-pre-wrap selection:bg-amber-500/20">
+                                                {block}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Footer Disclaimer */}
+                        <div className="p-8 bg-slate-950 text-center">
+                            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.5em] mb-4">
+                                {isRTL ? "تم إنشاؤه بواسطة هندسة الاستراتيجية - MATC" : "BY STRATEGIC ARCHITECTURE - MATC"}
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </motion.div>
+            )}
         </div>
     );
 }
+
+

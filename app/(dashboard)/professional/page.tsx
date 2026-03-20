@@ -1,5249 +1,3398 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronRight,
-  ChevronLeft,
-  Sparkles,
-  Globe,
-  Briefcase,
-  Target,
-  FileText,
-  Mic,
-  CheckCircle2,
-  Languages,
-  Shield,
-  LogOut,
-  ArrowRight,
-  Info,
-  X,
-  Plus,
-  Cpu,
-  Send,
-  User,
-  MessageSquare,
-  TrendingUp,
-  BarChart3,
-  AlertTriangle,
-  Eye,
-  Clock,
+    Brain,
+    Sparkles,
+    ArrowRight,
+    History,
+    ShieldCheck,
+    Send,
+    Loader2,
+    Target,
+    AlertCircle,
+    CheckCircle2,
+    TrendingUp,
+    Zap,
+    Rocket,
+    BarChart3,
+    RefreshCw,
+    Briefcase,
+    Search,
+    Trophy,
+    ChevronUp,
+    ChevronDown,
+    Layout,
+    Database,
+    GraduationCap,
+    User,
+    Star,
+    ArrowLeft,
+    Calendar,
+    Download
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
-import Link from "next/link";
+import { cn } from "@/lib/utils";
 
-type Step =
-  | "welcome"
-  | "language"
-  | "audit-form"
-  | "experience-input"
-  | "initial-analysis"
-  | "expert-interview"
-  | "mcq-assessment"
-  | "portfolio-interview"
-  | "simulation"
-  | "final-report";
-
-interface InterviewMessage {
-  role: "assistant" | "user";
-  content: string;
-}
-
-interface Position {
-  title: string;
-  years: string;
-}
-
-interface FormData {
-  sectors: string;
-  positions: Position[];
-  vision: string;
-  experienceMode: "upload" | "story" | "";
-  cv: File | null;
-  careerStory: string;
+// --- Types ---
+interface AuditIndicator {
+    label: string;
+    value: string;
+    score: number;
+    color: string;
 }
 
 interface AuditResult {
-  authorityScore: number;
-  profileLevel: string;
-  alignment: string;
-  gaps: string[];
-  strengths: string[];
-  visionAnalysis: string;
-  nextEvolutionSteps: string[];
-  verdict: string;
+    professionalIdentity: string;
+    executiveSummary: string;
+    strategicCriticism: string;
+    basicData: {
+        field: string;
+        specialization: string;
+        education: string;
+        trainingType: string;
+        yearsOfExperience: string;
+        sector: string;
+    };
+    dimensions: {
+        careerProgression: string;
+        progressionIcon: 'up' | 'stable' | 'down';
+        responsibilityLevel: string;
+        marketPosition: string;
+        leadershipSignal: string;
+    };
+    learningSignals: string[];
+    indicators: AuditIndicator[];
+    skills: {
+        detected: string[];
+        gaps: string[];
+    };
+    timeline: { year: string; event: string; duration?: string }[];
+    actionPlan: string[];
+    textAnalysis: {
+        tone: string;
+        clarity: string;
+        consistency: string;
+    };
 }
 
-interface SWOT {
-  strengths: string[];
-  weaknesses: string[];
-  opportunities: string[];
-  threats: string[];
+interface FinalReport {
+    executiveVerdict: string;
+    level1Analysis: {
+        score: number;
+        consistency: string;
+        presentationQuality: string;
+    };
+    level2Analysis: {
+        hardSkills: string[];
+        softSkills: string[];
+        criticalGaps: string[];
+    };
+    level3Analysis: {
+        alignmentScore: number;
+        pathAnalysis: string;
+        marketValue: string;
+    };
+    actionPlan: {
+        immediate: string[];
+        strategic: string[];
+    };
+    finalScore: number;
 }
 
-interface CareerPath {
-  role: string;
-  shortTermProbability: number;
-  longTermProbability: number;
-  requirements: string[];
+interface AssessmentQuestion {
+    id: string;
+    category: "technical" | "soft" | "scenario";
+    question: string;
+    options: string[];
+    correctIndex: number;
+    feedback: {
+        explanation: string;
+        evidence: string;
+        advice: string;
+    };
 }
 
-interface FinalReportResult {
-  profileSummary: string;
-  maturityLevel: string;
-  leadershipFingerprint?: {
-    archetype: string;
+interface AssessmentAnalysis {
+  score: number;
+  total: number;
+  technicalProficiency: string;
+  behavioralInsight: string;
+  decisionMakingQuality: string;
+  finalConclusion: string;
+}
+
+interface MindsetAnalysis {
+    mindsetType: "Growth" | "Financial" | "Stability" | "Entrepreneurial";
+    satisfactionLevel: "High" | "Medium" | "Low";
+    futureDirection: "Stay" | "Change Job" | "Change Sector" | "Entrepreneurship";
+    psychologicalProfile: {
+        motivation: string;
+        stressHandling: string;
+        ambitionScore: number;
+        loyaltyPattern: string;
+    };
+    recommendation: string;
+}
+
+interface GrandFinalReport {
+    professionalIdentity: {
+        verdict: string;
+        maturityScore: number;
+        psychologicalFootprint: string;
+    };
+    competencyMatrix: {
+        skillRadar: { name: string; score: number }[];
+        gapAnalysis: string;
+        decisionQualityVerdict: string;
+    };
+    marketPositioning: {
+        jobAlignmentScore: number;
+        stabilityProfile: string;
+        marketValueVerdict: string;
+    };
+    actionableRoadmap: {
+        shortTerm: string[];
+        mediumTerm: string;
+        longTermVision: string;
+    };
+    expertSynthesis: string;
+}
+
+interface StrategicPath {
+    title: string;
+    matchPercentage: number;
     description: string;
-    riskContext: string;
-  };
-  selfAwarenessScore?: {
-    score: number;
-    verdict: string;
-    evidence: string;
-  };
-  trajectoryVelocity?: {
-    assessment: string;
     rationale: string;
-  };
-  swot: SWOT;
-  deepInsights: string[];
-  marketValue: string;
-  finalVerdict: string;
-  recommendedRoles: string[];
-  gapAnalysis: {
-    currentJobVsReality: string;
-    hardSkillsMatch: number;
-    softSkillsMatch: number;
-    criticalCompetencyGaps: string[];
-    comparisonPositionReality?: string;
-  };
-  actionPlan90Days?: {
-    week: string;
-    action: string;
-    rationale: string;
-  }[];
-  careerAdvancement: CareerPath[];
-  // NEW: Comprehensive Professional Dimensions
-  expertInterviewNotes?: string[];
-  authorityVsPotential?: {
-    currentAuthority: number;
-    futurePotential: number;
-    quadrant: string;
-  };
-  strategicRadar?: {
-    technical: number;
-    leadership: number;
-    strategy: number;
-    execution: number;
-    influence: number;
-  };
-  marketPerceptionVerdict?: string;
-  linkedInStrategy?: {
-    headline: string;
-    summaryFocus: string;
-    networkingAdvice: string;
-  };
-  academicBackground?: {
-    degree: string;
-    institution: string;
-    country: string;
-    legitimacyAudit: string;
-  };
-  roadmap369?: {
-    year3: { targetRole: string; keySkillsToAcquire: string[]; action: string };
-    year6: { targetRole: string; keySkillsToAcquire: string[]; action: string };
-    year9: { targetRole: string; keySkillsToAcquire: string[]; action: string };
-    feasibilityVerdict: string;
-  };
-  title?: string;
-  subtitle?: string;
+    pros: string[];
+    cons: string[];
+    risks: string[];
 }
 
-interface UserProfile {
-  email?: string;
-  fullName?: string;
-  role?: string;
-  plan?: string;
-  activationType?: string;
+interface StrategicPathsAnalysis {
+    paths: StrategicPath[];
+    finalRecommendation: string;
 }
 
-interface MCQQuestion {
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-}
-
-interface ProfessionalStepTranslations {
-  tag?: string;
-  title?: string;
-  subtitle?: string;
-  steps?: { title: string; desc: string }[];
-  cta?: string;
-  sectorsLabel?: string;
-  sectorsPlac?: string;
-  historyLabel?: string;
-  jobPlac?: string;
-  yearsPlac?: string;
-  visionLabel?: string;
-  visionPlac?: string;
-  cvTitle?: string;
-  cvDesc?: string;
-  storyTitle?: string;
-  storyDesc?: string;
-  storyPlac?: string;
-  cvBtn?: string;
-  loading?: string;
-  loadingSub?: string;
-  complete?: string;
-  completeSub?: string;
-  profile?: string;
-  authority?: string;
-  alignmentLabel?: string;
-  alignment?: string;
-  gapsLabel?: string;
-  gaps?: string;
-  intro?: string;
-  placeholder?: string;
-  finalizing?: string;
-  analysisStep?: string;
-  // Pro Modal
-  proTitle?: string;
-  proDesc?: string;
-  proUpgrade?: string;
-  proBack?: string;
-  // Report
-  maturity?: string;
-  marketValue?: string;
-  finalVerdict?: string;
-  recommendedRoles?: string;
-  deepInsights?: string;
-  swot?: string;
-  // MCQ
-  mcqTitle?: string;
-  mcqSubtitle?: string;
-  hardSkillsTitle?: string;
-  softSkillsTitle?: string;
-  mcqLoading?: string;
-  mcqCorrect?: string;
-  mcqIncorrect?: string;
-  mcqCta?: string;
-  gapTitle?: string;
-  matchScore?: string;
-  // Common
-  logout?: string;
-  back?: string;
-  next?: string;
-  years?: string;
-  // New: SWOT & Career
-  strengths?: string;
-  weaknesses?: string;
-  opportunities?: string;
-  threats?: string;
-  shortTerm?: string;
-  longTerm?: string;
-  masteryReqs?: string;
-  executiveSummary?: string;
-  // Next Steps
-  nextStepsTitle?: string;
-  nextStepsSubtitle?: string;
-  aiConsultationsTitle?: string;
-  aiConsultationsDesc?: string;
-  strategicWorkshopsTitle?: string;
-  strategicWorkshopsDesc?: string;
-  professionalEvolutionTitle?: string;
-  professionalEvolutionDesc?: string;
-  // Review Status
-  submitReview?: string;
-  reviewPending?: string;
-  reviewDone?: string;
-}
-
-interface ProfessionalLanguageTranslations {
-  welcome: ProfessionalStepTranslations;
-  language: ProfessionalStepTranslations;
-  auditForm: ProfessionalStepTranslations;
-  experience: ProfessionalStepTranslations;
-  analysis: ProfessionalStepTranslations;
-  interview: ProfessionalStepTranslations;
-  finalReport: ProfessionalStepTranslations;
-  mcq: ProfessionalStepTranslations;
-}
-
-interface Translations {
-  en: ProfessionalLanguageTranslations;
-  fr: ProfessionalLanguageTranslations;
-  ar: ProfessionalLanguageTranslations;
-}
-
-const TRANSLATIONS: Translations = {
-  en: {
-    welcome: {
-      tag: "Professional Executive Account",
-      title: "Welcome to Your Strategic Evolution.",
-      subtitle:
-        "Before we activate your executive dashboard, we need to execute a high-precision audit of your career path. Each step is designed to calibrate the AI engine to your specific professional reality.",
-      steps: [
-        {
-          title: "Language Calibration",
-          desc: "Setting the strategic linguistic tone for your account.",
-        },
-        {
-          title: "Professional Audit",
-          desc: "Detailed mapping of your sectors, roles, and experience history.",
-        },
-        {
-          title: "Strategic Vision",
-          desc: "Defining your long-term evolution goals and market stance.",
-        },
-        {
-          title: "Evidence Extraction",
-          desc: "CV processing or storytelling to extract core authority.",
-        },
-        {
-          title: "Initial SCI Analysis",
-          desc: "AI-generated audit report to kickstart your professional repair.",
-        },
-      ],
-      cta: "Let's Begin the Audit",
-      logout: "Log Out",
-      back: "Back",
-      next: "Fast Forward",
-      years: "years",
-      strengths: "Strengths",
-      weaknesses: "Weaknesses",
-      opportunities: "Opportunities",
-      threats: "Threats",
-      shortTerm: "Short-Term",
-      longTerm: "Long-Term",
-      masteryReqs: "Mastery Requirements",
-    },
-    language: {
-      title: "Core Account Language",
-      subtitle:
-        "This will calibrate the AI diagnostic and the entire ecosystem interaction.",
-    },
-    auditForm: {
-      title: "Professional Audit: Reality Mapping",
-      subtitle: "Tell us about your context and your future market target.",
-      sectorsLabel: "Professional Sectors / Domains",
-      sectorsPlac: "e.g. Finance, IT Management, Strategic Marketing",
-      historyLabel: "History: Positions Held & Duration",
-      jobPlac: "Job Title",
-      yearsPlac: "Years",
-      visionLabel:
-        "The 'Why': Where do you see your authority evolving in 3-5 years?",
-      visionPlac:
-        "Describe your career goals, target roles, or the impact you want to create in your field...",
-      cta: "Execute Analysis Phase",
-    },
-    experience: {
-      title: "Evidence Extraction",
-      subtitle:
-        "How would you like to provide the raw data of your career experience?",
-      cvTitle: "Upload Executive CV",
-      cvDesc:
-        "PDF or Word format. The AI will extract your journey automatically.",
-      storyTitle: "Experience Narrative",
-      storyDesc:
-        "Tell us your story in your own words. Focus on key missions and achievements.",
-      storyPlac:
-        "Talk about your career journey, key projects, roles and what you achieved...",
-      cvBtn: "Select File",
-      cta: "Execute Core Analysis",
-    },
-    analysis: {
-      loading: "AI Engine Running Deep Audit",
-      loadingSub: "Cross-referencing data with market benchmarks...",
-      complete: "Audit Phase Complete",
-      completeSub: "Preliminary Strategic Analysis Report Generated",
-      profile: "Experience Profile",
-      authority: "Authority Level",
-      alignment: "Market Alignment",
-      gaps: "Identified Gaps",
-      cta: "Launch Strategic Interview",
-    },
-    interview: {
-      title: "Strategic Executive Interview",
-      subtitle: "Welcome to your Strategic Executive Interview.",
-      intro:
-        "This conversation is high-stakes. Be precise, strategic, and professional.",
-      placeholder: "Write your strategic response here...",
-      cta: "Send Strategic Input",
-      finalizing: "Synthesizing Final Strategic Verdict...",
-      analysisStep: "Executing multi-dimensional analysis...",
-    },
-    finalReport: {
-      title: "Initial Strategic Diagnosis",
-      subtitle: "Comprehensive trajectory analysis - Phase 1.",
-      maturity: "Strategic Maturity Level",
-      marketValue: "Market Perception",
-      finalVerdict: "Veteran's Final Judgment",
-      recommendedRoles: "High-level Target Roles",
-      deepInsights: "Hidden Strategic Truths",
-      swot: "Strategic SWOT Analysis",
-      gapTitle: "Strategic Gap Analysis",
-      matchScore: "Competency Alignment",
-      cta: "Access Executive Dashboard",
-      proTitle: "PRO Version Required",
-      proDesc: "The Strategic Executive Dashboard and Advanced Simulations are exclusive to PRO accounts. Complete your professional evolution with a full activation.",
-      proUpgrade: "Upgrade to PRO Account",
-      proBack: "Return to Report",
-      strengths: "Core Strategic Strengths",
-      weaknesses: "Critical Developmental Gaps",
-      opportunities: "Market Expansion Potential",
-      threats: "Strategic Vulnerabilities",
-      executiveSummary: "Executive Strategic Summary",
-      nextStepsTitle: "Upcoming Strategic Assets",
-      nextStepsSubtitle: "Activate Pro to unlock these high-precision modules",
-      aiConsultationsTitle: "AI Consultations",
-      aiConsultationsDesc: "Advanced AI models for expert guidance.",
-      strategicWorkshopsTitle: "Strategic Workshops",
-      strategicWorkshopsDesc: "Personalized high-impact sessions.",
-      professionalEvolutionTitle: "Evolution Path",
-      professionalEvolutionDesc: "Complete your strategic roadmap.",
-      submitReview: "Submit for Expert Review",
-      reviewPending: "Review Pending",
-      reviewDone: "Reviewed by Expert",
-    },
-    mcq: {
-      mcqTitle: "Competency Verification",
-      mcqSubtitle: "High-precision testing of your Hard & Soft skills.",
-      hardSkillsTitle: "Phase 1: Technical & Strategic Depth",
-      softSkillsTitle: "Phase 2: Behavioral & Leadership Nuance",
-      mcqLoading: "Generating targeted assessments...",
-      mcqCorrect: "Response Verified",
-      mcqIncorrect: "Gap Identified",
-      mcqCta: "Proceed to Final Synthesis",
-    },
-  },
-  fr: {
-    welcome: {
-      tag: "Compte Exécutif Professionnel",
-      title: "Bienvenue dans votre Évolution Stratégique.",
-      subtitle:
-        "Avant d'activer votre tableau de bord exécutif, nous devons effectuer un audit de haute précision de votre parcours. Chaque étape est conçue pour calibrer le moteur IA à votre réalité professionnelle.",
-      steps: [
-        {
-          title: "Calibration Linguistique",
-          desc: "Définition du ton linguistique stratégique de votre compte.",
-        },
-        {
-          title: "Audit Professionnel",
-          desc: "Cartographie détaillée de vos secteurs, rôles et historique.",
-        },
-        {
-          title: "Vision Stratégique",
-          desc: "Définition de vos objectifs d'évolution à long terme.",
-        },
-        {
-          title: "Extraction de Preuves",
-          desc: "Traitement de CV ou narration pour extraire votre autorité.",
-        },
-        {
-          title: "Analyse SCI Initiale",
-          desc: "Rapport d'audit généré par l'IA pour lancer votre évolution.",
-        },
-      ],
-      cta: "Commencer l'Audit",
-      logout: "Déconnexion",
-      back: "Retour",
-      next: "Suivant",
-      years: "ans",
-      strengths: "Forces",
-      weaknesses: "Faiblesses",
-      opportunities: "Opportunités",
-      threats: "Menaces",
-      shortTerm: "Court Terme",
-      longTerm: "Long Terme",
-      masteryReqs: "Exigences de Maîtrise",
-    },
-    language: {
-      title: "Langue Principale du Compte",
-      subtitle:
-        "Ceci calibrera le diagnostic IA et l'ensemble de l'interaction avec l'écosystème.",
-    },
-    auditForm: {
-      title: "Audit Professionnel : Cartographie du Réel",
-      subtitle:
-        "Parlez-nous de votre contexte et de votre cible de marché future.",
-      sectorsLabel: "Secteurs Professionnels / Domaines",
-      sectorsPlac: "ex: Finance, Management IT, Marketing Stratégique",
-      historyLabel: "Historique : Postes Occupés & Durée",
-      jobPlac: "Intitulé du poste",
-      yearsPlac: "Années",
-      visionLabel:
-        "Le 'Pourquoi' : Où voyez-vous votre autorité évoluer dans 3 à 5 ans ?",
-      visionPlac: "Décrivez vos objectifs de carrière, vos rôles cibles...",
-      cta: "Exécuter la Phase d'Analyse",
-    },
-    experience: {
-      title: "Extraction de Preuves",
-      subtitle:
-        "Comment souhaitez-vous fournir les données brutes de votre expérience ?",
-      cvTitle: "Télécharger un CV Exécutif",
-      cvDesc:
-        "Format PDF ou Word. L'IA extraira votre parcours automatiquement.",
-      storyTitle: "Narration d'Expérience",
-      storyDesc:
-        "Racontez-nous votre histoire avec vos propres mots. Concentrez-vous sur les missions clés.",
-      storyPlac:
-        "Parlez de votre parcours, de vos projets clés, de vos rôles...",
-      cvBtn: "Choisir un fichier",
-      cta: "Exécuter l'Analyse Finale",
-    },
-    analysis: {
-      loading: "Moteur IA en cours d'Audit Profond",
-      loadingSub: "Croisement des données avec les références du marché...",
-      complete: "Phase d'Audit Terminée",
-      completeSub: "Rapport d'Analyse Stratégique Préliminaire Généré",
-      profile: "Profil d'Expérience",
-      authority: "Niveau d'Autorité",
-      alignment: "Alignement Marché",
-      gaps: "Lacunes Identifiées",
-      cta: "Lancer l'Entretien Stratégique",
-    },
-    interview: {
-      title: "Entretien Exécutif Stratégique",
-      subtitle: "Bienvenue dans votre entretien exécutif stratégique.",
-      intro:
-        "Cette conversation est à enjeux élevés. Soyez précis et stratégique.",
-      placeholder: "Rédigez votre réponse stratégique ici...",
-      cta: "Envoyer l'Input Stratégique",
-      finalizing: "Synthèse du Verdict Stratégique Final...",
-      analysisStep: "Exécution de l'analyse multidimensionnelle...",
-    },
-    finalReport: {
-      title: "Diagnostic Stratégique Initial",
-      subtitle: "Analyse complète de votre trajectoire - Phase 1.",
-      maturity: "Niveau de Maturité Stratégique",
-      marketValue: "Perception du Marché",
-      finalVerdict: "Jugement Final du Vétéran",
-      recommendedRoles: "Rôles Cibles de Haut Niveau",
-      deepInsights: "Vérités Stratégiques Cachées",
-      swot: "Analyse SWOT Stratégique",
-      gapTitle: "Analyse des Écarts Stratégiques",
-      matchScore: "Alignement des Compétences",
-      cta: "Accéder au Tableau de Bord",
-      proTitle: "Version PRO Requise",
-      proDesc: "Le Tableau de Bord Exécutif Stratégique et les Simulations Avancées sont exclusifs aux comptes PRO. Complétez votre évolution avec une activation complète.",
-      proUpgrade: "Passer au Compte PRO",
-      proBack: "Retour au Rapport",
-      strengths: "Forces Stratégiques Clés",
-      weaknesses: "Lacunes de Développement Critiques",
-      opportunities: "Potentiel d'Expansion du Marché",
-      threats: "Vulnérabilités Stratégiques",
-      executiveSummary: "Résumé Stratégique Exécutif",
-      nextStepsTitle: "Actifs Stratégiques à Venir",
-      nextStepsSubtitle: "Activez Pro pour débloquer ces modules de haute précision",
-      aiConsultationsTitle: "Consultations IA",
-      aiConsultationsDesc: "Modèles d'IA avancés pour un guidage expert.",
-      strategicWorkshopsTitle: "Ateliers Stratégiques",
-      strategicWorkshopsDesc: "Sessions personnalisées à fort impact.",
-      professionalEvolutionTitle: "Parcours d'Évolution",
-      professionalEvolutionDesc: "Complétez votre feuille de route.",
-      submitReview: "Soumettre pour Révision Expert",
-      reviewPending: "Révision en attente",
-      reviewDone: "Révisé par un Expert",
-    },
-    mcq: {
-      mcqTitle: "Vérification des Compétences",
-      mcqSubtitle: "Test de haute précision de vos Hard & Soft skills.",
-      hardSkillsTitle: "Phase 1 : Profondeur Technique & Stratégique",
-      softSkillsTitle: "Phase 2 : Nuance Comportementale & Leadership",
-      mcqLoading: "Génération d'évaluations ciblées...",
-      mcqCorrect: "Réponse Vérifiée",
-      mcqIncorrect: "Écart Identifié",
-      mcqCta: "Passer à la Synthèse Finale",
-    },
-  },
-  ar: {
-    welcome: {
-      tag: "حساب تنفيذي مهني",
-      title: "مرحباً بك في تطورك الاستراتيجي.",
-      subtitle:
-        "قبل تفعيل لوحة التحكم التنفيذية الخاصة بك، نحتاج إلى إجراء تدقيق عالي الدقة لمسارك المهني. تم تصميم كل خطوة لمعايرة محرك الذكاء الاصطناعي مع واقعك المهني المحدد.",
-      steps: [
-        {
-          title: "المعايرة اللغوية",
-          desc: "تحديد النبرة اللغوية الاستراتيجية لحسابك.",
-        },
-        {
-          title: "التدقيق المهني",
-          desc: "رسم خرائط مفصلة لقطاعاتك وأدوارك وتاريخ خبرتك.",
-        },
-        {
-          title: "الرؤية الاستراتيجية",
-          desc: "تحديد أهداف التطور طويلة المدى ومكانتك في السوق.",
-        },
-        {
-          title: "استخراج الأدلة",
-          desc: "معالجة السيرة الذاتية أو سرد القصص لاستخراج السلطة الأساسية.",
-        },
-        {
-          title: "تحليل SCI الأولي",
-          desc: "تقرير تدقيق مولد بالذكاء الاصطناعي لبدء إصلاحك المهني.",
-        },
-      ],
-      cta: "لنبدأ التدقيق",
-      logout: "تسجيل الخروج",
-      back: "العودة",
-      next: "التالي",
-      years: "سنوات",
-      strengths: "نقاط القوة",
-      weaknesses: "نقاط الضعف",
-      opportunities: "الفرص",
-      threats: "المخاطر",
-      shortTerm: "قصير المدى",
-      longTerm: "طويل المدى",
-      masteryReqs: "متطلبات الإتقان",
-    },
-    language: {
-      title: "اللغة الأساسية للحساب",
-      subtitle:
-        "سيؤدي ذلك إلى معايرة تشخيص الذكاء الاصطناعي والتفاعل التام مع النظام البيئي.",
-    },
-    auditForm: {
-      title: "التدقيق المهني: رسم خرائط الواقع",
-      subtitle: "أخبرنا عن سياقك وهدفك المستقبلي في السوق.",
-      sectorsLabel: "القطاعات / المجالات المهنية",
-      sectorsPlac:
-        "مثلاً: المالية، إدارة تقنيات المعلومات، التسويق الاستراتيجي",
-      historyLabel: "التاريخ: المناصب التي شغلتها ومدتها",
-      jobPlac: "المسمى الوظيفي",
-      yearsPlac: "السنوات",
-      visionLabel: "لماذا: أين ترى سلطتك المهنية تتطور خلال 3-5 سنوات؟",
-      visionPlac:
-        "صف أهدافك المهنية، الأدوار المستهدفة، أو التأثير الذي تريد تركه في مجالك...",
-      cta: "تنفيذ مرحلة التحليل",
-    },
-    experience: {
-      title: "استخراج الأدلة",
-      subtitle: "كيف ترغب في تقديم البيانات الخام لخبرتك المهنية؟",
-      cvTitle: "رفع السيرة الذاتية التنفيذية",
-      cvDesc:
-        "تنسيق PDF أو Word. سيقوم الذكاء الاصطناعي باستخراج مسارك تلقائياً.",
-      storyTitle: "سرد الخبرة",
-      storyDesc:
-        "أخبرنا قصتك بكلماتك الخاصة. ركز على المهام والإنجازات الرئيسية.",
-      storyPlac:
-        "تحدث عن رحلتك المهنية، المشاريع الرئيسية، الأدوار وما حققته...",
-      cvBtn: "اختر ملفاً",
-      cta: "تنفيذ التحليل الأساسي",
-    },
-    analysis: {
-      loading: "محرك الذكاء الاصطناعي يجري تدقيقاً عميقاً",
-      loadingSub: "تحليل البيانات مقارنة بالمعايير العالمية...",
-      complete: "اكتملت مرحلة التدقيق الرقمي",
-      completeSub: "تم إجراء التدقيق الأولي للبيانات الخام",
-      profile: "ملف الخبرة",
-      authority: "مستوى السلطة",
-      alignment: "التوافق مع السوق",
-      gaps: "الفجوات المكتشفة",
-      cta: "بدء المقابلة الاستراتيجية",
-    },
-    interview: {
-      title: "المقابلة التنفيذية الاستراتيجية",
-      subtitle: "مرحباً بك في مرحلة المقابلة الاستراتيجية المعمقة.",
-      intro:
-        "هذا الحوار عالي الأهمية. كن دقيقاً، استراتيجياً، ومحترفاً في إجاباتك.",
-      placeholder: "اكتب استجابتك الاستراتيجية هنا...",
-      cta: "إرسال المدخلات الاستراتيجية",
-      finalizing: "جاري صياغة الحكم الاستراتيجي النهائي...",
-      analysisStep: "تنفيذ عملية التركيب والتحليل الشامل...",
-    },
-    finalReport: {
-      title: "التشخيص الاستراتيجي الأولي",
-      subtitle: "التحليل الاستراتيجي الشامل لمسارك - المرحلة الأولى.",
-      maturity: "مستوى النضج الاستراتيجي",
-      marketValue: "تصور السوق",
-      finalVerdict: "الحكم النهائي للخبير",
-      recommendedRoles: "الأدوار المستهدفة رفيعة المستوى",
-      deepInsights: "الحقائق الاستراتيجية المخفية",
-      swot: "تحليل SWOT الاستراتيجي",
-      gapTitle: "تحليل الفجوات الاستراتيجية",
-      matchScore: "توافق الكفاءات",
-      cta: "الانتقال إلى المرحلة القادمة",
-      proTitle: "مطلوب حساب برو مدفوع",
-      proDesc: "لوحة التحكم التنفيذية الاستراتيجية والمحاكاة المتقدمة حصرية لحسابات البرو. أكمل مسارك الاحترافي عبر التفعيل الكامل للحساب.",
-      proUpgrade: "الترقية إلى حساب برو مدفوع",
-      proBack: "العودة للتقرير",
-      strengths: "نقاط القوة الاستراتيجية الأساسية",
-      weaknesses: "فجوات التطوير الحرجة",
-      opportunities: "فرص التوسع في السوق",
-      threats: "المخاطر الاستراتيجية المحتملة",
-      executiveSummary: "الملخص الاستراتيجي التنفيذي",
-      nextStepsTitle: "الأصول الاستراتيجية القادمة",
-      nextStepsSubtitle: "فعل الحساب الاحترافي لفتح هذه الوحدات عالية الدقة",
-      aiConsultationsTitle: "استشارات ذكاء اصطناعي",
-      aiConsultationsDesc: "نماذج متطورة للتوجيه الخبير.",
-      strategicWorkshopsTitle: "ورشات استراتيجية",
-      strategicWorkshopsDesc: "جلسات مخصصة عالية التأثير.",
-      professionalEvolutionTitle: "مسار التطور",
-      professionalEvolutionDesc: "أكمل خارطة طريقك الاستراتيجية.",
-      submitReview: "إرسال للمراجعة من قبل خبير",
-      reviewPending: "المراجعة قيد الانتظار",
-      reviewDone: "تمت المراجعة من قبل خبير",
-    },
-    mcq: {
-      mcqTitle: "التحقق من الكفاءات",
-      mcqSubtitle: "اختبار عالي الدقة للمهارات الصلبة والناعمة.",
-      hardSkillsTitle: "المرحلة الأولى: العمق التقني والاستراتيجي",
-      softSkillsTitle: "المرحلة الثانية: الفروق السلوكية والقيادية",
-      mcqLoading: "جاري إنشاء التقييمات المخصصة...",
-      mcqCorrect: "تم التحقق من الإجابة",
-      mcqIncorrect: "تم تحديد فجوة",
-      mcqCta: "الانتقال إلى التوليف النهائي",
-    },
-  },
-};
-
-// ─── EXPERT INTERVIEW ──────────────────────────────────────────────────────────
-function ExpertInterview({
-  formData,
-  auditResult,
-  t,
-  language,
-  onComplete,
-}: {
-  formData: FormData;
-  auditResult: AuditResult;
-  t: ProfessionalStepTranslations;
-  language: string;
-  onComplete: (
-    report: FinalReportResult,
-    transcript: InterviewMessage[],
-  ) => void;
-}) {
-  const [messages, setMessages] = useState<
-    { role: "assistant" | "user"; content: string }[]
-  >([]);
-  const [currentInput, setCurrentInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [finalizing, setFinalizing] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(180);
-  const maxQuestions = 40;
-
-  const handleSend = useCallback(async (e?: React.FormEvent, isSpecialAction: 'timeout' | 'skip' | 'finish' | 'none' = 'none') => {
-    if (e) e.preventDefault();
-    if ((!currentInput.trim() && isSpecialAction === 'none') || loading) return;
-
-    let content = currentInput;
-    if (isSpecialAction === 'timeout') {
-      content = language === "ar" ? "[نفاذ الوقت: لم يتم تقديم إجابة من المستخدم]" : "[Timeout: User did not provide an answer]";
-    } else if (isSpecialAction === 'skip') {
-      content = language === "ar" ? "[تخطى المستخدم هذا السؤال]" : "[User skipped this question]";
-    } else if (isSpecialAction === 'finish') {
-      content = language === "ar" ? "[أنهى المستخدم المقابلة مبكراً]" : "[User finished the interview early]";
-    }
-
-    const userMsg = { role: "user" as const, content };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setCurrentInput("");
-    setLoading(true);
-
-    const assistantQuestionsCount = updatedMessages.filter(
-      (m) => m.role === "assistant",
-    ).length;
-
-    try {
-      if (assistantQuestionsCount >= maxQuestions || isSpecialAction === 'finish') {
-        setFinalizing(true);
-        const response = await fetch("/api/professional-interview/analyze", {
-          method: "POST",
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            conversationHistory: updatedMessages,
-            language,
-            userId: JSON.parse(localStorage.getItem("userProfile") || "{}")
-              .email,
-          }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          onComplete(data.report, updatedMessages);
-        }
-      } else {
-        const response = await fetch("/api/professional-interview/question", {
-          method: "POST",
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            conversationHistory: updatedMessages,
-            language,
-          }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          setMessages([
-            ...updatedMessages,
-            { role: "assistant", content: data.question },
-          ]);
-        }
-      }
-    } catch (err) {
-      console.error("Interview action failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentInput, loading, messages, language, maxQuestions, auditResult, formData, onComplete]);
-
-  useEffect(() => {
-    if (finalizing || loading || messages.length === 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSend(undefined, 'timeout');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [loading, finalizing, messages.length, handleSend]);
-
-  // Reset timer when new assistant message arrives
-  useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
-      setTimeLeft(180);
-    }
-  }, [messages]);
-
-  // Initialize First Question
-  useEffect(() => {
-    const fetchFirstQuestion = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/professional-interview/question", {
-          method: "POST",
-          body: JSON.stringify({ auditResult, formData, language }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          setMessages([{ role: "assistant", content: data.question }]);
-        }
-      } catch (err) {
-        console.error("Failed to start interview:", err);
-      } finally {
-        setLoading(false);
-      }
+interface ImplementationBlueprint {
+    tacticalWins: { title: string; action: string }[];
+    suggestedRoles: { title: string; matchingWhy: string }[];
+    gapBridge: {
+        skills: string[];
+        summary: string;
+        riskWarning: string;
+        goldenAdvice: string;
     };
-    fetchFirstQuestion();
-  }, [auditResult, formData, language]);
-
-  if (finalizing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="relative">
-          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_3s_linear_infinite] border-t-blue-600 shadow-[0_0_40px_rgba(37,99,235,0.2)]" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 rounded-full bg-blue-500/10 flex items-center justify-center backdrop-blur-sm border border-blue-500/20">
-                <Cpu className="text-blue-500 w-12 h-12 animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div className="text-center space-y-5 relative z-10">
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-blue-600 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
-            {t.finalizing}
-          </h2>
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.4em]">
-                {t.analysisStep}
-              </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-3xl mx-auto space-y-8 py-8"
-    >
-      <div className="text-center space-y-4 relative z-10">
-        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
-          {t.title}
-        </h2>
-        <p className="text-lg md:text-xl text-slate-500 font-medium px-4 max-w-2xl mx-auto tracking-wide">{t.subtitle}</p>
-      </div>
-
-      <div className="bg-white dark:bg-[#0d1117] rounded-[4rem] border border-slate-100 dark:border-slate-800/50 min-h-[750px] flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative group">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-blue-600/10 transition-colors duration-1000" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-indigo-600/10 transition-colors duration-1000" />
-        
-        <div className="p-10 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl relative z-10">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)] border border-white/20 group-hover:rotate-3 transition-transform">
-              <Shield size={32} strokeWidth={1} />
-            </div>
-            <div>
-              <div className="font-black text-sm md:text-base uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
-                Senior Strategic AI
-              </div>
-              <div className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] flex items-center gap-2 mt-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" /> 
-                System: Active Analysis
-              </div>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-             <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secure Protocol</div>
-             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.length === 0 && loading && (
-            <div className="flex justify-center py-12">
-              <Cpu className="animate-spin text-blue-600" />
-            </div>
-          )}
-          {messages.map((m, i) => (
-            <motion.div
-              key={i}
-              initial={{
-                opacity: 0,
-                y: 20,
-                x: m.role === "assistant" ? -20 : 20,
-              }}
-              animate={{ opacity: 1, y: 0, x: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className={cn(
-                "flex items-end gap-4",
-                m.role === "user" ? "flex-row-reverse" : "flex-row",
-              )}
-            >
-              <div
-                className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg border backdrop-blur-md transition-transform hover:scale-105",
-                  m.role === "assistant"
-                    ? "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-blue-600"
-                    : "bg-linear-to-br from-indigo-600 to-blue-700 border-white/20 text-white",
-                )}
-              >
-                {m.role === "assistant" ? (
-                  <Cpu size={22} strokeWidth={1.5} />
-                ) : (
-                  <User size={22} strokeWidth={1.5} />
-                )}
-              </div>
-              <div
-                className={cn(
-                  "max-w-[85%] p-7 md:p-10 text-base md:text-lg font-medium leading-relaxed shadow-2xl group transition-all relative overflow-hidden",
-                  m.role === "assistant"
-                    ? "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-[3rem] rounded-bl-none"
-                    : "bg-linear-to-br from-indigo-600 to-blue-700 text-white rounded-[3rem] rounded-br-none shadow-[0_20px_40px_rgba(37,99,235,0.2)] border border-white/10",
-                )}
-              >
-                {m.role === "assistant" && (
-                  <div className="flex items-center gap-2 mb-4 opacity-60">
-                    <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-[0.3em]">
-                      {language === "ar" ? "تحليل استراتيجي خبير" : language === "fr" ? "Analyse Stratégique Experte" : "Expert Strategic Analysis"}
-                    </div>
-                    <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
-                  </div>
-                )}
-                <div className={cn(
-                  "whitespace-pre-wrap",
-                  language === "ar" ? "leading-[1.8] font-arabic" : "leading-relaxed"
-                )}>
-                  {m.content}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-          {loading &&
-            !finalizing &&
-            messages.length > 0 &&
-            messages[messages.length - 1].role === "user" && (
-              <div className="flex gap-4 items-end animate-in fade-in slide-in-from-bottom-2 duration-700">
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
-                  <div className="absolute inset-0 bg-blue-500/5 animate-pulse" />
-                  <Cpu size={22} className="animate-spin text-blue-600 duration-3000" strokeWidth={1.5} />
-                </div>
-                <div className="px-6 py-4 rounded-4xl rounded-bl-none bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-[0.4em] text-blue-500/60 shadow-sm">
-                  Synthesizing Cognitive Strategy...
-                </div>
-              </div>
-            )}
-        </div>
-
-        <div className="p-10 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800/50 flex flex-col gap-6 relative z-10 backdrop-blur-3xl">
-          <div className="flex gap-4 items-end">
-            <div className={cn(
-              "flex flex-col items-center justify-center px-6 py-4 rounded-3xl border transition-all shadow-sm",
-              timeLeft < 60 ? "bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-blue-600"
-            )}>
-              <div className="text-[7px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-60">Session Timer</div>
-              <div className="text-xl font-black font-mono leading-none">
-                {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
-              </div>
-            </div>
-            <div className="flex-1 relative group">
-              <textarea
-                value={currentInput}
-                onChange={(e) => setCurrentInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder={t.placeholder}
-                className="w-full bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] px-10 py-6 text-sm font-medium outline-none focus:border-blue-600/50 focus:ring-8 focus:ring-blue-600/5 transition-all resize-none shadow-xl shadow-blue-900/5 placeholder:text-slate-400"
-                rows={1}
-              />
-            </div>
-            <button
-              onClick={() => handleSend()}
-              disabled={!currentInput.trim() || loading}
-              className="w-[72px] h-[72px] shrink-0 rounded-[2.5rem] bg-linear-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100 transition-all shadow-2xl shadow-blue-600/40 relative overflow-hidden group/btn"
-            >
-               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
-               <Send size={28} strokeWidth={2.5} className="relative z-10 transition-transform group-hover/btn:rotate-12" />
-            </button>
-          </div>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1.5">
-                {Array.from({length: 4}).map((_, i) => (
-                  <div key={i} className="w-1 h-3 rounded-full bg-blue-500/20 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
-                ))}
-              </div>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-400">
-                Protocol: Strategic Evaluation — {messages.filter(m => m.role === 'assistant').length} / {maxQuestions}
-              </p>
-            </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleSend(undefined, 'skip')}
-                    disabled={loading}
-                    className="px-6 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-black uppercase tracking-widest text-[10px] transition-all border border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                  >
-                    {language === "ar" ? "تخطي السؤال" : language === "fr" ? "Passer la question" : "Skip Question"}
-                  </button>
-                  {messages.filter(m => m.role === 'assistant').length >= 10 && (
-                    <button
-                      onClick={() => handleSend(undefined, 'finish')}
-                      disabled={loading}
-                      className="px-6 py-2 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black uppercase tracking-widest text-[10px] transition-all border border-amber-500/20 hover:bg-amber-500/20 active:scale-95 animate-pulse hover:animate-none"
-                    >
-                      {language === "ar" ? "إنهاء وتحليل الآن" : language === "fr" ? "Terminer et Analyser" : "Finish & Analyze Now"}
-                    </button>
-                  )}
-                </div>
-                <div className="flex gap-1 overflow-x-auto max-w-full py-1">
-                  {Array.from({length: maxQuestions}).map((_, i) => (
-                    <div key={i} className={cn("w-3 h-1 rounded-full shrink-0", i < messages.filter(m => m.role === 'assistant').length ? "bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" : "bg-slate-200 dark:bg-slate-800")} />
-                  ))}
-                </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
 }
 
-// --- Portfolio Interview Component ---
-function PortfolioInterview({
-  auditResult,
-  formData,
-  interviewTranscript,
-  mcqResults,
-  onComplete,
-  language,
-}: {
-  auditResult: AuditResult;
-  formData: FormData;
-  interviewTranscript: InterviewMessage[];
-  mcqResults: { hardScore: number; softScore: number; totalQuestions: number };
-  onComplete: (
-    report: FinalReportResult,
-    transcript: InterviewMessage[],
-  ) => void;
-  language: string;
-}) {
-  const [messages, setMessages] = useState<
-    { role: "assistant" | "user"; content: string }[]
-  >([]);
-  const [currentInput, setCurrentInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [finalizing, setFinalizing] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const TOTAL_QUESTIONS = 10; // 9 profile + 1 pivotal
-
-  const assistantCount = messages.filter((m) => m.role === "assistant").length;
-  const isPivotalPhase = assistantCount >= 9 && messages.length > 0;
-
-  const PHASE_LABELS = [
-    { label: "Profile Anchor", icon: "①", color: "text-blue-500" },
-    { label: "Gap Confrontation", icon: "②", color: "text-amber-500" },
-    { label: "Failure Deep-Dive", icon: "③", color: "text-rose-500" },
-    { label: "Self-Awareness Probe", icon: "④", color: "text-violet-500" },
-    { label: "Stakeholder Management", icon: "⑤", color: "text-emerald-500" },
-    { label: "Strategic Judgment", icon: "⑥", color: "text-indigo-500" },
-    { label: "Leadership Rigor", icon: "⑦", color: "text-teal-500" },
-    { label: "Values & Ethics", icon: "⑧", color: "text-cyan-500" },
-    { label: "Innovation Rigor", icon: "⑨", color: "text-sky-500" },
-    { label: "THE PIVOTAL", icon: "⑩", color: "text-white" },
-  ];
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  useEffect(() => {
-    const fetchFirstQuestion = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/portfolio-interview/question", {
-          method: "POST",
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            interviewTranscript,
-            mcqResults,
-            language,
-          }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          setMessages([{ role: "assistant", content: data.question }]);
-        }
-      } catch (err) {
-        console.error("Failed to start portfolio interview:", err);
-      } finally {
-        setLoading(false);
-      }
+interface FinalMasterReport {
+    executiveSummary: string;
+    holisticScore: number;
+    pillarAnalysis: {
+        technical: string;
+        strategic: string;
+        psychological: string;
     };
-    fetchFirstQuestion();
-  }, [auditResult, formData, interviewTranscript, mcqResults, language]);
+    marketabilityVerdict: string;
+    premiumOpportunity: string;
+    finalCallToAction: string;
+}
 
-  const finalizeInterview = useCallback(async (finalMessages: { role: "assistant" | "user"; content: string }[]) => {
-    setFinalizing(true);
-    try {
-      const response = await fetch("/api/portfolio-interview/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          auditResult,
-          formData,
-          interview1Transcript: interviewTranscript,
-          mcqResults,
-          portfolioTranscript: finalMessages,
-          language,
-          userId: JSON.parse(localStorage.getItem("userProfile") || "{}").email,
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        onComplete(data.report, finalMessages);
-      }
-    } catch (err) {
-      console.error("Portfolio interview analysis failed:", err);
-      setFinalizing(false);
-    }
-  }, [auditResult, formData, interviewTranscript, mcqResults, language, onComplete]);
 
-  const triggerNextStep = useCallback(async (updatedMessages: { role: "assistant" | "user"; content: string }[]) => {
-    setLoading(true);
-    const currentAssistantCount = updatedMessages.filter((m) => m.role === "assistant").length;
+export default function ProfessionalDiagnosisPage() {
+    const { language, dir } = useLanguage();
+    const isRtl = dir === 'rtl';
 
-    try {
-      if (currentAssistantCount >= TOTAL_QUESTIONS) {
-        await finalizeInterview(updatedMessages);
-      } else {
-        const response = await fetch("/api/portfolio-interview/question", {
-          method: "POST",
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            interviewTranscript,
-            mcqResults,
-            currentHistory: updatedMessages,
-            language,
-          }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          setMessages([...updatedMessages, { role: "assistant", content: data.question }]);
-        }
-      }
-    } catch (err) {
-      console.error("Portfolio interview action failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [auditResult, formData, interviewTranscript, mcqResults, language, finalizeInterview, TOTAL_QUESTIONS]);
+    // State management
+    const [step, setStep] = useState(0); // 0: Welcome, 1: Formatting Narrative, 2: Results
+    const [narrative, setNarrative] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [result, setResult] = useState<AuditResult | null>(null);
 
-  const handleSkipQuestion = useCallback(() => {
-    if (loading) return;
-    const skipMsg = language === "ar" ? "تخطي هذا السؤال" : language === "fr" ? "Passer cette question" : "Skip this question";
-    setCurrentInput("");
-    setMessages(prev => {
-      const updated = [...prev, { role: "user" as const, content: skipMsg }];
-      triggerNextStep(updated);
-      return updated;
-    });
-  }, [loading, language, triggerNextStep]);
+    // Interview Phase States
+    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+    const [isInterviewing, setIsInterviewing] = useState(false);
+    const [chatInput, setChatInput] = useState("");
+    const [isInterviewComplete, setIsInterviewComplete] = useState(false);
+    
+    // Final Report States
+    const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-  const handleSend = useCallback(async () => {
-    if (!currentInput.trim() || loading) return;
-    const userMsg = { role: "user" as const, content: currentInput };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setCurrentInput("");
-    await triggerNextStep(updatedMessages);
-  }, [currentInput, loading, messages, triggerNextStep]);
+    // Assessment States
+    const [assessmentQuestions, setAssessmentQuestions] = useState<AssessmentQuestion[]>([]);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<number[]>([]);
+    const [isGeneratingAssessment, setIsGeneratingAssessment] = useState(false);
+    const [isAnalyzingAssessment, setIsAnalyzingAssessment] = useState(false);
+    const [assessmentAnalysis, setAssessmentAnalysis] = useState<AssessmentAnalysis | null>(null);
+    const [assessmentError, setAssessmentError] = useState<string | null>(null);
+    const [showCorrection, setShowCorrection] = useState(false);
+    const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
-  // Timer logic for autoimmune skip
-  useEffect(() => {
-    if (finalizing || loading || messages.length === 0) return;
+    // Mindset Phase States
+    const [mindsetMessages, setMindsetMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+    const [isMindsetInterviewing, setIsMindsetInterviewing] = useState(false);
+    const [mindsetInput, setMindsetInput] = useState("");
+    const [mindsetAnalysis, setMindsetAnalysis] = useState<MindsetAnalysis | null>(null);
+    const [isAnalyzingMindset, setIsAnalyzingMindset] = useState(false);
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSkipQuestion();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // Grand final report states
+    const [grandFinalReport, setGrandFinalReport] = useState<GrandFinalReport | null>(null);
+    const [isGeneratingGrandReport, setIsGeneratingGrandReport] = useState(false);
 
-    return () => clearInterval(timer);
-  }, [loading, finalizing, messages.length, handleSkipQuestion]);
+    // Strategic Paths states
+    const [strategicPaths, setStrategicPaths] = useState<StrategicPathsAnalysis | null>(null);
+    const [isGeneratingPaths, setIsGeneratingPaths] = useState(false);
+    const [selectedPath, setSelectedPath] = useState<StrategicPath | null>(null);
+    const [pathInterviewMessages, setPathInterviewMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+    const [isPathSimulating, setIsPathSimulating] = useState(false);
+    const [pathSimulationInput, setPathSimulationInput] = useState("");
+    const [isPathSimulationComplete, setIsPathSimulationComplete] = useState(false);
+    const [implementationBlueprint, setImplementationBlueprint] = useState<ImplementationBlueprint | null>(null);
+    const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false);
 
-  // Reset timer when a new question arrives
-  useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
-      setTimeLeft(300);
-    }
-  }, [messages]);
+    // Final Master Report states
+    const [finalMasterReport, setFinalMasterReport] = useState<FinalMasterReport | null>(null);
+    const [isGeneratingMasterReport, setIsGeneratingMasterReport] = useState(false);
+    const [masterReportError, setMasterReportError] = useState<string | null>(null);
 
-  if (finalizing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="relative">
-          <div className="w-48 h-48 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_3s_linear_infinite] border-t-indigo-600 shadow-[0_0_40px_rgba(79,70,229,0.2)]" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 rounded-full bg-indigo-500/10 flex items-center justify-center backdrop-blur-sm border border-indigo-500/20">
-                <Cpu className="text-indigo-500 w-12 h-12 animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div className="text-center space-y-5 relative z-10">
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-indigo-600 to-violet-400 bg-clip-text text-transparent drop-shadow-sm">
-            Synthesizing Strategic X-Ray Report...
-          </h2>
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl">
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping" />
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.4em]">
-                Cross-referencing all audit data, interview transcripts & MCQ results
-              </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    // Simulation Phase (The new strategic dialogue)
+    const [simulationMessages, setSimulationMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+    const [isSimulating, setIsSimulating] = useState(false);
+    const [simulationInput, setSimulationInput] = useState("");
+    const [isSimulationComplete, setIsSimulationComplete] = useState(false);
+    // --- Persistence Logic ---
+    const isHydrating = useRef(true);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-3xl mx-auto space-y-6 py-8"
-    >
-      {/* ─── PHASE HEADER ─────────────────────────────────────────────────── */}
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-black uppercase tracking-tight">
-          Portfolio & Leadership Deep-Dive
-        </h2>
-        <p className="text-slate-500 font-medium text-sm">
-          {isPivotalPhase
-            ? "Phase 2 — The Pivotal Case: Your executive decision-making under pressure."
-            : "Phase 1 — Profile Analysis: Understanding your professional DNA before the pivotal."}
-        </p>
-      </div>
-
-      {/* ─── PROGRESS BAR ─────────────────────────────────────────────────── */}
-      <div className="space-y-4 max-w-2xl mx-auto p-6 rounded-4xl bg-white/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-sm">
-        <div className="flex items-center justify-between px-2">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-            Phase Progression
-          </span>
-          <div className="flex items-center gap-4">
-            <span
-              className={cn(
-                "text-[10px] font-black uppercase tracking-[0.3em] transition-colors flex items-center gap-2",
-                isPivotalPhase ? "text-amber-500" : "text-indigo-600",
-              )}
-            >
-              {isPivotalPhase && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
-              {isPivotalPhase
-                ? "⚡ PIVOTAL PRESSURE"
-                : `${PHASE_LABELS[Math.max(assistantCount - 1, 0)]?.label || ""}`}
-            </span>
-
-            {/* Timer Display */}
-            {!loading && !finalizing && messages.length > 0 && (
-              <div className={cn(
-                "flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-black tracking-widest transition-colors",
-                timeLeft < 60 ? "bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse" : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
-              )}>
-                <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-4 px-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {PHASE_LABELS.map((phase, i) => (
-            <div key={i} className="min-w-[130px] flex-1 space-y-2 shrink-0">
-              <motion.div
-                className={cn(
-                  "h-2.5 rounded-full transition-all duration-500 ease-out",
-                  i < assistantCount
-                    ? i === 4
-                      ? "bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]"
-                      : "bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
-                    : i === assistantCount && !loading
-                      ? i === 4
-                        ? "bg-amber-500/30 border border-amber-500/50"
-                        : "bg-indigo-500/20 border border-indigo-500/30"
-                      : "bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors",
-                )}
-              />
-              <div
-                className={cn(
-                  "text-[9px] font-black uppercase tracking-widest text-center transition-opacity duration-300",
-                  i < assistantCount
-                    ? i === 4
-                      ? "text-amber-600 dark:text-amber-500"
-                      : "text-indigo-600 dark:text-indigo-400"
-                    : i === assistantCount && !loading 
-                      ? "text-slate-700 dark:text-slate-300 scale-105"
-                      : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400",
-                )}
-              >
-                {phase.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ─── CHAT CONTAINER ───────────────────────────────────────────────── */}
-      <AnimatePresence mode="wait">
-        {isPivotalPhase ? (
-          /* ─── PIVOTAL MODE: Dramatic full-screen presentation ─── */
-          <motion.div
-            key="pivotal"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-6"
-          >
-            {/* Pivotal badge */}
-            <div className="flex items-center justify-center">
-              <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
-                ⚡ The Pivotal Question — Executive Pressure Case
-              </div>
-            </div>
-
-            {/* Pivotal question card */}
-            {messages
-              .filter((m) => m.role === "assistant")
-              .slice(-1)
-              .map((m, i) => (
-                <div
-                  key={i}
-                  className="relative rounded-[2.5rem] bg-linear-to-br from-slate-900 via-slate-800 to-black p-10 shadow-2xl border border-amber-500/20 overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500 via-orange-500 to-red-500" />
-                  <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-amber-500/5" />
-                  <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-indigo-500/5" />
-                  <div className="relative z-10 space-y-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
-                        <Shield className="text-amber-400" size={20} />
-                      </div>
-                      <div>
-                        <div className="text-[8px] font-black uppercase tracking-[0.4em] text-amber-400">
-                          Executive Pressure Case
-                        </div>
-                        <div className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">
-                          No correct answer — only your judgment matters
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-white text-base font-bold leading-relaxed">
-                      {m.content}
-                    </p>
-                    <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-slate-500 border-t border-white/10 pt-4">
-                      <span className="text-amber-500">⚡</span>
-                      This question evaluates: Strategic thinking · Crisis
-                      leadership · Stakeholder management · Executive judgment
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-            {/* Previous user responses in pivotal mode */}
-            <div className="space-y-4">
-              {messages
-                .slice(0, -1)
-                .filter((m) => m.role === "user")
-                .slice(-1)
-                .map((m, i) => (
-                  <div key={i} className="flex justify-end">
-                    <div className="max-w-[80%] p-5 rounded-3xl bg-indigo-600 text-white text-sm font-medium leading-relaxed rounded-br-none shadow-lg shadow-indigo-600/20">
-                      {m.content}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </motion.div>
-        ) : (
-          /* ─── PHASE 1 MODE: Standard chat interface ─── */
-          <motion.div
-            key="phase1"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-[#0d1117] rounded-[4rem] border border-slate-100 dark:border-slate-800/50 min-h-[700px] flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative group"
-          >
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none group-hover:bg-indigo-600/10 transition-colors duration-1000" />
-          
-          <div className="p-10 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl relative z-10">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-4xl bg-linear-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-white shadow-xl border border-white/20">
-                <Target size={28} strokeWidth={1.5} />
-              </div>
-              <div className="space-y-1">
-                <div className="font-black text-sm uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">
-                  Executive Portfolio Auditor
-                </div>
-                <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                  Phase 1 · Profile Deep-Dive · High Stakes
-                </div>
-              </div>
-            </div>
-            <div className="ml-auto hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secure Audit Feed</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            </div>
-          </div>
-
-            {/* Messages */}
-            <div className="p-8 space-y-6 max-h-[420px] overflow-y-auto">
-              {messages.length === 0 && loading && (
-                <div className="flex justify-center py-12">
-                  <Cpu className="animate-spin text-indigo-600" size={32} />
-                </div>
-              )}
-              {messages.map((m, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20, x: m.role === "assistant" ? -20 : 20 }}
-                  animate={{ opacity: 1, y: 0, x: 0 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                  className={cn(
-                    "flex items-end gap-4",
-                    m.role === "assistant" ? "flex-row" : "flex-row-reverse",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md",
-                      m.role === "assistant"
-                        ? "bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-600"
-                        : "bg-linear-to-br from-indigo-500 to-blue-600 text-white",
-                    )}
-                  >
-                    {m.role === "assistant" ? (
-                      <Cpu size={18} strokeWidth={2} />
-                    ) : (
-                      <User size={18} strokeWidth={2} />
-                    )}
-                  </div>
-                  <div
-                    className={cn(
-                      "max-w-[85%] p-6 md:p-8 rounded-[2.5rem] text-base font-medium shadow-sm transition-shadow hover:shadow-md relative overflow-hidden",
-                      m.role === "assistant"
-                        ? "bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-100 dark:border-slate-800"
-                        : "bg-linear-to-br from-indigo-600 to-blue-600 text-white rounded-br-none shadow-[0_10px_20px_rgba(79,70,229,0.2)]",
-                    )}
-                  >
-                    {m.role === "assistant" && (
-                      <div className="flex items-center gap-2 mb-3 opacity-60">
-                        <div className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[8px] font-black uppercase tracking-[0.2em]">
-                          {language === "ar" ? "تغذية التقييم الخبير" : language === "fr" ? "Flux d'Évaluation Experte" : "Expert Evaluation Feed"}
-                        </div>
-                        <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-                      </div>
-                    )}
-                    <div className={cn(
-                      "whitespace-pre-wrap",
-                      language === "ar" ? "leading-[1.8] font-arabic" : "leading-relaxed"
-                    )}>
-                      {m.content}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-              {loading && messages.length > 0 && (
-                <div className="flex justify-start items-end gap-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                    <Cpu size={18} className="animate-spin text-indigo-600" />
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-5 rounded-4xl rounded-bl-none animate-pulse text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-                    Evaluator is formulating the next challenge...
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ─── INPUT AREA ───────────────────────────────────────────────────── */}
-      <div
-        className={cn(
-          "rounded-[3rem] border-2 overflow-hidden transition-all duration-700 relative z-20",
-          isPivotalPhase
-            ? "border-amber-500/50 bg-slate-950 shadow-[0_30px_90px_rgba(245,158,11,0.2)]"
-            : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.05)]",
-        )}
-      >
-        {isPivotalPhase && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-500 via-orange-500 to-red-600 animate-pulse" />
-        )}
-        <div className="flex items-end gap-2 p-4 md:p-6 bg-slate-50/50 dark:bg-slate-950/20 backdrop-blur-xl">
-           <div className="flex-1 relative">
-            <textarea
-              value={currentInput}
-              onChange={(e) => setCurrentInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
+    // 1. Sync Load from Mongo on Mount
+    useEffect(() => {
+        const loadProgress = async () => {
+            try {
+                const userProfileRaw = localStorage.getItem('userProfile');
+                if (!userProfileRaw) return;
+                const email = JSON.parse(userProfileRaw).email;
+                
+                const res = await fetch(`/api/professional/sync-progress?email=${email}`);
+                const data = await res.json();
+                
+                if (data.success && data.progress) {
+                    const p = data.progress;
+                    if (p.step !== undefined) setStep(p.step);
+                    if (p.narrative) setNarrative(p.narrative);
+                    if (p.result) setResult(p.result);
+                    if (p.messages) setMessages(p.messages);
+                    if (p.isInterviewComplete !== undefined) setIsInterviewComplete(p.isInterviewComplete);
+                    if (p.finalReport) setFinalReport(p.finalReport);
+                    if (p.assessmentQuestions) setAssessmentQuestions(p.assessmentQuestions);
+                    if (p.currentQuestionIndex !== undefined) setCurrentQuestionIndex(p.currentQuestionIndex);
+                    if (p.userAnswers) setUserAnswers(p.userAnswers);
+                    if (p.assessmentAnalysis) setAssessmentAnalysis(p.assessmentAnalysis);
+                    if (p.mindsetMessages) setMindsetMessages(p.mindsetMessages);
+                    if (p.mindsetAnalysis) setMindsetAnalysis(p.mindsetAnalysis);
+                    if (p.grandFinalReport) setGrandFinalReport(p.grandFinalReport);
+                    if (p.strategicPaths) setStrategicPaths(p.strategicPaths);
+                    if (p.simulationMessages) setSimulationMessages(p.simulationMessages);
+                    if (p.isSimulationComplete !== undefined) setIsSimulationComplete(p.isSimulationComplete);
+                    if (p.selectedPath) setSelectedPath(p.selectedPath);
+                    if (p.pathInterviewMessages) setPathInterviewMessages(p.pathInterviewMessages);
+                    if (p.isPathSimulationComplete !== undefined) setIsPathSimulationComplete(p.isPathSimulationComplete);
+                    if (p.implementationBlueprint) setImplementationBlueprint(p.implementationBlueprint);
+                    if (p.finalMasterReport) setFinalMasterReport(p.finalMasterReport);
                 }
-              }}
-              placeholder={
-                isPivotalPhase
-                  ? (language === "ar" ? "أدخل خطواتك الاستراتيجية الخمس..." : "Deliver your 5 precise steps. Be specific...")
-                  : (language === "ar" ? "قدم ردًا استراتيجيًا وصادقًا..." : "Provide a strategic, honest response...")
-              }
-              rows={isPivotalPhase ? 4 : 2}
-              className={cn(
-                "w-full px-8 py-6 text-base font-medium outline-none resize-none bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] focus:border-indigo-500/50 focus:ring-8 focus:ring-indigo-500/5 transition-all shadow-inner",
-                isPivotalPhase
-                  ? "text-amber-50 font-bold placeholder:text-slate-600"
-                  : "text-slate-800 dark:text-slate-100 placeholder:text-slate-400",
-              )}
-            />
-          </div>
-          <button
-            onClick={handleSend}
-            disabled={!currentInput.trim() || loading}
-            className={cn(
-              "w-[70px] h-[70px] shrink-0 rounded-4xl flex items-center justify-center transition-all shadow-2xl relative overflow-hidden group/send disabled:opacity-30",
-              isPivotalPhase 
-                ? "bg-linear-to-br from-amber-500 to-orange-700 text-white shadow-amber-500/30"
-                : "bg-linear-to-br from-indigo-600 to-blue-700 text-white shadow-indigo-600/30"
-            )}
-          >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/send:translate-y-0 transition-transform" />
-            <Send size={26} strokeWidth={2.5} className="relative z-10 transition-transform group-hover/send:rotate-12" />
-          </button>
-        </div>
-        
-        <div className="px-10 py-4 bg-white/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-             <div className="flex gap-1">
-               {Array.from({length: 3}).map((_, i) => (
-                 <div key={i} className="w-1 h-1 rounded-full bg-indigo-500/40 animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
-               ))}
-             </div>
-             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400">
-               Protocol Level: High Integrity
-             </p>
-           </div>
-           <div className="flex items-center gap-6">
-             {timeLeft < 60 && (
-               <div className="text-[10px] font-black text-rose-500 animate-pulse flex items-center gap-2">
-                 <Clock size={12} /> {timeLeft}s remaining
-               </div>
-             )}
-             <button
-               onClick={handleSkipQuestion}
-               className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors"
-             >
-               Skip Audit Step
-             </button>
-           </div>
-        </div>
-      </div>
-      <div ref={chatEndRef} />
-    </motion.div>
-  );
-}
+            } catch (err) {
+                console.error("Hydration professional progress error", err);
+            } finally {
+                isHydrating.current = false;
+            }
+        };
+        loadProgress();
+    }, []);
 
-// ─── MCQ ASSESSMENT ──────────────────────────────────────────────────────────
-function MCQAssessment({
-  auditResult,
-  formData,
-  interviewTranscript,
-  onComplete,
-  t,
-  language,
-}: {
-  auditResult: AuditResult;
-  formData: FormData;
-  interviewTranscript: InterviewMessage[];
-  onComplete: (
-    report: FinalReportResult | null,
-    results: { hardScore: number; softScore: number; totalQuestions: number },
-  ) => void;
-  t: ProfessionalStepTranslations;
-  language: string;
-}) {
-  const [phase, setPhase] = useState<"hard" | "soft">("hard");
-  const [questions, setQuestions] = useState<MCQQuestion[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState<
-    { type: "hard" | "soft"; score: number; total: number }[]
-  >([]);
-  const [currentScore, setCurrentScore] = useState(0);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(150); // 2:30 in seconds
-  const fetchStarted = useRef<string | null>(null);
-
-  const handleAnswer = useCallback((idx: number) => {
-    if (selectedIdx !== null) return;
-    setSelectedIdx(idx);
-    if (idx !== -1 && questions[currentIndex] && idx === questions[currentIndex].correctIndex) {
-      setCurrentScore((prev) => prev + 1);
-    }
-  }, [selectedIdx, questions, currentIndex]);
-
-  // Timer effect
-  useEffect(() => {
-    if (loading || currentIndex >= questions.length || selectedIdx !== null) return;
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          // Mark as wrong and move to next
-          handleAnswer(-1); 
-          return 0;
+    // 1b. Auto-trigger generation if stuck at step 13 without data
+    useEffect(() => {
+        if (!isHydrating.current && step === 13 && !finalMasterReport && !isGeneratingMasterReport && !masterReportError) {
+            handleGenerateMasterReport();
         }
-        return prev - 1;
-      });
-    }, 1000);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, finalMasterReport, isGeneratingMasterReport, masterReportError]);
 
-    return () => clearInterval(interval);
-  }, [currentIndex, phase, loading, selectedIdx, questions.length, handleAnswer]);
+    // 2. Sync Save to Mongo on State Change
+    useEffect(() => {
+        if (isHydrating.current) return;
+        
+        const saveProgress = async () => {
+            try {
+                const userProfileRaw = localStorage.getItem('userProfile');
+                if (!userProfileRaw) return;
+                const email = JSON.parse(userProfileRaw).email;
+                
+                const progressData = {
+                    step,
+                    narrative,
+                    result,
+                    messages,
+                    isInterviewComplete,
+                    finalReport,
+                    assessmentQuestions,
+                    currentQuestionIndex,
+                    userAnswers,
+                    assessmentAnalysis,
+                    mindsetMessages,
+                    mindsetAnalysis,
+                    grandFinalReport,
+                    strategicPaths,
+                    simulationMessages,
+                    isSimulationComplete,
+                    selectedPath,
+                    pathInterviewMessages,
+                    isPathSimulationComplete,
+                    implementationBlueprint,
+                    finalMasterReport
+                };
 
-  // Reset timer on index change
-  useEffect(() => {
-    setTimeLeft(150);
-  }, [currentIndex, phase]);
+                await fetch('/api/professional/sync-progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, progressData })
+                });
+            } catch (err) {
+                console.error("Save professional progress error", err);
+            }
+        };
 
-  useEffect(() => {
-    // Prevent duplicate fetches for the same phase
-    if (fetchStarted.current === phase) return;
-    if (!auditResult) return;
+        const timer = setTimeout(saveProgress, 1000); // Debounce saves
+        return () => clearTimeout(timer);
+    }, [
+        step, narrative, result, messages, isInterviewComplete, 
+        finalReport, assessmentQuestions, currentQuestionIndex, 
+        userAnswers, assessmentAnalysis, mindsetMessages, 
+        mindsetAnalysis, grandFinalReport, strategicPaths,
+        simulationMessages, isSimulationComplete,
+        selectedPath, pathInterviewMessages, isPathSimulationComplete,
+        implementationBlueprint, finalMasterReport
+    ]);
 
-    const fetchQuestions = async () => {
-      fetchStarted.current = phase;
-      setLoading(true);
-      setErrorMessage(null);
-      try {
-        const response = await fetch("/api/professional-mcq/generate", {
-          method: "POST",
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            interviewTranscript,
-            type: phase,
-            count: 10, // Reduced from 20/15 for faster and more reliable generation
-            language,
-          }),
-        });
-        const data = await response.json();
-        if (data.success) {
-          setQuestions(data.questions);
-          setCurrentIndex(0);
-          setSelectedIdx(null);
-          setCurrentScore(0);
-          setErrorMessage(null);
+    const translations = {
+        ar: {
+            welcomeTitle: "التشخيص الاستراتيجي المتقدم",
+            welcomeSub: "نحن هنا لنقوم بتحليل مسارك المهني بعمق وفهم أهدافك القيادية القادمة.",
+            startBtn: "ابدأ جلسة التعريف",
+            narrativeTitle: "بناء الرواية المهنية (Career Narrative)",
+            narrativeSub: "يرجى أن تتحدث بإيجاز عن العناصر التالية في فقرة متماسكة (بين 10 و 20 سطراً):",
+            points: [
+                "دراستك الأكاديمية: الشهادات، الاختصاص، والمؤسسة.",
+                "التربصات المهنية (Stages): المهام والمهارات المكتسبة.",
+                "التجارب المهنية: الوظائف السابقة، المدة، والمسؤوليات.",
+                "وظيفتك الحالية: منصبك، أهم المهام، والقيمة المضافة."
+            ],
+            placeholder: "اكتب قصتك المهنية هنا...",
+            submitBtn: "إرسال للتحليل الذكي",
+            validationNote: "يرجى كتابة وصف وافٍ (10 أسطر على الأقل) لضمان دقة التحليل.",
+            lineCount: "عدد الأسطر المقدر",
+            reportTitle: "نتائج تدقيق ملفك الشخصي",
+            resultsTitle: "نتائج تدقيق ملفك الشخصي",
+            originalMirror: "المرآة الواقعية",
+            strategicAudit: "نقد استراتيجي",
+            detectedSkills: "المهارات المرصودة",
+            skillGaps: "الفجوات الحرجة",
+            timeline: "التسلسل الزمني للمسار",
+            actions: "خطة العمل الفورية",
+            restart: "إعادة التشخيص",
+            narrativeAnalysis: "تحليل النص والاتساق",
+            tone: "نبرة النص",
+            clarity: "وضوح الأفكار",
+            consistency: "الاتساق المنطقي",
+            identity: "الهوية المهنية",
+            basicInfo: "البيانات الأساسية",
+            careerDimensions: "الأبعاد المهنية",
+            field: "المجال المهني",
+            specialization: "الاختصاص",
+            education: "الشهادة الأكاديمية",
+            experience: "سنوات الخبرة",
+            sector: "القطاع",
+            progression: "تطور المسار",
+            responsibility: "مستوى المسؤولية",
+            marketPosition: "التموضع في السوق",
+            learningSignals: "إشارات التعلم",
+            leadership: "القيادة",
+            phase2Title: "المرحلة الثانية: المقابلة الاستراتيجية",
+            phase2Sub: "تعميق التشخيص عبر نقاش مباشر مع الخبير الذكي",
+            chatPlaceholder: "اكتب رسالتك للخبير هنا...",
+            startPhase2: "الانتقال للمرحلة الثانية: المقابلة الاستراتيجية",
+            aiThinking: "الخبير يفكر في ردك...",
+            viewFinalReport: "عرض التقرير الاستراتيجي الشامل",
+            interviewFinished: "تم استكمال المقابلة بنجاح",
+            finalAuditTitle: "التقرير الاستراتيجي النهائي",
+            executiveVerdict: "خلاصة التدقيق",
+            level1Label: "المستوى ١: المصداقية والاتساق",
+            level2Label: "المستوى ٢: تحليل الكفاءة والفجوات",
+            level3Label: "المستوى ٣: التموضع والطموح",
+            verifiedHardSkills: "المهارات التقنية التي تم التحقق منها",
+            observedSoftSkills: "المهارات السلوكية المرصودة",
+            marketValueLabel: "القيمة في السوق",
+            finalScoreLabel: "مؤشر النضج المهني الكلي",
+            startAssessment: "الانتقال للمرحلة الثالثة: اختبار الكفاءة",
+            assessmentTitle: "اختبار الكفاءة والذكاء المهني",
+            technicalCat: "الجدارة التقنية",
+            softCat: "الذكاء السلوكي",
+            scenarioCat: "محاكاة اتخاذ القرار",
+            nextQuestion: "السؤال التالي",
+            seeResult: "عرض تحليل الاختبار",
+            explanationLabel: "التعليل",
+            evidenceLabel: "الدلائل",
+            adviceLabel: "النصيحة الاستراتيجية",
+            correctAnswer: "إجابة صحيحة",
+            wrongAnswer: "إجابة غير دقيقة",
+            assessmentAnalysisTitle: "التحليل النهائي لاختبار الكفاءة",
+            technicalProficiencyLabel: "الكفاءة التقنية",
+            behavioralInsightLabel: "البصيرة السلوكية",
+            decisionMakingLabel: "جودة اتخاذ القرار",
+            finalVerdictLabel: "الاستنتاج النهائي الشامل",
+            startMindsetInterview: "المرحلة التالية: تحليل العقلية (Mindset)",
+            mindsetTitle: "تحليل العقلية والبروفايل النفسي المهني",
+            mindsetSub: "فهم الدوافع العميقة، الرضا الوظيفي، والرؤية المستقبلية",
+            mindsetTypeLabel: "نوع العقلية المهنية",
+            satisfactionLabel: "مستوى الرضا الوظيفي",
+            futureDirectionLabel: "الاتجاه الاستراتيجي القادم",
+            psychologicalProfileTitle: "الملف النفسي المهني",
+            ambitionScoreLabel: "مؤشر الطموح",
+            loyaltyPatternLabel: "نمط الولاء المهني",
+            motivationLabel: "المحرك الأساسي للعمل",
+            stressHandlingLabel: "القدرة على تحمل الضغط",
+            viewMindsetAnalysis: "عرض البروفايل النفسي النهائي",
+            mindsetAnalysisTitle: "النتائج النهائية لتحليل العقلية والبروفايل",
+            mindsetChatPlaceholder: "اكتب رسالتك للخبير النفسي هنا...",
+            generateGrandReportBtn: "توليد التقرير الاستراتيجي الشامل النهائي",
+            grandReportTitle: "مخطط النضج المهني الشامل",
+            grandReportSub: "الخلاصة الكبرى لرحلة التشخيص والتحليل",
+            maturityScoreLabel: "مؤشر النضج الكلي",
+            psychologyLabel: "الهوية النفسية المهنية",
+            skillRadarTitle: "رادار الكفاءة المتكامل",
+            gapAnalysisTitle: "تحليل الفجوة السوقية",
+            decisionVerdictTitle: "جودة اتخاذ القرار الاستراتيجي",
+            marketValuesTitle: "التموضع والقيمة في السوق",
+            roadmapTitle: "خارطة الطريق التنفيذية",
+            shortTermLabel: "المدى القريب (٦-١٢ شهر)",
+            mediumTermLabel: "الهدف الانتقالي (١-٢ سنة)",
+            longTermLabel: "الرؤية القصوى (٥ سنوات)",
+            expertSynthesisTitle: "خلاصة الخبير الاستراتيجي (Grand Synthesis)",
+            back: "الرجوع للمرحلة السابقة",
+            simulationTitle: "المواجهة الاستراتيجية والحسم",
+            simulationSub: "حوار توجيهي لتحديد مسارك القادم بناءً على طموحك ونتائج تشخيصك",
+            simulationPlaceholder: "تحدث مع الخبير حول خطوتك القادمة (ترقية، تغيير، استقرار)...",
+            simulationNote: "ملاحظة: هذا التحليل يعكس جاهزيتك بناءً على بروفايلك الحالي فقط، ولا يشمل الظروف الخارجية لشركتك أو السوق.",
+            finalizePaths: "توليد الخيارات الاستراتيجية النهائية"
+        },
+        en: {
+            welcomeTitle: "Advanced Strategic Diagnosis",
+            welcomeSub: "Deep analysis of your career path and leadership goals.",
+            startBtn: "Start Session",
+            narrativeTitle: "Career Narrative Building",
+            narrativeSub: "Speak briefly about these elements in 10-20 lines:",
+            points: [
+                "Academic studies: degrees, specialization, and institution.",
+                "Professional internships (Stages): tasks and acquired skills.",
+                "Professional experiences: previous jobs, duration, and responsibilities.",
+                "Your current job: position, main tasks, and added value."
+            ],
+            placeholder: "Write your career story...",
+            submitBtn: "Submit Analysis",
+            validationNote: "Min 10 lines required.",
+            lineCount: "Estimated lines",
+            reportTitle: "Profile Audit Results",
+            resultsTitle: "Profile Audit Results",
+            originalMirror: "Reality Mirror",
+            strategicAudit: "Strategic Criticism",
+            detectedSkills: "Detected Skills",
+            skillGaps: "Critical Gaps",
+            timeline: "Career Timeline",
+            actions: "Immediate Actions",
+            restart: "Restart Diagnosis",
+            narrativeAnalysis: "Narrative & Consistency Analysis",
+            tone: "Text Tone",
+            clarity: "Idea Clarity",
+            consistency: "Logical Consistency",
+            identity: "Professional Identity",
+            basicInfo: "Basic Data",
+            careerDimensions: "Career Dimensions",
+            field: "Field",
+            specialization: "Specialization",
+            education: "Education",
+            experience: "Years of Experience",
+            sector: "Sector",
+            progression: "Career Progression",
+            responsibility: "Responsibility Level",
+            marketPosition: "Market Position",
+            learningSignals: "Learning Signals",
+            leadership: "Leadership",
+            phase2Title: "Phase 2: Strategic Interview",
+            phase2Sub: "Deepen the diagnosis via direct chat with the AI expert",
+            chatPlaceholder: "Write your message to the expert...",
+            startPhase2: "Move to Stage 2: Strategic Interview",
+            aiThinking: "Expert is thinking...",
+            viewFinalReport: "View Full Strategic Report",
+            interviewFinished: "Interview successfully completed",
+            finalAuditTitle: "Final Strategic Audit Report",
+            executiveVerdict: "Audit Executive Verdict",
+            level1Label: "Level 1: Credibility & Consistency",
+            level2Label: "Level 2: Skill & Gap Analysis",
+            level3Label: "Level 3: Strategic Fit & Ambition",
+            verifiedHardSkills: "Verified Hard Skills",
+            observedSoftSkills: "Observed Soft Skills",
+            marketValueLabel: "Market Value Standing",
+            finalScoreLabel: "Overall Professional Maturity Score",
+            startAssessment: "Move to Stage 3: Competency Assessment",
+            assessmentTitle: "Professional Competency & Intelligence Test",
+            technicalCat: "Technical Proficiency",
+            softCat: "Behavioral Intelligence",
+            scenarioCat: "Decision-Making Simulation",
+            nextQuestion: "Next Question",
+            seeResult: "View Assessment Analysis",
+            explanationLabel: "Reasoning",
+            evidenceLabel: "Evidence",
+            adviceLabel: "Strategic Advice",
+            correctAnswer: "Correct Answer",
+            wrongAnswer: "Inaccurate Answer",
+            assessmentAnalysisTitle: "Final Assessment Analysis",
+            technicalProficiencyLabel: "Technical Proficiency",
+            behavioralInsightLabel: "Behavioral Insight",
+            decisionMakingLabel: "Decision Quality",
+            finalVerdictLabel: "Final Integrated Conclusion",
+            startMindsetInterview: "Next Step: Mindset Analysis",
+            mindsetTitle: "Mindset & Professional Psychological Profile",
+            mindsetSub: "Understanding deep motivations, job satisfaction, and future vision",
+            mindsetTypeLabel: "Professional Mindset Type",
+            satisfactionLabel: "Job Satisfaction Level",
+            futureDirectionLabel: "Upcoming Strategic Direction",
+            psychologicalProfileTitle: "Professional Psychological Profile",
+            ambitionScoreLabel: "Ambition Index",
+            loyaltyPatternLabel: "Career Loyalty Pattern",
+            motivationLabel: "Core Work Driver",
+            stressHandlingLabel: "Pressure Handling Capability",
+            viewMindsetAnalysis: "View Final Psychological Profile",
+            mindsetAnalysisTitle: "Final Mindset & Profile Analysis Results",
+            mindsetChatPlaceholder: "Type your message to the psychologist here...",
+            generateGrandReportBtn: "Generate Final Strategic Career Report",
+            grandReportTitle: "Master Career Maturity Blueprint",
+            grandReportSub: "The ultimate synthesis of your diagnosis journey",
+            maturityScoreLabel: "Overall Maturity Score",
+            psychologyLabel: "Professional Psychological Identity",
+            skillRadarTitle: "Integrated Competency Radar",
+            gapAnalysisTitle: "Market Gap Analysis",
+            decisionVerdictTitle: "Strategic Decision Quality",
+            marketValuesTitle: "Positioning & Market Value",
+            roadmapTitle: "Actionable Roadmap",
+            shortTermLabel: "Short Term (6-12 Months)",
+            mediumTermLabel: "Transition Goal (1-2 Years)",
+            longTermLabel: "Ultimate Vision (5 Years)",
+            expertSynthesisTitle: "Expert Strategic Synthesis (Grand Synthesis)",
+            back: "Back to Previous Step",
+            simulationTitle: "Strategic Mirror & Decision",
+            simulationSub: "Dialogue to define your next move based on ambition and diagnosis results",
+            simulationPlaceholder: "Talk to the expert about your next move (Promotion, Change, Stability)...",
+            simulationNote: "Note: This analysis reflects your readiness based purely on your profile, not external market conditions.",
+            finalizePaths: "Generate Final Strategic Options"
+        },
+        fr: {
+            welcomeTitle: "Diagnostic Stratégique Avancé",
+            welcomeSub: "Analyse approfondie de votre parcours et objectifs.",
+            startBtn: "Démarrer",
+            narrativeTitle: "Récit Professionnel",
+            narrativeSub: "Présentez-vous en 10-20 lignes (études, stages, jobs, poste actuel).",
+            points: [
+                "Vos études académiques : diplômes, spécialisation et institution.",
+                "Vos stages professionnels : tâches et compétences acquises.",
+                "Vos expériences professionnelles : emplois précédents, durée et responsabilités.",
+                "Votre poste actuel : votre fonction, les tâches principales et la valeur ajoutée."
+            ],
+            placeholder: "Écrivez votre récit...",
+            submitBtn: "Lancer l'Analyse",
+            validationNote: "Min 10 lignes.",
+            lineCount: "Lignes",
+            reportTitle: "Résultats de l'Audit",
+            resultsTitle: "Résultats de l'Audit",
+            originalMirror: "Miroir Réalité",
+            strategicAudit: "Critique Stratégique",
+            detectedSkills: "Compétences Détectées",
+            skillGaps: "Gaps Critiques",
+            timeline: "Chronologie",
+            actions: "Actions Immédiates",
+            restart: "Recommencer",
+            narrativeAnalysis: "Analyse du Récit & Cohérence",
+            tone: "Ton du texte",
+            clarity: "Clarté des idées",
+            consistency: "Cohérence logique",
+            identity: "Identité Professionnelle",
+            basicInfo: "Données de Base",
+            careerDimensions: "Dimensions Professionnelles",
+            field: "Domaine",
+            specialization: "Spécialité",
+            education: "Diplôme",
+            experience: "Expérience",
+            sector: "Secteur",
+            progression: "Progression",
+            responsibility: "Niveau",
+            marketPosition: "Position Marché",
+            learningSignals: "Signaux d'Apprentissage",
+            leadership: "Leadership",
+            phase2Title: "Phase 2: Interview Stratégique",
+            phase2Sub: "Approfondir le diagnostic via un échange direct avec l'expert IA",
+            chatPlaceholder: "Écrivez votre message à l'expert...",
+            startPhase2: "Passer à l'Étape 2 : Interview Stratégique",
+            aiThinking: "L'expert réfléchit...",
+            viewFinalReport: "Voir le Rapport Stratégique Complet",
+            interviewFinished: "Entretien terminé avec succès",
+            finalAuditTitle: "Rapport d'Audit Stratégique Final",
+            executiveVerdict: "Verdict Exécutif de l'Audit",
+            level1Label: "Niveau 1 : Crédibilité & Cohérence",
+            level2Label: "Niveau 2 : Analyse des Compétences & Gaps",
+            level3Label: "Niveau 3 : Alignement & Ambition",
+            verifiedHardSkills: "Compétences Techniques Validées",
+            observedSoftSkills: "Compétences Comportementales Observées",
+            marketValueLabel: "Valeur sur le Marché",
+            finalScoreLabel: "Score Global de Maturité Professionnelle",
+            startAssessment: "Passer à l'Étape 3 : Évaluation des Compétences",
+            assessmentTitle: "Test de Compétence Professional & Intelligence",
+            technicalCat: "Maîtrise Technique",
+            softCat: "Intelligence Comportementale",
+            scenarioCat: "Simulation de Prise de Décision",
+            nextQuestion: "Question Suivante",
+            seeResult: "Voir l'Analyse de l'Évaluation",
+            explanationLabel: "Explication",
+            evidenceLabel: "Preuves",
+            adviceLabel: "Conseil Stratégique",
+            correctAnswer: "Bonne Réponse",
+            wrongAnswer: "Réponse Imprécise",
+            assessmentAnalysisTitle: "Analyse Finale de l'Évaluation",
+            technicalProficiencyLabel: "Compétence Technique",
+            behavioralInsightLabel: "Aperçu Comportemental",
+            decisionMakingLabel: "Qualité de Décision",
+            finalVerdictLabel: "Conclusion Finale Intégrée",
+            startMindsetInterview: "Étape Suivante : Analyse du Mindset",
+            mindsetTitle: "Mindset & Profil Psychologique Professionnel",
+            mindsetSub: "Comprendre les motivations profondes, satisfaction et vision future",
+            mindsetTypeLabel: "Type de Mindset Professionnel",
+            satisfactionLabel: "Niveau de Satisfaction",
+            futureDirectionLabel: "Direction Stratégique Future",
+            psychologicalProfileTitle: "Profil Psychologique Professionnel",
+            ambitionScoreLabel: "Indice d'Ambition",
+            loyaltyPatternLabel: "Modèle de Loyauté",
+            motivationLabel: "Moteur de Travail Principal",
+            stressHandlingLabel: "Capacité à gérer la pression",
+            viewMindsetAnalysis: "Voir le Profil Psychologique Final",
+            mindsetAnalysisTitle: "Analyse Finale du Mindset & Profil",
+            mindsetChatPlaceholder: "Écrivez votre message à l'expert ici...",
+            generateGrandReportBtn: "Générer le Rapport Stratégique Final",
+            grandReportTitle: "Schéma de Maturité Professionnelle",
+            grandReportSub: "La synthèse ultime de votre parcours de diagnostic",
+            maturityScoreLabel: "Score de Maturité Global",
+            psychologyLabel: "Identité Psychologique Professionnelle",
+            skillRadarTitle: "Radar de Compétences Intégré",
+            gapAnalysisTitle: "Analyse des Écarts du Marché",
+            decisionVerdictTitle: "Qualité de Décision Stratégique",
+            marketValuesTitle: "Positionnement & Valeur Marchande",
+            roadmapTitle: "Feuille de Route Actionnable",
+            shortTermLabel: "Court Terme (6-12 Mois)",
+            mediumTermLabel: "Objectif Transition (1-2 Ans)",
+            longTermLabel: "Vision Ultime (5 Ans)",
+            expertSynthesisTitle: "Synthèse Stratégique de l'Expert",
+            back: "Retour à l'étape précédente",
+            simulationTitle: "Miroir Stratégique & Décision",
+            simulationSub: "Dialogue pour définir votre prochaine étape selon vos ambitions et résultats",
+            simulationPlaceholder: "Parlez à l'expert de votre prochaine étape (Promotion, Changement, Stabilité)...",
+            simulationNote: "Note : Cette analyse reflète votre préparation selon votre profil uniquement, sans inclure le marché externe.",
+            finalizePaths: "Générer les options stratégiques finales"
+        }
+    };
+
+    const t = translations[language as 'ar' | 'en' | 'fr'] || translations['en'];
+
+    const countLines = (text: string) => {
+        if (!text) return 0;
+        return text.split("\n").filter(line => line.trim().length > 0).length;
+    };
+
+    const handleSubmit = async () => {
+        if (countLines(narrative) < 3) return; // Simple safety, the logic uses 10 lines
+        
+        setIsSubmitting(true);
+        try {
+            const response = await fetch('/api/professional/audit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ narrative, language })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setResult(data.analysis);
+                setStep(2);
+            }
+        } catch (error) {
+            console.error("Audit submission failed:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleStartInterview = async () => {
+        setStep(3);
+        setIsInterviewing(true);
+        try {
+            const response = await fetch('/api/professional/interview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    narrative, 
+                    auditResult: result, 
+                    language 
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setMessages([{ role: 'assistant', content: data.message }]);
+            }
+        } catch (error) {
+            console.error("Failed to start interview:", error);
+        } finally {
+            setIsInterviewing(false);
+        }
+    };
+
+    const handleSendMessage = async () => {
+        if (!chatInput.trim() || isInterviewing) return;
+
+        const newMessages = [...messages, { role: 'user', content: chatInput } as const];
+        setMessages(newMessages);
+        setChatInput("");
+        setIsInterviewing(true);
+
+        try {
+            const response = await fetch('/api/professional/interview/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    messages: newMessages,
+                    language 
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                let content = data.message;
+                if (content.includes('[COMPLETED]')) {
+                    content = content.replace('[COMPLETED]', '').trim();
+                    setIsInterviewComplete(true);
+                }
+                setMessages([...newMessages, { role: 'assistant', content }]);
+            }
+        } finally {
+            setIsInterviewing(false);
+        }
+    };
+
+    const handleGenerateFinalReport = async () => {
+        setIsGeneratingReport(true);
+        try {
+            const response = await fetch('/api/professional/final-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    narrative, 
+                    auditResult: result, 
+                    messages, 
+                    language 
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setFinalReport(data.report);
+                setStep(4);
+            }
+        } catch (error) {
+            console.error("Failed to generate final report:", error);
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    };
+
+    const handleStartAssessment = useCallback(async () => {
+        setIsGeneratingAssessment(true);
+        setAssessmentError(null);
+        setStep(5);
+        try {
+            const response = await fetch('/api/professional/assessment/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    auditResult: result,
+                    narrative,
+                    messages,
+                    language
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setAssessmentQuestions(data.questions);
+                setCurrentQuestionIndex(0);
+                setUserAnswers([]);
+            } else {
+                setAssessmentError(data.error || "Failed to generate assessment questions.");
+            }
+        } catch (error) {
+            console.error("Failed to generate assessment:", error);
+            setAssessmentError("A network or system error occurred during assessment generation.");
+        } finally {
+            setIsGeneratingAssessment(false);
+        }
+    }, [result, narrative, messages, language]);
+
+    // 3. Auto-Trigger Assessment if stuck at Step 5 with 0 questions
+    useEffect(() => {
+        if (!isHydrating.current && step === 5 && assessmentQuestions.length === 0 && !isGeneratingAssessment && !assessmentError) {
+            handleStartAssessment();
+        }
+    }, [step, assessmentQuestions.length, isGeneratingAssessment, assessmentError, handleStartAssessment]);
+
+    const handleSelectOption = (index: number) => {
+        if (showCorrection) return;
+        setSelectedOption(index);
+        setShowCorrection(true);
+        
+        const newAnswers = [...userAnswers];
+        newAnswers[currentQuestionIndex] = index;
+        setUserAnswers(newAnswers);
+    };
+
+    const handleNextQuestion = () => {
+        if (currentQuestionIndex < assessmentQuestions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setShowCorrection(false);
+            setSelectedOption(null);
         } else {
-          setErrorMessage(
-            data.error || "Failed to generate assessment questions.",
-          );
+            handleAnalyzeAssessment();
         }
-      } catch (err: unknown) {
-        console.error("Failed to fetch questions:", err);
-        setErrorMessage(
-          "Connection to AI Engine lost. Please check your network and retry.",
-        );
-      } finally {
-        setLoading(false);
-      }
     };
-    fetchQuestions();
-  }, [phase, auditResult, formData, interviewTranscript, language, setCurrentScore]);
 
-
-  const skipQuestion = () => {
-    nextQuestion();
-  };
-
-  const finishEarly = () => {
-    // Phase Complete with current score
-    const newResults = [
-      ...results,
-      { type: phase, score: currentScore, total: questions.length },
-    ];
-    setResults(newResults);
-
-    if (phase === "hard") {
-      setPhase("soft");
-      setQuestions([]);
-      setCurrentIndex(0);
-      setSelectedIdx(null);
-      setCurrentScore(0);
-    } else {
-      const hard = newResults.find((r) => r.type === "hard");
-      const soft = newResults.find((r) => r.type === "soft");
-      onComplete(null, {
-        hardScore: hard?.score || 0,
-        softScore: soft?.score || 0,
-        totalQuestions: (hard?.total || 0) + (soft?.total || 0),
-      });
-    }
-  };
-
-  const nextQuestion = async () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      setSelectedIdx(null);
-    } else {
-      // Phase Complete
-      const newResults = [
-        ...results,
-        { type: phase, score: currentScore, total: questions.length },
-      ];
-      setResults(newResults);
-
-      if (phase === "hard") {
-        setPhase("soft");
-        // Reset state for new phase
-        setQuestions([]);
-        setCurrentIndex(0);
-        setSelectedIdx(null);
-        setCurrentScore(0);
-      } else {
-        // All Phases Complete
-        const hard = newResults.find((r) => r.type === "hard");
-        const soft = newResults.find((r) => r.type === "soft");
-        onComplete(null, {
-          hardScore: hard?.score || 0,
-          softScore: soft?.score || 0,
-          totalQuestions: (hard?.total || 0) + (soft?.total || 0),
-        });
-      }
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-16 relative overflow-hidden">
-        {/* Background Decorative Blurs */}
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-600/5 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-teal-600/5 rounded-full blur-[100px] animate-pulse" />
-
-        <div className="relative">
-          <div className="w-64 h-64 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center relative shadow-2xl bg-white/50 dark:bg-black/50 backdrop-blur-3xl">
-             <div 
-                className="absolute inset-0 opacity-10"
-                style={{
-                  backgroundImage: "radial-gradient(circle, #10b981 1px, transparent 1px)",
-                  backgroundSize: "20px 20px",
-                }}
-              />
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 border-[0.5px] border-emerald-500/30 border-dashed rounded-full"
-              />
-              <div className="relative z-10 flex flex-col items-center">
-                 <TrendingUp className="text-emerald-500 w-24 h-24 animate-pulse" strokeWidth={1} />
-              </div>
-          </div>
-        </div>
-        
-        <div className="text-center space-y-8 max-w-lg z-10">
-          <div className="space-y-3">
-             <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-emerald-600 to-teal-400 bg-clip-text text-transparent drop-shadow-sm">
-                {t.mcqLoading}
-             </h2>
-             <div className="w-full bg-slate-100 dark:bg-slate-900 h-1 rounded-full overflow-hidden shadow-inner">
-                <motion.div
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 4, ease: "linear", repeat: Infinity }}
-                  className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                />
-             </div>
-          </div>
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-xl">
-             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.5em]">
-                {phase === "hard" ? t.hardSkillsTitle : t.softSkillsTitle}
-             </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!questions || questions.length === 0 || !questions[currentIndex]) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 text-center p-6">
-        <div className="w-24 h-24 rounded-4xl bg-rose-500/10 flex items-center justify-center text-rose-600">
-          <AlertTriangle size={48} />
-        </div>
-        <div className="space-y-4 max-w-md">
-          <h2 className="text-3xl font-black uppercase tracking-tight">
-            {language === "ar" ? "خطأ في التقييم" : "Assessment Error"}
-          </h2>
-          <p className="text-slate-500 font-medium leading-relaxed">
-            {errorMessage || (language === "ar" 
-              ? "تعذر تحميل الأسئلة. يرجى المحاولة مرة أخرى."
-              : "Unable to load questions. Please check your connection and retry.")}
-          </p>
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-12 py-5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-2xl"
-        >
-          {language === "ar" ? "إعادة المحاولة" : "Retry Diagnostic"}
-        </button>
-      </div>
-    );
-  }
-
-  const currentQ = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="max-w-4xl mx-auto space-y-10 py-12 relative z-10"
-    >
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-        <div className="space-y-2">
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
-            {t.mcqTitle}
-          </h2>
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {phase === "hard" ? t.hardSkillsTitle : t.softSkillsTitle}
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
-          {/* Question Timer */}
-          <div className={cn(
-            "bg-white dark:bg-slate-950 px-6 py-4 rounded-2xl border flex items-center gap-4 shadow-sm backdrop-blur-md transition-all duration-500",
-            timeLeft < 30 ? "border-rose-500 animate-pulse text-rose-500 shadow-rose-500/10" : "border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300"
-          )}>
-            <Clock size={16} className={cn(timeLeft < 30 ? "text-rose-500" : "text-emerald-500")} />
-            <div className="flex flex-col">
-              <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Remaining Time</span>
-              <span className="text-lg font-black tabular-nums tracking-tighter">
-                {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
-              </span>
-            </div>
-            
-            {/* Minimal timer progress ring/bar */}
-            <div className="w-12 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden ml-2 hidden sm:block">
-              <motion.div 
-                animate={{ width: `${(timeLeft / 150) * 100}%` }}
-                className={cn("h-full", timeLeft < 30 ? "bg-rose-500" : "bg-emerald-500")}
-              />
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="text-left md:text-right flex-1 bg-white/50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 backdrop-blur-md shadow-sm">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center md:justify-end gap-2">
-              <span>Evaluation Progress</span>
-              <span className="text-emerald-500">
-                {currentIndex + 1} / {questions.length}
-              </span>
-            </div>
-            <div className="w-full md:w-56 h-2.5 bg-slate-200/50 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                className="h-full bg-linear-to-r from-emerald-600 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-slate-950 p-10 md:p-14 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-[0_20px_60px_rgba(16,185,129,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] space-y-12 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-          <Target size={200} strokeWidth={1} />
-        </div>
-        <h3 className="text-2xl md:text-3xl font-black leading-snug text-slate-800 dark:text-white relative z-10 border-l-4 border-emerald-500 pl-6">
-          {currentQ.question}
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentQ.options.map((opt, i) => {
-            const isSelected = selectedIdx === i;
-            const isCorrect = i === currentQ.correctIndex;
-            const status =
-              selectedIdx !== null
-                ? isCorrect
-                  ? "correct"
-                  : isSelected
-                    ? "incorrect"
-                    : "idle"
-                : "idle";
-
-            return (
-              <button
-                key={i}
-                disabled={selectedIdx !== null}
-                onClick={() => handleAnswer(i)}
-                className={cn(
-                  "p-6 md:p-8 rounded-4xl border-2 text-left transition-all duration-300 flex items-center gap-6 group relative overflow-hidden",
-                  status === "idle" &&
-                    "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 hover:border-emerald-500/50 hover:bg-emerald-500/5 hover:shadow-[0_10px_30px_rgba(16,185,129,0.1)] hover:-translate-y-1",
-                  status === "correct" &&
-                    "border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)] scale-[1.02] z-10",
-                  status === "incorrect" &&
-                    "border-rose-500 bg-rose-500/10 text-rose-600 opacity-70",
-                )}
-              >
-                {status === "correct" && (
-                  <div className="absolute right-0 top-0 h-full w-2 bg-emerald-500" />
-                )}
-                <div
-                  className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0 font-black text-sm border-2 transition-all duration-300",
-                    status === "idle" &&
-                      "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-400 group-hover:border-emerald-500 group-hover:bg-emerald-500 group-hover:text-white shadow-sm",
-                    status === "correct" && "bg-emerald-500 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]",
-                    status === "incorrect" && "bg-rose-500 border-rose-500 text-white",
-                  )}
-                >
-                  {String.fromCharCode(65 + i)}
-                </div>
-                <span className="font-bold text-sm md:text-base leading-relaxed relative z-10">{opt}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <AnimatePresence>
-          {selectedIdx !== null && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "p-8 rounded-3xl space-y-4",
-                selectedIdx === currentQ.correctIndex
-                  ? "bg-emerald-50 dark:bg-emerald-950/20"
-                  : "bg-rose-50 dark:bg-rose-950/20",
-              )}
-            >
-              <div className="flex items-center gap-3">
-                {selectedIdx === currentQ.correctIndex ? (
-                  <CheckCircle2 className="text-emerald-500" />
-                ) : (
-                  <X className="text-rose-500" />
-                )}
-                <span className="font-black uppercase tracking-widest text-sm">
-                  {selectedIdx === currentQ.correctIndex
-                    ? t.mcqCorrect
-                    : t.mcqIncorrect}
-                </span>
-              </div>
-              <p className="text-sm font-medium leading-relaxed italic text-slate-600 dark:text-slate-400">
-                {currentQ.explanation}
-              </p>
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={nextQuestion}
-                  className="px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all"
-                >
-                  {currentIndex === questions.length - 1
-                    ? t.mcqCta
-                    : (language === "ar" ? "تأكيد والتالي" : "Confirm & Next")}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {selectedIdx === null && (
-          <div className="flex justify-center gap-4 pt-6">
-            <button
-              onClick={skipQuestion}
-              className="px-8 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-black uppercase tracking-widest text-[10px] transition-all border border-slate-200 dark:border-slate-700 hover:border-slate-300"
-            >
-              {language === "ar" ? "تخطي السؤال" : "Skip Question"}
-            </button>
-            {currentIndex >= 5 && (
-              <button
-                onClick={finishEarly}
-                className="px-8 py-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black uppercase tracking-widest text-[10px] transition-all border border-amber-500/20 hover:bg-amber-500/20 active:scale-95"
-              >
-                {language === "ar" ? "إنهاء المرحلة الآن" : "Finish Phase Now"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── SIMULATION ASSESSMENT ────────────────────────────────────────────────────
-interface SimulationScenario {
-  id: number;
-  type: "hard" | "soft" | "critical";
-  category: string;
-  title: string;
-  context: string;
-  situation: string;
-  choices: { label: string; description: string }[];
-  correctChoice: number;
-  consequence: string;
-  promotionRelevance?: string;
-}
-
-interface SimulationResult {
-  scenarios: SimulationScenario[];
-  hardSkillScore: number;
-  softSkillScore: number;
-  criticalScore: number;
-  promotionReadiness: string;
-  promotionBlockers: string[];
-  weaknesses: string[];
-  overallVerdict: string;
-}
-
-function SimulationAssessment({
-  auditResult,
-  formData,
-  interviewTranscript,
-  portfolioTranscript,
-  mcqResults,
-  language,
-  onComplete,
-}: {
-  auditResult: AuditResult;
-  formData: FormData;
-  interviewTranscript: InterviewMessage[];
-  portfolioTranscript: InterviewMessage[];
-  mcqResults: { hardScore: number; softScore: number; totalQuestions: number } | null;
-  language: string;
-  onComplete: (results: SimulationResult) => void;
-}) {
-  const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
-  const [showConsequence, setShowConsequence] = useState(false);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [completed, setCompleted] = useState(false);
-  const [results, setResults] = useState<SimulationResult | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [globalTimeLeft, setGlobalTimeLeft] = useState(900); // 15 minutes in seconds
-
-  const forceFinishDueToTimeout = useCallback(async () => {
-    if (completed || analyzing) return;
-    setAnalyzing(true);
-    
-    // Fill remaining scenarios with -1 (incorrect)
-    const finalAnswers = [...answers];
-    while (finalAnswers.length < scenarios.length) {
-      finalAnswers.push(-1);
-    }
-
-    try {
-      const res = await fetch("/api/simulation/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenarios,
-          answers: finalAnswers,
-          auditResult,
-          formData,
-          language,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setResults(data.results);
-        setCompleted(true);
-      }
-    } catch (err) {
-      console.error("Timeout analysis failed:", err);
-      setCompleted(true);
-    } finally {
-      setAnalyzing(false);
-    }
-  }, [completed, analyzing, answers, scenarios, auditResult, formData, language]);
-
-  // Global Simulation Timer
-  useEffect(() => {
-    if (loading || completed || analyzing || scenarios.length === 0) return;
-
-    const interval = setInterval(() => {
-      setGlobalTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          forceFinishDueToTimeout();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [loading, completed, analyzing, scenarios.length, forceFinishDueToTimeout]);
-
-  const typeLabels: Record<string, { en: string; fr: string; ar: string; color: string; bg: string }> = {
-    hard: { en: "Technical Scenario", fr: "Scénario Technique", ar: "حدث تقني", color: "text-blue-600", bg: "bg-blue-500/10 border-blue-500/20" },
-    soft: { en: "Behavioral Scenario", fr: "Scénario Comportemental", ar: "حدث سلوكي", color: "text-violet-600", bg: "bg-violet-500/10 border-violet-500/20" },
-    critical: { en: "Critical Promotion Test", fr: "Test de Promotion Critique", ar: "اختبار الترقي المصيري", color: "text-amber-600", bg: "bg-amber-500/10 border-amber-500/20" },
-  };
-
-  useEffect(() => {
-    const generate = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/simulation/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            auditResult,
-            formData,
-            interviewTranscript,
-            portfolioTranscript,
-            mcqResults,
-            language,
-          }),
-        });
-        const data = await res.json();
-        if (data.success && data.scenarios) {
-          setScenarios(data.scenarios);
-        }
-      } catch (err) {
-        console.error("Failed to generate simulations:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    generate();
-  }, [auditResult, formData, interviewTranscript, portfolioTranscript, mcqResults, language]);
-
-  const handleChoiceSelect = (idx: number) => {
-    if (selectedChoice !== null) return;
-    setSelectedChoice(idx);
-    setShowConsequence(true);
-  };
-
-  const handleNext = async () => {
-    const newAnswers = [...answers, selectedChoice ?? -1];
-    setAnswers(newAnswers);
-    setSelectedChoice(null);
-    setShowConsequence(false);
-
-    if (currentIndex < scenarios.length - 1) {
-      setCurrentIndex((p) => p + 1);
-    } else {
-      // All scenarios done — analyze results
-      setAnalyzing(true);
-      try {
-        const res = await fetch("/api/simulation/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scenarios,
-            answers: newAnswers,
-            auditResult,
-            formData,
-            language,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          setResults(data.results);
-          setCompleted(true);
-        }
-      } catch (err) {
-        console.error("Failed to analyze simulation:", err);
-        setCompleted(true);
-      } finally {
-        setAnalyzing(false);
-      }
-    }
-  };
-
-  // ── LOADING ──
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-10 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[120px]" />
-          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-blue-600/5 rounded-full blur-[80px]" />
-        </div>
-        <div className="relative">
-          <div className="w-40 h-40 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_4s_linear_infinite] border-t-violet-600 shadow-[0_0_40px_rgba(139,92,246,0.2)]" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
-              <Sparkles className="text-violet-500 w-10 h-10 animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div className="text-center space-y-4 relative z-10">
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-linear-to-r from-violet-600 to-blue-400 bg-clip-text text-transparent">
-            {language === "ar" ? "جاري إعداد الأحداث المهنية..." : language === "fr" ? "Génération des scénarios..." : "Generating Professional Scenarios..."}
-          </h2>
-          <p className="text-slate-500 font-medium text-sm max-w-md mx-auto">
-            {language === "ar"
-              ? "يتم تحضير 10 أحداث مخصصة بناءً على مسارك المهني"
-              : language === "fr"
-              ? "Préparation de 10 scénarios personnalisés basés sur votre parcours"
-              : "Preparing 10 tailored scenarios based on your professional history"}
-          </p>
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div className="w-2 h-2 rounded-full bg-violet-500 animate-ping" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
-              {language === "ar" ? "4 تقنية · 4 سلوكية · 2 مصيرية" : language === "fr" ? "4 Techniques · 4 Comportementaux · 2 Critiques" : "4 Technical · 4 Behavioral · 2 Critical"}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── ANALYZING ──
-  if (analyzing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-10">
-        <div className="w-40 h-40 rounded-full border-4 border-slate-100 dark:border-slate-800 animate-[spin_3s_linear_infinite] border-t-amber-500 shadow-[0_0_40px_rgba(245,158,11,0.2)]" />
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-black uppercase tracking-tight text-amber-600">
-            {language === "ar" ? "جاري تحليل أدائك..." : language === "fr" ? "Analyse de votre performance..." : "Analyzing Your Performance..."}
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
-  // ── COMPLETED ──
-  if (completed && results) {
-    const hardPct = Math.round((results.hardSkillScore / 4) * 100);
-    const softPct = Math.round((results.softSkillScore / 6) * 100);
-    const critPct = Math.round((results.criticalScore / 2) * 100);
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-10 py-10">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[10px] font-black uppercase tracking-[0.3em]">
-            <Sparkles size={14} /> {language === "ar" ? "تحليل المحاكاة المهنية" : language === "fr" ? "Analyse de Simulation" : "Simulation Analysis"}
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
-            {language === "ar" ? "نتائج الأحداث" : language === "fr" ? "Résultats des Scénarios" : "Scenario Results"}
-          </h2>
-        </div>
-
-        {/* Scores */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { label: language === "ar" ? "المهارات التقنية" : language === "fr" ? "Compétences Techniques" : "Technical Skills", pct: hardPct, color: "blue" },
-            { label: language === "ar" ? "المهارات الشخصية" : language === "fr" ? "Soft Skills" : "Soft Skills", pct: softPct, color: "violet" },
-            { label: language === "ar" ? "استعداد الترقي" : language === "fr" ? "Aptitude Promotion" : "Promotion Readiness", pct: critPct, color: "amber" },
-          ].map((s, i) => (
-            <div key={i} className={`p-6 rounded-3xl border bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 text-center space-y-4`}>
-              <div className={`text-5xl font-black ${s.color === "blue" ? "text-blue-600" : s.color === "violet" ? "text-violet-600" : "text-amber-600"}`}>{s.pct}%</div>
-              <div className="text-xs font-black uppercase tracking-widest text-slate-500">{s.label}</div>
-              <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${s.pct}%` }}
-                  transition={{ duration: 1, delay: i * 0.2 }}
-                  className={`h-full rounded-full ${s.color === "blue" ? "bg-blue-600" : s.color === "violet" ? "bg-violet-600" : "bg-amber-500"}`}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Promotion Readiness */}
-        <div className="p-8 rounded-3xl bg-amber-500/5 border border-amber-500/20 space-y-4">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="text-amber-600" size={24} />
-            <h3 className="font-black uppercase tracking-wide text-amber-700 dark:text-amber-500">
-              {language === "ar" ? "استعداد الترقي" : language === "fr" ? "Aptitude à la Promotion" : "Promotion Readiness"}
-            </h3>
-          </div>
-          <p className="text-slate-700 dark:text-slate-200 font-medium text-lg leading-relaxed">{results.promotionReadiness}</p>
-          {results.promotionBlockers.length > 0 && (
-            <div className="space-y-2 mt-4">
-              <p className="text-xs font-black uppercase tracking-widest text-rose-600">
-                {language === "ar" ? "عوائق الترقي" : language === "fr" ? "Obstacles à la Promotion" : "Promotion Blockers"}
-              </p>
-              {results.promotionBlockers.map((b, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm text-rose-600 dark:text-rose-400">
-                  <span className="text-rose-500 mt-0.5">✗</span> {b}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Weaknesses */}
-        {results.weaknesses.length > 0 && (
-          <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
-            <h3 className="font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">
-              {language === "ar" ? "نقاط الضعف المكتشفة" : language === "fr" ? "Points Faibles Identifiés" : "Identified Weaknesses"}
-            </h3>
-            {results.weaknesses.map((w, i) => (
-              <div key={i} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 font-medium">
-                <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] shrink-0 mt-0.5">{i + 1}</span> {w}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Overall verdict */}
-        <div className="p-8 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 space-y-3">
-          <h3 className="font-black uppercase tracking-widest text-sm opacity-70">
-            {language === "ar" ? "الحكم النهائي" : language === "fr" ? "Verdict Final" : "Overall Verdict"}
-          </h3>
-          <p className="text-xl font-black leading-relaxed">{results.overallVerdict}</p>
-        </div>
-
-        <div className="flex justify-center pt-4">
-          <button
-            onClick={() => results && onComplete(results)}
-            className="group relative inline-flex items-center gap-4 px-14 py-6 rounded-4xl bg-linear-to-r from-violet-600 to-indigo-600 text-white font-black text-lg uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(139,92,246,0.3)] hover:shadow-[0_0_60px_rgba(139,92,246,0.5)] border border-white/10"
-          >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
-            <span className="relative z-10">
-              {language === "ar" ? "عرض التقرير النهائي" : language === "fr" ? "Voir le Rapport Final" : "View Final Report"}
-            </span>
-            <ArrowRight size={22} className="relative z-10 group-hover:translate-x-2 transition-transform" />
-          </button>
-        </div>
-      </motion.div>
-    );
-  }
-
-  // ── SCENARIO VIEW ──
-  if (scenarios.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-        <AlertTriangle size={48} className="text-rose-500" />
-        <p className="text-slate-500 font-medium">
-          {language === "ar" ? "تعذر تحميل الأحداث. يرجى المحاولة مرة أخرى." : "Failed to load scenarios. Please retry."}
-        </p>
-      </div>
-    );
-  }
-
-  const scenario = scenarios[currentIndex];
-  const totalScenarios = scenarios.length;
-  const progress = ((currentIndex) / totalScenarios) * 100;
-  const typeInfo = typeLabels[scenario.type];
-
-  return (
-    <motion.div
-      key={currentIndex}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="max-w-3xl mx-auto space-y-8 py-8"
-    >
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-black uppercase tracking-[0.2em] ${typeInfo.bg} ${typeInfo.color}`}>
-              <Sparkles size={12} />
-              {typeInfo[language as "en" | "fr" | "ar"] || typeInfo.en}
-            </div>
-            
-            {/* Global Timer UI */}
-            <div className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all duration-500",
-              globalTimeLeft < 60 ? "bg-rose-500/10 border-rose-500 text-rose-500 animate-pulse" : "bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500"
-            )}>
-              <Clock size={12} />
-              <span>{Math.floor(globalTimeLeft / 60)}:{String(globalTimeLeft % 60).padStart(2, '0')}</span>
-            </div>
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            {currentIndex + 1} / {totalScenarios}
-          </span>
-        </div>
-        <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-          <motion.div
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-            className="h-full bg-linear-to-r from-violet-600 to-indigo-600 rounded-full"
-          />
-        </div>
-        <div className="text-[9px] font-black uppercase tracking-widest text-center text-slate-400">
-          {scenarios.filter(s => s.type === "hard").length} {language === "ar" ? "تقنية" : "Technical"} ·{" "}
-          {scenarios.filter(s => s.type === "soft").length} {language === "ar" ? "سلوكية" : "Behavioral"} ·{" "}
-          {scenarios.filter(s => s.type === "critical").length} {language === "ar" ? "مصيرية" : "Critical"}
-        </div>
-      </div>
-
-      {/* Scenario Card */}
-      <div className="bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-[0_20px_60px_rgba(139,92,246,0.06)] overflow-hidden">
-        {/* Category + Title */}
-        <div className={`p-8 border-b border-slate-100 dark:border-slate-800 bg-linear-to-br ${scenario.type === "hard" ? "from-blue-50 to-white dark:from-blue-950/20 dark:to-slate-950" : scenario.type === "soft" ? "from-violet-50 to-white dark:from-violet-950/20 dark:to-slate-950" : "from-amber-50 to-white dark:from-amber-950/20 dark:to-slate-950"}`}>
-          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">{scenario.category}</div>
-          <h2 className="text-2xl md:text-3xl font-black leading-tight text-slate-900 dark:text-white">{scenario.title}</h2>
-        </div>
-
-        <div className="p-8 space-y-8">
-          {/* Context */}
-          <div className="space-y-2">
-            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-              {language === "ar" ? "السياق" : language === "fr" ? "Contexte" : "Context"}
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 text-sm font-medium leading-relaxed">{scenario.context}</p>
-          </div>
-
-          {/* Situation */}
-          <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3">
-              {language === "ar" ? "الحدث" : language === "fr" ? "Situation" : "Situation"}
-            </div>
-            <p className="text-slate-800 dark:text-slate-100 font-semibold text-base leading-relaxed">{scenario.situation}</p>
-          </div>
-
-          {/* Choices */}
-          <div className="space-y-3">
-            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-              {language === "ar" ? "ما هو قرارك؟" : language === "fr" ? "Quelle est votre décision?" : "What is your decision?"}
-            </div>
-            {scenario.choices.map((choice, i) => {
-              const isSelected = selectedChoice === i;
-              const isCorrect = i === scenario.correctChoice;
-              const showResult = showConsequence;
-              return (
-                <motion.button
-                  key={i}
-                  whileHover={selectedChoice === null ? { scale: 1.01 } : {}}
-                  whileTap={selectedChoice === null ? { scale: 0.99 } : {}}
-                  onClick={() => handleChoiceSelect(i)}
-                  disabled={selectedChoice !== null}
-                  className={cn(
-                    "w-full p-5 rounded-2xl border-2 text-left transition-all duration-300",
-                    selectedChoice === null
-                      ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-violet-400 hover:bg-violet-50/30 dark:hover:bg-violet-950/20 cursor-pointer"
-                      : showResult && isCorrect
-                      ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 cursor-default"
-                      : showResult && isSelected && !isCorrect
-                      ? "bg-rose-50 dark:bg-rose-950/20 border-rose-500 cursor-default"
-                      : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-50 cursor-default",
-                  )}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={cn(
-                      "w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 border",
-                      selectedChoice === null
-                        ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
-                        : showResult && isCorrect
-                        ? "bg-emerald-500 border-emerald-500 text-white"
-                        : showResult && isSelected && !isCorrect
-                        ? "bg-rose-500 border-rose-500 text-white"
-                        : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400",
-                    )}>
-                      {String.fromCharCode(65 + i)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{choice.label}</p>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 leading-relaxed">{choice.description}</p>
-                    </div>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Consequence */}
-          <AnimatePresence>
-            {showConsequence && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className={cn(
-                  "p-6 rounded-2xl border space-y-2",
-                  selectedChoice === scenario.correctChoice
-                    ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-500/20"
-                    : "bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-500/20",
-                )}
-              >
-                <div className={cn(
-                  "text-[10px] font-black uppercase tracking-[0.3em]",
-                  selectedChoice === scenario.correctChoice ? "text-emerald-600" : "text-rose-600",
-                )}>
-                  {selectedChoice === scenario.correctChoice
-                    ? (language === "ar" ? "✓ قرار صحيح" : language === "fr" ? "✓ Bonne décision" : "✓ Correct Decision")
-                    : (language === "ar" ? "✗ قرار خاطئ" : language === "fr" ? "✗ Mauvaise décision" : "✗ Wrong Decision")}
-                </div>
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{scenario.consequence}</p>
-                {scenario.promotionRelevance && scenario.type === "critical" && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400 font-medium italic border-t border-amber-200 dark:border-amber-500/20 pt-2 mt-2">
-                    🔑 {scenario.promotionRelevance}
-                  </p>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Next button */}
-          {showConsequence && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-end"
-            >
-              <button
-                onClick={handleNext}
-                className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-linear-to-br from-violet-600 to-indigo-600 text-white font-black uppercase tracking-widest text-sm shadow-[0_10px_30px_rgba(139,92,246,0.3)] hover:shadow-[0_10px_40px_rgba(139,92,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                {currentIndex < scenarios.length - 1
-                  ? (language === "ar" ? "الحدث التالي" : language === "fr" ? "Scénario Suivant" : "Next Scenario")
-                  : (language === "ar" ? "عرض النتائج" : language === "fr" ? "Voir les Résultats" : "View Results")}
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── FINAL REPORT ─────────────────────────────────────────────────────────────
-function FinalReport({
-  report,
-  t,
-  isPro,
-  onProRequired,
-  language,
-}: {
-  report: FinalReportResult;
-  t: ProfessionalStepTranslations;
-  isPro: boolean;
-  onProRequired: () => void;
-  language: string;
-}) {
-  const [documentId] = useState(() => {
-    const randomPart = Math.random().toString(36).substring(2, 9).toUpperCase();
-    return `MATC-${randomPart}`;
-  });
-
-  const [reviewStatus, setReviewStatus] = useState<'idle' | 'loading' | 'submitted' | 'already_submitted'>(() => {
-    if (typeof window === 'undefined') return 'idle';
-    const saved = localStorage.getItem('prof_reviewStatus');
-    if (saved === 'pending_review' || saved === 'reviewed') {
-      return 'already_submitted';
-    }
-    return 'idle';
-  });
-
-  const submitForReview = async () => {
-    setReviewStatus('loading');
-    try {
-      const userProfileRaw = localStorage.getItem('userProfile');
-      const email = userProfileRaw ? JSON.parse(userProfileRaw).email : null;
-      const auditResult = JSON.parse(localStorage.getItem('prof_auditResult') || '{}');
-      const formData = JSON.parse(localStorage.getItem('prof_formData') || '{}');
-      const interviewMessages = JSON.parse(localStorage.getItem('prof_interviewMessages') || '[]');
-
-      const res = await fetch('/api/professional/submit-for-review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          finalReport: report,
-          auditResult,
-          formData,
-          interviewTranscript: interviewMessages,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        localStorage.setItem('prof_reviewStatus', 'pending_review');
-        setReviewStatus('submitted');
-      } else {
-        setReviewStatus('idle');
-        alert(data.error || 'Failed to submit for review');
-      }
-    } catch {
-      setReviewStatus('idle');
-      alert('Network error. Please try again.');
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-5xl mx-auto space-y-12 pb-20"
-    >
-      {/* === OFFICIAL DOCUMENT WRAPPER === */}
-      <div className="relative bg-white dark:bg-slate-950 p-12 md:p-20 rounded-2xl shadow-[0_40px_100px_rgba(0,0,0,0.1)] border-12 border-double border-slate-100 dark:border-slate-900 overflow-hidden print:p-8 print:border-8 print:shadow-none min-h-[1400px]">
-        
-        {/* Document Security Background / Watermark */}
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] select-none rotate-[-35deg] scale-150">
-          <div className="text-8xl font-black uppercase tracking-[2em]">M.A TRAINING & CONSULTING</div>
-        </div>
-
-        {/* Corporate Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-slate-900/10 dark:border-white/10 pb-10 mb-12 relative z-10">
-          <div className="space-y-2">
-            <div className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white flex items-center gap-2">
-              <Shield className="text-indigo-600" size={32} strokeWidth={2.5} />
-              M.A TRAINING & CONSULTING
-            </div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              {language === 'ar' ? 'قسم تدقيق المواهب الاستراتيجية' : language === 'fr' ? 'Département d\'Audit des Talents Stratégiques' : 'Department of Strategic Talent Auditing'} · ID: {documentId}
-            </div>
-          </div>
-          <div className="text-right mt-6 md:mt-0">
-            <div className="text-xs font-black uppercase tracking-widest text-slate-500">
-              {language === 'ar' ? 'تاريخ التصديق' : language === 'fr' ? 'Date de Certification' : 'Date of Certification'}
-            </div>
-            <div className="text-lg font-bold text-slate-900 dark:text-white">
-              {new Date().toLocaleDateString(language === 'ar' ? 'ar-TN' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center space-y-6 mb-16 relative z-10">
-          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">
-            <CheckCircle2 size={16} strokeWidth={2.5} /> 
-            {language === 'ar' ? 'تصديق تنفيذي رسمي' : language === 'fr' ? 'Certification Exécutive Officielle' : 'Official Executive Certification'}
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none text-slate-900 dark:text-white">
-            {report.title || t.title}
-          </h1>
-          <p className="text-lg md:text-xl text-slate-500 font-bold max-w-2xl mx-auto tracking-wide border-t border-b border-slate-100 dark:border-slate-800 py-4 mt-6">
-            {report.subtitle || t.subtitle}
-          </p>
-        </div>
-
-        {/* === ACADEMIC LEGITIMACY SECTION === */}
-        {report.academicBackground && (
-          <div className="mb-16 p-10 rounded-[2.5rem] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform">
-              <Languages size={120} />
-            </div>
-            <div className="flex flex-col md:flex-row gap-10 items-start relative z-10">
-              <div className="space-y-4 flex-1">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 font-black uppercase text-[10px] tracking-widest">
-                  Academic Credentials Check
-                </div>
-                <h3 className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                  {report.academicBackground.degree}
-                </h3>
-                <div className="flex items-center gap-4 text-slate-500 font-bold">
-                  <div className="flex items-center gap-2"><Globe size={16}/> {report.academicBackground.country}</div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                  <div>{report.academicBackground.institution}</div>
-                </div>
-              </div>
-              <div className="flex-1 p-6 rounded-3xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm relative">
-                <div className="absolute top-4 right-4">
-                  <CheckCircle2 className="text-emerald-500" size={20} />
-                </div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Legitimacy Audit</h4>
-                <p className="text-sm font-bold leading-relaxed text-slate-700 dark:text-slate-300 italic">
-                  &quot;{report.academicBackground.legitimacyAudit}&quot;
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-      {/* === TOP MODULE: STRATEGIC RADAR & AUTHORITY MATRIX === */}
-      {(report.strategicRadar || report.authorityVsPotential) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {report.strategicRadar && (
-            <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.2)] space-y-8 relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[60px] pointer-events-none" />
-              <div className="flex items-center gap-4 text-indigo-600 relative z-10">
-                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-                  <BarChart3 size={28} strokeWidth={2} />
-                </div>
-                <h3 className="text-2xl font-black uppercase tracking-tight">
-                  Strategic Competency Radar
-                </h3>
-              </div>
-              <div className="space-y-6 relative z-10">
-                {Object.entries(report.strategicRadar).map(([key, val]) => (
-                  <div key={key} className="space-y-2">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest px-1">
-                      <span className="text-slate-500">{key}</span>
-                      <span className="text-indigo-600 bg-indigo-500/10 px-2 py-0.5 rounded-md">{val}/10</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-900/80 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-800/50">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(val / 10) * 100}%` }}
-                        transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
-                        className="h-full bg-linear-to-r from-indigo-500 to-violet-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] relative overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-white/20 w-1/2 skew-x-12 translate-x-[-150%] animate-[shimmer_2s_infinite]" />
-                      </motion.div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {report.authorityVsPotential && (
-            <div className="p-10 rounded-[3rem] bg-linear-to-br from-indigo-950 via-slate-900 to-black text-white shadow-2xl space-y-10 relative overflow-hidden flex flex-col justify-center border border-white/10 group">
-              <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-emerald-500/10 rounded-full blur-[80px]" />
-              <div className="absolute top-0 right-0 p-12 opacity-5 scale-110 group-hover:scale-125 transition-transform duration-1000">
-                <Target size={240} strokeWidth={1} />
-              </div>
-              <div className="space-y-4 relative z-10">
-                <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black uppercase text-[10px] tracking-[0.4em]">
-                  Strategic Archetype
-                </div>
-                <h3 className="text-4xl lg:text-5xl font-black uppercase leading-tight tracking-tighter drop-shadow-md">
-                  {report.authorityVsPotential.quadrant}
-                </h3>
-              </div>
-              <div className="grid grid-cols-2 gap-8 relative z-10 pt-4">
-                <div className="space-y-3 p-6 rounded-4xl bg-white/5 border border-white/5 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Current Authority
-                  </div>
-                  <div className="text-4xl font-black text-white">
-                    {report.authorityVsPotential.currentAuthority}%
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${report.authorityVsPotential.currentAuthority}%`,
-                      }}
-                      className="h-full bg-linear-to-r from-emerald-600 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3 p-6 rounded-4xl bg-white/5 border border-white/5 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                    Future Potential
-                  </div>
-                  <div className="text-4xl font-black text-white">
-                    {report.authorityVsPotential.futurePotential}%
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${report.authorityVsPotential.futurePotential}%`,
-                      }}
-                      className="h-full bg-linear-to-r from-indigo-600 to-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-bold leading-relaxed italic text-slate-300 relative z-10 tracking-wide mt-auto">
-                Diagnostic: High-precision mapping of current market weight vs. native cognitive adaptability.
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* === Leadership Fingerprint + Self-Awareness + Velocity === */}
-      {(report.leadershipFingerprint ||
-        report.selfAwarenessScore ||
-        report.trajectoryVelocity) && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {report.leadershipFingerprint && (
-            <div className="p-8 rounded-[2.5rem] bg-linear-to-br from-violet-600 to-indigo-700 text-white shadow-2xl space-y-4">
-              <div className="flex items-center gap-3">
-                <User size={20} className="text-violet-200" />
-                <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-violet-200">
-                  Leadership Fingerprint
-                </h4>
-              </div>
-              <div className="text-3xl font-black uppercase">
-                {report.leadershipFingerprint.archetype}
-              </div>
-              <p className="text-xs text-violet-100 font-medium leading-relaxed">
-                {report.leadershipFingerprint.description}
-              </p>
-              <div className="border-t border-violet-400/30 pt-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-violet-300">
-                  Risk Context
-                </span>
-                <p className="text-xs text-violet-100 mt-1">
-                  {report.leadershipFingerprint.riskContext}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {report.selfAwarenessScore && (
-            <div className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-4">
-              <div className="flex items-center gap-3 text-amber-500">
-                <Sparkles size={20} />
-                <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
-                  Self-Awareness
-                </h4>
-              </div>
-              <div className="flex items-end gap-2">
-                <span className="text-5xl font-black text-amber-500">
-                  {report.selfAwarenessScore.score}
-                </span>
-                <span className="text-slate-400 font-black text-lg mb-1">
-                  /100
-                </span>
-              </div>
-              <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${report.selfAwarenessScore.score}%` }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
-                  className={cn(
-                    "h-full",
-                    report.selfAwarenessScore.score >= 70
-                      ? "bg-emerald-500"
-                      : report.selfAwarenessScore.score >= 40
-                        ? "bg-amber-500"
-                        : "bg-rose-500",
-                  )}
-                />
-              </div>
-              <div className="text-xs font-black uppercase tracking-widest text-amber-600">
-                {report.selfAwarenessScore.verdict}
-              </div>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                {report.selfAwarenessScore.evidence}
-              </p>
-            </div>
-          )}
-
-          {report.trajectoryVelocity && (
-            <div className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-4">
-              <div className="flex items-center gap-3 text-emerald-500">
-                <TrendingUp size={20} />
-                <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
-                  Career Velocity
-                </h4>
-              </div>
-              <div
-                className={cn(
-                  "text-3xl font-black uppercase",
-                  report.trajectoryVelocity.assessment === "Accelerating"
-                    ? "text-emerald-500"
-                    : report.trajectoryVelocity.assessment === "On-track"
-                      ? "text-blue-500"
-                      : report.trajectoryVelocity.assessment === "Plateauing"
-                        ? "text-amber-500"
-                        : "text-rose-500",
-                )}
-              >
-                {report.trajectoryVelocity.assessment}
-              </div>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                {report.trajectoryVelocity.rationale}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Summary & Insights */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="p-10 rounded-4xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 relative z-10">
-            <div className="flex items-center gap-4 text-blue-600">
-              <MessageSquare size={24} strokeWidth={2.5} />
-              <h3 className="text-xl font-black uppercase tracking-widest border-b-2 border-blue-600/20 pb-2 flex-1">
-                {t.executiveSummary || "EXECUTIVE STRATEGIC SUMMARY"}
-              </h3>
-            </div>
-            <p className="text-lg text-slate-700 dark:text-slate-300 font-medium leading-[1.6] italic font-serif">
-              &quot;{report.profileSummary}&quot;
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-            <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
-                {t.maturity}
-              </h4>
-              <div className="text-2xl font-black text-blue-600 uppercase tracking-tight">
-                {report.maturityLevel}
-              </div>
-            </div>
-            <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
-                {t.marketValue}
-              </h4>
-              <div className="text-2xl font-black text-emerald-600 uppercase tracking-tight">
-                {report.marketValue}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-12 rounded-[3.5rem] bg-linear-to-br from-indigo-600 to-violet-700 text-white shadow-[0_20px_60px_rgba(79,70,229,0.3)] relative overflow-hidden border border-white/10 group">
-            <Shield className="absolute -top-10 -right-10 w-80 h-80 text-white/5 rotate-12 group-hover:scale-110 group-hover:rotate-24 transition-all duration-700" />
-            <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-white/10 rounded-full blur-[60px]" />
-            <div className="relative z-10">
-              <h3 className="text-3xl font-black uppercase tracking-tight mb-8 drop-shadow-md">
-                {t.finalVerdict}
-              </h3>
-              <p className="text-2xl font-black leading-relaxed text-blue-50 tracking-wide font-serif italic selection:bg-white/30">
-                &quot;{report.finalVerdict}&quot;
-              </p>
-            </div>
-          </div>
-
-          {report.marketPerceptionVerdict && (
-            <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
-              <div className="flex items-center gap-3 text-indigo-500">
-                <Globe size={24} />
-                <h3 className="text-xl font-black uppercase tracking-tight">
-                  {language === "ar" ? "قرار تصور السوق" : language === "fr" ? "Verdict de la Perception du Marché" : "Market Perception Verdict"}
-                </h3>
-              </div>
-              <p className="text-sm font-bold text-slate-600 dark:text-slate-400 leading-relaxed italic">
-                &quot;{report.marketPerceptionVerdict}&quot;
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Roles & SWOT */}
-        <div className="space-y-8">
-          <div className="p-10 rounded-[2.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
-            <h3 className="font-black uppercase text-[10px] tracking-[0.3em] text-blue-600">
-              {t.recommendedRoles}
-            </h3>
-            <div className="space-y-3">
-              {report.recommendedRoles.map((role, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-bold text-sm"
-                >
-                  <Target className="text-blue-500" size={18} /> {role}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-8 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800 space-y-6">
-            <h3 className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-500 flex items-center gap-2">
-              <Sparkles size={14} className="text-orange-500" />{" "}
-              {t.deepInsights}
-            </h3>
-            <div className="space-y-4">
-              {report.deepInsights.map((insight, i) => (
-                <p
-                  key={i}
-                  className="text-xs font-bold leading-relaxed dark:text-slate-400"
-                >
-                  <span className="text-orange-500 mr-2">/</span> {insight}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          {report.expertInterviewNotes && (
-            <div className="p-10 rounded-[2.5rem] bg-slate-900 text-slate-400 border border-slate-800 space-y-6 shadow-2xl">
-              <h3 className="font-black uppercase text-[10px] tracking-[0.3em] text-amber-500 flex items-center gap-2">
-                <Mic size={16} /> {language === "ar" ? "تغذية ملاحظات الخبراء" : language === "fr" ? "Flux d'Observations des Experts" : "Expert Observations Feed"}
-              </h3>
-              <div className="space-y-4">
-                {report.expertInterviewNotes.map((note, i) => (
-                  <div
-                    key={i}
-                    className="text-[10px] font-medium leading-relaxed border-l border-amber-500/30 pl-4 py-1 italic"
-                  >
-                    {note}
-                  </div>
-                ))}
-              </div>
-              <div className="pt-4 border-t border-slate-800 text-[8px] font-black uppercase tracking-widest text-slate-600">
-                {language === "ar" ? "إشارات سلوكية خام مستخلصة من النصوص الاستراتيجية." : language === "fr" ? "Signaux comportementaux bruts capturés à partir des transcriptions." : "Raw behavioral signals captured from strategic transcripts."}
-              </div>
-            </div>
-          )}
-
-          {report.linkedInStrategy && (
-            <div className="p-10 rounded-[2.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
-              <h3 className="font-black uppercase text-[10px] tracking-[0.3em] text-blue-600 flex items-center gap-2">
-                <Globe size={16} /> {language === "ar" ? "استراتيجية سلطة LinkedIn" : language === "fr" ? "Stratégie d'Autorité LinkedIn" : "LinkedIn Authority Strategy"}
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">
-                    {language === "ar" ? "العنوان الموصى به" : language === "fr" ? "Titre Recommandé" : "Recommended Headline"}
-                  </span>
-                  <p className="text-xs font-bold text-slate-800 dark:text-white mt-1">
-                    {report.linkedInStrategy.headline}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">
-                    {language === "ar" ? "تركيز الملف الشخصي" : language === "fr" ? "Focus du Profil" : "Profile Focus"}
-                  </span>
-                  <p className="text-[10px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {report.linkedInStrategy.summaryFocus}
-                  </p>
-                </div>
-                <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
-                  <span className="text-[8px] font-black uppercase text-blue-500 tracking-widest">
-                    Networking Advice
-                  </span>
-                  <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 mt-1">
-                    {report.linkedInStrategy.networkingAdvice}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* === NEW: 90-Day Action Plan === */}
-      {report.actionPlan90Days && report.actionPlan90Days.length > 0 && (
-        <div className="space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-4xl font-black uppercase tracking-tight">
-              90-Day Execution Plan
-            </h2>
-            <p className="text-slate-500 font-medium">
-              Your personalized roadmap for the next 3 months
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {report.actionPlan90Days.map((step, i) => (
-              <div
-                key={i}
-                className="bg-white dark:bg-slate-950 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl space-y-4 relative"
-              >
-                <div className="absolute -top-4 left-8 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">
-                  {step.week}
-                </div>
-                <div className="pt-4 text-sm font-black uppercase tracking-tight text-slate-800 dark:text-white">
-                  {step.action}
-                </div>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  {step.rationale}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Gap Analysis & Match Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="p-10 rounded-[3rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-8">
-          <h3 className="text-2xl font-black uppercase tracking-tight">
-            {t.gapTitle}
-          </h3>
-          <p className="text-sm font-medium leading-relaxed dark:text-slate-400">
-            {report.gapAnalysis?.currentJobVsReality}
-          </p>
-          <div className="space-y-4">
-            {report.gapAnalysis?.criticalCompetencyGaps.map((gap, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-4 rounded-2xl bg-rose-500/5 text-rose-600 border border-rose-500/10 font-bold text-xs uppercase tracking-tight"
-              >
-                <X size={14} /> {gap}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="p-10 rounded-[2.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
-            <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
-              {t.matchScore}
-            </h4>
-            <div className="space-y-8">
-              <div className="space-y-2">
-                <div className="flex justify-between font-black text-xs uppercase">
-                  <span>Hard Skills Match</span>
-                  <span>{report.gapAnalysis?.hardSkillsMatch}%</span>
-                </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{
-                      width: `${report.gapAnalysis?.hardSkillsMatch}%`,
-                    }}
-                    className="h-full bg-blue-600"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between font-black text-xs uppercase">
-                  <span>Soft Skills Match</span>
-                  <span>{report.gapAnalysis?.softSkillsMatch}%</span>
-                </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{
-                      width: `${report.gapAnalysis?.softSkillsMatch}%`,
-                    }}
-                    className="h-full bg-emerald-500"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {report.gapAnalysis?.comparisonPositionReality && (
-            <div className="p-8 rounded-4xl bg-indigo-500/5 border border-indigo-500/10 space-y-4">
-              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-indigo-500">
-                Position vs. Professional Reality
-              </h4>
-              <p className="text-xs font-bold leading-relaxed text-slate-600 dark:text-slate-400">
-                {report.gapAnalysis.comparisonPositionReality}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Career Strategy & Advancement */}
-      {report.careerAdvancement && report.careerAdvancement.length > 0 && (
-        <div className="space-y-10 pt-10">
-          <div className="text-center space-y-2">
-            <h2 className="text-4xl font-black uppercase tracking-tight">
-              Strategic Evolution Roadmap (3-6-9 Years)
-            </h2>
-            <p className="text-slate-500 font-medium">
-              A dynamic trajectory designed by AI to secure your long-term authority
-            </p>
-          </div>
-
-          {report.roadmap369 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-4 border-slate-900/10 dark:border-white/10 rounded-[3rem] overflow-hidden shadow-2xl bg-white dark:bg-slate-950">
-              {/* Left Page of the "Book" */}
-              <div className="p-12 border-r-2 border-slate-900/5 dark:border-white/5 space-y-10">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-lg">3</div>
-                    <div>
-                      <h4 className="font-black uppercase tracking-widest text-blue-600 text-xs">Horizon 1: Consolidation</h4>
-                      <div className="text-xl font-black text-slate-900 dark:text-white uppercase">{report.roadmap369.year3.targetRole}</div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <p className="text-sm font-bold leading-relaxed text-slate-600 dark:text-slate-400">{report.roadmap369.year3.action}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {report.roadmap369.year3.keySkillsToAcquire.map((s, i) => (
-                        <span key={i} className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg">6</div>
-                    <div>
-                      <h4 className="font-black uppercase tracking-widest text-indigo-600 text-xs">Horizon 2: Expansion</h4>
-                      <div className="text-xl font-black text-slate-900 dark:text-white uppercase">{report.roadmap369.year6.targetRole}</div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <p className="text-sm font-bold leading-relaxed text-slate-600 dark:text-slate-400">{report.roadmap369.year6.action}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {report.roadmap369.year6.keySkillsToAcquire.map((s, i) => (
-                        <span key={i} className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Page of the "Book" */}
-              <div className="p-12 flex flex-col justify-between bg-slate-50/50 dark:bg-slate-900/30">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center font-black text-xl shadow-lg">9</div>
-                    <div>
-                      <h4 className="font-black uppercase tracking-widest text-slate-500 text-xs">Horizon 3: Legacy</h4>
-                      <div className="text-xl font-black text-slate-900 dark:text-white uppercase">{report.roadmap369.year9.targetRole}</div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <p className="text-sm font-bold leading-relaxed text-slate-600 dark:text-slate-400">{report.roadmap369.year9.action}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {report.roadmap369.year9.keySkillsToAcquire.map((s, i) => (
-                        <span key={i} className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-12 p-8 rounded-4xl bg-indigo-600 text-white shadow-2xl relative overflow-hidden group">
-                  <Shield className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-4">Strategic Feasibility Verdict</h4>
-                  <p className="text-lg font-black leading-tight italic font-serif">
-                    &quot;{report.roadmap369.feasibilityVerdict}&quot;
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="text-center space-y-2 pt-16">
-            <h2 className="text-4xl font-black uppercase tracking-tight">
-              Alternative Advancement Paths
-            </h2>
-            <p className="text-slate-500 font-medium">
-              Probabilistic lateral and vertical evolution options
-            </p>
-          </div>
-
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {report.careerAdvancement.map((path, i) => (
-              <div
-                key={i}
-                className="bg-white dark:bg-slate-950 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-2xl space-y-8 relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-
-                <div className="space-y-2">
-                  <h4 className="text-2xl font-black uppercase tracking-tight text-slate-800 dark:text-white">
-                    {path.role}
-                  </h4>
-                  <div className="flex gap-4">
-                  <div className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-                    {t.shortTerm || "Short-Term"}: {path.shortTermProbability}%
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 text-[10px] font-black uppercase tracking-widest">
-                    {t.longTerm || "Long-Term"}: {path.longTermProbability}%
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h5 className="font-black uppercase text-[10px] tracking-[0.3em] text-slate-400">
-                  {t.masteryReqs || "Mastery Requirements"}
-                </h5>
-                  <div className="space-y-2">
-                    {path.requirements.map((req, j) => (
-                      <div
-                        key={j}
-                        className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-400"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />{" "}
-                        {req}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SWOT Section - Structured as Document Grid */}
-      <div className="space-y-8 relative z-10 py-12 border-t border-slate-100 dark:border-slate-800">
-        <h2 className="text-2xl font-black uppercase tracking-[0.5em] text-center text-slate-400 mb-12">
-          {t.swot}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <div className="p-8 border-2 border-emerald-500/10 bg-emerald-500/2 rounded-3xl space-y-6">
-              <div className="flex items-center gap-3 text-emerald-600">
-                <TrendingUp size={20} strokeWidth={3} />
-                <h3 className="font-black uppercase tracking-widest text-sm">{t.strengths}</h3>
-              </div>
-              <ul className="space-y-3">
-                {report.swot.strengths.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    <span className="text-emerald-500">◆</span> {s}
-                  </li>
-                ))}
-              </ul>
-           </div>
-           <div className="p-8 border-2 border-rose-500/10 bg-rose-500/2 rounded-3xl space-y-6">
-              <div className="flex items-center gap-3 text-rose-600">
-                <BarChart3 size={20} strokeWidth={3} />
-                <h3 className="font-black uppercase tracking-widest text-sm">{t.weaknesses}</h3>
-              </div>
-              <ul className="space-y-3">
-                {report.swot.weaknesses.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    <span className="text-rose-500">◆</span> {s}
-                  </li>
-                ))}
-              </ul>
-           </div>
-           <div className="p-8 border-2 border-blue-500/10 bg-blue-500/2 rounded-3xl space-y-6">
-              <div className="flex items-center gap-3 text-blue-600">
-                <Target size={20} strokeWidth={3} />
-                <h3 className="font-black uppercase tracking-widest text-sm">{t.opportunities}</h3>
-              </div>
-              <ul className="space-y-3">
-                {report.swot.opportunities.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    <span className="text-blue-500">◆</span> {s}
-                  </li>
-                ))}
-              </ul>
-           </div>
-           <div className="p-8 border-2 border-amber-500/10 bg-amber-500/2 rounded-3xl space-y-6">
-              <div className="flex items-center gap-3 text-amber-600">
-                <Shield size={20} strokeWidth={3} />
-                <h3 className="font-black uppercase tracking-widest text-sm">{t.threats}</h3>
-              </div>
-              <ul className="space-y-3">
-                {report.swot.threats.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    <span className="text-amber-500">◆</span> {s}
-                  </li>
-                ))}
-              </ul>
-           </div>
-        </div>
-      </div>
-
-        {/* === DOCUMENT FOOTER: STAMP & SIGNATURE === */}
-        <div className="mt-24 pt-12 border-t-2 border-slate-900/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-12 relative z-10">
-          
-          {/* Official Stamp (Kashi) */}
-          <div className="relative">
-            <div className="w-40 h-40 rounded-full border-[6px] border-emerald-600/30 flex items-center justify-center rotate-[-15deg] group">
-              <div className="w-32 h-32 rounded-full border-2 border-emerald-600/40 border-dashed animate-[spin_10s_linear_infinite]" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <div className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter leading-none">MATC AI</div>
-                <div className="text-[14px] font-black text-emerald-700 uppercase leading-none my-1">{language === 'ar' ? 'معتمد' : language === 'fr' ? 'CERTIFIÉ' : 'CERTIFIED'}</div>
-                <div className="text-[8px] font-bold text-emerald-500 uppercase leading-none">{language === 'ar' ? 'مدقق استراتيجي' : language === 'fr' ? 'Auditeur Stratégique' : 'Strategic Auditor'}</div>
-              </div>
-              <Shield className="absolute top-0 right-0 text-emerald-600 opacity-20" size={40} />
-            </div>
-          </div>
-
-          <div className="flex-1 text-center md:text-left px-8">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-xs">
-              {language === 'ar' 
-                ? 'تعتبر هذه الوثيقة بمثابة تحقق استراتيجي رسمي للكفاءة المهنية والاستعداد التنفيذي كما تم تقييمها بواسطة محرك الذكاء الاصطناعي لـ M.A Training & Consulting.'
-                : language === 'fr'
-                ? 'Ce document sert de vérification stratégique officielle de la compétence professionnelle et de la préparation exécutive, évaluée par le moteur IA de M.A Training & Consulting.'
-                : 'This document serves as an official strategic verification of professional competence and executive readiness as assessed by the M.A Training & Consulting AI Engine.'
-              }
-            </p>
-          </div>
-
-          {/* Official Signature */}
-          <div className="text-center space-y-3">
-             <div className="font-serif italic text-3xl text-slate-800 dark:text-slate-200 mb-2 relative">
-               <span className="opacity-20 absolute -top-4 left-0 text-6xl">✒</span>
-               Dr. Ahmed .M
-               <div className="w-48 h-0.5 bg-slate-900/20 dark:bg-white/20 mt-1 mx-auto" />
-             </div>
-             <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                {language === 'ar' ? 'المدير العام والاستراتيجي العالمي' : language === 'fr' ? 'Directeur Général & Stratège Global' : 'Managing Director & Global Strategist'}
-              </div>
-          </div>
-
-        </div>
-
-        {/* Security QR Code Placeholder */}
-        <div className="absolute bottom-10 left-10 opacity-20">
-          <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center p-2">
-            <div className="w-full h-full border-2 border-slate-400 border-dotted" />
-          </div>
-          <div className="text-[6px] font-black mt-1 text-slate-400">VERIFY-MD-992</div>
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-12 mt-10 opacity-70">
-            <div className="flex items-center gap-2">
-              <Shield size={16} className="text-indigo-600" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ar' ? 'هوية مؤمنة' : language === 'fr' ? 'Identité Sécurisée' : 'Secure Identity'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <BarChart3 size={16} className="text-emerald-600" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ar' ? 'معتمد من SCI' : language === 'fr' ? 'Validé par SCI' : 'SCI Validated'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-amber-600" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{language === 'ar' ? 'تحليل استراتيجي' : language === 'fr' ? 'Analyse Stratégique' : 'Strategic Insights'}</span>
-            </div>
-          </div>
-      </div>
-
-      <div className="flex justify-center pt-8 gap-4 no-print">
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-3 px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-slate-200 transition-all border border-slate-200 dark:border-slate-700"
-        >
-          <BarChart3 size={18} /> {language === 'ar' ? 'تحميل التقرير (PDF)' : language === 'fr' ? 'Télécharger PDF' : 'Download PDF'}
-        </button>
-
-        {/* Submit for Expert Review Button */}
-        <button
-          onClick={submitForReview}
-          disabled={reviewStatus !== 'idle'}
-          className={cn(
-            "flex items-center gap-3 px-8 py-4 font-black uppercase tracking-widest text-xs rounded-2xl transition-all border shadow-lg",
-            reviewStatus === 'idle' 
-              ? "bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-700 hover:shadow-indigo-500/20" 
-              : reviewStatus === 'loading'
-              ? "bg-indigo-100 text-indigo-400 border-indigo-200 cursor-not-allowed"
-              : "bg-emerald-500 text-white border-emerald-400 cursor-default"
-          )}
-        >
-          {reviewStatus === 'loading' ? (
-            <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-          ) : reviewStatus === 'submitted' || reviewStatus === 'already_submitted' ? (
-            <CheckCircle2 size={18} />
-          ) : (
-            <Shield size={18} />
-          )}
-          {reviewStatus === 'idle' ? t.submitReview : 
-           reviewStatus === 'loading' ? 'Submitting...' : 
-           t.reviewPending}
-        </button>
-
-        {isPro ? (
-          <a
-            href="/professional/executive-dashboard"
-            className="group flex items-center gap-6 px-16 py-7 bg-black dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.4em] text-xl rounded-4xl shadow-2xl hover:scale-105 transition-all outline-none"
-          >
-            {t.cta}{" "}
-            <ArrowRight
-              className="group-hover:translate-x-3 transition-transform"
-              size={28}
-            />
-          </a>
-        ) : (
-          <button
-            onClick={onProRequired}
-            className="group flex items-center gap-6 px-16 py-7 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.4em] text-xl rounded-4xl shadow-2xl hover:scale-105 transition-all outline-none opacity-80 cursor-pointer"
-          >
-            {t.cta}{" "}
-            <Shield
-              className="group-hover:rotate-12 transition-transform opacity-50"
-              size={28}
-            />
-          </button>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-
-// ─── PRO GATE MODAL ────────────────────────────────────────────────────────
-function ProGateModal({ isOpen, onClose, t }: { isOpen: boolean; onClose: () => void; t: ProfessionalStepTranslations }) {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-xl bg-white dark:bg-slate-950 rounded-[3rem] border border-slate-200 dark:border-slate-800 p-10 md:p-14 shadow-2xl overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -mr-32 -mt-32" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -ml-32 -mb-32" />
-            
-            <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-              <div className="w-24 h-24 rounded-4xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-500/40">
-                <Shield size={48} strokeWidth={1} />
-              </div>
-              
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                  {t.proTitle}
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                  {t.proDesc}
-                </p>
-              </div>
-
-              {/* Strategic Horizons Grid inside Modal */}
-              <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 py-6">
-                 {[
-                   { title: t.aiConsultationsTitle, icon: Sparkles, color: "text-blue-500", bg: "bg-blue-500/5", desc: t.aiConsultationsDesc },
-                   { title: t.strategicWorkshopsTitle, icon: Target, color: "text-indigo-500", bg: "bg-indigo-500/5", desc: t.strategicWorkshopsDesc },
-                   { title: t.professionalEvolutionTitle, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/5", desc: t.professionalEvolutionDesc }
-                 ].map((item, idx) => (
-                   <div key={idx} className="p-4 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-center space-y-2">
-                     <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2", item.bg, item.color)}>
-                        <item.icon size={20} strokeWidth={2} />
-                     </div>
-                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white line-clamp-1">{item.title}</h4>
-                     <p className="text-[8px] text-slate-400 font-bold leading-tight">{item.desc}</p>
-                   </div>
-                 ))}
-              </div>
-
-              <div className="flex flex-col w-full gap-4 pt-4">
-                <Link
-                  href="/subscription"
-                  className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
-                >
-                  <Sparkles size={16} />
-                  {t.proUpgrade}
-                </Link>
-                <button
-                  onClick={onClose}
-                  className="w-full py-6 bg-slate-100 dark:bg-slate-900 text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-all"
-                >
-                  {t.proBack}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-export default function ProfessionalDashboard() {
-  const { language: currentLang, setLanguage, dir } = useLanguage();
-  const [step, setStep] = useState<Step>("language");
-  const [formData, setFormData] = useState<FormData>({
-    sectors: "",
-    positions: [],
-    vision: "",
-    experienceMode: "",
-    cv: null,
-    careerStory: "",
-  });
-
-  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
-  const [finalReport, setFinalReport] = useState<FinalReportResult | null>(
-    null,
-  );
-  const [interviewTranscript, setInterviewTranscript] = useState<
-    InterviewMessage[]
-  >([]);
-  const [mcqResults, setMcqResults] = useState<{
-    hardScore: number;
-    softScore: number;
-    totalQuestions: number;
-  } | null>(null);
-  const [portfolioTranscript, setPortfolioTranscript] = useState<
-    InterviewMessage[]
-  >([]);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showProModal, setShowProModal] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-
-  const [newPosition, setNewPosition] = useState<Position>({
-    title: "",
-    years: "",
-  });
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  // Persistence: Load on Mount
-  useEffect(() => {
-    const loadProgress = async () => {
-      try {
-        const storedProfile = localStorage.getItem("userProfile");
-        const profileData = storedProfile ? JSON.parse(storedProfile) : null;
-        setUserProfile(profileData);
-        const email = profileData?.email;
-
-        if (email) {
-          const response = await fetch(`/api/user/professional-progress?email=${encodeURIComponent(email)}`);
-          const json = await response.json();
-
-          if (json.success && json.data) {
-            const {
-              step: savedStep,
-              formData: savedFormData,
-              auditResult: savedAuditResult,
-              finalReport: savedFinalReport,
-              interviewTranscript: savedTranscript,
-              portfolioTranscript: savedPortfolioTranscript,
-              mcqResults: savedMcqResults,
-            } = json.data;
-
-            if (savedStep) setStep(savedStep as Step);
-            if (savedAuditResult) setAuditResult(savedAuditResult);
-            if (savedFinalReport) setFinalReport(savedFinalReport);
-            if (savedTranscript) setInterviewTranscript(savedTranscript);
-            if (savedPortfolioTranscript)
-              setPortfolioTranscript(savedPortfolioTranscript);
-            if (savedMcqResults) setMcqResults(savedMcqResults);
-
-            if (savedFormData) {
-              setFormData((prev) => ({
-                ...prev,
-                ...savedFormData,
-                cv: null,
-              }));
+    const handleAnalyzeAssessment = async () => {
+        setIsAnalyzingAssessment(true);
+        try {
+            const response = await fetch('/api/professional/assessment/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    questions: assessmentQuestions,
+                    userAnswers,
+                    auditResult: result,
+                    language
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setAssessmentAnalysis(data.analysis);
             }
-          } else {
-            // New user or no data in DB -> Clear any stale localStorage from previous sessions to prevent leakage
-            const profKeys = [
-              "prof_step", "prof_formData", "prof_auditResult", "prof_finalReport",
-              "prof_transcript", "prof_portfolioTranscript", "prof_mcqResults",
-              "prof_academy", "prof_roadmapResult"
-            ];
-            profKeys.forEach(k => localStorage.removeItem(k));
-          }
+        } catch (error) {
+            console.error("Failed to analyze assessment:", error);
+        } finally {
+            setIsAnalyzingAssessment(false);
         }
-      } catch (error) {
-        console.error("Failed to load professional progress", error);
-      } finally {
-        setIsHydrated(true);
-      }
     };
 
-    loadProgress();
-  }, []);
-
-  // Persistence: Save on Change
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    // Save to local storage for quick access
-    localStorage.setItem("prof_step", step);
-    localStorage.setItem("prof_auditResult", JSON.stringify(auditResult));
-    localStorage.setItem("prof_finalReport", JSON.stringify(finalReport));
-    localStorage.setItem(
-      "prof_transcript",
-      JSON.stringify(interviewTranscript),
-    );
-    localStorage.setItem(
-      "prof_portfolioTranscript",
-      JSON.stringify(portfolioTranscript),
-    );
-    localStorage.setItem("prof_mcqResults", JSON.stringify(mcqResults));
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { cv: _, ...dataToSave } = formData;
-    localStorage.setItem("prof_formData", JSON.stringify(dataToSave));
-
-    // Save to MongoDB with a slight debounce
-    const saveToDB = async () => {
-      try {
-        const storedProfile = localStorage.getItem("userProfile");
-        const email = storedProfile ? JSON.parse(storedProfile)?.email : null;
-        if (!email) return;
-
-        await fetch("/api/user/professional-progress", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            step,
-            formData: dataToSave,
-            auditResult,
-            finalReport,
-            interviewTranscript,
-            portfolioTranscript,
-            mcqResults,
-          }),
-        });
-      } catch (error) {
-        console.error("Failed to save professional progress to DB", error);
-      }
+    const handleStartMindsetInterview = async () => {
+        setStep(6);
+        setIsMindsetInterviewing(true);
+        try {
+            const response = await fetch('/api/professional/mindset/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: [], language })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setMindsetMessages([{ role: 'assistant', content: data.message }]);
+            }
+        } catch (error) {
+            console.error("Failed to start mindset interview:", error);
+        } finally {
+            setIsMindsetInterviewing(false);
+        }
     };
 
-    const timeout = setTimeout(saveToDB, 1500);
-    return () => clearTimeout(timeout);
-  }, [
-    step,
-    formData,
-    auditResult,
-    finalReport,
-    interviewTranscript,
-    portfolioTranscript,
-    mcqResults,
-    isHydrated,
-  ]);
+    const handleSendMindsetMessage = async () => {
+        if (!mindsetInput.trim() || isMindsetInterviewing) return;
 
-  const isPro = userProfile?.activationType === "Pro" || userProfile?.activationType === "Unlimited";
+        const newMessages = [...mindsetMessages, { role: 'user', content: mindsetInput } as const];
+        setMindsetMessages(newMessages);
+        setMindsetInput("");
+        setIsMindsetInterviewing(true);
 
-  const t = TRANSLATIONS[(currentLang as "en" | "fr" | "ar") || "en"];
-
-  const nextStep = useCallback(() => {
-    const order: Step[] = [
-      "language", "welcome", "audit-form", "experience-input", 
-      "initial-analysis", "expert-interview", "mcq-assessment", 
-      "portfolio-interview", "simulation", "final-report"
-    ];
-    const currentIndex = order.indexOf(step);
-    
-    // Inject Mock Data for skipped phases
-    if (step === "initial-analysis" && !auditResult) {
-      setAuditResult({
-        authorityScore: 50,
-        profileLevel: "Experience Matched",
-        alignment: "General Alignment",
-        gaps: ["Technical depth to be verified"],
-        strengths: ["Breadth of experience"],
-        visionAnalysis: "Vision aligned with trajectory",
-        nextEvolutionSteps: ["Complete all assessment phases"],
-        verdict: "Profile qualified for assessment"
-      });
-    }
-
-    if (step === "expert-interview" && interviewTranscript.length === 0) {
-      const msg = currentLang === "ar" ? "تم التحول للمسار التقييمي السريع بناءً على طلب المشارك." : "Transitioned to accelerated assessment path per participant request.";
-      setInterviewTranscript([{ role: "assistant", content: msg }]);
-    }
-
-    if (step === "mcq-assessment" && !mcqResults) {
-      setMcqResults({ hardScore: 0, softScore: 0, totalQuestions: 0 });
-    }
-
-    if (step === "portfolio-interview") {
-      if (portfolioTranscript.length === 0) {
-        const msg = currentLang === "ar" ? "تحليل منهجي مستمر لبيانات المحفظة المهنية." : "Ongoing systematic analysis of professional portfolio data.";
-        setPortfolioTranscript([{ role: "assistant", content: msg }]);
-      }
-      if (!finalReport) {
-        setFinalReport({
-          profileSummary: currentLang === "ar" ? "تحليل تمهيدي لنقاط الالتقاء الاستراتيجية" : "Preliminary Strategic Convergence Analysis",
-          maturityLevel: "Strategic",
-          marketValue: currentLang === "ar" ? "قيد التقييم المعمق" : "Strategic Valuation Pending",
-          finalVerdict: currentLang === "ar" 
-            ? "يُظهر الملف الشخصي نضجاً تنفيذياً عالياً. التوصية الحالية هي الانتقال إلى المسار المتقدم للتحقق من الكفاءات القيادية في بيئات معقدة."
-            : "The profile exhibits high executive maturity. Transition to advanced verification pathways is recommended to validate leadership competencies in complex environments.",
-          recommendedRoles: ["Executive Management", "Strategic Director"],
-          deepInsights: currentLang === "ar"
-            ? ["توازن استراتيجي ملحوظ في الرؤية العامة.", "كفاءة عالية في اتخاذ القرار وتجاوز المراحل النمطية."]
-            : ["Notable strategic balance in global vision.", "High efficiency in decision-making and bypassing standard operational phases."],
-          swot: { 
-            strengths: currentLang === "ar" ? ["الرؤية الشمولية", "سرعة التنفيذ الاستراتيجي"] : ["Holistic Vision", "Strategic Execution Velocity"], 
-            weaknesses: [], 
-            opportunities: [], 
-            threats: [] 
-          },
-          gapAnalysis: { currentJobVsReality: "", criticalCompetencyGaps: [], comparisonPositionReality: "", hardSkillsMatch: 75, softSkillsMatch: 85 },
-          careerAdvancement: []
-        } as FinalReportResult);
-      }
-    }
-
-    if (step === "simulation") {
-      if (!finalReport) {
-        setFinalReport({
-          profileSummary: currentLang === "ar" ? "التقرير الاستراتيجي الموحد (مسار التنفيذ السريع)" : "Unified Strategic Report (Rapid Execution Path)",
-          maturityLevel: "Strategic",
-          marketValue: currentLang === "ar" ? "قيمة سوقية عالية" : "High Strategic Market Value",
-          finalVerdict: currentLang === "ar"
-            ? "بناءً على المعطيات المتوفرة، يمتلك المشارك مهارات قيادية متميزة تسمح له بتجاوز المحاكاة النمطية والانتقال مباشرة لصياغة الخطط التنفيذية."
-            : "Based on available data, the participant possesses distinguished leadership skills allowing them to bypass standard simulation and move directly to executive planning.",
-          recommendedRoles: ["Chief Executive", "Senior Operations Director"],
-          deepInsights: currentLang === "ar"
-            ? ["قدرة استثنائية على التحليل الكلي للمواقف المهنية.", "استعداد تام للقيادة في ظروف عدم اليقين."]
-            : ["Exceptional capacity for macro-analysis of professional situations.", "Full readiness for leadership under uncertainty."],
-          swot: { 
-            strengths: currentLang === "ar" ? ["القدرة على الحسم", "الذكاء الاستراتيجي"] : ["Decisive Capacity", "Strategic Intelligence"], 
-            weaknesses: [], 
-            opportunities: [], 
-            threats: [] 
-          },
-          gapAnalysis: { currentJobVsReality: "", criticalCompetencyGaps: [], comparisonPositionReality: "", hardSkillsMatch: 85, softSkillsMatch: 90 },
-          careerAdvancement: []
-        } as FinalReportResult);
-      }
-    }
-
-    if (currentIndex !== -1 && currentIndex < order.length - 1) {
-      setStep(order[currentIndex + 1]);
-    }
-  }, [step, auditResult, interviewTranscript, mcqResults, portfolioTranscript, finalReport, currentLang]);
-
-  const prevStep = useCallback(() => {
-    setStep((prev) => {
-      const order: Step[] = [
-        "language", "welcome", "audit-form", "experience-input", 
-        "initial-analysis", "expert-interview", "mcq-assessment", 
-        "portfolio-interview", "simulation", "final-report"
-      ];
-      const currentIndex = order.indexOf(prev);
-      if (currentIndex > 0) {
-        return order[currentIndex - 1];
-      }
-      return prev;
-    });
-  }, []);
-
-  const handleAnalysisComplete = useCallback((result: AuditResult) => {
-    setAuditResult(result);
-  }, []);
-
-  const handleInterviewComplete = useCallback(
-    (report: FinalReportResult, transcript: InterviewMessage[]) => {
-      // We store the transcript for the next MCQ phase
-      setInterviewTranscript(transcript);
-      setStep("mcq-assessment");
-    },
-    [],
-  );
-
-  const handleMCQComplete = useCallback(
-    (
-      _report: FinalReportResult | null,
-      results: { hardScore: number; softScore: number; totalQuestions: number },
-    ) => {
-      setMcqResults(results);
-      setStep("portfolio-interview");
-    },
-    [],
-  );
-
-  const handlePortfolioComplete = useCallback(
-    (report: FinalReportResult, transcript: InterviewMessage[]) => {
-      setPortfolioTranscript(transcript);
-      setFinalReport(report);
-      setStep("simulation");
-    },
-    [],
-  );
-
-  const handleSimulationComplete = useCallback(async (simulationResult: SimulationResult) => {
-    setStep("final-report");
-    try {
-      const storedProfile = localStorage.getItem("userProfile");
-      const email = storedProfile ? JSON.parse(storedProfile)?.email : null;
-
-      const res = await fetch("/api/professional/finalize-all", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          auditResult,
-          formData,
-          interviewTranscript,
-          portfolioTranscript,
-          mcqResults,
-          simulationResult,
-          language: currentLang,
-          userId: email
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setFinalReport(data.report);
-      }
-    } catch (err) {
-      console.error("Ultimate finalization failed:", err);
-    }
-  }, [auditResult, formData, interviewTranscript, portfolioTranscript, mcqResults, currentLang]);
-
-  const handleLogout = async () => {
-    try {
-      // 1. Call the logout API to clear secure session cookies
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (e) {
-      console.error("Logout API failed", e);
-    } finally {
-      // 2. Clear all professional-specific localStorage keys
-      const profKeys = [
-        "prof_step",
-        "prof_formData",
-        "prof_auditResult",
-        "prof_finalReport",
-        "prof_transcript",
-        "prof_portfolioTranscript",
-        "prof_mcqResults",
-        "prof_academy",
-        "prof_roadmapResult",
-      ];
-      profKeys.forEach((k) => localStorage.removeItem(k));
-
-      // 3. Clear everything else to be safe
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // 4. Force clear all client-side cookies just in case
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-
-      // 5. Redirect to login page
-      window.location.href = "/login";
-    }
-  };
-
-  const STEPS: Step[] = [
-    "language",
-    "welcome",
-    "audit-form",
-    "experience-input",
-    "initial-analysis",
-    "expert-interview",
-    "mcq-assessment",
-    "portfolio-interview",
-    "simulation",
-    "final-report",
-  ];
-
-  // Stage metadata driven by the selected language
-  const STAGE_META: { icon: React.ReactNode; label: string; desc: string }[] = [
-    {
-      icon: <Languages size={18} />,
-      label: currentLang === "ar" ? "اللغة" : currentLang === "fr" ? "Langue" : "Language",
-      desc: currentLang === "ar" ? "اختيار لغة الحساب" : currentLang === "fr" ? "Langue du compte" : "Account language",
-    },
-    {
-      icon: <Shield size={18} />,
-      label: currentLang === "ar" ? "المرحبا" : currentLang === "fr" ? "Bienvenue" : "Welcome",
-      desc: currentLang === "ar" ? "نظرة عامة على المسار" : currentLang === "fr" ? "Vue d'ensemble" : "Journey overview",
-    },
-    {
-      icon: <Briefcase size={18} />,
-      label: currentLang === "ar" ? "الملف المهني" : currentLang === "fr" ? "Profil" : "Profile",
-      desc: currentLang === "ar" ? "القطاعات والمناصب والرؤية" : currentLang === "fr" ? "Secteurs, postes & vision" : "Sectors, roles & vision",
-    },
-    {
-      icon: <FileText size={18} />,
-      label: currentLang === "ar" ? "الأدلة" : currentLang === "fr" ? "Preuves" : "Evidence",
-      desc: currentLang === "ar" ? "رفع السيرة الذاتية أو السرد" : currentLang === "fr" ? "CV ou narration" : "CV upload or narrative",
-    },
-    {
-      icon: <Cpu size={18} />,
-      label: currentLang === "ar" ? "التدقيق الرقمي" : currentLang === "fr" ? "Audit Numérique" : "Digital Audit",
-      desc: currentLang === "ar" ? "تحليل البيانات الخام المسجلة" : currentLang === "fr" ? "Analyse des données brutes" : "Raw data analysis",
-    },
-    {
-      icon: <MessageSquare size={18} />,
-      label: currentLang === "ar" ? "المقابلة" : currentLang === "fr" ? "Entretien" : "Interview",
-      desc: currentLang === "ar" ? "مقابلة استراتيجية مع خبير" : currentLang === "fr" ? "Entretien stratégique" : "AI strategic interview",
-    },
-    {
-      icon: <CheckCircle2 size={18} />,
-      label: currentLang === "ar" ? "التقييم" : currentLang === "fr" ? "MCQ" : "MCQ",
-      desc: currentLang === "ar" ? "اختبار المهارات الصلبة والناعمة" : currentLang === "fr" ? "Test Hard & Soft skills" : "Hard & Soft skills test",
-    },
-    {
-      icon: <Target size={18} />,
-      label: currentLang === "ar" ? "المحفظة" : currentLang === "fr" ? "Portfolio" : "Portfolio",
-      desc: currentLang === "ar" ? "غوص عميق في القيادة" : currentLang === "fr" ? "Deep-dive leadership" : "Leadership deep-dive",
-    },
-    {
-      icon: <Sparkles size={18} />,
-      label: currentLang === "ar" ? "المحاكاة" : currentLang === "fr" ? "Simulation" : "Simulation",
-      desc: currentLang === "ar" ? "أحداث مهنية محاكية" : currentLang === "fr" ? "Scénarios professionnels" : "Professional scenarios",
-    },
-    {
-      icon: <TrendingUp size={18} />,
-      label: currentLang === "ar" ? "التشخيص الأولي" : currentLang === "fr" ? "Diagnostic" : "Diagnosis",
-      desc: currentLang === "ar" ? "الحكم الاستراتيجي للمرحلة الأولى" : currentLang === "fr" ? "Verdict stratégique phase 1" : "Phase 1 strategic verdict",
-    },
-  ];
-
-  const STEP_LABELS: Record<Step, string> = {
-    language: STAGE_META[0].label,
-    welcome: STAGE_META[1].label,
-    "audit-form": STAGE_META[2].label,
-    "experience-input": STAGE_META[3].label,
-    "initial-analysis": STAGE_META[4].label,
-    "expert-interview": STAGE_META[5].label,
-    "mcq-assessment": STAGE_META[6].label,
-    "portfolio-interview": STAGE_META[7].label,
-    "simulation": STAGE_META[8].label,
-    "final-report": STAGE_META[9].label,
-  };
-  const currentStepIndex = STEPS.indexOf(step);
-  const progressPercent = Math.round(
-    ((currentStepIndex + 1) / STEPS.length) * 100,
-  );
-
-  const addPosition = () => {
-    if (newPosition.title && newPosition.years) {
-      setFormData((prev) => ({
-        ...prev,
-        positions: [...prev.positions, { ...newPosition }],
-      }));
-      setNewPosition({ title: "", years: "" });
-    }
-  };
-
-  if (!isHydrated) return null; // Prevent flicker during hydration
-
-  return (
-    <div
-      className={cn(
-        "min-h-screen bg-slate-50 dark:bg-[#06080a] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30 transition-colors duration-500",
-        dir === "rtl" ? "font-arabic" : "font-sans",
-      )}
-      dir={dir}
-    >
-      {/* ── TOP BAR: Unified Strategic Control ── */}
-      <header className="sticky top-0 z-50 bg-white/40 dark:bg-slate-950/40 backdrop-blur-3xl border-b border-indigo-500/10 transition-all duration-500 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between gap-6">
-          {/* Logo / Brand / Global Mode */}
-          <div className="flex items-center gap-5">
-            <div className="relative group">
-               <div className="absolute inset-0 bg-indigo-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
-               <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-white shadow-2xl border border-white/20 relative z-10">
-                 <Cpu size={22} className="animate-spin-slow" strokeWidth={2} />
-               </div>
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-black text-sm uppercase tracking-[0.4em] bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
-                {currentLang === "ar" ? "نظام التشخيص الاستراتيجي" : currentLang === "fr" ? "Système de Diagnostic Stratégique" : "Strategic Diagnosis System"}
-              </span>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Quantum Intelligence Layer Active</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Core Navigation Stats */}
-          <div className="flex items-center gap-6">
-            {/* Phase Indicator */}
-            <div className="hidden lg:flex flex-col items-end">
-                <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Current Intelligence Phase</div>
-                <div className="text-[11px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/10">
-                   {currentStepIndex + 1} of {STEPS.length} · {STEP_LABELS[step]}
-                </div>
-            </div>
-
-            <div className="h-10 w-px bg-slate-200 dark:bg-slate-800" />
-
-            <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="group flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
-            >
-              <LogOut size={16} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t.welcome.logout || "Exit System"}</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* ── MAIN LAYOUT ── */}
-      <div className="max-w-7xl mx-auto flex gap-0 md:gap-8 px-4 md:px-8 py-8">
-
-        {/* ────────────────── UNIFIED INTELLIGENCE SIDEBAR ────────────────── */}
-        {step !== "language" && step !== "welcome" && (
-          <aside className="hidden md:flex flex-col w-80 shrink-0">
-            <div className="sticky top-28 space-y-6">
-              
-              {/* === INTELLIGENCE FEED (Real-time Integration) === */}
-              <div className="p-6 rounded-3xl bg-linear-to-br from-indigo-950/90 to-slate-900 border border-indigo-500/20 shadow-2xl relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-                 <div className="flex items-center gap-3 mb-5">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-                       <Sparkles size={16} className="text-indigo-400 animate-pulse" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Intelligence Feed</span>
-                 </div>
-                 
-                 <div className="space-y-4">
-                    {/* Dynamic Statuses based on Journey progress */}
-                    {[
-                      { show: true, label: "Identity Verified", status: "Validated", active: true },
-                      { show: auditResult, label: "Evidence Map", status: "Extracted", active: true },
-                      { show: interviewTranscript.length > 0, label: "Behavioral DNA", status: "Synthesized", active: true },
-                      { show: mcqResults, label: "Capability Probe", status: "Verified", active: mcqResults !== null }
-                    ].filter(i => i.show).map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-[10px] font-bold">
-                         <span className="text-slate-400 uppercase tracking-tighter">{item.label}</span>
-                         <span className={cn("px-2 py-0.5 rounded-md border", item.active ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-slate-500/10 border-slate-500/20 text-slate-500")}>
-                           {item.status}
-                         </span>
-                      </div>
-                    ))}
-                    {!auditResult && (
-                      <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-[9px] text-slate-400 italic">
-                         Waiting for professional audit data...
-                      </div>
-                    )}
-                 </div>
-              </div>
-
-              {/* === JOURNEY MAPPER === */}
-              <div className="space-y-1.5">
-                <div className="px-4 pb-3 flex justify-between items-center">
-                  <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Assessment Journey</p>
-                  <span className="text-[10px] font-black text-indigo-500">{progressPercent}%</span>
-                </div>
-
-                <div className="space-y-1.5">
-                  {STEPS.map((s, i) => {
-                    const meta = STAGE_META[i];
-                    const isDone = i < currentStepIndex;
-                    const isActive = i === currentStepIndex;
-                    const isSkip = s === "language" || (s === "welcome" && currentStepIndex > 1);
-                    if (isSkip && !isDone) return null;
-
-                    return (
-                      <div
-                        key={s}
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all relative",
-                          isActive
-                            ? "bg-white dark:bg-slate-900 border border-indigo-500/10 shadow-lg shadow-indigo-500/5"
-                            : isDone
-                            ? "opacity-60 grayscale-[0.5]"
-                            : "opacity-30",
-                        )}
-                      >
-                        {/* Step Marker */}
-                        <div className={cn(
-                          "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-all",
-                          isActive ? "bg-indigo-600 border-indigo-400 text-white" : isDone ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
-                        )}>
-                          {isDone ? <CheckCircle2 size={12} strokeWidth={3} /> : meta.icon}
-                        </div>
-                        
-                        <div className="min-w-0 flex-1">
-                           <p className={cn("text-[10px] font-black uppercase tracking-tight", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500")}>
-                              {meta.label}
-                           </p>
-                        </div>
-
-                        {isActive && (
-                           <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_5px_rgba(99,102,241,0.5)]" />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Professional Persona Preview (if available) */}
-              {auditResult && (
-                <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-3">
-                  <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Extracted Profile DNA</div>
-                  <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 group-hover:underline">
-                    {auditResult.profileLevel}
-                  </div>
-                </div>
-              )}
-            </div>
-          </aside>
-        )}
-
-        {/* ─────────────── MAIN CONTENT ─────────────── */}
-        <main className={cn("flex-1 min-w-0", step === "language" || step === "welcome" ? "max-w-4xl mx-auto w-full" : "")}>
-          {/* ── Logout Confirm ── */}
-          <AnimatePresence>
-            {showLogoutConfirm && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  className="bg-white dark:bg-slate-950 rounded-[3rem] p-12 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-8 text-center"
-                >
-                  <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center mx-auto">
-                    <LogOut className="text-blue-600 dark:text-blue-500" size={28} />
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-black uppercase tracking-tight">
-                      {currentLang === "ar" ? "هل أنت متأكد؟" : "Are you sure?"}
-                    </h3>
-                    <p className="text-slate-500 font-medium text-sm leading-relaxed">
-                      {currentLang === "ar"
-                        ? "سيتم حفظ جميع تقدمك وبياناتك بأمان. يمكنك العودة واستكمال التقييم التنفيذي في أي وقت ومن أي جهاز."
-                        : "Your progress is securely saved. You can resume your executive assessment anytime, from any device."}
-                    </p>
-                  </div>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => setShowLogoutConfirm(false)}
-                      className="flex-1 py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
-                    >
-                      {currentLang === "ar" ? "إلغاء" : "Cancel"}
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)]"
-                    >
-                      {currentLang === "ar" ? "خروج" : "Log Out"}
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* ── Back / Forward nav (Enabled for all steps) ── */}
-          {step !== "language" && (
-            <div className="flex justify-between items-center mb-6 px-1">
-              <button
-                onClick={prevStep}
-                className="group flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-all hover:shadow-md text-slate-500"
-              >
-                <ChevronLeft className={cn("w-5 h-5 transition-transform group-hover:-translate-x-0.5", dir === "rtl" && "rotate-180")} />
-                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">{t.welcome.back || "Back"}</span>
-              </button>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-[8px] font-black uppercase text-slate-300 tracking-tighter">Diagnostic Navigation</span>
-              </div>
-
-              <button
-                onClick={nextStep}
-                className="group flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-all hover:shadow-md text-slate-500"
-              >
-                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">
-                  {step === "final-report" ? (currentLang === "ar" ? "إنهاء" : "Finish") : (t.welcome.next || "Next")}
-                </span>
-                <ChevronRight className={cn("w-5 h-5 transition-transform group-hover:translate-x-0.5", dir === "rtl" && "rotate-180")} />
-              </button>
-            </div>
-          )}
-
-          {/* ── STEP CONTENT ── */}
-          <AnimatePresence mode="wait">
-            {step === "welcome" && (
-              <WelcomeScreen key="welcome" onNext={nextStep} t={t.welcome} />
-            )}
-
-            {step === "language" && (
-              <LanguageSelection
-                key="language"
-                selected={currentLang}
-                onSelect={(l) => {
-                  setLanguage(l);
-                  nextStep();
-                }}
-                t={t.language}
-              />
-            )}
-
-            {step === "audit-form" && (
-              <AuditForm
-                key="audit"
-                formData={formData}
-                setFormData={setFormData}
-                newPosition={newPosition}
-                setNewPosition={setNewPosition}
-                addPosition={addPosition}
-                onNext={nextStep}
-                t={t.auditForm}
-              />
-            )}
-
-            {step === "experience-input" && (
-              <ExperienceInput
-                key="experience"
-                formData={formData}
-                setFormData={setFormData}
-                onNext={nextStep}
-                t={t.experience}
-                language={currentLang}
-              />
-            )}
-
-            {step === "initial-analysis" && (
-              <InitialAnalysis
-                key="analysis"
-                formData={formData}
-                t={t.analysis}
-                language={currentLang}
-                onComplete={handleAnalysisComplete}
-                onNext={nextStep}
-                existingResult={auditResult}
-              />
-            )}
-
-            {step === "expert-interview" && auditResult && (
-              <ExpertInterview
-                key="interview"
-                formData={formData}
-                auditResult={auditResult}
-                t={t.interview}
-                language={currentLang}
-                onComplete={handleInterviewComplete}
-              />
-            )}
-
-            {step === "mcq-assessment" && auditResult && (
-              <MCQAssessment
-                key="mcq"
-                auditResult={auditResult}
-                formData={formData}
-                interviewTranscript={interviewTranscript}
-                t={t.mcq}
-                language={currentLang}
-                onComplete={handleMCQComplete}
-              />
-            )}
-
-            {step === "portfolio-interview" && auditResult && mcqResults && (
-              <PortfolioInterview
-                key="portfolio"
-                auditResult={auditResult}
-                formData={formData}
-                interviewTranscript={interviewTranscript}
-                mcqResults={mcqResults}
-                language={currentLang}
-                onComplete={handlePortfolioComplete}
-              />
-            )}
-
-            {step === "simulation" && auditResult && (
-              <SimulationAssessment
-                key="simulation"
-                auditResult={auditResult}
-                formData={formData}
-                interviewTranscript={interviewTranscript}
-                portfolioTranscript={portfolioTranscript}
-                mcqResults={mcqResults}
-                language={currentLang}
-                onComplete={handleSimulationComplete}
-              />
-            )}
-
-            {step === "final-report" && (
-              <div className="space-y-8">
-                {finalReport ? (
-                  <FinalReport 
-                    key="report" 
-                    report={finalReport} 
-                    t={t.finalReport} 
-                    isPro={isPro}
-                    onProRequired={() => setShowProModal(true)}
-                    language={currentLang}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-20 bg-white dark:bg-slate-950 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs">Generating Unified Strategic Report...</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </AnimatePresence>
-        </main>
-      </div>
-
-      <ProGateModal 
-        isOpen={showProModal} 
-        onClose={() => setShowProModal(false)} 
-        t={t.finalReport}
-      />
-    </div>
-  );
-}
-
-// ─── Welcome SCREEN ─────────────────────────────────────────────────────────────
-function WelcomeScreen({
-  onNext,
-  t,
-}: {
-  onNext: () => void;
-  t: ProfessionalStepTranslations;
-}) {
-  const icons = [
-    <Globe key="1" className="text-blue-500" />,
-    <Briefcase key="2" className="text-emerald-500" />,
-    <Target key="3" className="text-orange-500" />,
-    <FileText key="4" className="text-purple-500" />,
-    <Sparkles key="5" className="text-cyan-500" />,
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="space-y-16 relative z-10"
-    >
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
-      
-      <div className="space-y-6 text-center md:text-left relative z-10">
-        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] shadow-sm">
-          <Shield size={16} strokeWidth={2.5} className="text-blue-500" /> {t.tag}
-        </div>
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.9] uppercase drop-shadow-sm">
-          {(t.title || "").split(" ").map((word: string, i: number) =>
-            i > 1 ? (
-              <span
-                key={i}
-                className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 block md:inline"
-              >
-                {word}{" "}
-              </span>
-            ) : (
-              word + " "
-            ),
-          )}
-        </h1>
-        <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-medium max-w-3xl leading-relaxed tracking-wide">
-          {t.subtitle}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-        {t.steps?.map((s: { title: string; desc: string }, i: number) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
-            className="group flex items-start gap-6 p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-blue-500/30 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-all hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-500 group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 shrink-0 relative z-10">
-              {icons[i]}
-            </div>
-            <div className="space-y-1 relative z-10 pt-1">
-              <h3 className="font-black text-xl uppercase tracking-tight text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">
-                {s.title}
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm leading-relaxed">
-                {s.desc}
-              </p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="flex justify-center md:justify-start">
-        <button
-          onClick={onNext}
-          className="group relative inline-flex items-center justify-center gap-4 px-12 py-6 rounded-4xl bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 text-white font-black text-xl uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(79,70,229,0.3)] hover:shadow-[0_0_60px_rgba(79,70,229,0.5)] border border-white/10"
-        >
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
-          <span className="relative z-10 drop-shadow-md">{t.cta}</span>
-          <ArrowRight
-            size={24}
-            className="transition-transform group-hover:translate-x-3 relative z-10 drop-shadow-md"
-          />
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── LANGUAGE SELECTION ─────────────────────────────────────────────────────────
-function LanguageSelection({
-  selected,
-  onSelect,
-  t,
-}: {
-  selected: string;
-  onSelect: (l: "en" | "fr" | "ar") => void;
-  t: ProfessionalStepTranslations;
-}) {
-  const options = [
-    {
-      code: "en" as const,
-      label: "English",
-      sub: "Global Professional Standard",
-    },
-    { code: "fr" as const, label: "Français", sub: "Standard Exécutif" },
-    { code: "ar" as const, label: "العربية", sub: "المعيار الاستراتيجي" },
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="text-center py-12"
-    >
-      <div className="flex justify-center mb-10">
-        <div className="p-8 rounded-full bg-linear-to-br from-blue-600/20 to-indigo-600/10 text-blue-600 animate-[pulse_4s_ease-in-out_infinite] shadow-[0_0_60px_rgba(37,99,235,0.2)] border border-blue-600/20">
-          <Languages size={72} strokeWidth={1.5} />
-        </div>
-      </div>
-      <h2 className="text-4xl md:text-6xl font-black uppercase mb-6 tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
-        {t.title}
-      </h2>
-      <p className="text-xl md:text-2xl text-slate-500 mb-16 font-medium tracking-wide max-w-2xl mx-auto">{t.subtitle}</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        {options.map((opt) => (
-          <button
-            key={opt.code}
-            onClick={() => onSelect(opt.code)}
-            className={cn(
-              "group p-10 rounded-[3.5rem] border bg-white dark:bg-slate-950 transition-all text-left relative overflow-hidden",
-              selected === opt.code
-                ? "border-blue-600 shadow-[0_20px_40px_rgba(37,99,235,0.15)] ring-4 ring-blue-600/10 scale-105 z-10"
-                : "border-slate-100 dark:border-slate-800 hover:border-blue-400 hover:shadow-2xl hover:-translate-y-2",
-            )}
-          >
-            <div className="text-2xl font-black mb-1 uppercase tracking-tight">
-              {opt.label}
-            </div>
-            <div className="text-sm font-bold text-slate-500 tracking-wide uppercase">
-              {opt.sub}
-            </div>
-            <div
-              className={cn(
-                "mt-8 h-1.5 w-0 group-hover:w-16 bg-blue-600 transition-all rounded-full",
-                selected === opt.code && "w-16 bg-blue-600",
-              )}
-            />
-            {selected === opt.code && (
-              <div className="absolute top-4 right-4">
-                <CheckCircle2 className="text-blue-600" />
-              </div>
-            )}
-          </button>
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── AUDIT FORM ─────────────────────────────────────────────────────────────────
-function AuditForm({
-  formData,
-  setFormData,
-  newPosition,
-  setNewPosition,
-  addPosition,
-  onNext,
-  t,
-}: {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  newPosition: Position;
-  setNewPosition: React.Dispatch<React.SetStateAction<Position>>;
-  addPosition: () => void;
-  onNext: () => void;
-  t: ProfessionalStepTranslations;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="space-y-10"
-    >
-      <div className="flex items-center gap-6 mb-8 mt-4">
-        <div className="p-5 rounded-4xl bg-linear-to-br from-indigo-500/20 to-blue-500/10 border border-indigo-500/20 text-indigo-500 shadow-inner">
-          <Info size={36} strokeWidth={1.5} />
-        </div>
-        <div>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
-            {t.title}
-          </h2>
-          <p className="text-lg text-slate-500 font-medium tracking-wide mt-1">{t.subtitle}</p>
-        </div>
-      </div>
-
-      <div className="space-y-10 bg-white dark:bg-slate-950 p-12 relative overflow-hidden rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
-        <div className="relative z-10 space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
-            {t.sectorsLabel}
-          </label>
-          <input
-            type="text"
-            placeholder={t.sectorsPlac || ""}
-            value={formData.sectors}
-            onChange={(e) =>
-              setFormData({ ...formData, sectors: e.target.value })
+        try {
+            const response = await fetch('/api/professional/mindset/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: newMessages, language })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setMindsetMessages([...newMessages, { role: 'assistant', content: data.message }]);
+                
+                // If we reach a certain depth, offer analysis
+                if (newMessages.filter(m => m.role === 'assistant').length >= 4) {
+                    // This is handled in the UI by showing a "View Analysis" button
+                }
             }
-            className="w-full bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-4 font-bold focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all outline-none"
-          />
-        </div>
+        } catch (error) {
+            console.error("Failed to send mindset message:", error);
+        } finally {
+            setIsMindsetInterviewing(false);
+        }
+    };
 
-        <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
-            {t.historyLabel}
-          </label>
-
-          <div className="grid grid-cols-1 gap-3">
-            {formData.positions.map((p: Position, i: number) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-between p-5 rounded-4xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <span className="font-black text-sm uppercase tracking-tight ml-2">
-                  {p.title} <span className="text-indigo-500 mx-3">—</span>{" "}
-                  <span className="text-slate-500">{p.years} {t.years || "years"}</span>
-                </span>
-                <button
-                  onClick={() =>
-                    setFormData({
-                      ...formData,
-                      positions: formData.positions.filter(
-                        (_: Position, idx: number) => idx !== i,
-                      ),
-                    })
-                  }
-                  className="p-2 hover:text-red-600 transition-colors bg-slate-50 dark:bg-slate-900 rounded-lg"
-                >
-                  <X size={16} />
-                </button>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-3">
-            <input
-              type="text"
-              placeholder={t.jobPlac || ""}
-              value={newPosition.title}
-              onChange={(e) =>
-                setNewPosition({ ...newPosition, title: e.target.value })
-              }
-              className="flex-1 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-3 text-sm font-bold outline-none"
-            />
-            <input
-              type="number"
-              placeholder={t.yearsPlac || ""}
-              value={newPosition.years}
-              onChange={(e) =>
-                setNewPosition({ ...newPosition, years: e.target.value })
-              }
-              className="md:w-32 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-3 text-sm font-bold outline-none"
-            />
-            <button
-              onClick={addPosition}
-              className="p-4 px-6 md:px-8 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-[0_10px_20px_rgba(79,70,229,0.3)] hover:shadow-[0_15px_30px_rgba(79,70,229,0.4)] active:scale-95 flex items-center justify-center"
-            >
-              <Plus size={24} strokeWidth={3} />
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-3 pt-8 border-t border-slate-200 dark:border-slate-800">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
-            {t.visionLabel}
-          </label>
-          <textarea
-            placeholder={t.visionPlac || ""}
-            value={formData.vision}
-            onChange={(e) =>
-              setFormData({ ...formData, vision: e.target.value })
+    const handleAnalyzeMindset = async () => {
+        setIsAnalyzingMindset(true);
+        setStep(7);
+        try {
+            const response = await fetch('/api/professional/mindset/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: mindsetMessages, language })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setMindsetAnalysis(data.analysis);
             }
-            className="w-full h-48 bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-4xl px-8 py-6 font-bold focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all outline-none resize-none shadow-inner"
-          />
-        </div>
-      </div>
+        } catch (error) {
+            console.error("Failed to analyze mindset:", error);
+        } finally {
+            setIsAnalyzingMindset(false);
+        }
+    };
 
-      <div className="flex justify-end">
-        <button
-          onClick={onNext}
-          disabled={
-            !formData.sectors ||
-            formData.positions.length === 0 ||
-            !formData.vision
-          }
-          className="group inline-flex items-center gap-4 px-12 py-5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:grayscale text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-emerald-500/30 transition-all hover:scale-[1.05]"
-        >
-          <span>{t.cta}</span>
-          <ChevronRight
-            size={24}
-            className="group-hover:translate-x-1 transition-transform"
-          />
-        </button>
-      </div>
-    </motion.div>
-  );
-}
+    const handleGenerateGrandReport = async () => {
+        setIsGeneratingGrandReport(true);
+        setStep(8);
+        try {
+            const response = await fetch('/api/professional/grand-final-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    auditResult: result, 
+                    interviewTranscript: messages, 
+                    assessmentAnalysis, 
+                    mindsetAnalysis, 
+                    language 
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setGrandFinalReport(data.report);
+            }
+        } catch (error) {
+            console.error("Failed to generate grand report:", error);
+        } finally {
+            setIsGeneratingGrandReport(false);
+        }
+    };
 
-// ─── EXPERIENCE INPUT ───────────────────────────────────────────────────────────
-function ExperienceInput({
-  formData,
-  setFormData,
-  onNext,
-  t,
-  language,
-}: {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  onNext: () => void;
-  t: ProfessionalStepTranslations;
-  language: string;
-}) {
-  const [confirmed, setConfirmed] = useState(false);
+    const handleGeneratePaths = async () => {
+        if (!grandFinalReport) return;
+        setIsGeneratingPaths(true);
+        setStep(10);
+        try {
+            const response = await fetch('/api/professional/strategic-paths', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    grandReport: grandFinalReport, 
+                    language,
+                    simulationContext: simulationMessages
+                })
+            });
+            const data = await response.json();
+            setStrategicPaths(data);
+        } catch (error) {
+            console.error("Failed to generate strategic paths:", error);
+        } finally {
+            setIsGeneratingPaths(false);
+        }
+    };
 
-  // Initialize mode to story on mount if it's not already set
-  useEffect(() => {
-    setFormData((prev) => ({ ...prev, experienceMode: "story" }));
-  }, [setFormData]);
+    const handleStartSimulation = async () => {
+        setStep(9);
+        setIsSimulating(true);
+        try {
+            const response = await fetch('/api/professional/simulation/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    grandReport: grandFinalReport,
+                    assessmentAnalysis,
+                    mindsetAnalysis,
+                    language 
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSimulationMessages([{ role: 'assistant', content: data.message }]);
+            }
+        } catch (error) {
+            console.error("Failed to start simulation:", error);
+        } finally {
+            setIsSimulating(false);
+        }
+    };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-16"
-    >
-      <div className="text-center space-y-4">
-        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
-          {t.title}
-        </h2>
-        <p className="text-xl text-slate-500 font-medium max-w-xl mx-auto">
-          {t.subtitle}
-        </p>
-      </div>
+    const handleSendSimulationMessage = async () => {
+        if (!simulationInput.trim() || isSimulating) return;
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
-        <div
-          className={cn(
-            "p-12 md:p-16 rounded-[4rem] border transition-all text-center space-y-10 group relative bg-white dark:bg-slate-950 shadow-2xl border-slate-100 dark:border-slate-800 hover:border-indigo-500/30",
-          )}
-        >
-          <div className="absolute inset-0 bg-linear-to-b from-transparent via-indigo-600/5 to-indigo-600/10 rounded-[4rem] pointer-events-none" />
-          <div className="relative z-10">
-            <div className="inline-flex p-10 rounded-[3rem] bg-linear-to-br from-indigo-600/20 to-violet-600/10 text-indigo-600 transition-all group-hover:scale-110 shadow-inner border border-indigo-600/20 relative">
-               <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl animate-pulse" />
-               <Mic size={80} strokeWidth={1} className="relative z-10" />
-            </div>
-            <div className="space-y-4 mt-10">
-              <h3 className="text-4xl font-black uppercase tracking-tighter italic">
-                {t.storyTitle}
-              </h3>
-              <div className="flex items-center justify-center gap-2 text-slate-400 font-black uppercase text-[10px] tracking-[0.4em] mb-4">
-                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-                 Strategic Voice Capture Mode
-                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-              </div>
-              <p className="text-slate-500 font-bold text-sm max-w-lg mx-auto leading-relaxed italic">
-                {t.storyDesc}
-              </p>
-            </div>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="pt-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <textarea
-              className="w-full relative z-10 h-80 p-12 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-800 rounded-[3.5rem] text-xl font-medium outline-none focus:bg-white dark:focus:bg-slate-950 focus:border-indigo-600 focus:ring-20 focus:ring-indigo-600/5 transition-all resize-none shadow-2xl leading-relaxed placeholder:text-slate-300 dark:placeholder:text-slate-700"
-              placeholder={
-                language === "ar"
-                  ? "أخبرنا عن رحلتك المهنية بحرية، المهام التي قمت بها، والإنجازات التي تفتخر بها..."
-                  : t.storyPlac || ""
-              }
-              value={formData.careerStory}
-              onChange={(e) => {
-                setFormData({ ...formData, careerStory: e.target.value });
-                setConfirmed(false);
-              }}
-            />
-            {formData.careerStory.length >= 10 && (
-              <motion.button
+        const newMessages = [...simulationMessages, { role: 'user', content: simulationInput } as const];
+        setSimulationMessages(newMessages);
+        setSimulationInput("");
+        setIsSimulating(true);
+
+        try {
+            const response = await fetch('/api/professional/simulation/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    messages: newMessages,
+                    grandReport: grandFinalReport,
+                    language 
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                let content = data.message;
+                if (content.includes('[READY_FOR_PATHS]')) {
+                    content = content.replace('[READY_FOR_PATHS]', '').trim();
+                    setIsSimulationComplete(true);
+                }
+                setSimulationMessages([...newMessages, { role: 'assistant', content }]);
+            }
+        } finally {
+            setIsSimulating(false);
+        }
+    };
+
+    const handleSelectPath = async (path: StrategicPath) => {
+        setSelectedPath(path);
+        // Clear previous messages and start fresh
+        setPathInterviewMessages([]);
+        setStep(11); // Switch UI to Step 11
+        setIsPathSimulating(true);
+
+        try {
+            const response = await fetch('/api/professional/path-simulation/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    path,
+                    grandReport: grandFinalReport,
+                    language 
+                })
+            });
+            
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || `Server Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                setPathInterviewMessages([{ role: 'assistant', content: data.message }]);
+            } else {
+                throw new Error(data.error || 'Failed to start simulation');
+            }
+        } catch (err: unknown) {
+            console.error("Path Simulation Error:", err);
+            const errorMsg = language === 'ar' 
+                ? `عذراً، فشل الاتصال بالخبير: ${err instanceof Error ? err.message : 'خطأ غير معروف'}` 
+                : `Sorry, failed to connect to expert: ${err instanceof Error ? err.message : 'Unknown error'}`;
+            setPathInterviewMessages([{ role: 'assistant', content: errorMsg }]);
+        } finally {
+            setIsPathSimulating(false);
+        }
+    };
+
+    const handleSendPathMessage = async () => {
+        if (!pathSimulationInput.trim() || isPathSimulating) return;
+
+        const currentInput = pathSimulationInput;
+        const newMessages = [...pathInterviewMessages, { role: 'user', content: currentInput } as const];
+        setPathInterviewMessages(newMessages);
+        setPathSimulationInput("");
+        setIsPathSimulating(true);
+
+        try {
+            const response = await fetch('/api/professional/path-simulation/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    messages: newMessages,
+                    path: selectedPath,
+                    grandReport: grandFinalReport,
+                    language 
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                let content = data.message;
+                if (content.includes('[READY_FOR_BLUEPRINT]')) {
+                    content = content.replace('[READY_FOR_BLUEPRINT]', '').trim();
+                    setIsPathSimulationComplete(true);
+                }
+                setPathInterviewMessages([...newMessages, { role: 'assistant', content }]);
+            } else {
+                throw new Error(data.error || 'Simulation error');
+            }
+        } catch (err: unknown) {
+            console.error("Send Path Message Error:", err);
+            const errorMsg = language === 'ar' 
+                ? `فشل في إرسال الرسالة: ${err instanceof Error ? err.message : 'خطأ غير معروف'}` 
+                : `Failed to send message: ${err instanceof Error ? err.message : 'Unknown error'}`;
+            setPathInterviewMessages(prev => [...prev, { role: 'assistant', content: errorMsg }]);
+        } finally {
+            setIsPathSimulating(false);
+        }
+    };
+
+    const handleGenerateBlueprint = async () => {
+        setIsGeneratingBlueprint(true);
+        setStep(12);
+        try {
+            const response = await fetch('/api/professional/path-blueprint', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    selectedPath,
+                    pathContext: pathInterviewMessages,
+                    grandReport: grandFinalReport,
+                    language 
+                })
+            });
+            const data = await response.json();
+            setImplementationBlueprint(data);
+        } finally {
+            setIsGeneratingBlueprint(false);
+        }
+    };
+
+    const handleGenerateMasterReport = async () => {
+        setIsGeneratingMasterReport(true);
+        setMasterReportError(null);
+        setStep(13);
+        try {
+            // Prune data to avoid token limits and slow responses
+            const prunedData = {
+                narrative: narrative.substring(0, 2000),
+                auditResult: result,
+                finalReport: finalReport,
+                assessmentAnalysis: assessmentAnalysis,
+                mindsetAnalysis: mindsetAnalysis,
+                grandFinalReport: grandFinalReport,
+                strategicPaths: strategicPaths,
+                selectedPath: selectedPath,
+                // Only take last 10 messages for context
+                pathInterviewMessages: pathInterviewMessages.slice(-10),
+                // Only take important blueprint parts
+                implementationBlueprint: implementationBlueprint ? {
+                    tacticalWins: implementationBlueprint.tacticalWins,
+                    suggestedRoles: implementationBlueprint.suggestedRoles,
+                    gapBridge: implementationBlueprint.gapBridge
+                } : null,
+                language,
+                userName: JSON.parse(localStorage.getItem('userProfile') || '{}').name
+            };
+
+            const response = await fetch('/api/professional/final-master-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(prunedData)
+            });
+            
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            setFinalMasterReport(data);
+        } catch (err: unknown) {
+            console.error("Master Report Generation Error:", err);
+            setMasterReportError(err instanceof Error ? err.message : "Failed to generate master report");
+        } finally {
+            setIsGeneratingMasterReport(false);
+        }
+    };
+
+    if (step === 4 && finalReport) {
+        return (
+            <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={onNext}
-                className="mt-10 relative z-10 w-full py-8 bg-linear-to-r from-indigo-700 to-violet-800 text-white font-black rounded-3xl hover:translate-y-[-4px] transition-all shadow-[0_25px_50px_rgba(79,70,229,0.4)] uppercase tracking-[0.3em] text-xs active:scale-95 border border-white/20"
-              >
-                {language === "ar" ? "تحليل المسار المهني" : "Analyze My Executive Path"}
-              </motion.button>
-            )}
+                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12"
+            >
+                <button 
+                    onClick={() => setStep(3)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
 
-            {confirmed && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-6 flex flex-col items-center gap-3"
-              >
-                <div className="flex items-center gap-2 text-indigo-500 font-black uppercase text-[10px] tracking-widest bg-indigo-500/10 px-4 py-2 rounded-full border border-indigo-500/20">
-                  <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse shadow-[0_0_10px_rgba(79,70,229,0.8)]" />
-                  {language === "ar"
-                    ? "تم تأمين البيانات - جاهز للانتقال"
-                    : "Strategic Data Locked - Move Forward"}
+                {/* Header */}
+                <div className="bg-slate-900 rounded-6xl p-12 text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-10"><ShieldCheck size={200} /></div>
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+                        <div className="space-y-4">
+                            <h2 className="text-4xl font-black">{t.finalAuditTitle}</h2>
+                            <p className="text-indigo-300 font-bold uppercase tracking-[0.3em]">{finalReport.executiveVerdict}</p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-md p-8 rounded-4xl border border-white/10 text-center min-w-[200px]">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">{t.finalScoreLabel}</p>
+                            <span className="text-5xl font-black">{finalReport.finalScore}%</span>
+                        </div>
+                    </div>
                 </div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
-                   v4.2 Analysis Engine Awaiting Command
-                </p>
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-      </div>
 
+                <div className="grid lg:grid-cols-2 gap-8">
+                    {/* Level 1: Credibility */}
+                    <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl space-y-8">
+                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                                <Search size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900">{t.level1Label}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-indigo-500" style={{ width: `${finalReport.level1Analysis.score}%` }} />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-400">{finalReport.level1Analysis.score}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t.consistency}</span>
+                                <p className="text-sm font-bold text-slate-700 leading-relaxed">{finalReport.level1Analysis.consistency}</p>
+                            </div>
+                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t.clarity}</span>
+                                <p className="text-sm font-bold text-slate-700 leading-relaxed">{finalReport.level1Analysis.presentationQuality}</p>
+                            </div>
+                        </div>
+                    </div>
 
-    </motion.div>
-  );
-}
+                    {/* Level 3: Alignment */}
+                    <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl space-y-8">
+                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                                <Target size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900">{t.level3Label}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-emerald-500" style={{ width: `${finalReport.level3Analysis.alignmentScore}%` }} />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-400">{finalReport.level3Analysis.alignmentScore}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-2">{t.marketValueLabel}</span>
+                                <p className="text-sm font-black text-emerald-900 leading-relaxed">{finalReport.level3Analysis.marketValue}</p>
+                            </div>
+                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Analysis</span>
+                                <p className="text-sm font-bold text-slate-700 leading-relaxed">{finalReport.level3Analysis.pathAnalysis}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-// ─── INITIAL ANALYSIS ───────────────────────────────────────────────────────────
-function InitialAnalysis({
-  formData,
-  t,
-  language,
-  onComplete,
-  onNext,
-  existingResult,
-}: {
-  formData: FormData;
-  t: ProfessionalStepTranslations;
-  language: string;
-  onComplete: (result: AuditResult) => void;
-  onNext: () => void;
-  existingResult?: AuditResult | null;
-}) {
-  const [analyzing, setAnalyzing] = useState(!existingResult);
-  const [auditData, setAuditData] = useState<AuditResult | null>(existingResult || null);
-  const [error, setError] = useState("");
-  const auditStarted = useRef(!!existingResult);
+                {/* Level 2: Skills Deep Dive */}
+                <div className="bg-white rounded-6xl p-12 border border-slate-100 shadow-2xl space-y-12">
+                    <div className="flex items-center gap-4 border-b border-slate-100 pb-8">
+                        <div className="w-14 h-14 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-600">
+                            <Zap size={28} />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900">{t.level2Label}</h3>
+                    </div>
 
-  useEffect(() => {
-    if (auditStarted.current || existingResult) return;
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="space-y-4">
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <CheckCircle2 size={14} className="text-emerald-500" />
+                                {t.verifiedHardSkills}
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                                {finalReport.level2Analysis.hardSkills.map((s, i) => (
+                                    <span key={i} className="px-4 py-2 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-100">{s}</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Brain size={14} className="text-indigo-500" />
+                                {t.observedSoftSkills}
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                                {finalReport.level2Analysis.softSkills.map((s, i) => (
+                                    <span key={i} className="px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-100">{s}</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <AlertCircle size={14} className="text-rose-500" />
+                                {t.skillGaps}
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                                {finalReport.level2Analysis.criticalGaps.map((s, i) => (
+                                    <span key={i} className="px-4 py-2 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border border-rose-100">{s}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    // Guard: Only start if we have the minimum required data
-    // This prevents 400 errors if the component mounts during state hydration
-    if (
-      !formData.sectors ||
-      formData.positions.length === 0 ||
-      !formData.vision
-    ) {
-      return;
+                {/* Final Action Plan */}
+                <div className="bg-indigo-600 rounded-6xl p-12 text-white shadow-3xl grid md:grid-cols-2 gap-12 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-10"><Rocket size={150} /></div>
+                    <div className="space-y-6 relative z-10">
+                        <h4 className="text-xl font-black uppercase tracking-[0.2em] opacity-60">Immediate Roadmap</h4>
+                        <div className="space-y-4">
+                            {finalReport.actionPlan.immediate.map((act, i) => (
+                                <div key={i} className="flex gap-4 p-5 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                    <div className="w-8 h-8 rounded-full bg-white text-indigo-600 flex items-center justify-center font-black text-xs shrink-0">{i+1}</div>
+                                    <p className="text-sm font-bold">{act}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-6 relative z-10">
+                        <h4 className="text-xl font-black uppercase tracking-[0.2em] opacity-60">Strategic Growth</h4>
+                        <div className="space-y-4">
+                            {finalReport.actionPlan.strategic.map((act, i) => (
+                                <div key={i} className="flex gap-4 p-5 bg-indigo-900/30 rounded-2xl border border-indigo-400/20 backdrop-blur-sm">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-400 text-white flex items-center justify-center font-black text-xs shrink-0">{i+1}</div>
+                                    <p className="text-sm font-bold">{act}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-center items-center gap-6 pt-8">
+                    <button 
+                        onClick={handleStartAssessment}
+                        className="w-full md:w-auto px-12 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-4"
+                    >
+                        {t.startAssessment}
+                        <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
+                    </button>
+                    <button 
+                        onClick={() => setStep(0)}
+                        className="w-full md:w-auto px-12 py-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase tracking-widest transition-all"
+                    >
+                        {t.restart}
+                    </button>
+                </div>
+            </motion.div>
+        );
     }
 
-    const performAudit = async () => {
-      console.log("🚀 Starting Professional Audit...");
-      auditStarted.current = true;
-      try {
-        const userProfile = JSON.parse(
-          localStorage.getItem("userProfile") || "{}",
-        );
-        const body = new FormData();
-        body.append("sectors", formData.sectors);
-        body.append("positions", JSON.stringify(formData.positions));
-        body.append("vision", formData.vision);
-        body.append("language", language);
-        body.append("userId", userProfile.email || userProfile.fullName || "");
-        body.append("userName", userProfile.fullName || "");
+    if (step === 3) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-7xl mx-auto p-4 md:p-6 h-[calc(100vh-80px)] flex flex-col"
+            >
+                <button 
+                    onClick={() => setStep(2)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all group mb-6 bg-slate-900 w-fit px-4 py-2 rounded-xl"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
 
-        if (formData.experienceMode === "upload" && formData.cv) {
-          body.append("cv", formData.cv);
-        } else {
-          body.append("careerStory", formData.careerStory);
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout for deep analysis
-
-        const response = await fetch("/api/strategic-audit", {
-          method: "POST",
-          body: body,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-        if (data.success) {
-          setAuditData(data.audit);
-          onComplete(data.audit);
-          // Wait a bit to show a smooth transition
-          setTimeout(() => setAnalyzing(false), 2000);
-        } else {
-          setError(data.error || "Audit failed");
-          setAnalyzing(false);
-        }
-      } catch (err: unknown) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        const errorName = err instanceof Error ? err.name : "";
-        console.error("Audit error:", errorMsg);
-        if (errorName === "AbortError") {
-          setError(
-            language === "ar"
-              ? "استغرق التحليل وقتاً طويلاً جداً. يرجى المحاولة مرة أخرى."
-              : "Analysis timed out. Please try again.",
-          );
-        } else {
-          setError("Failed to connect to AI engine");
-        }
-        setAnalyzing(false);
-      }
-    };
-
-    performAudit();
-  }, [formData, language, onComplete, existingResult]);
-
-  const [loadingStep, setLoadingStep] = useState(0);
-
-  useEffect(() => {
-    if (!analyzing) return;
-    const steps = [
-      {
-        en: "Extracting Professional DNA...",
-        fr: "Extraction de l'ADN professionnel...",
-        ar: "جاري استخراج الحمض النووي المهني...",
-      },
-      {
-        en: "Scanning Competitive Gaps...",
-        fr: "Analyse des lacunes compétitives...",
-        ar: "جاري تحليل الفجوات التنافسية...",
-      },
-      {
-        en: "Identifying the 'Red Thread'...",
-        fr: "Identification du 'Fil Rouge'...",
-        ar: "تحديد 'الخيط الناظم' للمسار...",
-      },
-      {
-        en: "Cross-referencing Global Benchmarks...",
-        fr: "Croisement des références mondiales...",
-        ar: "تقاطع البيانات مع المعايير العالمية...",
-      },
-      {
-        en: "Synthesizing Strategic Verdict...",
-        fr: "Synthèse du verdict stratégique...",
-        ar: "صياغة الحكم الاستراتيجي النهائي...",
-      },
-    ];
-
-    const interval = setInterval(() => {
-      setLoadingStep((prev) => (prev + 1) % steps.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [analyzing]);
-
-  const loadingSteps = [
-    {
-      en: "Extracting Professional DNA...",
-      fr: "Extraction de l'ADN professionnel...",
-      ar: "جاري استخراج الحمض النووي المهني...",
-    },
-    {
-      en: "Scanning Competitive Gaps...",
-      fr: "Analyse des lacunes compétitives...",
-      ar: "جاري تحليل الفجوات التنافسية...",
-    },
-    {
-      en: "Identifying the 'Red Thread'...",
-      fr: "Identification du 'Fil Rouge'...",
-      ar: "تحديد 'الخيط الناظم' للمسار...",
-    },
-    {
-      en: "Cross-referencing Global Benchmarks...",
-      fr: "Croisement des références mondiales...",
-      ar: "تقاطع البيانات مع المعايير العالمية...",
-    },
-    {
-      en: "Synthesizing Strategic Verdict...",
-      fr: "Synthèse du verdict stratégique...",
-      ar: "صياغة الحكم الاستراتيجي النهائي...",
-    },
-  ];
-
-  if (analyzing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-16 relative overflow-hidden px-6">
-        {/* Background Decorative Blurs */}
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-blue-600/5 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-indigo-600/5 rounded-full blur-[100px] animate-pulse" />
-
-        <div className="relative">
-          {/* Main Strategic Radar */}
-          <div className="w-72 h-72 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center relative overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.4)] bg-white/50 dark:bg-black/50 backdrop-blur-3xl">
-            {/* Background Grid Lines */}
-            <div 
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)",
-                backgroundSize: "40px 40px",
-              }}
-            />
-
-            {/* Scanning Bar */}
-            <motion.div
-              animate={{ top: ['0%', '100%', '0%'] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              className="absolute left-0 w-full h-[3px] bg-linear-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_25px_rgba(59,130,246,0.8)] z-30 opacity-80"
-            />
-
-            <motion.div
-               animate={{ rotate: 360 }}
-               transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-               className="absolute inset-0 border-[0.5px] border-blue-500/20 border-dashed rounded-full"
-            />
-
-            {/* Inner Concentric Circles */}
-            <div className="absolute inset-6 rounded-full border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center shadow-inner">
-               <div className="absolute inset-12 rounded-full border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center">
-                  <div className="absolute inset-16 rounded-full border border-blue-600/20" />
-                  <div className="relative z-10 flex flex-col items-center">
-                    <Cpu className="text-blue-600 w-20 h-20 animate-pulse" strokeWidth={1} />
-                    <div className="absolute -bottom-4 text-[7px] font-black uppercase tracking-[0.3em] text-blue-500/60 animate-pulse">
-                       Core Engine
+                {/* Interview Header */}
+                <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-5xl border border-slate-100 shadow-xl">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                            <Brain size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900">{t.phase2Title}</h2>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.phase2Sub}</p>
+                        </div>
                     </div>
-                  </div>
-               </div>
-            </div>
+                    <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Active Audit Session</span>
+                    </div>
+                </div>
 
-            {/* Rotating Outer Ring Markers */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0"
-            >
-              {[0, 90, 180, 270].map((deg) => (
-                <div 
-                  key={deg} 
-                  className="absolute w-4 h-0.5 bg-blue-500/30" 
-                  style={{ top: '50%', left: '50%', transform: `rotate(${deg}deg) translate(140px)` }}
-                />
-              ))}
+                {/* Chat Interface */}
+                <div className="flex-1 bg-white rounded-6xl border border-slate-100 shadow-2xl overflow-hidden flex flex-col relative">
+                    <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
+                        {messages.map((msg, i) => (
+                            <motion.div 
+                                key={i}
+                                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className={cn(
+                                    "flex w-full max-w-[85%] md:max-w-[75%] gap-4",
+                                    msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
+                                )}
+                            >
+                                {/* Avatar */}
+                                <div className={cn(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 z-10",
+                                    msg.role === 'user' 
+                                        ? "bg-slate-100 text-slate-500 shadow-sm border border-slate-200" 
+                                        : "bg-linear-to-br from-indigo-600 to-violet-700 text-white shadow-[0_8px_30px_-6px_rgba(79,70,229,0.5)] ring-4 ring-white"
+                                )}>
+                                    {msg.role === 'user' ? <User size={20} /> : <Brain size={24} />}
+                                </div>
+                                
+                                {/* Message Bubble */}
+                                <div className={cn(
+                                    "flex flex-col gap-2 max-w-[calc(100%-4rem)]",
+                                    msg.role === 'user' ? "items-end" : "items-start"
+                                )}>
+                                    <div className={cn(
+                                        "px-7 py-6 rounded-4xl",
+                                        msg.role === 'user' 
+                                            ? "bg-slate-900 text-white rounded-tr-xl shadow-2xl shadow-slate-200/50 border border-slate-800" 
+                                            : "bg-white text-slate-700 rounded-tl-xl border-l-4 border-l-indigo-600 border-y border-r border-slate-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden"
+                                    )}>
+                                        {msg.role === 'assistant' && (
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-60"></div>
+                                        )}
+                                        <div className="relative z-10">
+                                            <p className={cn(
+                                                "text-[14.5px] leading-[1.85] font-semibold whitespace-pre-wrap",
+                                                msg.role === 'user' ? "text-slate-100" : "text-slate-700"
+                                            )}>{msg.content}</p>
+                                        </div>
+                                    </div>
+                                    <span className={cn(
+                                        "text-[10px] font-black uppercase tracking-widest px-3",
+                                        msg.role === 'user' ? "text-slate-400" : "text-indigo-600"
+                                    )}>
+                                        {msg.role === 'user' ? 'Candidate' : 'Strategic AI Expert'}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
+                        {isInterviewing && messages.length > 0 && messages[messages.length-1].role === 'user' && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex w-full max-w-[85%] md:max-w-[75%] gap-4 mr-auto"
+                            >
+                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100/50 bg-indigo-600 flex-col overflow-hidden relative text-white">
+                                    <Brain size={18} className="animate-pulse" />
+                                    <div className="absolute inset-0 bg-white/20 animate-ping rounded-2xl"></div>
+                                </div>
+                                <div className="flex flex-col gap-2 items-start max-w-[calc(100%-3rem)]">
+                                    <div className="px-6 py-5 rounded-4xl bg-white text-slate-700 rounded-tl-md border border-slate-100 shadow-xl shadow-slate-100/50 flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 text-indigo-500">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase text-slate-400">{t.aiThinking}</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                        {messages.length === 0 && (
+                            <div className="h-full flex flex-col items-center justify-center space-y-6 opacity-30 select-none">
+                                <Brain size={120} className="text-indigo-200" />
+                                <p className="text-xs font-black uppercase tracking-[0.4em] text-indigo-400 text-center leading-relaxed">
+                                    Initializing Strategic Connection...<br/>DeepSeek Core Waiting
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Chat Input */}
+                    <div className="p-8 bg-slate-50 border-t border-slate-100">
+                        {isInterviewComplete ? (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex flex-col items-center gap-4 py-4"
+                            >
+                                <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-[10px]">
+                                    <CheckCircle2 size={16} />
+                                    {t.interviewFinished}
+                                </div>
+                                <button 
+                                    onClick={handleGenerateFinalReport}
+                                    disabled={isGeneratingReport}
+                                    className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl flex items-center justify-center gap-4 disabled:opacity-50"
+                                >
+                                    {isGeneratingReport ? <Loader2 className="animate-spin" size={20} /> : (
+                                        <>
+                                            {t.viewFinalReport}
+                                            <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
+                                        </>
+                                    )}
+                                </button>
+                            </motion.div>
+                        ) : (
+                            <div className="flex gap-4 items-center bg-white p-2 pl-6 rounded-3xl border border-slate-200 shadow-sm focus-within:border-indigo-500 transition-all">
+                                <input 
+                                    className="flex-1 bg-transparent py-3 outline-none text-sm font-bold text-slate-700 placeholder:text-slate-300"
+                                    placeholder={t.chatPlaceholder}
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    disabled={isInterviewing}
+                                />
+                                <button 
+                                    onClick={handleSendMessage}
+                                    disabled={!chatInput.trim() || isInterviewing}
+                                    className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100 disabled:opacity-50 disabled:grayscale"
+                                >
+                                    <Send size={20} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </motion.div>
-          </div>
+        );
+    }
 
-          {/* Artificial Data Points */}
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0 }}
-              animate={{ 
-                opacity: [0, 1, 0],
-                scale: [0.5, 1.2, 0.5],
-              }}
-              transition={{ 
-                duration: 2, 
-                repeat: Infinity, 
-                delay: i * 0.4,
-                ease: "easeInOut"
-              }}
-              className="absolute w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,1)]"
-              style={{
-                left: `${50 + Math.cos(i * 1.04) * 35}%`,
-                top: `${50 + Math.sin(i * 1.04) * 35}%`,
-              }}
-            />
-          ))}
-
-          {/* Floating Data Nodes */}
-          {[0, 1, 2, 3].map((i) => (
-            <motion.div
-              key={i}
-              animate={{
-                x: [0, Math.cos(i * 1.5) * 40, 0],
-                y: [0, Math.sin(i * 1.5) * 40, 0],
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: 3 + i,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="absolute w-2 h-2 bg-blue-500 rounded-full"
-              style={{
-                left: "50%",
-                top: "50%",
-                marginLeft: `${Math.cos(i * 1.5) * 140}px`,
-                marginTop: `${Math.sin(i * 1.5) * 140}px`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="text-center space-y-8 max-w-lg z-10">
-          <div className="space-y-3">
-            <motion.h2
-              key={loadingStep}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-800 dark:text-white"
+    if (step === 2 && result) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-7xl mx-auto p-6 md:p-12 space-y-8"
             >
-              {(loadingSteps[loadingStep] as Record<string, string>)[
-                language
-              ] || loadingSteps[loadingStep].en}
-            </motion.h2>
-            <div className="w-full bg-slate-100 dark:bg-slate-900 h-1 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: "0%" }}
-                animate={{ width: "100%" }}
-                transition={{ duration: 15, ease: "linear" }}
-                className="h-full bg-blue-600"
-              />
-            </div>
-          </div>
+                <button 
+                    onClick={() => setStep(1)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
 
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.5em] animate-pulse">
-            SCI ENGINE v4.2 — High Precision Strategic Audit
-          </p>
-        </div>
-      </div>
-    );
-  }
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3 text-indigo-600">
+                            <ShieldCheck size={24} />
+                            <h2 className="text-3xl font-black tracking-tight">{t.resultsTitle}</h2>
+                        </div>
+                        <p className="text-slate-500 font-medium">
+                            {language === 'ar' ? "تحليل الحمض النووي المهني - نسخة المدقق الاستراتيجي" : "Professional DNA Analysis - Strategic Auditor Edition"}
+                        </p>
+                    </div>
+                    <button 
+                        onClick={() => setStep(0)}
+                        className="flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all shadow-sm group"
+                    >
+                        <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+                        {t.restart}
+                    </button>
+                </div>
 
-  if (error) {
+                {/* Identity & Basic Info Grid */}
+                <div className="grid lg:grid-cols-3 gap-8 mb-12">
+                    {/* Professional Identity Card */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="lg:col-span-1 bg-linear-to-br from-indigo-600 to-violet-700 rounded-6xl p-10 text-white shadow-2xl relative overflow-hidden group"
+                    >
+                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <Briefcase size={160} />
+                        </div>
+                        <div className="relative z-10 space-y-6">
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md">
+                                <Search size={24} />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-indigo-100 font-bold uppercase tracking-widest text-xs">{t.identity}</h3>
+                                <p className="text-3xl font-black leading-tight drop-shadow-md">
+                                    {result.professionalIdentity}
+                                </p>
+                            </div>
+                            <div className="pt-4 border-t border-white/10 flex items-center gap-4">
+                                <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+                                    <Trophy size={20} className="text-amber-300" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-tighter">{t.progression}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-black text-sm">{result.dimensions.careerProgression}</p>
+                                        {result.dimensions.progressionIcon === 'up' && <ChevronUp size={16} className="text-emerald-400" />}
+                                        {result.dimensions.progressionIcon === 'down' && <ChevronDown size={16} className="text-rose-400" />}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Basic Info Data Matrix */}
+                    <div className="lg:col-span-2 bg-white rounded-6xl border border-slate-100 p-10 shadow-xl grid md:grid-cols-2 gap-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-5"><Layout size={100} /></div>
+                        
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Database className="text-indigo-600" size={18} />
+                                <h4 className="font-black text-xs uppercase tracking-widest text-slate-400">{t.basicInfo}</h4>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 gap-4">
+                                {[
+                                    { label: t.field, value: result.basicData.field, icon: Briefcase },
+                                    { label: t.specialization, value: result.basicData.specialization, icon: Target },
+                                    { label: t.education, value: result.basicData.education, icon: GraduationCap },
+                                    { label: t.experience, value: result.basicData.yearsOfExperience, icon: History },
+                                    { label: t.sector, value: result.basicData.sector, icon: Layout },
+                                ].map((item, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                                                <item.icon size={14} className="text-indigo-500" />
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-500">{item.label}</span>
+                                        </div>
+                                        <span className="text-sm font-black text-slate-900">{item.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Zap className="text-amber-500" size={18} />
+                                <h4 className="font-black text-xs uppercase tracking-widest text-slate-400">{t.careerDimensions}</h4>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {[
+                                    { label: t.responsibility, value: result.dimensions.responsibilityLevel, score: 70, color: "bg-indigo-500" },
+                                    { label: t.marketPosition, value: result.dimensions.marketPosition, score: 60, color: "bg-emerald-500" },
+                                    { label: t.leadership, value: result.dimensions.leadershipSignal, score: 40, color: "bg-amber-500" },
+                                ].map((dim, idx) => (
+                                    <div key={idx} className="space-y-2">
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-xs font-bold text-slate-500">{dim.label}</span>
+                                            <span className="text-xs font-black text-slate-900">{dim.value}</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${dim.score}%` }}
+                                                className={`h-full ${dim.color}`}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                
+                                <div className="pt-4 border-t border-slate-50">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">{t.learningSignals}</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {result.learningSignals.map((sig, i) => (
+                                            <span key={i} className="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-black rounded-lg border border-amber-100">
+                                                {sig}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content: Mirror & Criticism */}
+                <div className="grid lg:grid-cols-2 gap-8">
+                    {/* Reality Mirror */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-white rounded-6xl p-10 border border-slate-100 shadow-2xl relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 p-8 opacity-5"><History size={120} /></div>
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 shadow-sm">
+                                <AlertCircle size={20} />
+                            </div>
+                            <h3 className="font-black text-sm uppercase tracking-widest text-slate-900">{t.originalMirror}</h3>
+                        </div>
+                        <p className="text-lg font-bold leading-relaxed text-slate-700 italic border-l-4 border-amber-500 pl-6 py-2">
+                            &quot;{result.executiveSummary}&quot;
+                        </p>
+                    </motion.div>
+
+                    {/* Strategic Criticism */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-slate-900 text-white rounded-6xl p-10 shadow-2xl relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 p-8 opacity-10"><Target size={120} /></div>
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400 shadow-sm">
+                                <Zap size={20} />
+                            </div>
+                            <h3 className="font-black text-sm uppercase tracking-widest text-indigo-100">{t.strategicAudit}</h3>
+                        </div>
+                        <p className="text-lg font-bold leading-relaxed opacity-90">
+                            {result.strategicCriticism}
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Skills & Timeline Section */}
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Skills Matrix */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div className="bg-white rounded-6xl p-10 border border-slate-100 shadow-xl space-y-10">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Zap className="text-indigo-600" size={20} />
+                                    <h3 className="font-black text-sm uppercase tracking-widest text-slate-900">{t.detectedSkills}</h3>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                {result.skills.detected.map((skill, i) => (
+                                    <motion.span 
+                                        key={i}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="px-6 py-3 bg-emerald-50 text-emerald-700 rounded-2xl text-xs font-black border border-emerald-100 flex items-center gap-2"
+                                    >
+                                        <CheckCircle2 size={14} />
+                                        {skill}
+                                    </motion.span>
+                                ))}
+                            </div>
+
+                            <div className="pt-10 border-t border-slate-50 space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <Rocket className="text-rose-500" size={20} />
+                                    <h3 className="font-black text-sm uppercase tracking-widest text-slate-900">{t.skillGaps}</h3>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                    {result.skills.gaps.map((gap, i) => (
+                                        <span key={i} className="px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-xs font-black border border-rose-100">
+                                            {gap}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Timeline & Analysis */}
+                    <div className="space-y-8">
+                        {/* Career Timeline */}
+                        <div className="bg-white rounded-5xl p-8 border border-slate-100 shadow-xl space-y-8">
+                            <div className="flex items-center gap-3">
+                                <TrendingUp className="text-indigo-600" size={20} />
+                                <h3 className="font-black text-sm uppercase tracking-widest text-slate-900">{t.timeline}</h3>
+                            </div>
+                            <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:w-0.5 before:bg-slate-100 before:h-full">
+                                {result.timeline.length > 0 ? result.timeline.map((item, i) => (
+                                    <div key={i} className="relative flex items-center gap-8 pl-4 group">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 border-4 border-white shadow-lg z-10 group-hover:scale-125 transition-transform" />
+                                        <div className="flex flex-col">
+                                            <div className="flex gap-4 items-center">
+                                                <span className="text-xs font-black text-indigo-600 min-w-[50px]">{item.year}</span>
+                                                <span className="text-sm font-bold text-slate-700">{item.event}</span>
+                                            </div>
+                                            {item.duration && (
+                                                <span className="text-[10px] font-bold text-slate-400 ml-[66px]">{item.duration}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="text-xs font-bold text-slate-400 italic py-4 pl-12">
+                                        {language === 'ar' ? "لا يوجد تسلسل زمني واضح" : "No clear timeline detected"}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Narrative Analysis Card */}
+                        <div className="bg-slate-50 rounded-5xl p-8 border border-slate-200 shadow-inner space-y-8">
+                            <div className="flex items-center gap-3">
+                                <Brain className="text-indigo-600" size={20} />
+                                <h3 className="font-black text-sm uppercase tracking-widest text-slate-900">{t.narrativeAnalysis}</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.tone}</span>
+                                    <p className="text-sm font-black text-indigo-600">{result.textAnalysis?.tone}</p>
+                                </div>
+                                <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.clarity}</span>
+                                    <p className="text-sm font-black text-indigo-600">{result.textAnalysis?.clarity}</p>
+                                </div>
+                                <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.consistency}</span>
+                                    <p className="text-sm font-black text-indigo-600">{result.textAnalysis?.consistency}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Final Action Plan */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-indigo-600 rounded-6xl p-12 text-white shadow-[0_30px_60px_-15px_rgba(79,70,229,0.3)] relative overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 p-12 opacity-10"><Rocket size={200} /></div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+                        <div className="flex-1 space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md">
+                                    <BarChart3 size={24} />
+                                </div>
+                                <h3 className="text-3xl font-black">{t.actions}</h3>
+                            </div>
+                            <div className="space-y-4">
+                                {result.actionPlan.map((action, i) => (
+                                    <div key={i} className="flex gap-4 items-center p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-sm group hover:bg-white/20 transition-all">
+                                        <div className="w-8 h-8 rounded-full bg-white text-indigo-600 flex items-center justify-center font-black text-xs shrink-0">
+                                            {i + 1}
+                                        </div>
+                                        <p className="text-sm font-bold">{action}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="w-full md:w-auto">
+                            <button 
+                                onClick={handleStartInterview}
+                                className="w-full px-10 py-6 bg-white text-indigo-600 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4"
+                            >
+                                {t.startPhase2}
+                                <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </motion.div>
+        );
+    }
+
+    if (step === 5) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-6 md:p-12 min-h-screen flex flex-col"
+            >
+                <button 
+                    onClick={() => setStep(4)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
+
+                {/* Assessment Header */}
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12 bg-white p-8 rounded-5xl border border-slate-100 shadow-xl">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-emerald-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-emerald-100">
+                            <GraduationCap size={32} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900">{t.assessmentTitle}</h2>
+                            <div className="flex items-center gap-3 mt-2">
+                                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-100">
+                                    30 {language === 'ar' ? 'سؤالاً' : 'Questions'}
+                                </span>
+                                <span className="text-slate-300">|</span>
+                                <span className="text-xs font-bold text-slate-400">
+                                    {assessmentQuestions.length > 0 ? `${currentQuestionIndex + 1} / ${assessmentQuestions.length}` : 'Initializing...'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {assessmentError ? (
+                    <div className="flex-1 flex flex-col items-center justify-center space-y-8 py-20">
+                        <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-600 shadow-xl shadow-rose-100">
+                             <AlertCircle size={40} />
+                        </div>
+                        <div className="text-center space-y-4 max-w-md">
+                            <h3 className="text-2xl font-black text-slate-900">{language === 'ar' ? 'فشل توليد الاختبار' : 'Assessment Generation Failed'}</h3>
+                            <p className="text-slate-500 font-medium leading-relaxed">
+                                {assessmentError}
+                            </p>
+                            <button 
+                                onClick={handleStartAssessment}
+                                className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 mx-auto mt-6 shadow-2xl"
+                            >
+                                <RefreshCw size={20} />
+                                {language === 'ar' ? 'إعادة المحاولة' : 'Try Again'}
+                            </button>
+                        </div>
+                    </div>
+                ) : isGeneratingAssessment ? (
+                    <div className="flex-1 flex flex-col items-center justify-center space-y-8 py-20">
+                        <div className="relative">
+                            <div className="w-24 h-24 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Sparkles className="text-emerald-600 animate-pulse" size={32} />
+                            </div>
+                        </div>
+                        <div className="text-center space-y-3">
+                            <h3 className="text-2xl font-black text-slate-900">{language === 'ar' ? 'جاري توليد الاختبار الاستراتيجي...' : 'Generating Strategic Assessment...'}</h3>
+                            <p className="text-slate-500 font-medium">{language === 'ar' ? 'نقوم بتحليل التقارير السابقة لبناء 30 سؤالاً محاكاةً لوضعيتك...' : 'Synthesizing previous reports to build 30 tailored simulation questions...'}</p>
+                        </div>
+                    </div>
+                ) : isAnalyzingAssessment ? (
+                    <div className="flex-1 flex flex-col items-center justify-center space-y-8 py-20">
+                        <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <div className="text-center space-y-3">
+                            <h3 className="text-2xl font-black text-slate-900">{language === 'ar' ? 'جاري تحليل النتائج بدقة...' : 'Analyzing results with precision...'}</h3>
+                            <p className="text-slate-500 font-medium">{language === 'ar' ? 'الخبير يراجع إجاباتك ويقارنها بمسارك المهني...' : 'The expert is reviewing your answers and comparing them with your career path...'}</p>
+                        </div>
+                    </div>
+                ) : assessmentAnalysis ? (
+                    /* Final Analysis Results */
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-8 pb-20"
+                    >
+                        <div className="bg-slate-900 rounded-6xl p-12 text-white relative overflow-hidden shadow-3xl">
+                             <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12"><Trophy size={250} /></div>
+                             <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                                <h3 className="text-3xl font-black uppercase tracking-[0.2em]">{t.assessmentAnalysisTitle}</h3>
+                                <div className="flex items-center gap-12">
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Final Assessment Score</p>
+                                        <span className="text-7xl font-black">{Math.round((assessmentAnalysis.score / assessmentAnalysis.total) * 100)}%</span>
+                                    </div>
+                                    <div className="text-left bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/10">
+                                        <p className="text-xs font-bold opacity-60">Accuracy</p>
+                                        <p className="text-xl font-black">{assessmentAnalysis.score} / {assessmentAnalysis.total}</p>
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-8">
+                            <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Zap className="text-amber-500" size={20} />
+                                    <h4 className="font-black text-slate-900 uppercase tracking-widest text-sm">{t.technicalProficiencyLabel}</h4>
+                                </div>
+                                <p className="text-sm font-medium leading-relaxed text-slate-600">{assessmentAnalysis.technicalProficiency}</p>
+                            </div>
+                            <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <ShieldCheck className="text-indigo-500" size={20} />
+                                    <h4 className="font-black text-slate-900 uppercase tracking-widest text-sm">{t.behavioralInsightLabel}</h4>
+                                </div>
+                                <p className="text-sm font-medium leading-relaxed text-slate-600">{assessmentAnalysis.behavioralInsight}</p>
+                            </div>
+                            <div className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Target className="text-rose-500" size={20} />
+                                    <h4 className="font-black text-slate-900 uppercase tracking-widest text-sm">{t.decisionMakingLabel}</h4>
+                                </div>
+                                <p className="text-sm font-medium leading-relaxed text-slate-600">{assessmentAnalysis.decisionMakingQuality}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-emerald-50 border border-emerald-100 p-10 rounded-5xl">
+                            <h4 className="text-lg font-black text-emerald-800 mb-4 flex items-center gap-3">
+                                <CheckCircle2 size={24} />
+                                {t.finalVerdictLabel}
+                            </h4>
+                            <p className="text-emerald-900 font-bold leading-relaxed">{assessmentAnalysis.finalConclusion}</p>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row justify-center items-center gap-6">
+                            <button 
+                                onClick={handleStartMindsetInterview}
+                                className="w-full md:w-auto px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-200 flex items-center justify-center gap-4"
+                            >
+                                {t.startMindsetInterview}
+                                <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
+                            </button>
+                            <button 
+                                onClick={() => setStep(0)}
+                                className="w-full md:w-auto px-12 py-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase tracking-widest transition-all"
+                            >
+                                {t.restart}
+                            </button>
+                        </div>
+                    </motion.div>
+                ) : assessmentQuestions.length > 0 && (
+                    /* Active Testing UI */
+                    <div className="max-w-4xl mx-auto w-full space-y-12 pb-20">
+                        {/* Progress Bar */}
+                        <div className="space-y-3">
+                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <span>{assessmentQuestions[currentQuestionIndex].category} Assessment</span>
+                                <span>{Math.round(((currentQuestionIndex + 1) / assessmentQuestions.length) * 100)}%</span>
+                            </div>
+                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 p-0.5">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${((currentQuestionIndex + 1) / assessmentQuestions.length) * 100}%` }}
+                                    className="h-full bg-emerald-500 rounded-full"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Question Card */}
+                        <motion.div 
+                            key={currentQuestionIndex}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="bg-white rounded-5xl border border-slate-100 shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-10 md:p-14 space-y-10">
+                                <div className="space-y-6">
+                                    <span className={cn(
+                                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                                        assessmentQuestions[currentQuestionIndex].category === 'technical' ? "bg-amber-50 text-amber-700 border-amber-100" :
+                                        assessmentQuestions[currentQuestionIndex].category === 'soft' ? "bg-indigo-50 text-indigo-700 border-indigo-100" :
+                                        "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                    )}>
+                                        {assessmentQuestions[currentQuestionIndex].category === 'technical' ? t.technicalCat :
+                                         assessmentQuestions[currentQuestionIndex].category === 'soft' ? t.softCat : t.scenarioCat}
+                                    </span>
+                                    <h3 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                                        {assessmentQuestions[currentQuestionIndex].question}
+                                    </h3>
+                                </div>
+
+                                <div className="grid gap-4">
+                                    {assessmentQuestions[currentQuestionIndex].options.map((option, idx) => {
+                                        const isCorrect = idx === assessmentQuestions[currentQuestionIndex].correctIndex;
+                                        const isSelected = selectedOption === idx;
+                                        
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleSelectOption(idx)}
+                                                disabled={showCorrection}
+                                                className={cn(
+                                                    "text-left p-6 rounded-3xl border-2 transition-all flex items-center justify-between group",
+                                                    !showCorrection && "border-slate-100 hover:border-emerald-500 hover:bg-emerald-50/30",
+                                                    showCorrection && isCorrect && "border-emerald-500 bg-emerald-50 text-emerald-900 shadow-lg shadow-emerald-100 scale-[1.02]",
+                                                    showCorrection && isSelected && !isCorrect && "border-rose-300 bg-rose-50 text-rose-900 opacity-80"
+                                                )}
+                                            >
+                                                <div className="flex items-center gap-6">
+                                                    <div className={cn(
+                                                        "w-10 h-10 rounded-2xl flex items-center justify-center font-black transition-colors",
+                                                        !showCorrection && "bg-slate-100 text-slate-500 group-hover:bg-emerald-600 group-hover:text-white",
+                                                        showCorrection && isCorrect && "bg-emerald-600 text-white",
+                                                        showCorrection && isSelected && !isCorrect && "bg-rose-600 text-white"
+                                                    )}>
+                                                        {String.fromCharCode(65 + idx)}
+                                                    </div>
+                                                    <span className="text-lg font-bold">{option}</span>
+                                                </div>
+                                                {showCorrection && isCorrect && <CheckCircle2 className="text-emerald-600" size={24} />}
+                                                {showCorrection && isSelected && !isCorrect && <AlertCircle className="text-rose-600" size={24} />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Feedback Section */}
+                                <AnimatePresence>
+                                    {showCorrection && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            className="pt-10 border-t border-slate-100 space-y-8"
+                                        >
+                                            <div className="grid md:grid-cols-2 gap-8">
+                                                <div className="space-y-3">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t.explanationLabel}</h4>
+                                                    <p className="text-sm font-bold text-slate-700 leading-relaxed">
+                                                        {assessmentQuestions[currentQuestionIndex].feedback.explanation}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t.evidenceLabel}</h4>
+                                                    <p className="text-sm font-bold text-indigo-600 leading-relaxed italic">
+                                                        {assessmentQuestions[currentQuestionIndex].feedback.evidence}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100">
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-700 mb-2">{t.adviceLabel}</h4>
+                                                <p className="text-sm font-black text-amber-900 leading-relaxed">
+                                                    {assessmentQuestions[currentQuestionIndex].feedback.advice}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="flex justify-end">
+                                                <button 
+                                                    onClick={handleNextQuestion}
+                                                    className="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-3"
+                                                >
+                                                    {currentQuestionIndex < assessmentQuestions.length - 1 ? t.nextQuestion : t.seeResult}
+                                                    <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </motion.div>
+        );
+    }
+
+    if (step === 6) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-7xl mx-auto p-4 md:p-6 h-[calc(100vh-80px)] flex flex-col"
+            >
+                <button 
+                    onClick={() => setStep(5)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
+
+                {/* Mindset Header */}
+                <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-5xl border border-slate-100 shadow-xl">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                            <Sparkles size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900">{t.mindsetTitle}</h2>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.mindsetSub}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mindset Chat Interface */}
+                <div className="flex-1 overflow-hidden bg-white rounded-5xl border border-slate-100 shadow-2xl flex flex-col relative">
+                    <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 custom-scrollbar">
+                        {mindsetMessages.map((msg, idx) => (
+                            <motion.div 
+                                key={idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={cn(
+                                    "flex items-start gap-4",
+                                    msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center font-black text-xs",
+                                    msg.role === 'user' ? "bg-slate-900 text-white" : "bg-linear-to-br from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-100"
+                                )}>
+                                    {msg.role === 'user' ? <User size={18} /> : <Brain size={18} />}
+                                </div>
+                                <div className={cn(
+                                    "max-w-[80%] p-6 rounded-4xl",
+                                    msg.role === 'user' 
+                                        ? "bg-slate-900 text-white rounded-tr-none" 
+                                        : "bg-slate-50 text-slate-800 rounded-tl-none border border-slate-100"
+                                )}>
+                                    <p className="text-sm md:text-base font-bold leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                        {isMindsetInterviewing && (
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white">
+                                    <Brain size={18} />
+                                </div>
+                                <div className="bg-slate-50 p-6 rounded-4xl rounded-tl-none border border-slate-100">
+                                    <div className="flex gap-2">
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" />
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100">
+                        <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 items-center">
+                            <input 
+                                className="flex-1 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm outline-none focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                placeholder={t.mindsetChatPlaceholder}
+                                value={mindsetInput}
+                                onChange={(e) => setMindsetInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSendMindsetMessage()}
+                                disabled={isMindsetInterviewing}
+                            />
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={handleSendMindsetMessage}
+                                    disabled={isMindsetInterviewing || !mindsetInput.trim()}
+                                    className="p-5 bg-indigo-600 text-white rounded-3xl hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100 disabled:opacity-50"
+                                >
+                                    <Send size={24} />
+                                </button>
+                                {mindsetMessages.filter(m => m.role === 'assistant').length >= 4 && (
+                                    <button 
+                                        onClick={handleAnalyzeMindset}
+                                        className="px-8 py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center gap-3"
+                                    >
+                                        {t.viewMindsetAnalysis}
+                                        <ArrowRight size={20} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (step === 7) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12 pb-20"
+            >
+                <button 
+                    onClick={() => setStep(6)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
+
+                {/* Results Header */}
+                <div className="bg-slate-900 rounded-6xl p-12 text-white shadow-3xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-10"><Brain size={250} /></div>
+                    <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                        <h2 className="text-4xl font-black">{t.mindsetAnalysisTitle}</h2>
+                        <div className="flex flex-wrap justify-center gap-6">
+                            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/10">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">{t.mindsetTypeLabel}</p>
+                                <span className="text-xl font-black">{mindsetAnalysis?.mindsetType || "Calculating..."}</span>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/10">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">{t.satisfactionLabel}</p>
+                                <span className="text-xl font-black">{mindsetAnalysis?.satisfactionLevel || "..."}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {isAnalyzingMindset ? (
+                    <div className="flex flex-col items-center justify-center py-20 space-y-8">
+                        <Loader2 className="animate-spin text-indigo-600" size={60} />
+                        <p className="text-xl font-black text-slate-900 tracking-widest uppercase animate-pulse">{language === 'ar' ? 'جاري استخراج الملف النفسي المهني...' : 'Extracting Psychological Profile...'}</p>
+                    </div>
+                ) : mindsetAnalysis && (
+                    <div className="space-y-12">
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Detailed Profile */}
+                            <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl space-y-8">
+                                <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
+                                        <Target size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900">{t.psychologicalProfileTitle}</h3>
+                                </div>
+                                <div className="space-y-6">
+                                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">{t.motivationLabel}</h4>
+                                        <p className="font-bold text-slate-700 leading-relaxed">{mindsetAnalysis.psychologicalProfile.motivation}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-700 mb-2">{t.ambitionScoreLabel}</h4>
+                                            <span className="text-3xl font-black text-amber-900">{mindsetAnalysis.psychologicalProfile.ambitionScore}%</span>
+                                        </div>
+                                        <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-700 mb-2">{t.loyaltyPatternLabel}</h4>
+                                            <span className="text-lg font-black text-indigo-900">{mindsetAnalysis.psychologicalProfile.loyaltyPattern}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Recommendations */}
+                            <div className="bg-indigo-600 rounded-5xl p-10 text-white shadow-xl space-y-8 flex flex-col justify-between">
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+                                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white">
+                                            <Zap size={24} />
+                                        </div>
+                                        <h3 className="text-xl font-black">{t.futureDirectionLabel}</h3>
+                                    </div>
+                                    <div className="p-8 bg-white/10 rounded-4xl border border-white/10 backdrop-blur-md">
+                                        <span className="text-4xl font-black block mb-4">{mindsetAnalysis.futureDirection}</span>
+                                        <p className="font-bold opacity-80 leading-relaxed">{mindsetAnalysis.recommendation}</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-4">
+                                    <button 
+                                        onClick={handleGenerateGrandReport}
+                                        className="w-full py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl flex items-center justify-center gap-3 animate-pulse"
+                                    >
+                                        <Trophy size={24} />
+                                        {t.generateGrandReportBtn}
+                                    </button>
+                                    <button 
+                                        onClick={() => setStep(0)}
+                                        className="w-full py-4 bg-white/10 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
+                                    >
+                                        {t.restart}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stress Handling specialized section */}
+                        <div className="bg-slate-50 border border-slate-100 p-10 rounded-5xl flex items-center gap-8">
+                            <div className="w-20 h-20 shrink-0 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-100">
+                                <ShieldCheck size={32} className="text-emerald-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">{t.stressHandlingLabel}</h4>
+                                <p className="text-lg font-bold text-slate-700">{mindsetAnalysis.psychologicalProfile.stressHandling}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </motion.div>
+        );
+    }
+
+    if (step === 8) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12 pb-32"
+            >
+                <button 
+                    onClick={() => setStep(7)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
+
+                {/* Grand Header */}
+                <div className="bg-slate-900 rounded-6xl p-16 text-white shadow-3xl relative overflow-hidden text-center">
+                    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                        <div className="absolute top-0 right-0 p-12"><Trophy size={300} /></div>
+                    </div>
+                    
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="relative z-10 space-y-8"
+                    >
+                        <div className="w-24 h-24 bg-linear-to-br from-amber-400 to-amber-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-amber-500/20">
+                            <Trophy size={48} />
+                        </div>
+                        <div className="space-y-4">
+                            <h1 className="text-5xl md:text-6xl font-black tracking-tight">{t.grandReportTitle}</h1>
+                            <p className="text-xl text-indigo-200 font-medium tracking-wide uppercase">{t.grandReportSub}</p>
+                        </div>
+                        
+                        <div className="flex flex-wrap justify-center gap-8 pt-8">
+                             <div className="bg-white/10 backdrop-blur-xl px-10 py-6 rounded-4xl border border-white/20">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">{t.maturityScoreLabel}</p>
+                                <span className="text-6xl font-black">{grandFinalReport?.professionalIdentity.maturityScore || "0"}%</span>
+                             </div>
+                             <div className="bg-white/10 backdrop-blur-xl px-10 py-6 rounded-4xl border border-white/20 flex flex-col justify-center">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">{t.psychologyLabel}</p>
+                                <span className="text-2xl font-black">{grandFinalReport?.professionalIdentity.psychologicalFootprint || "..."}</span>
+                             </div>
+                        </div>
+                    </motion.div>
+                </div>
+
+                {isGeneratingGrandReport ? (
+                    <div className="flex flex-col items-center justify-center py-32 space-y-10">
+                        <div className="relative">
+                            <div className="w-32 h-32 border-8 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Brain size={48} className="text-indigo-600 animate-pulse" />
+                            </div>
+                        </div>
+                        <div className="text-center space-y-4">
+                            <h3 className="text-3xl font-black text-slate-900">{language === 'ar' ? 'جاري دمج كافة البيانات الاستراتيجية...' : 'Synthesizing all strategic data...'}</h3>
+                            <p className="text-slate-500 text-lg font-medium">{language === 'ar' ? 'الخبير يحلل الرواية، الأداء، والعقلية لاستخراج الخلاصة النهائية...' : 'Analyzing narrative, performance, and mindset for the ultimate verdict...'}</p>
+                        </div>
+                    </div>
+                ) : grandFinalReport && (
+                    <div className="grid grid-cols-1 gap-12">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-amber-50 border-2 border-amber-200 p-12 rounded-7xl text-center"
+                        >
+                            <h3 className="text-4xl font-black text-amber-900 mb-6 italic">&quot;{grandFinalReport.professionalIdentity.verdict}&quot;</h3>
+                            <div className="w-20 h-1 bg-amber-300 mx-auto rounded-full" />
+                        </motion.div>
+
+                        <div className="grid lg:grid-cols-2 gap-12">
+                             <div className="bg-white rounded-6xl p-12 border border-slate-100 shadow-2xl space-y-10">
+                                <div className="flex items-center gap-6 border-b border-slate-50 pb-8">
+                                    <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 shadow-lg shadow-blue-50">
+                                        <BarChart3 size={32} />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-900">{t.skillRadarTitle}</h3>
+                                </div>
+                                
+                                <div className="space-y-8">
+                                    {grandFinalReport.competencyMatrix.skillRadar.map((skill, idx) => (
+                                        <div key={idx} className="space-y-3">
+                                            <div className="flex justify-between font-black uppercase tracking-widest text-xs text-slate-500">
+                                                <span>{skill.name}</span>
+                                                <span className="text-slate-900">{skill.score}%</span>
+                                            </div>
+                                            <div className="h-4 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-1">
+                                                <div 
+                                                    style={{ width: `${skill.score}%` }}
+                                                    className="h-full bg-linear-to-r from-blue-500 to-indigo-600 rounded-full"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="p-8 bg-indigo-50/50 rounded-4xl border border-indigo-100 mt-10">
+                                    <h4 className="text-sm font-black uppercase text-indigo-900 mb-3">{t.gapAnalysisTitle}</h4>
+                                    <p className="text-indigo-800 font-bold leading-relaxed">{grandFinalReport.competencyMatrix.gapAnalysis}</p>
+                                </div>
+                             </div>
+
+                             <div className="space-y-12">
+                                <div className="bg-slate-900 rounded-6xl p-12 text-white shadow-2xl relative overflow-hidden h-full flex flex-col justify-center">
+                                    <div className="absolute bottom-0 right-0 p-10 opacity-10"><Target size={150} /></div>
+                                    <h3 className="text-2xl font-black text-indigo-300 mb-8 flex items-center gap-4">
+                                        <Target size={32} />
+                                        {t.marketValuesTitle}
+                                    </h3>
+                                    <div className="space-y-8 relative z-10">
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Job Alignment</p>
+                                            <div className="flex items-baseline gap-4">
+                                                <span className="text-6xl font-black">{grandFinalReport.marketPositioning.jobAlignmentScore}%</span>
+                                                <span className="text-indigo-400 font-black">Match</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white/5 p-8 rounded-4xl border border-white/10">
+                                            <p className="font-bold opacity-90 leading-relaxed text-lg">{grandFinalReport.marketPositioning.marketValueVerdict}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
+
+                        <div className="bg-white rounded-6xl p-12 border border-slate-100 shadow-2xl overflow-hidden relative">
+                            <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-50 z-0 rounded-l-[100px]" />
+                            <div className="relative z-10 grid lg:grid-cols-2 gap-16">
+                                <div className="space-y-10">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-16 h-16 bg-emerald-50 rounded-3xl flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-50">
+                                            <TrendingUp size={32} />
+                                        </div>
+                                        <h3 className="text-3xl font-black text-slate-900">{t.roadmapTitle}</h3>
+                                    </div>
+                                    
+                                    <div className="space-y-8">
+                                        <div className="space-y-4">
+                                            <h4 className="flex items-center gap-3 text-emerald-700 font-black uppercase tracking-widest text-xs">
+                                                <Zap size={18} />
+                                                {t.shortTermLabel}
+                                            </h4>
+                                            <ul className="space-y-3">
+                                                {grandFinalReport.actionableRoadmap.shortTerm.map((item, i) => (
+                                                    <li key={i} className="flex items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
+                                                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                                                        <span className="font-bold text-emerald-900">{item}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h4 className="flex items-center gap-3 text-indigo-700 font-black uppercase tracking-widest text-xs">
+                                                <Target size={18} />
+                                                {t.mediumTermLabel}
+                                            </h4>
+                                            <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 font-black text-indigo-900 text-2xl">
+                                                {grandFinalReport.actionableRoadmap.mediumTerm}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-slate-900 rounded-5xl p-12 text-white flex flex-col justify-center space-y-8">
+                                    <h4 className="text-amber-400 font-black uppercase tracking-[0.2em] text-[10px]">{t.longTermLabel}</h4>
+                                    <p className="text-3xl font-black italic leading-tight">&quot;{grandFinalReport.actionableRoadmap.longTermVision}&quot;</p>
+                                    <div className="pt-8 border-t border-white/10">
+                                        <button 
+                                            onClick={() => window.print()} 
+                                            className="w-full py-5 bg-white text-slate-900 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-300 transition-all shadow-2xl"
+                                        >
+                                            {language === 'ar' ? 'تحميل التقرير الكامل PDF' : 'Download Complete PDF Report'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-linear-to-br from-indigo-600 to-indigo-800 rounded-7xl p-16 text-white shadow-3xl text-center space-y-10 relative overflow-hidden">
+                             <div className="absolute top-0 right-0 p-20 opacity-10 rotate-12"><Zap size={400} /></div>
+                             <div className="relative z-10 max-w-4xl mx-auto space-y-10">
+                                <div className="w-20 h-20 bg-white/20 rounded-4xl flex items-center justify-center text-white mx-auto backdrop-blur-md">
+                                    <Star size={40} className="fill-white" />
+                                </div>
+                                <h3 className="text-4xl font-black tracking-tight">{t.expertSynthesisTitle}</h3>
+                                <p className="text-2xl font-bold leading-relaxed opacity-95">{grandFinalReport.expertSynthesis}</p>
+                                <div className="pt-10 flex flex-col md:flex-row justify-center gap-6">
+                                    <button 
+                                        onClick={handleStartSimulation}
+                                        className="px-16 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl flex items-center justify-center gap-3 group"
+                                    >
+                                        <Rocket size={24} className="group-hover:animate-bounce" />
+                                        {language === 'ar' ? 'استكشاف المسارات الاستراتيجية' : language === 'fr' ? 'Explorer les pistes stratégiques' : 'Explore Strategic Paths'}
+                                    </button>
+                                    <button 
+                                        onClick={() => setStep(0)}
+                                        className="px-16 py-6 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-white hover:text-indigo-600 transition-all shadow-2xl"
+                                    >
+                                        {t.restart}
+                                    </button>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                )}
+            </motion.div>
+        );
+    }
+
+    if (step === 9) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-7xl mx-auto p-4 md:p-6 h-[calc(100vh-80px)] flex flex-col"
+            >
+                <button 
+                    onClick={() => setStep(8)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
+
+                {/* Simulation Header */}
+                <div className="flex items-center justify-between mb-8 bg-slate-900 p-8 rounded-5xl border border-slate-800 shadow-2xl">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-violet-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+                            <Target size={32} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-white">{t.simulationTitle}</h2>
+                            <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest opacity-70">{t.simulationSub}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Simulation Interface */}
+                <div className="flex-1 bg-white rounded-6xl border border-slate-100 shadow-3xl overflow-hidden flex flex-col relative">
+                    <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-8 custom-scrollbar bg-slate-50/30">
+                        {simulationMessages.map((msg, i) => (
+                            <motion.div 
+                                key={i}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={cn(
+                                    "flex w-full max-w-[85%] md:max-w-[70%] gap-6",
+                                    msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+                                    msg.role === 'user' ? "bg-slate-900 text-white" : "bg-indigo-600 text-white"
+                                )}>
+                                    {msg.role === 'user' ? <User size={20} /> : <Brain size={24} />}
+                                </div>
+                                <div className={cn(
+                                    "p-7 rounded-4xl text-sm md:text-base leading-relaxed font-bold shadow-sm",
+                                    msg.role === 'user' 
+                                        ? "bg-slate-900 text-white rounded-tr-none" 
+                                        : "bg-white text-slate-800 rounded-tl-none border border-slate-100 italic"
+                                )}>
+                                    {msg.content}
+                                </div>
+                            </motion.div>
+                        ))}
+                        {isSimulating && (
+                            <div className="flex gap-4 items-center animate-pulse text-indigo-400">
+                                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center"><Loader2 size={16} className="animate-spin" /></div>
+                                <span className="text-[10px] font-black uppercase tracking-widest">{t.aiThinking}</span>
+                            </div>
+                        )}
+                        <div className="pt-8">
+                            <div className="bg-amber-50 border border-amber-100 p-6 rounded-3xl flex items-start gap-4">
+                                <AlertCircle size={20} className="text-amber-500 shrink-0 mt-1" />
+                                <p className="text-xs font-bold text-amber-800 leading-relaxed italic">{t.simulationNote}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-8 bg-white border-t border-slate-100">
+                        {isSimulationComplete ? (
+                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6">
+                                <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-[.3em] text-xs">
+                                    <CheckCircle2 size={18} />
+                                    STRATEGY CLEAR
+                                </div>
+                                <button 
+                                    onClick={handleGeneratePaths}
+                                    disabled={isGeneratingPaths}
+                                    className="w-full max-w-2xl py-6 bg-slate-900 text-white rounded-4xl font-black uppercase tracking-[.2em] hover:bg-emerald-600 transition-all shadow-3xl flex items-center justify-center gap-4 disabled:opacity-50"
+                                >
+                                    {isGeneratingPaths ? <Loader2 size={24} className="animate-spin" /> : (
+                                        <>
+                                            {t.finalizePaths}
+                                            <Rocket size={24} />
+                                        </>
+                                    )}
+                                </button>
+                            </motion.div>
+                        ) : (
+                            <div className="max-w-4xl mx-auto flex items-center gap-4 bg-slate-50 p-2 pl-8 rounded-4xl border border-slate-200">
+                                <input 
+                                    className="flex-1 bg-transparent py-4 text-sm font-bold text-slate-700 outline-none"
+                                    placeholder={t.simulationPlaceholder}
+                                    value={simulationInput}
+                                    onChange={(e) => setSimulationInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSendSimulationMessage()}
+                                    disabled={isSimulating}
+                                />
+                                <button 
+                                    onClick={handleSendSimulationMessage}
+                                    disabled={!simulationInput.trim() || isSimulating}
+                                    className="w-14 h-14 bg-indigo-600 text-white rounded-3xl flex items-center justify-center hover:bg-slate-900 transition-all shadow-xl disabled:opacity-50"
+                                >
+                                    <Send size={24} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (step === 11) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-7xl mx-auto p-4 md:p-6 h-[calc(100vh-80px)] flex flex-col"
+            >
+                <div className="flex items-center justify-between mb-8 bg-indigo-900 p-8 rounded-5xl border border-indigo-800 shadow-2xl">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-indigo-900 shadow-xl">
+                            <Zap size={32} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-white">{language === 'ar' ? 'مقابلة تعميق المسار' : 'Path Deep-Dive Interview'}</h2>
+                            <p className="text-xs font-bold text-indigo-200 uppercase tracking-widest opacity-70">{selectedPath?.title}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 bg-white rounded-6xl border border-slate-100 shadow-3xl overflow-hidden flex flex-col relative">
+                    <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-8 custom-scrollbar bg-slate-50/30">
+                        {pathInterviewMessages.map((msg, i) => (
+                            <motion.div 
+                                key={i}
+                                initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className={cn(
+                                    "flex w-full max-w-[85%] md:max-w-[70%] gap-6",
+                                    msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+                                    msg.role === 'user' ? "bg-slate-900 text-white" : "bg-emerald-600 text-white"
+                                )}>
+                                    {msg.role === 'user' ? <User size={20} /> : <Target size={24} />}
+                                </div>
+                                <div className={cn(
+                                    "p-7 rounded-4xl text-sm md:text-base leading-relaxed font-bold shadow-sm",
+                                    msg.role === 'user' 
+                                        ? "bg-slate-900 text-white rounded-tr-none" 
+                                        : "bg-emerald-50 text-emerald-900 rounded-tl-none border border-emerald-100 italic"
+                                )}>
+                                    {msg.content}
+                                </div>
+                            </motion.div>
+                        ))}
+                        {isPathSimulating && (
+                            <div className="flex gap-4 items-center animate-pulse text-emerald-500 p-8">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><Loader2 size={16} className="animate-spin" /></div>
+                                <span className="text-[10px] font-black uppercase tracking-widest">
+                                    {language === 'ar' ? 'الخبير يحلل الاستراتيجية...' : 'Expert Analyzing Strategy...'}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-8 bg-white border-t border-slate-100">
+                        {isPathSimulationComplete || pathInterviewMessages.length >= 3 ? (
+                            <div className="flex flex-col gap-4">
+                                <button 
+                                    onClick={handleGenerateBlueprint}
+                                    disabled={isGeneratingBlueprint}
+                                    className="w-full py-6 bg-emerald-500 text-white rounded-4xl font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-3xl flex items-center justify-center gap-4"
+                                >
+                                    {isGeneratingBlueprint ? <Loader2 size={24} className="animate-spin" /> : (
+                                        <>
+                                            {language === 'ar' ? 'توليد خطة التنفيذ النهائية' : 'Generate Implementation Blueprint'}
+                                            <Sparkles size={24} />
+                                        </>
+                                    )}
+                                </button>
+                                {!isPathSimulationComplete && (
+                                     <div className="max-w-4xl mx-auto w-full flex items-center gap-4 bg-slate-50 p-2 pl-8 rounded-4xl border border-slate-200">
+                                        <input 
+                                            className="flex-1 bg-transparent py-4 text-sm font-bold text-slate-700 outline-none"
+                                            placeholder={language === 'ar' ? 'رد على الخبير الاستراتيجي...' : 'Respond to strategic expert...'}
+                                            value={pathSimulationInput}
+                                            onChange={(e) => setPathSimulationInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSendPathMessage()}
+                                            disabled={isPathSimulating}
+                                        />
+                                        <button 
+                                            onClick={handleSendPathMessage}
+                                            disabled={!pathSimulationInput.trim() || isPathSimulating}
+                                            className="w-14 h-14 bg-emerald-600 text-white rounded-3xl flex items-center justify-center hover:bg-slate-900 transition-all shadow-xl disabled:opacity-50"
+                                        >
+                                            <Send size={24} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="max-w-4xl mx-auto flex items-center gap-4 bg-slate-50 p-2 pl-8 rounded-4xl border border-slate-200">
+                                <input 
+                                    className="flex-1 bg-transparent py-4 text-sm font-bold text-slate-700 outline-none"
+                                    placeholder={language === 'ar' ? 'رد على الخبير الاستراتيجي...' : 'Respond to strategic expert...'}
+                                    value={pathSimulationInput}
+                                    onChange={(e) => setPathSimulationInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSendPathMessage()}
+                                    disabled={isPathSimulating}
+                                />
+                                <button 
+                                    onClick={handleSendPathMessage}
+                                    disabled={!pathSimulationInput.trim() || isPathSimulating}
+                                    className="w-14 h-14 bg-emerald-600 text-white rounded-3xl flex items-center justify-center hover:bg-slate-900 transition-all"
+                                >
+                                    <Send size={24} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (step === 12) {
+        if (!implementationBlueprint || isGeneratingBlueprint) {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 space-y-12">
+                    <div className="relative">
+                        <div className="w-32 h-32 border-8 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Sparkles className="text-emerald-500 animate-pulse" size={32} />
+                        </div>
+                    </div>
+                    <div className="text-center space-y-4">
+                        <h2 className="text-3xl font-black text-white">
+                            {language === 'ar' ? 'جاري صياغة وثيقة التنفيذ الاستراتيجية...' : 'Crafting Strategic Implementation Blueprint...'}
+                        </h2>
+                        <p className="text-emerald-400 font-bold uppercase tracking-[.3em] animate-pulse">
+                            {language === 'ar' ? 'تحليل مساراتك المهنية بدقة' : 'Precision path mapping in progress'}
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12 pb-32"
+            >
+                {/* Implementation Blueprint Header */}
+                <div className="bg-slate-900 rounded-6xl p-16 text-white shadow-3xl text-center space-y-8 relative overflow-hidden border-b-8 border-emerald-500">
+                    <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12"><Zap size={200} /></div>
+                    <div className="relative z-10 space-y-4">
+                        <div className="px-6 py-2 bg-emerald-500/20 rounded-full text-emerald-400 font-black text-xs inline-block mb-4 border border-emerald-500/30">
+                            OFFICIAL STRATEGY DOCUMENT
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black">{language === 'ar' ? 'خطة التنفيذ والتموضع' : 'Implementation Blueprint'}</h1>
+                        <p className="text-indigo-200 text-lg uppercase tracking-widest font-bold">{selectedPath?.title}</p>
+                    </div>
+                </div>
+
+                {/* Blueprint Sections */}
+                <div className="grid md:grid-cols-2 gap-8">
+                    {/* Tactical Plan */}
+                    <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl space-y-8">
+                        <div className="flex items-center gap-4 pb-6 border-b border-slate-50">
+                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center"><Calendar size={24} /></div>
+                            <h3 className="text-2xl font-black">Tactical Wins (90 Days)</h3>
+                        </div>
+                        <div className="space-y-6">
+                            {implementationBlueprint.tacticalWins.map((win: { title: string; action: string }, idx: number) => (
+                                <div key={idx} className="flex gap-4 p-4 bg-slate-50 rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all">
+                                    <div className="text-emerald-500 font-black pt-1">0{idx + 1}</div>
+                                    <div>
+                                        <h4 className="font-black text-slate-900">{win.title}</h4>
+                                        <p className="text-sm text-slate-500 font-medium">{win.action}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Role Archetypes */}
+                    <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl space-y-8">
+                        <div className="flex items-center gap-4 pb-6 border-b border-slate-50">
+                            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center"><Briefcase size={24} /></div>
+                            <h3 className="text-2xl font-black">Suggested Roles</h3>
+                        </div>
+                        <div className="space-y-4">
+                            {implementationBlueprint.suggestedRoles.map((role: { title: string; matchingWhy: string }, idx: number) => (
+                                <div key={idx} className="p-6 bg-slate-900 text-white rounded-3xl space-y-2 group hover:bg-indigo-600 transition-all cursor-default">
+                                    <h4 className="text-lg font-black">{role.title}</h4>
+                                    <p className="text-xs text-indigo-200 font-bold opacity-80">{role.matchingWhy}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Gap Bridge Section */}
+                <div className="bg-white rounded-6xl p-12 border-2 border-slate-100 shadow-2xl relative">
+                    <div className="absolute top-0 right-12 -translate-y-1/2 px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs tracking-widest uppercase shadow-2xl">
+                        Critical Gap Bridge
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-12">
+                        <div className="space-y-6">
+                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-[.3em]">Targeted Skills</h4>
+                            <div className="space-y-3">
+                                {implementationBlueprint.gapBridge.skills.map((s: string, i: number) => <div key={i} className="px-4 py-3 bg-slate-50 rounded-2xl font-bold text-slate-700 text-sm border border-slate-100">{s}</div>)}
+                            </div>
+                        </div>
+                        <div className="md:col-span-2 space-y-6">
+                             <h4 className="text-sm font-black text-slate-400 uppercase tracking-[.3em]">Executive Summary</h4>
+                             <p className="text-2xl font-bold text-slate-800 leading-relaxed italic">&quot;{implementationBlueprint.gapBridge.summary}&quot;</p>
+                             <div className="pt-6 border-t border-slate-50 flex flex-col md:flex-row items-center gap-6">
+                                <div className="flex-1 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                                    <h5 className="text-[10px] font-black uppercase text-amber-600 mb-1">Risk Warning</h5>
+                                    <p className="text-xs font-bold text-amber-900">{implementationBlueprint.gapBridge.riskWarning}</p>
+                                </div>
+                                <div className="flex-1 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                    <h5 className="text-[10px] font-black uppercase text-emerald-600 mb-1">Golden Advice</h5>
+                                    <p className="text-xs font-bold text-emerald-900">{implementationBlueprint.gapBridge.goldenAdvice}</p>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6 pt-12">
+                    <button 
+                        onClick={() => window.print()}
+                        className="px-12 py-5 bg-white text-slate-900 border-2 border-slate-900 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-4"
+                    >
+                        <Download size={20} />
+                        {language === 'ar' ? 'تحميل خطة الطريق' : 'Download Strategy'}
+                    </button>
+                    
+                    <button 
+                        onClick={handleGenerateMasterReport}
+                        className="px-20 py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-[.2em] shadow-2xl shadow-emerald-500/30 hover:bg-slate-900 hover:scale-105 transition-all flex items-center gap-4 group"
+                    >
+                        {language === 'ar' ? 'إنهاء التشخيص الشامل' : 'Finalize Global Diagnosis'}
+                        <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
+                    </button>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (step === 13) {
+        if (!finalMasterReport || isGeneratingMasterReport) {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 p-6">
+                    {masterReportError ? (
+                        <div className="max-w-md w-full bg-white/5 backdrop-blur-3xl rounded-[3rem] p-12 border border-white/10 text-center space-y-8">
+                            <div className="w-20 h-20 bg-rose-500/20 text-rose-500 rounded-3xl flex items-center justify-center mx-auto">
+                                <AlertCircle size={40} />
+                            </div>
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-black text-white">
+                                    {language === 'ar' ? 'فشل إنشاء التقرير' : 'Generation Failed'}
+                                </h3>
+                                <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                                    {masterReportError}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button 
+                                    onClick={() => setStep(12)}
+                                    className="py-4 bg-white/5 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
+                                >
+                                    {t.back}
+                                </button>
+                                <button 
+                                    onClick={handleGenerateMasterReport}
+                                    className="py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+                                >
+                                    {language === 'ar' ? 'إعادة المحاولة' : 'Retry'}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-12 flex flex-col items-center">
+                            <div className="relative">
+                                <div className="w-40 h-40 border-8 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Brain className="text-indigo-400 animate-pulse" size={48} />
+                                </div>
+                            </div>
+                            <div className="text-center space-y-6">
+                                <h2 className="text-4xl font-black text-white">
+                                    {language === 'ar' ? 'جاري إنشاء النسخة النهائية من التقرير الشامل...' : 'Generating Final Global Diagnostic Synthesis...'}
+                                </h2>
+                                <p className="text-indigo-400 font-bold uppercase tracking-[.4em] animate-pulse">
+                                    DeepSeek AI is synthesizing all diagnostic data
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12 pb-40"
+            >
+                {/* Appreciation & Victory Header */}
+                <div className="bg-linear-to-br from-indigo-900 via-slate-950 to-emerald-950 rounded-6xl p-20 text-white shadow-3xl text-center space-y-8 relative overflow-hidden border border-white/5">
+                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+                    
+                    <div className="relative z-10 space-y-6">
+                        <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-2xl mb-8 animate-bounce">
+                            <ShieldCheck size={48} />
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
+                            {language === 'ar' ? 'تم اكتمال التشخيص بنجاح' : 'Diagnostic Fully Complete'}
+                        </h1>
+                        <p className="text-indigo-200 text-xl font-medium max-w-3xl mx-auto leading-relaxed">
+                            {language === 'ar' 
+                                ? 'لقد انتهيت من الرحلة الكاملة لتقييم قدراتك المهنية. إليك الآن التقرير الاستراتيجي الشامل الذي يجمع كل التحليلات في وثيقة واحدة.'
+                                : 'You have successfully navigated the full professional evaluation journey. Here is your global strategic synthesis combining all insights.'}
+                        </p>
+
+
+                    </div>
+                </div>
+
+                {/* Score & Verdict Card */}
+                <div className="grid md:grid-cols-3 gap-8">
+                    <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl flex flex-col items-center justify-center space-y-4 text-center">
+                        <div className="relative">
+                             <svg className="w-32 h-32 transform -rotate-90">
+                                <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
+                                <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={364} strokeDashoffset={364 - (364 * finalMasterReport.holisticScore) / 100} className="text-emerald-500 transition-all duration-1000" />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center text-3xl font-black text-slate-900">
+                                {finalMasterReport.holisticScore}%
+                            </div>
+                        </div>
+                        <h3 className="font-black text-slate-500 uppercase tracking-widest text-[10px]">Strategic Readiness Index</h3>
+                    </div>
+
+                    <div className="md:col-span-2 bg-slate-900 text-white rounded-5xl p-12 shadow-2xl space-y-6 border-l-8 border-indigo-500">
+                         <h3 className="text-2xl font-black text-indigo-400">{language === 'ar' ? 'ملخص الإدارة التنفيذية' : 'Executive Master Summary'}</h3>
+                         <p className="text-xl font-bold leading-relaxed opacity-90 italic">
+                            &quot;{finalMasterReport.executiveSummary}&quot;
+                         </p>
+                    </div>
+                </div>
+
+                {/* Pillar Analysis */}
+                <div className="grid md:grid-cols-3 gap-8">
+                    {[
+                        { title: 'Technical Axis', content: finalMasterReport.pillarAnalysis.technical, icon: <Database />, color: 'emerald' },
+                        { title: 'Strategic Axis', content: finalMasterReport.pillarAnalysis.strategic, icon: <Target />, color: 'indigo' },
+                        { title: 'Mental Axis', content: finalMasterReport.pillarAnalysis.psychological, icon: <Brain />, color: 'rose' }
+                    ].map((pillar, i) => (
+                        <div key={i} className="bg-white rounded-4xl p-8 border border-slate-100 shadow-lg space-y-5 group hover:border-indigo-200 transition-all">
+                             <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl", 
+                                pillar.color === 'emerald' ? "bg-emerald-500" : pillar.color === 'indigo' ? "bg-indigo-600" : "bg-rose-500"
+                             )}>
+                                {pillar.icon}
+                             </div>
+                             <h4 className="text-lg font-black text-slate-900">{pillar.title}</h4>
+                             <p className="text-sm font-medium text-slate-500 leading-relaxed">{pillar.content}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Market Verdict & Premium Teaser */}
+                <div className="bg-slate-50 rounded-6xl p-12 border border-slate-200 space-y-12">
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-black flex items-center gap-3">
+                             <Trophy className="text-amber-500" size={28} />
+                             {language === 'ar' ? 'حكم السوق وقيمتك التنافسية' : 'Market Verdict & Value'}
+                        </h3>
+                        <p className="text-lg font-bold text-slate-700 leading-relaxed">{finalMasterReport.marketabilityVerdict}</p>
+                    </div>
+
+                    <div className="bg-indigo-600 rounded-4xl p-10 text-white shadow-3xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform"><Rocket size={120} /></div>
+                        <div className="relative z-10 space-y-6">
+                             <div className="px-4 py-2 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest inline-block">PRO MODULE INTERFACE UNLOCKED</div>
+                             <h4 className="text-3xl font-black">{language === 'ar' ? 'ماذا بعد؟ التحول إلى الاحترافية القائمة على البيانات' : 'What\'s Next? Data-Driven Professional Growth'}</h4>
+                             <p className="text-indigo-100 font-bold text-lg max-w-2xl leading-relaxed">
+                                {finalMasterReport.premiumOpportunity}
+                             </p>
+                             <div className="pt-6 grid md:grid-cols-3 gap-4">
+                                <div className="p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md opacity-50 grayscale">
+                                    <h5 className="font-black text-xs mb-2">PRO Simulation Studio</h5>
+                                    <p className="text-[10px] uppercase font-bold opacity-60 italic">
+                                        {language === 'ar' ? 'محاكاة مقابلات عمل شخصية بناءً على ثغراتك المهنية' : 'Personalized Job interview simulations based on your gaps.'}
+                                    </p>
+                                </div>
+                                <div className="p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md opacity-50 grayscale">
+                                    <h5 className="font-black text-xs mb-2">Personalized Roadmap 2.0</h5>
+                                    <p className="text-[10px] uppercase font-bold opacity-60 italic">
+                                        {language === 'ar' ? 'خارطة طريق ديناميكية تتحدث آلياً مع تطور مهاراتك' : 'A dynamic AI roadmap that updates as you learn skills.'}
+                                    </p>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="text-center space-y-12">
+                     <p className="text-3xl font-black text-slate-400 opacity-30 italic max-w-3xl mx-auto">&quot;{finalMasterReport.finalCallToAction}&quot;</p>
+                     
+                     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+                        <button 
+                            onClick={() => window.location.href = '/dashboard'}
+                            className="px-20 py-6 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-3xl flex items-center gap-4"
+                        >
+                            Return to Dashboard
+                        </button>
+                        <button 
+                            onClick={() => window.print()}
+                            className="px-16 py-5 bg-white text-slate-900 border-2 border-slate-900 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-4 shadow-xl"
+                        >
+                            <Download size={20} />
+                            Save Master Report
+                        </button>
+                     </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (step === 10 && strategicPaths) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12 pb-32"
+            >
+                <button 
+                    onClick={() => setStep(9)}
+                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                >
+                    <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                    {t.back}
+                </button>
+
+                {/* Header */}
+                <div className="bg-slate-900 rounded-6xl p-16 text-white shadow-3xl text-center space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-10"><Rocket size={200} /></div>
+                    <div className="relative z-10 space-y-4">
+                        <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center text-white mx-auto shadow-2xl">
+                            <Rocket size={40} />
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black">{language === 'ar' ? 'المسارات الاستراتيجية المستقبلية' : language === 'fr' ? 'Pistes Stratégiques Futures' : 'Future Strategic Paths'}</h1>
+                        <p className="text-indigo-200 text-lg uppercase tracking-widest font-bold">
+                            {language === 'ar' ? 'تحليل الفرص بناءً على ملفك الكامل' : language === 'fr' ? 'Analyse des opportunités selon votre profil complet' : 'Opportunity analysis based on your full profile'}
+                        </p>
+                    </div>
+                </div>
+
+                {isGeneratingPaths ? (
+                    <div className="flex flex-col items-center justify-center py-32 space-y-10">
+                        <div className="w-24 h-24 border-8 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+                        <h3 className="text-2xl font-black text-slate-900">
+                            {language === 'ar' ? 'جاري محاكاة السيناريوهات الاستراتيجية...' : language === 'fr' ? 'Simulation des scénarios stratégiques...' : 'Simulating strategic scenarios...'}
+                        </h3>
+                    </div>
+                ) : strategicPaths && (
+                    <div className="space-y-12">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {strategicPaths.paths.map((path, idx) => (
+                                <motion.div 
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="bg-white rounded-5xl p-8 border border-slate-100 shadow-xl flex flex-col justify-between group hover:border-indigo-200 transition-all"
+                                >
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-start">
+                                            <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-900 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                                <Target size={28} />
+                                            </div>
+                                            <div className="px-4 py-2 bg-indigo-50 rounded-full text-indigo-700 font-black text-xs">
+                                                {path.matchPercentage}% Match
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="text-xl font-black text-slate-900 leading-tight">{path.title}</h3>
+                                            <p className="text-slate-500 font-medium text-sm leading-relaxed">{path.description}</p>
+                                        </div>
+                                        
+                                        <div className="pt-6 border-t border-slate-50 space-y-4">
+                                            <div className="space-y-2">
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{language === 'ar' ? 'الإيجابيات' : 'Pros'}</h4>
+                                                <ul className="space-y-1">
+                                                    {path.pros.map((p, i) => <li key={i} className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                                                        <CheckCircle2 size={12} className="text-emerald-500" /> {p}
+                                                    </li>)}
+                                                </ul>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-rose-600">{language === 'ar' ? 'المخاطر' : 'Risks'}</h4>
+                                                <ul className="space-y-1">
+                                                    {path.risks.map((r, i) => <li key={i} className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                                                        <AlertCircle size={12} className="text-rose-500" /> {r}
+                                                    </li>)}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-8 pt-6 border-t border-slate-50 flex flex-col gap-4">
+                                        <p className="text-xs italic text-slate-400 font-medium">&quot;{path.rationale}&quot;</p>
+                                        <button 
+                                            onClick={() => handleSelectPath(path)}
+                                            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl group/btn flex items-center justify-center gap-2"
+                                        >
+                                            {language === 'ar' ? 'اختيار هذا المسار والتحدي' : 'Select & Challenge'}
+                                            <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <div className="bg-indigo-600 rounded-6xl p-12 text-white shadow-3xl text-center space-y-8">
+                             <h3 className="text-3xl font-black">{language === 'ar' ? 'التوصية النهائية للخبير' : language === 'fr' ? 'Recommandation finale de l\'expert' : 'Final Expert Recommendation'}</h3>
+                             <p className="text-2xl font-bold leading-relaxed opacity-90 italic max-w-4xl mx-auto">
+                                &quot;{strategicPaths.finalRecommendation}&quot;
+                             </p>
+                             <div className="pt-8">
+                                <button 
+                                    onClick={() => setStep(0)}
+                                    className="px-16 py-6 bg-white text-indigo-600 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-2xl"
+                                >
+                                    {t.restart}
+                                </button>
+                             </div>
+                        </div>
+                    </div>
+                )}
+            </motion.div>
+        );
+    }
+
     return (
-      <div className="text-center py-20 bg-rose-50 dark:bg-rose-900/10 rounded-[3rem] border border-rose-100 dark:border-rose-900/20">
-        <h2 className="text-2xl font-black text-rose-600 uppercase mb-4">
-          Engine Interrupted
-        </h2>
-        <p className="font-bold text-slate-500">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-8 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs"
-        >
-          Retry Diagnostic
-        </button>
+        <div className="min-h-screen p-6 md:p-12 max-w-6xl mx-auto">
+            <AnimatePresence mode="wait">
+                {step === 0 ? (
+                    <motion.div 
+                        key="step0"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-white rounded-6xl border border-slate-100 shadow-2xl p-12 text-center space-y-8"
+                    >
+                        <div className="w-24 h-24 bg-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-200">
+                            <ShieldCheck size={48} />
+                        </div>
+                        <div className="space-y-4">
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                                {t.welcomeTitle}
+                            </h1>
+                            <p className="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
+                                {t.welcomeSub}
+                            </p>
+                        </div>
+                        <button 
+                            onClick={() => setStep(1)}
+                            className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center gap-4 mx-auto group shadow-xl"
+                        >
+                            {t.startBtn}
+                            <ArrowRight size={20} className={cn("group-hover:translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:-translate-x-1")} />
+                        </button>
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        key="step1"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="grid lg:grid-cols-12 gap-12"
+                    >
+                        <div className="lg:col-span-12 mb-4">
+                            <button 
+                                onClick={() => setStep(0)}
+                                className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group"
+                            >
+                                <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
+                                {t.back}
+                            </button>
+                        </div>
+                        {/* Info / Prompts Side */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="bg-indigo-600 rounded-5xl p-8 text-white shadow-xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                                    <Brain size={120} />
+                                </div>
+                                <h3 className="text-xl font-black mb-6 relative z-10">{t.narrativeTitle}</h3>
+                                <p className="text-sm font-medium text-indigo-100 mb-8 relative z-10 opacity-90">
+                                    {t.narrativeSub}
+                                </p>
+                                <ul className="space-y-4 relative z-10">
+                                    {t.points.map((p: string, i: number) => (
+                                        <li key={i} className="flex gap-3 text-xs font-bold bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                                {i + 1}
+                                            </div>
+                                            <span className="leading-relaxed">{p}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Input Area */}
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className="bg-white rounded-5xl border border-slate-100 shadow-xl overflow-hidden flex flex-col h-full">
+                                <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <Sparkles className="text-indigo-600" size={18} />
+                                        <span className="text-xs font-black uppercase tracking-widest text-slate-400">Executive Narrative Workspace</span>
+                                    </div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                        {t.lineCount}: <span className={cn("text-sm", countLines(narrative) >= 10 ? "text-emerald-500" : "text-amber-500")}>{countLines(narrative)}</span>
+                                    </div>
+                                </div>
+                                
+                                <textarea 
+                                    className="flex-1 p-10 text-lg font-medium leading-loose text-slate-700 outline-none resize-none min-h-[400px] bg-white custom-scrollbar placeholder:text-slate-300"
+                                    placeholder={t.placeholder}
+                                    value={narrative}
+                                    onChange={(e) => setNarrative(e.target.value)}
+                                    disabled={isSubmitting}
+                                />
+
+                                <div className="p-8 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                                    <div className="flex items-center gap-3 text-slate-400">
+                                        <History size={16} />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">{t.validationNote}</span>
+                                    </div>
+                                    <button 
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting || countLines(narrative) < 3}
+                                        className="w-full md:w-auto px-10 py-5 bg-indigo-600 text-white rounded-4xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-indigo-200 hover:bg-slate-900 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:grayscale"
+                                    >
+                                        {isSubmitting ? (
+                                            <Loader2 size={20} className="animate-spin" />
+                                        ) : (
+                                            <>
+                                                {t.submitBtn}
+                                                <Send size={18} />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+          {/* Floating Refresh/Sync Action */}
+        <div className="fixed bottom-8 left-8 z-50 flex flex-col gap-2">
+            <button 
+                onClick={() => window.location.reload()}
+                className="w-14 h-14 bg-white border border-slate-100 rounded-2xl shadow-2xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:scale-110 transition-all group"
+                title={language === 'ar' ? 'تحديث' : 'Refresh'}
+            >
+                <RefreshCw size={24} className="group-active:rotate-180 transition-transform duration-500" />
+            </button>
+            <div className="bg-slate-900 px-3 py-1.5 rounded-lg text-white text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                {language === 'ar' ? 'تحديث يدوي' : 'Manual Sync'}
+            </div>
+        </div>
       </div>
     );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="space-y-12 max-w-5xl mx-auto"
-    >
-      <div className="p-10 md:p-14 rounded-[3.5rem] bg-linear-to-br from-blue-600 via-indigo-600 to-violet-700 border border-white/20 text-white shadow-[0_20px_60px_rgba(79,70,229,0.4)] overflow-hidden relative group">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay" />
-        </div>
-        <motion.div
-           initial={{ x: -100, opacity: 0 }}
-           animate={{ x: 0, opacity: 1 }}
-           className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left"
-        >
-          <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
-            <CheckCircle2 size={56} strokeWidth={1.5} className="text-emerald-400" />
-          </div>
-          <div className="space-y-3">
-             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-2">
-                <Sparkles size={12} /> Strategic Signal Locked
-             </div>
-            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none drop-shadow-2xl">
-              {t.complete}
-            </h2>
-            <p className="font-black opacity-80 uppercase tracking-[0.4em] text-[10px] md:text-xs">
-              {t.completeSub}
-            </p>
-          </div>
-        </motion.div>
-        <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-[80px]" />
-        <div className="absolute -left-20 -top-20 w-64 h-64 bg-indigo-400/20 rounded-full blur-[60px]" />
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-2xl space-y-8 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Target size={120} />
-          </div>
-          <h3 className="font-black uppercase text-xs text-blue-600 tracking-[0.4em] relative z-10">
-            {t.profile}
-          </h3>
-          <div className="space-y-4 relative z-10">
-            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-6 rounded-4xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all hover:border-emerald-500/30">
-              <span className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                {t.authority}
-              </span>
-              <span className="font-black text-4xl text-emerald-500">
-                {auditData?.authorityScore}%
-              </span>
-            </div>
-            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-6 rounded-4xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all hover:border-blue-500/30">
-              <span className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                {t.alignment}
-              </span>
-              <span className="font-black text-lg text-blue-600 uppercase tracking-tight">
-                {auditData?.profileLevel}
-              </span>
-            </div>
-          </div>
-          <div className="pt-4 space-y-2 border-t border-slate-100 dark:border-slate-800 relative z-10">
-            <p className="text-sm text-slate-600 dark:text-slate-400 font-bold leading-relaxed italic">
-              &quot;{auditData?.verdict}&quot;
-            </p>
-          </div>
-        </div>
-
-        <div className="p-10 rounded-[3rem] bg-slate-900 dark:bg-black border border-slate-800 text-white shadow-2xl relative overflow-hidden space-y-8">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/10 rounded-full blur-[80px]" />
-          <h3 className="font-black uppercase text-xs text-orange-500 tracking-[0.4em] relative z-10 flex items-center gap-3">
-            <AlertTriangle size={18} /> {t.gaps}
-          </h3>
-          <ul className="space-y-4 relative z-10">
-            {auditData?.gaps?.map((gap: string, i: number) => (
-              <li
-                key={i}
-                className="flex items-start gap-4 text-sm font-bold leading-relaxed text-slate-300 group p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
-              >
-                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 mt-1.5 shrink-0 group-hover:scale-150 transition-transform shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
-                {gap}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="space-y-6 pt-6">
-        <h3 className="font-black uppercase text-xs text-slate-400 tracking-[0.4em] text-center flex items-center justify-center gap-3">
-          <Eye size={18} /> Vision Alignment Analysis
-        </h3>
-        <p className="text-center text-lg md:text-xl text-slate-700 dark:text-slate-300 font-bold italic leading-relaxed max-w-4xl mx-auto px-6">
-          &quot;{auditData?.visionAnalysis}&quot;
-        </p>
-      </div>
-
-      <div className="flex justify-center pt-10">
-        <button
-          onClick={onNext}
-          className="group flex items-center gap-6 px-14 py-6 bg-emerald-600 text-white font-black uppercase tracking-[0.3em] text-lg rounded-4xl shadow-[0_20px_40px_rgba(16,185,129,0.3)] hover:shadow-[0_25px_50px_rgba(16,185,129,0.4)] hover:scale-105 transition-all outline-none"
-        >
-          {t.cta}{" "}
-          <ChevronRight className="group-hover:translate-x-2 transition-transform w-8 h-8" />
-        </button>
-      </div>
-    </motion.div>
-  );
 }

@@ -11,7 +11,18 @@ const NotificationSchema = new Schema({
     },
     type: {
         type: String,
-        default: "info", // booking, alert, info
+        default: "info",
+    },
+    recipientEmail: {
+        type: String, // Target a specific user
+        index: true
+    },
+    recipientRole: {
+        type: String, // Target a role (e.g. 'Admin', 'User')
+        index: true
+    },
+    metadata: {
+        type: Schema.Types.Mixed,
     },
     read: {
         type: Boolean,
@@ -19,6 +30,7 @@ const NotificationSchema = new Schema({
     },
 }, {
     timestamps: true,
+    strict: false // Allow extra fields if needed
 });
 
 const Notification = models.Notification || model("Notification", NotificationSchema);

@@ -25,7 +25,6 @@ interface AdminStats {
     totalSimulations: number;
     totalInquiries: number;
     corporateReady: number;
-    pendingProfessionalReports: number;
 }
 
 export default function AdminDashboard() {
@@ -36,8 +35,7 @@ export default function AdminDashboard() {
         completedDiagnoses: 0,
         totalSimulations: 0,
         totalInquiries: 0,
-        corporateReady: 0,
-        pendingProfessionalReports: 0
+        corporateReady: 0
     });
     const [activities, setActivities] = useState<Activity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -97,14 +95,6 @@ export default function AdminDashboard() {
             color: (stats?.pendingUsers || 0) > 0 ? "red" : "green",
             link: "/admin/users"
         },
-        {
-            name: "Expert Reviews",
-            value: stats?.pendingProfessionalReports || "0",
-            change: (stats?.pendingProfessionalReports || 0) > 0 ? "Action Required" : "Clean",
-            icon: ShieldCheck,
-            color: (stats?.pendingProfessionalReports || 0) > 0 ? "red" : "green",
-            link: "/admin/professional-reviews"
-        },
     ];
 
     return (
@@ -144,7 +134,7 @@ export default function AdminDashboard() {
                             </div>
                             <h3 className="text-slate-400 font-bold text-xs uppercase tracking-widest">{stat.name}</h3>
                             <p className="text-4xl font-black text-slate-900 mt-2 tracking-tight">
-                                {isLoading ? "..." : stat.value}
+                                <span>{isLoading ? "..." : stat.value}</span>
                             </p>
                         </div>
                     </Link>
@@ -167,7 +157,7 @@ export default function AdminDashboard() {
                                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                                 <p className="text-sm font-medium text-slate-400">Synchronizing global logs...</p>
                             </div>
-                        ) : activities.length > 0 ? (
+                        ) : (activities && activities.length > 0) ? (
                             <div className="space-y-4">
                                 {activities.map((activity) => (
                                     <div key={activity.id} className="flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
@@ -188,7 +178,7 @@ export default function AdminDashboard() {
                                             <div className="flex items-center justify-between mb-1">
                                                 <h4 className="text-sm font-black text-slate-900">{activity.title}</h4>
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: fr })}
+                                                    {activity.timestamp ? formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: fr }) : ""}
                                                 </span>
                                             </div>
                                             <p className="text-xs text-slate-500 font-medium">{activity.description}</p>

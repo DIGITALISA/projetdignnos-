@@ -544,9 +544,13 @@ export default function ParticipantsManagement() {
                                                     </button>
                                                 </div>
                                             )}
-                                            <a href={`/admin/users/${user._id}/profile`} className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-purple-200" title="Review Performance">
+                                            <a 
+                                                href={user.plan === "Student" ? `/admin/users/${user._id}/student-review` : `/admin/users/${user._id}/professional-review`} 
+                                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${user.plan === "Student" ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200" : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200"}`}
+                                                title={`Review ${user.plan === "Student" ? "Student" : "Professional"} Profile`}
+                                            >
                                                 <ShieldCheck size={14} />
-                                                Review
+                                                {user.plan === "Student" ? "Student Review" : "Pro Review"}
                                             </a>
                                             <button onClick={() => handleDelete(user._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Eliminate Asset">
                                                 <Trash2 size={16} />

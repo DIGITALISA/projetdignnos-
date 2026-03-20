@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Diagnosis from '@/models/Diagnosis';
 import User from '@/models/User';
+import mongoose from 'mongoose';
 import { generateProfessionalExpertReport } from '@/lib/deepseek';
 
 export const maxDuration = 120;
@@ -23,8 +24,26 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
+        // Resolve user first to handle both MongoDB _id and email
+        let user = null;
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await User.findById(userId).lean();
+        }
+        if (!user) {
+            user = await User.findOne({ email: userId }).lean();
+        }
+
+        if (!user) {
+            return NextResponse.json(
+                { error: 'User not found' },
+                { status: 404 }
+            );
+        }
+
+        const identifier = user.email || userId;
+
         // Fetch the professional's diagnosis/profile data
-        const diagnosis = await Diagnosis.findOne({ userId })
+        const diagnosis = await Diagnosis.findOne({ userId: identifier })
             .sort({ updatedAt: -1 })
             .lean();
 
@@ -35,42 +54,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Fetch the user record
-        const user = await User.findOne({ email: userId }).lean();
-        if (!user) {
-            return NextResponse.json(
-                { error: 'User not found' },
-                { status: 404 }
-            );
-        }
-
-        // Verify this is a professional account
-        if (user.plan !== 'Professional') {
-            return NextResponse.json(
-                { error: 'This endpoint is only for Professional account users' },
-                { status: 403 }
-            );
-        }
-
         // Extract professional assessment data from the diagnosis document
         // Professional data is stored in different fields compared to student data
         const diagnosisAny = diagnosis as Record<string, unknown>;
 
-        const auditResult = diagnosisAny.auditResult || diagnosisAny.professionalAudit || {};
-        const formData = diagnosisAny.formData || diagnosisAny.professionalFormData || {};
+        const auditResult = diagnosisAny.auditResult || diagnosisAny.professionalAudit || diagnosisAny.professionalAuditResult || {};
+        const formData = diagnosisAny.formData || diagnosisAny.professionalFormData || (diagnosisAny.professionalAuditData as Record<string, unknown>)?.formData || {};
         const interviewTranscript = (diagnosisAny.professionalInterviewTranscript as unknown[]) ||
                                     (diagnosisAny.conversationHistory as unknown[]) || [];
-        const mcqResults = (diagnosisAny.mcqResults as unknown[]) || [];
-        const ultimateReport = diagnosisAny.ultimateStrategicReport || diagnosisAny.ultimateReport || null;
+        const mcqResults = (diagnosisAny.mcqResults as unknown[]) || (diagnosisAny.professionalMCQResults as unknown[]) || [];
+        const ultimateReport = diagnosisAny.ultimateStrategicReport || diagnosisAny.ultimateReport || diagnosisAny.professionalFinalReport || null;
         const portfolioAnalysis = diagnosisAny.portfolioAnalysis || null;
 
         // Require at minimum an audit result
-        if (!auditResult || Object.keys(auditResult).length === 0) {
+        if ((!auditResult || Object.keys(auditResult).length === 0) && !ultimateReport) {
             return NextResponse.json(
                 {
-                    error: 'Professional has not completed the minimum required stages (strategic audit)',
+                    error: 'Professional has not completed the minimum required stages',
                     available: {
-                        hasAudit: !!auditResult,
+                        hasAudit: !!auditResult && Object.keys(auditResult).length > 0,
                         hasInterview: interviewTranscript.length > 0,
                         hasMCQ: mcqResults.length > 0,
                         hasUltimateReport: !!ultimateReport
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
             portfolioAnalysis
         };
 
-        console.log('💼 Generating Professional Expert Report for:', userId);
+        console.log('💼 Generating Professional Expert Report for:', identifier);
 
         const result = await generateProfessionalExpertReport(professionalData, language);
 
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest) {
 
         // Save the report to MongoDB
         await Diagnosis.findOneAndUpdate(
-            { userId },
+            { userId: identifier },
             {
                 professionalExpertReport: result.report,
                 professionalExpertReportGeneratedAt: new Date(),
@@ -118,7 +120,27 @@ export async function POST(request: NextRequest) {
             { upsert: true, new: true }
         );
 
-        console.log('✅ Professional Expert Report saved for:', userId);
+        // Create a notification for the user
+        try {
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                title: language === 'ar' ? 'تمت مراجعة تقريرك' : 'Report Reviewed',
+                message: language === 'ar' 
+                    ? 'لقد قام خبير بمراجعة ملفك الشخصي وإصدار تقرير التقييم النهائي.' 
+                    : 'An expert has reviewed your profile and issued your final evaluation report.',
+                type: 'success',
+                recipientEmail: user.email,
+                metadata: {
+                    type: 'expert_review',
+                    reportType: 'PROFESSIONAL'
+                }
+            });
+        } catch (notificationError) {
+            console.error('Failed to create notification:', notificationError);
+            // Don't fail the whole request if notification fails
+        }
+
+        console.log('✅ Professional Expert Report saved for:', identifier);
 
         return NextResponse.json({
             success: true,
@@ -150,7 +172,22 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
 
-        const diagnosis = await Diagnosis.findOne({ userId })
+        // Resolve user first
+        let user = null;
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await User.findById(userId).lean();
+        }
+        if (!user) {
+            user = await User.findOne({ email: userId }).lean();
+        }
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        const identifier = user.email || userId;
+
+        const diagnosis = await Diagnosis.findOne({ userId: identifier })
             .sort({ updatedAt: -1 })
             .select('professionalExpertReport professionalExpertReportGeneratedAt completionStatus')
             .lean();

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Diagnosis from '@/models/Diagnosis';
 import User from '@/models/User';
+import mongoose from 'mongoose';
 import { generateStudentExpertReport } from '@/lib/deepseek';
 
 export const maxDuration = 120;
@@ -23,23 +24,32 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
+        // Resolve user first to handle both MongoDB _id and email
+        let user = null;
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await User.findById(userId).lean();
+        }
+        if (!user) {
+            user = await User.findOne({ email: userId }).lean();
+        }
+
+        if (!user) {
+            return NextResponse.json(
+                { error: 'User not found' },
+                { status: 404 }
+            );
+        }
+
+        const identifier = user.email || userId;
+
         // Fetch the student's full diagnosis data
-        const diagnosis = await Diagnosis.findOne({ userId })
+        const diagnosis = await Diagnosis.findOne({ userId: identifier })
             .sort({ updatedAt: -1 })
             .lean();
 
         if (!diagnosis) {
             return NextResponse.json(
                 { error: 'No diagnosis data found for this user' },
-                { status: 404 }
-            );
-        }
-
-        // Fetch the user record
-        const user = await User.findOne({ email: userId }).lean();
-        if (!user) {
-            return NextResponse.json(
-                { error: 'User not found' },
                 { status: 404 }
             );
         }
@@ -76,7 +86,7 @@ export async function POST(request: NextRequest) {
             generatedDocuments: diagnosis.generatedDocuments
         };
 
-        console.log('🎓 Generating Student Expert Report for:', userId);
+        console.log('🎓 Generating Student Expert Report for:', identifier);
 
         const result = await generateStudentExpertReport(studentData, language);
 
@@ -89,7 +99,7 @@ export async function POST(request: NextRequest) {
 
         // Save the report to MongoDB
         await Diagnosis.findOneAndUpdate(
-            { userId },
+            { userId: identifier },
             {
                 studentExpertReport: result.report,
                 studentExpertReportGeneratedAt: new Date(),
@@ -98,7 +108,27 @@ export async function POST(request: NextRequest) {
             { new: true }
         );
 
-        console.log('✅ Student Expert Report saved for:', userId);
+        // Create a notification for the user
+        try {
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                title: language === 'ar' ? 'تمت مراجعة تقريرك' : 'Report Reviewed',
+                message: language === 'ar' 
+                    ? 'لقد قام خبير بمراجعة ملفك الشخصي وإصدار تقرير التقييم النهائي.' 
+                    : 'An expert has reviewed your profile and issued your final evaluation report.',
+                type: 'success',
+                recipientEmail: user.email,
+                metadata: {
+                    type: 'expert_review',
+                    reportType: 'STUDENT'
+                }
+            });
+        } catch (notificationError) {
+            console.error('Failed to create notification:', notificationError);
+            // Don't fail the whole request if notification fails
+        }
+
+        console.log('✅ Student Expert Report saved for:', identifier);
 
         return NextResponse.json({
             success: true,
@@ -130,7 +160,22 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
 
-        const diagnosis = await Diagnosis.findOne({ userId })
+        // Resolve user first
+        let user = null;
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await User.findById(userId).lean();
+        }
+        if (!user) {
+            user = await User.findOne({ email: userId }).lean();
+        }
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        const identifier = user.email || userId;
+
+        const diagnosis = await Diagnosis.findOne({ userId: identifier })
             .sort({ updatedAt: -1 })
             .select('studentExpertReport studentExpertReportGeneratedAt completionStatus')
             .lean();
