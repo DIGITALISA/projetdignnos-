@@ -62,9 +62,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [isDiagnosisComplete, setIsDiagnosisComplete] = useState(false);
     const [activationType, setActivationType] = useState("Gratuit");
 
-    const isActuallyPro = userPlan === "Professional" || userPlan === "Pro Essential" || userPlan === "Expert" || isProContext;
-    const isExpert = userPlan === "Expert";
-    const isPro = userPlan === "Professional" || userPlan === "Pro Essential" || isProContext;
+    const isActuallyPro = (userPlan === "Professional" || userPlan === "Pro Essential" || userPlan === "Expert" || isProContext) && activationType === "Pro";
+    const isExpert = userPlan === "Expert" && activationType === "Pro";
+    const isPro = (userPlan === "Professional" || userPlan === "Pro Essential" || isProContext) && activationType === "Pro";
     const isStudent = !isActuallyPro;
 
     const sidebarItems: SidebarGroup[] = [

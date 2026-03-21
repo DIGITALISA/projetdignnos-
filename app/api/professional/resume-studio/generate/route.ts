@@ -19,27 +19,41 @@ export async function POST(req: Request) {
             : `Generate a powerful, universally-appealing foundational executive resume. There is no specific target job so focus purely on maximizing the impact of the user's past achievements.`;
 
         const systemPrompt = `
-You are an Elite Resume Writer. Generate a professional executive resume and portfolio structure in JSON format.
+You are an Elite Executive Document Designer. Generate a comprehensive Professional Identity Data set in JSON format.
+This data will populate a Strategic Portfolio, an ATS-optimized Resume, and a high-impact Motivation Letter.
+
 ${targetFocus}
-Use the provided Diagnosis Context and Interview Messages to extract specific achievements.
+
+Use the provided Diagnosis Context and Interview Messages to extract ALL relevant details. 
 
 JSON STRUCTURE REQUIRED:
 {
-  "personalInfo": { "fullName": "", "title": "", "summary": "" },
+  "personalInfo": { 
+    "fullName": "", 
+    "title": "", 
+    "summary": "Executive summary with strong focus on value proposition",
+    "contactInfo": {
+      "email": "",
+      "phone": "",
+      "linkedin": "",
+      "whatsapp": "",
+      "location": ""
+    }
+  },
   "experience": [
-    { "role": "", "company": "", "duration": "", "achievements": ["Use numbers/impact"] }
+    { "role": "", "company": "", "duration": "", "achievements": ["Use numbers, percentages, and quantifiable impact"] }
   ],
-  "skills": { "technical": [], "leadership": [], "soft": [] },
+  "skills": { "technical": ["Specific tools/tech"], "leadership": ["Strategic assets"], "soft": ["Core traits"] },
   "portfolioStructure": {
-    "title": "Portfolio Theme",
+    "title": "A theme that unites their case studies",
     "caseStudies": [
-      { "name": "Project Name", "challenge": "", "solution": "", "impact": "" }
+      { "name": "Project/Mission Title", "challenge": "The problem solved", "solution": "The strategic steps/action", "impact": "The quantifiable result" }
     ]
   },
-  "coverLetter": "A high-impact executive cover letter."
+  "coverLetter": "A high-end executive cover letter (300-400 words) focusing on their value to the role or market."
 }
 
-Ensure the tone is extremely professional. 
+Ensure the tone is sophisticated and elite.
 Language: ${language === 'ar' ? 'Formal Arabic (Fusha)' : language === 'fr' ? 'French' : 'English'}.
 `;
 
