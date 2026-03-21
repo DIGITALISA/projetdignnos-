@@ -38,11 +38,16 @@ export async function POST(request: NextRequest) {
 
         let diagnosticContext = "No prior diagnosis found.";
         if (userDiag) {
-            const u = userDiag as Record<string, { finalReport?: unknown }>;
-            const prog = u.professionalProgress;
-            if (prog && prog.finalReport) {
-                diagnosticContext = JSON.stringify(prog.finalReport);
-            }
+            const prog = userDiag.professionalProgress || {};
+            
+            diagnosticContext = JSON.stringify({
+                original_cv: userDiag.cvText,
+                audit_analysis: prog.result, // This contains the strategic audit
+                competency_assessment: prog.assessmentAnalysis,
+                mindset_analysis: prog.mindsetAnalysis,
+                strategic_paths: prog.strategicPaths,
+                global_synthesis: prog.finalMasterReport || prog.grandFinalReport
+            }, null, 2);
         }
 
         const systemMessage = `
