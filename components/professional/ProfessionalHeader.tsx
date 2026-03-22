@@ -64,12 +64,12 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
     };
 
     return (
-        <header className="sticky top-0 z-30 h-24 bg-slate-950/90 backdrop-blur-xl border-b border-white/5 px-8 flex items-center justify-between transition-all duration-300">
+        <header className="sticky top-0 z-30 h-24 bg-white/40 backdrop-blur-3xl border-b border-slate-100 px-8 flex items-center justify-between transition-all duration-300">
             {/* Left side: Mobile Toggle & Contextual Info */}
             <div className="flex items-center gap-6">
                 <button 
                     onClick={onOpenSidebar}
-                    className="md:hidden p-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-2xl shadow-xl transition-all active:scale-95"
+                    className="md:hidden p-3 bg-white hover:bg-slate-50 border border-slate-100 text-slate-400 hover:text-slate-900 rounded-2xl shadow-sm transition-all active:scale-95"
                 >
                     <Menu size={22} />
                 </button>
@@ -80,17 +80,17 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
                         <ChevronRight size={10} />
                         <span className="text-indigo-400">Professional Hub</span>
                     </div>
-                    <h2 className="text-sm font-black text-white uppercase tracking-tight">
+                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">
                         {language === 'ar' ? 'نظام التحكم القيادي' : language === 'fr' ? 'Système de Contrôle' : 'Executive Control System'}
                     </h2>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-3 px-5 py-2.5 bg-slate-900 border border-white/5 rounded-2xl shadow-inner focus-within:border-indigo-500/50 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all group min-w-[300px]">
-                    <Search size={16} className="text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                <div className="hidden lg:flex items-center gap-3 px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl shadow-inner focus-within:border-indigo-500/50 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all group min-w-[300px]">
+                    <Search size={16} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                     <input 
                         type="text" 
                         placeholder={language === 'ar' ? 'بحث عن موارد، خبراء، أو تقارير...' : 'Search resources, experts, reports...'} 
-                        className="bg-transparent border-none text-xs font-bold text-slate-300 outline-none w-full placeholder:text-slate-700"
+                        className="bg-transparent border-none text-xs font-bold text-slate-700 outline-none w-full placeholder:text-slate-300"
                     />
                 </div>
             </div>
@@ -98,9 +98,9 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
             {/* Right side: Global Actions */}
             <div className={cn("flex items-center gap-4", isRtl && "flex-row-reverse")}>
                 {/* Status Indicator (Desktop) */}
-                <div className="hidden xl:flex items-center gap-3 px-4 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+                <div className="hidden xl:flex items-center gap-3 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest leading-none">
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">
                         {language === 'ar' ? 'النظام متصل' : 'System Online'}
                     </span>
                 </div>
@@ -111,15 +111,15 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
                     <button 
                         onClick={() => setShowDropdown(!showDropdown)}
                         className={cn(
-                            "p-3 bg-slate-900 border border-white/10 rounded-2xl transition-all shadow-lg active:scale-95 relative group",
+                            "p-3 bg-white border border-slate-100 rounded-2xl transition-all shadow-sm active:scale-95 relative group",
                             unreadCount > 0 
-                                ? "text-indigo-400 border-indigo-500/30 bg-indigo-500/10" 
-                                : "text-slate-400 hover:text-white hover:border-white/20 hover:bg-white/5"
+                                ? "text-indigo-600 border-indigo-200 bg-indigo-50" 
+                                : "text-slate-400 hover:text-slate-900 hover:border-slate-200 hover:bg-slate-50"
                         )}
                     >
                         <Bell size={20} className="group-hover:rotate-12 transition-transform" />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-slate-950 animate-bounce shadow-[0_0_15px_rgba(244,63,94,0.4)]">
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white animate-bounce shadow-lg">
                                 {unreadCount}
                             </span>
                         )}
@@ -132,32 +132,32 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 className={cn(
-                                    "absolute top-full mt-4 w-80 bg-slate-900/90 border border-white/10 rounded-4xl shadow-2xl overflow-hidden z-50 backdrop-blur-2xl ring-1 ring-white/5",
+                                    "absolute top-full mt-4 w-80 bg-white border border-slate-200 rounded-4xl shadow-2xl overflow-hidden z-50 backdrop-blur-2xl ring-1 ring-black/5",
                                     isRtl ? "left-0" : "right-0"
                                 )}
                             >
-                                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-slate-950/50 text-left">
-                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white">Notifications</h4>
-                                    <button onClick={() => setShowDropdown(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-colors">
+                                <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50 text-left">
+                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">Notifications</h4>
+                                    <button onClick={() => setShowDropdown(false)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-colors">
                                         <X size={16} />
                                     </button>
                                 </div>
-                                <div className="max-h-[400px] overflow-y-auto custom-scrollbar text-left">
+                                <div className="max-h-[400px] overflow-y-auto custom-scrollbar text-left text-slate-700">
                                     {notifications.length > 0 ? (
                                         notifications.map((n) => (
                                             <div 
                                                 key={n._id} 
                                                 onClick={() => !n.read && markAsRead(n._id)}
                                                 className={cn(
-                                                    "p-6 hover:bg-white/5 transition-all cursor-pointer border-b border-white/5 group",
-                                                    !n.read && "bg-indigo-500/5 border-l-4 border-l-indigo-500"
+                                                    "p-6 hover:bg-indigo-50/30 transition-all cursor-pointer border-b border-slate-50 group",
+                                                    !n.read && "bg-indigo-50/50 border-l-4 border-l-indigo-600"
                                                 )}
                                             >
                                                 <div className="flex justify-between items-start gap-3 mb-2">
-                                                    <h5 className="text-[11px] font-black text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{n.title}</h5>
-                                                    <span className="text-[8px] text-slate-500 font-bold whitespace-nowrap">{new Date(n.createdAt).toLocaleDateString()}</span>
+                                                    <h5 className="text-[11px] font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{n.title}</h5>
+                                                    <span className="text-[8px] text-slate-400 font-bold whitespace-nowrap">{new Date(n.createdAt).toLocaleDateString()}</span>
                                                 </div>
-                                                <p className="text-[10px] text-slate-400 leading-relaxed font-medium">{n.message}</p>
+                                                <p className="text-[10px] text-slate-500 leading-relaxed font-medium">{n.message}</p>
                                             </div>
                                         ))
                                     ) : (
@@ -175,7 +175,7 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
                 </div>
 
                 {/* Desktop Global Switchers */}
-                <div className="hidden sm:flex items-center gap-2 p-1.5 bg-slate-900 border border-white/10 rounded-2xl shadow-inner">
+                <div className="hidden sm:flex items-center gap-2 p-1.5 bg-white border border-slate-100 rounded-2xl shadow-sm">
                     {[
                         { id: 'ar', label: 'عربي' },
                         { id: 'en', label: 'ENG' },
@@ -198,7 +198,7 @@ export function ProfessionalHeader({ onOpenSidebar }: ProfessionalHeaderProps) {
 
                 <button 
                     onClick={() => window.location.reload()}
-                    className="p-3 bg-slate-900 border border-white/10 rounded-2xl text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-white/5 transition-all shadow-lg flex items-center gap-2 group active:scale-95"
+                    className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all shadow-sm flex items-center gap-2 group active:scale-95"
                     title={language === 'ar' ? 'مزامنة البيانات' : 'Sync Intelligence'}
                 >
                     <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-700 ease-in-out" />

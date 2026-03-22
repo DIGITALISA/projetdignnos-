@@ -30,9 +30,9 @@ export async function POST(req: Request) {
 Your mission is to analyze the provided "Career Narrative" and generate a comprehensive, data-driven, and highly critical Professional Audit Report.
 
 CRITICAL INSTRUCTIONS:
-- EVERY PIECE of data in the response must be derived from your deep analysis of the narrative.
-- Use a tone that is professional, authoritative, and direct (Strategic Audit style).
-- Do not be afraid to point out flaws, inconsistencies, or lack of ambition.
+- Do not just summarize what they did; analyze the **Impact** (ROI, savings, scale, growth).
+- Identify and extract **Strategic Impact & Case Studies** hidden in their experience.
+- Do not be afraid to point out flaws, inconsistencies, or lack of strategic ambition.
 
 OUTPUT STRUCTURE (JSON ONLY):
 {
@@ -57,10 +57,12 @@ OUTPUT STRUCTURE (JSON ONLY):
   "learningSignals": ["Key Insight 1 derived from their stages", "Key Insight 2..."],
   "indicators": [
     {"label": "Profile Integrity", "score": 0-100, "value": "e.g. Low/High", "color": "rose"},
-    {"label": "Strategic Readiness", "score": 0-100, "value": "e.g. Ready/Gaps", "color": "amber"},
-    {"label": "Leadership Potential", "score": 0-100, "value": "e.g. High", "color": "emerald"},
-    {"label": "Market Value", "score": 0-100, "value": "e.g. Average", "color": "indigo"}
+    {"label": "Strategic Impact", "score": 0-100, "value": "e.g. High ROI", "color": "emerald"},
+    {"label": "Executive Readiness", "score": 0-100, "value": "e.g. Strategic", "color": "amber"},
+    {"label": "Market Value", "score": 0-100, "value": "e.g. Elite", "color": "indigo"}
   ],
+  "strategicImpactInfo": "A deep analysis of their ROI and tangible value delivered in previous roles.",
+  "caseStudyPotential": "Identify 2-3 specific achievements that can be transformed into high-impact business case studies.",
   "skills": {
     "detected": ["Skill 1", "Skill 2", "Skill 3"],
     "gaps": ["Critical Missing Skill 1", "Missing Skill 2"]

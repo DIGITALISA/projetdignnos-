@@ -668,7 +668,34 @@ export default function ProfessionalDiagnosisPage() {
             selectLanguageSub: "حدد اللغة التي تفضل أن يتواصل بها الخبير الذكي معك طوال رحلة التشخيص.",
             arabic: "العربية",
             english: "الإنجليزية",
-            french: "الفرنسية"
+            french: "الفرنسية",
+            diagnosisStages: [
+                {
+                    title: "بناء الرواية المهنية",
+                    desc: "كتابة قصتك المهنية وتحليل الـ DNA الوظيفي الخاص بك.",
+                    icon: "Edit3"
+                },
+                {
+                    title: "التدقيق الاستراتيجي",
+                    desc: "نقد وتحليل معمق عبر مقابلة مباشرة مع الخبير الذكي.",
+                    icon: "Search"
+                },
+                {
+                    title: "اختبار الكفاءة والذكاء",
+                    desc: "تقييم تقني وسلوكي لقياس جاهزيتك وجدارتك العملية.",
+                    icon: "Zap"
+                },
+                {
+                    title: "تحليل العقلية والبروفايل",
+                    desc: "فهم الدوافع النفسية والرؤية المستقبلية لمسارك.",
+                    icon: "Brain"
+                },
+                {
+                    title: "خارطة الطريق التنفيذية",
+                    desc: "الحصول على التقرير الشامل ومسارات الانتقال للمحترفين.",
+                    icon: "TrendingUp"
+                }
+            ]
         },
         en: {
             welcomeTitle: "Advanced Strategic Diagnosis",
@@ -783,7 +810,34 @@ export default function ProfessionalDiagnosisPage() {
             selectLanguageSub: "Choose the language in which you want the AI expert to interact with you during the diagnosis.",
             arabic: "Arabic",
             english: "English",
-            french: "French"
+            french: "French",
+            diagnosisStages: [
+                {
+                    title: "Career Narrative",
+                    desc: "Building your professional story and DNA analysis.",
+                    icon: "Edit3"
+                },
+                {
+                    title: "Strategic Audit",
+                    desc: "Deep analysis through a live chat with the AI expert.",
+                    icon: "Search"
+                },
+                {
+                    title: "Competency Assessment",
+                    desc: "Technical and behavioral evaluation of your readiness.",
+                    icon: "Zap"
+                },
+                {
+                    title: "Mindset & Profile",
+                    desc: "Understanding psychological drivers and future vision.",
+                    icon: "Brain"
+                },
+                {
+                    title: "Executive Roadmap",
+                    desc: "Comprehensive report and strategic transition paths.",
+                    icon: "TrendingUp"
+                }
+            ]
         },
         fr: {
             welcomeTitle: "Diagnostic Stratégique Avancé",
@@ -798,6 +852,33 @@ export default function ProfessionalDiagnosisPage() {
                 "Votre poste actuel : votre fonction, les tâches principales et la valeur ajoutée."
             ],
             placeholder: "Écrivez votre récit...",
+            diagnosisStages: [
+                {
+                    title: "Récit Professionnel",
+                    desc: "Construction de votre histoire et analyse ADN métier.",
+                    icon: "Edit3"
+                },
+                {
+                    title: "Audit Stratégique",
+                    desc: "Analyse approfondie via un chat avec l'expert IA.",
+                    icon: "Search"
+                },
+                {
+                    title: "Évaluation des Compétences",
+                    desc: "Évaluation technique et comportementale de votre état.",
+                    icon: "Zap"
+                },
+                {
+                    title: "Mentalité & Profil",
+                    desc: "Compréhension des leviers psychologiques et vision.",
+                    icon: "Brain"
+                },
+                {
+                    title: "Feuille de Route Expertise",
+                    desc: "Rapport global et pistes de transition stratégiques.",
+                    icon: "TrendingUp"
+                }
+            ],
             submitBtn: "Lancer l'Analyse",
             validationNote: "Min 10 lignes.",
             lineCount: "Lignes",
@@ -2205,16 +2286,16 @@ export default function ProfessionalDiagnosisPage() {
                             opacity: 1,
                             x: 0
                         }}
-                        className="bg-slate-900 text-white rounded-6xl p-10 shadow-2xl relative overflow-hidden"
+                        className="bg-white/40 backdrop-blur-xl rounded-[4rem] p-12 border border-white shadow-2xl relative overflow-hidden group hover:bg-white transition-all"
                     >
-                        <div className="absolute top-0 right-0 p-8 opacity-10"><Target size={120} /></div>
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><Target size={120} className="text-indigo-600" /></div>
                         <div className="flex items-center gap-3 mb-8">
-                            <div className="w-10 h-10 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400 shadow-sm">
+                            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600 shadow-sm">
                                 <Zap size={20} />
                             </div>
-                            <h3 className="font-black text-sm uppercase tracking-widest text-indigo-100">{t.strategicAudit}</h3>
+                            <h3 className="font-black text-sm uppercase tracking-widest text-slate-900">{t.strategicAudit}</h3>
                         </div>
-                        <p className="text-lg font-bold leading-relaxed opacity-90">
+                        <p className="text-lg font-bold leading-relaxed text-slate-600 opacity-90 border-l-4 border-rose-500 pl-6 py-2">
                             {result.strategicCriticism}
                         </p>
                     </motion.div>
@@ -2334,24 +2415,27 @@ export default function ProfessionalDiagnosisPage() {
                         opacity: 1,
                         y: 0
                     }}
-                    className="bg-indigo-600 rounded-6xl p-12 text-white shadow-[0_30px_60px_-15px_rgba(79,70,229,0.3)] relative overflow-hidden"
+                    className="bg-white/40 backdrop-blur-3xl rounded-[4rem] p-12 border border-white shadow-[0_40px_100px_rgba(0,0,0,0.08)] relative overflow-hidden group"
                 >
-                    <div className="absolute top-0 right-0 p-12 opacity-10"><Rocket size={200} /></div>
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><Rocket size={200} className="text-indigo-600" /></div>
                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
-                        <div className="flex-1 space-y-6">
+                        <div className="flex-1 space-y-8">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md">
-                                    <BarChart3 size={24} />
+                                <div className="w-14 h-14 rounded-3xl bg-indigo-600 flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
+                                    <BarChart3 size={28} />
                                 </div>
-                                <h3 className="text-3xl font-black">{t.actions}</h3>
+                                <div className="space-y-1">
+                                    <h3 className="text-3xl font-black text-slate-900">{t.actions}</h3>
+                                    <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest opacity-80">Strategic Implementation Path</p>
+                                </div>
                             </div>
-                            <div className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
                                 {result.actionPlan.map((action, i) => (
-                                    <div key={i} className="flex gap-4 items-center p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-sm group hover:bg-white/20 transition-all">
-                                        <div className="w-8 h-8 rounded-full bg-white text-indigo-600 flex items-center justify-center font-black text-xs shrink-0">
+                                    <div key={i} className="flex gap-4 items-center p-6 bg-white border border-slate-100/50 rounded-3xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group/item">
+                                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-xs shrink-0 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-colors">
                                             {i + 1}
                                         </div>
-                                        <p className="text-sm font-bold">{action}</p>
+                                        <p className="text-sm font-bold text-slate-600">{action}</p>
                                     </div>
                                 ))}
                             </div>
@@ -2359,10 +2443,10 @@ export default function ProfessionalDiagnosisPage() {
                         <div className="w-full md:w-auto">
                             <button
                                 onClick={handleStartInterview}
-                                className="w-full px-10 py-6 bg-white text-indigo-600 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4"
+                                className="w-full px-12 py-8 bg-slate-900 text-white rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-sm hover:bg-indigo-600 hover:scale-105 transition-all shadow-2xl flex items-center justify-center gap-4 group"
                             >
                                 {t.startPhase2}
-                                <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
+                                <ArrowRight size={24} className={cn("transition-transform", isRtl ? "rotate-180 group-hover:-translate-x-2" : "group-hover:translate-x-2")} />
                             </button>
                         </div>
                     </div>
@@ -2482,18 +2566,22 @@ export default function ProfessionalDiagnosisPage() {
                                 {language === 'ar' ? 'تحميل تحليل الكفاءات PDF' : 'Download Assessment PDF'}
                             </button>
                         </div>
-                        <div className="bg-slate-900 rounded-6xl p-12 text-white relative overflow-hidden shadow-3xl">
-                            <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12"><Trophy size={250} /></div>
-                            <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                        <div className="bg-white/60 backdrop-blur-xl rounded-[4rem] p-12 border border-white shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-12 opacity-5 rotate-12"><Trophy size={250} className="text-indigo-600" /></div>
+                            <div className="relative z-10 flex flex-col items-center text-center space-y-8">
+                                <div className="w-16 h-16 bg-amber-500 rounded-3xl flex items-center justify-center text-white shadow-2xl mx-auto mb-4">
+                                    <Trophy size={32} />
+                                </div>
                                 <h3 className="text-3xl font-black uppercase tracking-[0.2em]">{t.assessmentAnalysisTitle}</h3>
-                                <div className="flex items-center gap-12">
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Final Assessment Score</p>
-                                        <span className="text-7xl font-black">{Math.round((assessmentAnalysis.score / assessmentAnalysis.total) * 100)}%</span>
+                                
+                                <div className="flex flex-wrap justify-center items-center gap-12 pt-4">
+                                    <div className="bg-white border border-slate-100 px-12 py-8 rounded-4xl shadow-xl">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">Final Assessment Score</p>
+                                        <span className="text-7xl font-black text-slate-900">{Math.round((assessmentAnalysis.score / assessmentAnalysis.total) * 100)}%</span>
                                     </div>
-                                    <div className="text-left bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/10">
-                                        <p className="text-xs font-bold opacity-60">Accuracy</p>
-                                        <p className="text-xl font-black">{assessmentAnalysis.score} / {assessmentAnalysis.total}</p>
+                                    <div className="bg-slate-50 border border-slate-100 px-10 py-6 rounded-4xl text-left">
+                                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Accuracy Insight</p>
+                                        <p className="text-2xl font-black text-indigo-600">{assessmentAnalysis.score} / {assessmentAnalysis.total}</p>
                                     </div>
                                 </div>
                             </div>
@@ -2556,7 +2644,7 @@ export default function ProfessionalDiagnosisPage() {
                                 <div className="flex items-center gap-4">
                                     <span>{assessmentQuestions[currentQuestionIndex].category} Assessment</span>
                                     <div className={cn(
-                                        "flex items-center gap-1.5 px-3 py-1 rounded-lg border",
+                                        "flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-all duration-500",
                                         questionTimeLeft <= 20 ? "bg-rose-50 border-rose-200 text-rose-600 animate-pulse" : "bg-slate-50 border-slate-100 text-slate-500"
                                     )}>
                                         <History size={12} className={questionTimeLeft <= 20 ? "animate-spin" : ""} />
@@ -2860,18 +2948,22 @@ export default function ProfessionalDiagnosisPage() {
                 </div>
 
                 {/* Results Header */}
-                <div className="bg-slate-900 rounded-6xl p-12 text-white shadow-3xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-12 opacity-10"><Brain size={250} /></div>
-                    <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-                        <h2 className="text-4xl font-black">{t.mindsetAnalysisTitle}</h2>
+                <div className="bg-white/60 backdrop-blur-xl rounded-[4rem] p-12 border border-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-5"><Brain size={250} className="text-indigo-600" /></div>
+                    <div className="relative z-10 flex flex-col items-center text-center space-y-8">
+                        <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl mx-auto mb-4">
+                            <Sparkles size={32} />
+                        </div>
+                        <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">{t.mindsetAnalysisTitle}</h2>
+                        
                         <div className="flex flex-wrap justify-center gap-6">
-                            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/10">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">{t.mindsetTypeLabel}</p>
-                                <span className="text-xl font-black">{mindsetAnalysis?.mindsetType || "Calculating..."}</span>
+                            <div className="bg-white border border-slate-100 px-10 py-6 rounded-4xl shadow-sm">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-2">{t.mindsetTypeLabel}</p>
+                                <span className="text-2xl font-black text-slate-900">{mindsetAnalysis?.mindsetType || "Searching..."}</span>
                             </div>
-                            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/10">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">{t.satisfactionLabel}</p>
-                                <span className="text-xl font-black">{mindsetAnalysis?.satisfactionLevel || "..."}</span>
+                            <div className="bg-white border border-slate-100 px-10 py-6 rounded-4xl shadow-sm">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2">{t.satisfactionLabel}</p>
+                                <span className="text-2xl font-black text-slate-900">{mindsetAnalysis?.satisfactionLevel || "..."}</span>
                             </div>
                         </div>
                     </div>
@@ -2990,9 +3082,9 @@ export default function ProfessionalDiagnosisPage() {
                 </div>
 
                 {/* Grand Header */}
-                <div className="bg-slate-900 rounded-6xl p-16 text-white shadow-3xl relative overflow-hidden text-center">
-                    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                        <div className="absolute top-0 right-0 p-12"><Trophy size={300} /></div>
+                <div className="bg-white/60 backdrop-blur-xl rounded-[4rem] p-16 text-center space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+                        <div className="absolute top-0 right-0 p-12"><Trophy size={300} className="text-indigo-600" /></div>
                     </div>
 
                     <motion.div
@@ -3004,24 +3096,24 @@ export default function ProfessionalDiagnosisPage() {
                             scale: 1,
                             opacity: 1
                         }}
-                        className="relative z-10 space-y-8"
+                        className="relative z-10 space-y-10"
                     >
-                        <div className="w-24 h-24 bg-linear-to-br from-amber-400 to-amber-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-amber-500/20">
+                        <div className="w-24 h-24 bg-linear-to-br from-amber-400 to-amber-500 rounded-[2.5rem] flex items-center justify-center text-white mx-auto shadow-2xl shadow-amber-200">
                             <Trophy size={48} />
                         </div>
                         <div className="space-y-4">
-                            <h1 className="text-5xl md:text-6xl font-black tracking-tight">{t.grandReportTitle}</h1>
-                            <p className="text-xl text-indigo-200 font-medium tracking-wide uppercase">{t.grandReportSub}</p>
+                            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900">{t.grandReportTitle}</h1>
+                            <p className="text-indigo-500 text-xs font-black tracking-[0.4em] uppercase">{t.grandReportSub}</p>
                         </div>
 
                         <div className="flex flex-wrap justify-center gap-8 pt-8">
-                            <div className="bg-white/10 backdrop-blur-xl px-10 py-6 rounded-4xl border border-white/20">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-2">{t.maturityScoreLabel}</p>
-                                <span className="text-6xl font-black">{grandFinalReport?.professionalIdentity.maturityScore || "0"}%</span>
+                            <div className="bg-white border border-slate-100 px-12 py-8 rounded-[3rem] shadow-xl">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2">{t.maturityScoreLabel}</p>
+                                <span className="text-6xl font-black text-slate-900">{grandFinalReport?.professionalIdentity.maturityScore || "0"}%</span>
                             </div>
-                            <div className="bg-white/10 backdrop-blur-xl px-10 py-6 rounded-4xl border border-white/20 flex flex-col justify-center">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">{t.psychologyLabel}</p>
-                                <span className="text-2xl font-black">{grandFinalReport?.professionalIdentity.psychologicalFootprint || "..."}</span>
+                            <div className="bg-indigo-600 px-12 py-8 rounded-[3rem] shadow-2xl shadow-indigo-200 flex flex-col justify-center border border-indigo-500">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">{t.psychologyLabel}</p>
+                                <span className="text-2xl font-black text-white">{grandFinalReport?.professionalIdentity.psychologicalFootprint || "..."}</span>
                             </div>
                         </div>
                     </motion.div>
@@ -3153,31 +3245,32 @@ export default function ProfessionalDiagnosisPage() {
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-900 rounded-5xl p-12 text-white flex flex-col justify-center space-y-8">
-                                    <h4 className="text-amber-400 font-black uppercase tracking-[0.2em] text-[10px]">{t.longTermLabel}</h4>
-                                    <p className="text-3xl font-black italic leading-tight">&quot;{grandFinalReport.actionableRoadmap.longTermVision}&quot;</p>
-                                    <div className="pt-8 border-t border-white/10 no-pdf">
+                                <div className="bg-white/40 backdrop-blur-xl rounded-5xl p-12 border border-white shadow-xl flex flex-col justify-center space-y-8 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><Sparkles size={120} className="text-amber-500" /></div>
+                                    <h4 className="text-amber-600 font-black uppercase tracking-[0.3em] text-[10px] relative z-10">{t.longTermLabel}</h4>
+                                    <p className="text-3xl font-black italic leading-tight text-slate-900 relative z-10">&quot;{grandFinalReport.actionableRoadmap.longTermVision}&quot;</p>
+                                    <div className="pt-8 border-t border-slate-100 no-pdf relative z-10">
                                         <button
                                             onClick={() => handleDownloadWithGate(grandReportRef, 'Strategic_Report')}
                                             disabled={isDownloadingPDF}
-                                            className="w-full py-5 bg-white text-slate-900 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-300 transition-all shadow-2xl flex items-center justify-center gap-3"
+                                            className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl flex items-center justify-center gap-3"
                                         >
                                             {isDownloadingPDF ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
-                                            {language === 'ar' ? 'تحميل التقرير الكامل PDF' : 'Download Complete PDF Report'}
+                                            {language === 'ar' ? 'تحميل التقرير الكامل PDF' : 'Download Strategic PDF'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-linear-to-br from-indigo-600 to-indigo-800 rounded-7xl p-16 text-white shadow-3xl text-center space-y-10 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-20 opacity-10 rotate-12"><Zap size={400} /></div>
+                        <div className="bg-white/40 backdrop-blur-3xl rounded-[4rem] p-16 border border-white shadow-3xl text-center space-y-12 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-20 opacity-5 rotate-12"><Zap size={400} className="text-indigo-600" /></div>
                             <div className="relative z-10 max-w-4xl mx-auto space-y-10">
-                                <div className="w-20 h-20 bg-white/20 rounded-4xl flex items-center justify-center text-white mx-auto backdrop-blur-md">
+                                <div className="w-20 h-20 bg-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-100">
                                     <Star size={40} className="fill-white" />
                                 </div>
-                                <h3 className="text-4xl font-black tracking-tight">{t.expertSynthesisTitle}</h3>
-                                <p className="text-2xl font-bold leading-relaxed opacity-95">{grandFinalReport.expertSynthesis}</p>
+                                <h3 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">{t.expertSynthesisTitle}</h3>
+                                <p className="text-2xl font-bold leading-relaxed text-slate-600 opacity-95 italic px-8">&quot;{grandFinalReport.expertSynthesis}&quot;</p>
                                 <div className="pt-10 flex flex-col md:flex-row justify-center gap-6">
                                     <button
                                         onClick={handleStartSimulation}
@@ -3221,14 +3314,15 @@ export default function ProfessionalDiagnosisPage() {
                 </button>
 
                 {/* Simulation Header */}
-                <div className="flex items-center justify-between mb-8 bg-slate-900 p-8 rounded-5xl border border-slate-800 shadow-2xl">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-violet-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+                <div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-white/60 backdrop-blur-xl p-8 rounded-[3rem] border border-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5"><Target size={150} className="text-indigo-600" /></div>
+                    <div className="flex items-center gap-6 relative z-10">
+                        <div className="w-16 h-16 bg-linear-to-br from-indigo-500 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-100">
                             <Target size={32} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-white">{t.simulationTitle}</h2>
-                            <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest opacity-70">{t.simulationSub}</p>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t.simulationTitle}</h2>
+                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] opacity-80">{t.simulationSub}</p>
                         </div>
                     </div>
                 </div>
@@ -3254,13 +3348,13 @@ export default function ProfessionalDiagnosisPage() {
                             >
                                 <div className={cn(
                                     "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                                    msg.role === 'user' ? "bg-slate-900 text-white" : "bg-indigo-600 text-white"
+                                    msg.role === 'user' ? "bg-slate-700 text-white" : "bg-indigo-600 text-white"
                                 )}>
                                     {msg.role === 'user' ? <User size={20} /> : <Brain size={24} />}
                                 </div>
                                 <div className={cn(
                                     "p-7 rounded-4xl text-sm md:text-base leading-relaxed font-bold shadow-sm",
-                                    msg.role === 'user' ? "bg-slate-900 text-white rounded-tr-none" : "bg-white text-slate-800 rounded-tl-none border border-slate-100"
+                                    msg.role === 'user' ? "bg-slate-700 text-white rounded-tr-none" : "bg-white text-slate-800 rounded-tl-none border border-slate-100"
                                 )}>
                                     {msg.role === 'assistant' ? (
                                         <ReactMarkdown
@@ -3358,14 +3452,16 @@ export default function ProfessionalDiagnosisPage() {
                 }}
                 className="max-w-7xl mx-auto p-4 md:p-6 h-[calc(100vh-80px)] flex flex-col"
             >
-                <div className="flex items-center justify-between mb-8 bg-indigo-900 p-8 rounded-5xl border border-indigo-800 shadow-2xl">
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-indigo-900 shadow-xl">
+                {/* Path Interview Header */}
+                <div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-white/60 backdrop-blur-xl p-8 rounded-[3rem] border border-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5"><Zap size={150} className="text-emerald-600" /></div>
+                    <div className="flex items-center gap-6 relative z-10">
+                        <div className="w-16 h-16 bg-emerald-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-emerald-100">
                             <Zap size={32} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-white">{language === 'ar' ? 'مقابلة تعميق المسار' : 'Path Deep-Dive Interview'}</h2>
-                            <p className="text-xs font-bold text-indigo-200 uppercase tracking-widest opacity-70">{selectedPath?.title}</p>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">{language === 'ar' ? 'مقابلة تعميق المسار' : 'Path Deep-Dive Interview'}</h2>
+                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] opacity-80">{selectedPath?.title}</p>
                         </div>
                     </div>
                 </div>
@@ -3390,13 +3486,13 @@ export default function ProfessionalDiagnosisPage() {
                             >
                                 <div className={cn(
                                     "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                                    msg.role === 'user' ? "bg-slate-900 text-white" : "bg-emerald-600 text-white"
+                                    msg.role === 'user' ? "bg-slate-700 text-white" : "bg-emerald-600 text-white"
                                 )}>
                                     {msg.role === 'user' ? <User size={20} /> : <Target size={24} />}
                                 </div>
                                 <div className={cn(
                                     "p-7 rounded-4xl text-sm md:text-base leading-relaxed font-bold shadow-sm",
-                                    msg.role === 'user' ? "bg-slate-900 text-white rounded-tr-none" : "bg-emerald-50 text-emerald-950 rounded-tl-none border border-emerald-100"
+                                    msg.role === 'user' ? "bg-slate-700 text-white rounded-tr-none" : "bg-emerald-50 text-emerald-950 rounded-tl-none border border-emerald-100"
                                 )}>
                                     {msg.role === 'assistant' ? (
                                         <ReactMarkdown
@@ -3539,14 +3635,16 @@ export default function ProfessionalDiagnosisPage() {
                     </button>
                 </div>
                 {/* Implementation Blueprint Header */}
-                <div className="bg-slate-900 rounded-6xl p-16 text-white shadow-3xl text-center space-y-8 relative overflow-hidden border-b-8 border-emerald-500">
-                    <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12"><Zap size={200} /></div>
-                    <div className="relative z-10 space-y-4">
-                        <div className="px-6 py-2 bg-emerald-500/20 rounded-full text-emerald-400 font-black text-xs inline-block mb-4 border border-emerald-500/30">
+                <div className="bg-white/60 backdrop-blur-xl rounded-[4rem] p-16 border border-white shadow-3xl text-center space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-5 rotate-12"><Zap size={200} className="text-indigo-600" /></div>
+                    <div className="relative z-10 space-y-6 flex flex-col items-center">
+                        <div className="px-6 py-2 bg-emerald-50 rounded-full text-emerald-600 font-black text-[10px] uppercase tracking-widest mb-4 border border-emerald-100">
                             OFFICIAL STRATEGY DOCUMENT
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black">{language === 'ar' ? 'خطة التنفيذ والتموضع' : 'Implementation Blueprint'}</h1>
-                        <p className="text-indigo-200 text-lg uppercase tracking-widest font-bold">{selectedPath?.title}</p>
+                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight">
+                            {language === 'ar' ? 'خطة التنفيذ والتموضع' : 'Implementation Blueprint'}
+                        </h1>
+                        <p className="text-indigo-600 text-sm font-black uppercase tracking-[0.3em]">{selectedPath?.title}</p>
                     </div>
                 </div>
 
@@ -3728,24 +3826,22 @@ export default function ProfessionalDiagnosisPage() {
                     </button>
                 </div>
                 {/* Appreciation & Victory Header */}
-                <div className="bg-linear-to-br from-indigo-900 via-slate-950 to-emerald-950 rounded-6xl p-20 text-white shadow-3xl text-center space-y-8 relative overflow-hidden border border-white/5">
-                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+                <div className="bg-white/60 backdrop-blur-xl rounded-[4rem] p-20 border border-white shadow-3xl text-center space-y-8 relative overflow-hidden">
+                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" />
 
-                    <div className="relative z-10 space-y-6">
-                        <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-2xl mb-8 animate-bounce">
+                    <div className="relative z-10 space-y-8 flex flex-col items-center">
+                        <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl mb-8 shadow-emerald-200">
                             <ShieldCheck size={48} />
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
+                        <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-tight">
                             {language === 'ar' ? 'تم اكتمال التشخيص بنجاح' : 'Diagnostic Fully Complete'}
                         </h1>
-                        <p className="text-indigo-200 text-xl font-medium max-w-3xl mx-auto leading-relaxed">
+                        <p className="text-slate-500 text-lg font-medium max-w-3xl mx-auto leading-relaxed">
                             {language === 'ar' ?
                                 'لقد انتهيت من الرحلة الكاملة لتقييم قدراتك المهنية. إليك الآن التقرير الاستراتيجي الشامل الذي يجمع كل التحليلات في وثيقة واحدة.' :
                                 'You have successfully navigated the full professional evaluation journey. Here is your global strategic synthesis combining all insights.'}
                         </p>
-
-
                     </div>
                 </div>
 
@@ -3989,18 +4085,26 @@ export default function ProfessionalDiagnosisPage() {
                             ))}
                         </div>
 
-                        <div className="bg-indigo-600 rounded-6xl p-12 text-white shadow-3xl text-center space-y-8">
-                            <h3 className="text-3xl font-black">{language === 'ar' ? 'التوصية النهائية للخبير' : language === 'fr' ? 'Recommandation finale de l\'expert' : 'Final Expert Recommendation'}</h3>
-                            <p className="text-2xl font-bold leading-relaxed opacity-90 italic max-w-4xl mx-auto">
-                                &quot;{strategicPaths.finalRecommendation}&quot;
-                            </p>
-                            <div className="pt-8">
-                                <button
-                                    onClick={() => setStep(0)}
-                                    className="px-16 py-6 bg-white text-indigo-600 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-2xl"
-                                >
-                                    {t.restart}
-                                </button>
+                        <div className="bg-white/40 backdrop-blur-3xl rounded-[4rem] p-16 border border-white shadow-3xl text-center space-y-10 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+                                <div className="absolute top-0 right-0 p-12"><Sparkles size={300} className="text-indigo-600" /></div>
+                            </div>
+                            <div className="relative z-10 space-y-10">
+                                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto shadow-2xl">
+                                    <Sparkles size={32} />
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{language === 'ar' ? 'التوصية النهائية للخبير' : language === 'fr' ? 'Recommandation finale de l\'expert' : 'Final Expert Recommendation'}</h3>
+                                <p className="text-2xl font-bold leading-relaxed text-slate-600 italic max-w-4xl mx-auto px-6">
+                                    &quot;{strategicPaths.finalRecommendation}&quot;
+                                </p>
+                                <div className="pt-8 flex justify-center">
+                                    <button
+                                        onClick={() => setStep(0)}
+                                        className="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl hover:scale-105"
+                                    >
+                                        {t.restart}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4009,8 +4113,85 @@ export default function ProfessionalDiagnosisPage() {
         );
     }
 
+    const rawStages = t.diagnosisStages as Array<{ title: string, desc: string, icon: string }>;
+    const progressStages = [
+        { label: rawStages[0].title, icon: <User size={16} />, activeSteps: [0, 1] },
+        { label: rawStages[1].title, icon: <Search size={16} />, activeSteps: [2, 3, 4] },
+        { label: rawStages[2].title, icon: <GraduationCap size={16} />, activeSteps: [5] },
+        { label: rawStages[3].title, icon: <Brain size={16} />, activeSteps: [6, 7] },
+        { label: rawStages[4].title, icon: <TrendingUp size={16} />, activeSteps: [8, 9, 10, 11, 12, 13] }
+    ];
+
+    const currentStageIndex = progressStages.findIndex(s => s.activeSteps.includes(step));
+
     return (
-        <div className="min-h-screen p-6 md:p-12 max-w-6xl mx-auto">
+        <div className="min-h-screen bg-slate-50/50 relative overflow-hidden">
+            {/* Premium Dynamic Background Auras */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50/20">
+                <div className="absolute top-[-15%] right-[-10%] w-[60%] h-[60%] bg-[radial-gradient(circle,rgba(79,70,229,0.08)_0%,transparent_70%)] blur-[80px] animate-pulse" />
+                <div className="absolute bottom-[-15%] left-[-10%] w-[60%] h-[60%] bg-[radial-gradient(circle,rgba(16,185,129,0.08)_0%,transparent_70%)] blur-[80px] animate-pulse" style={{ animationDelay: '3s' }} />
+                <div className="absolute top-[30%] left-[15%] w-[40%] h-[40%] bg-[radial-gradient(circle,rgba(244,63,94,0.04)_0%,transparent_70%)] blur-[100px]" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02] mix-blend-overlay" />
+            </div>
+
+            {/* Persistent Top Header / Progress Tracker */}
+            {hasSelectedLanguage && (
+                <div className="sticky top-6 z-50 px-6 max-w-6xl mx-auto mb-12">
+                    <div className="bg-white/80 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] rounded-4xl p-2 flex items-center justify-between">
+                        <div className="flex items-center gap-4 px-6">
+                            <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                <Sparkles size={20} />
+                            </div>
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-400 hidden md:block">
+                                Professional Hub <span className="text-indigo-600">Beta</span>
+                            </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 md:gap-4 flex-1 justify-center max-w-2xl px-4 overflow-x-auto no-scrollbar">
+                            {progressStages.map((stage, idx) => {
+                                const isActive = idx === currentStageIndex;
+                                const isCompleted = idx < currentStageIndex;
+                                return (
+                                    <div key={idx} className="flex items-center gap-1 md:gap-3 shrink-0">
+                                        <div className={cn(
+                                            "flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-500",
+                                            isActive ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-105" : 
+                                            isCompleted ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "text-slate-300"
+                                        )}>
+                                            <div className={cn(
+                                                "w-6 h-6 rounded-lg flex items-center justify-center shrink-0",
+                                                isActive ? "bg-white/20" : isCompleted ? "bg-emerald-500/10" : "bg-transparent"
+                                            )}>
+                                                {isCompleted ? <CheckCircle2 size={14} /> : React.cloneElement(stage.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">
+                                                {stage.label}
+                                            </span>
+                                        </div>
+                                        {idx < progressStages.length - 1 && (
+                                            <div className={cn(
+                                                "h-0.5 w-4 md:w-8 rounded-full",
+                                                isCompleted ? "bg-emerald-500" : "bg-slate-100"
+                                            )} />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="px-6 flex items-center gap-3">
+                            <button 
+                                onClick={() => window.location.reload()}
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
+                            >
+                                <RefreshCw size={18} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="relative z-10 max-w-6xl mx-auto px-6 py-12">
             <AnimatePresence mode="wait">
                 {!hasSelectedLanguage ? (
                     <motion.div
@@ -4027,42 +4208,45 @@ export default function ProfessionalDiagnosisPage() {
                             opacity: 0,
                             scale: 0.95
                         }}
-                        className="bg-slate-900 rounded-[3rem] p-12 text-center space-y-12 border border-white/5 shadow-3xl overflow-hidden relative"
+                        className="bg-white/80 backdrop-blur-3xl rounded-[3rem] p-12 text-center space-y-12 border border-white shadow-[0_30px_100px_rgba(0,0,0,0.08)] overflow-hidden relative"
                     >
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] -mr-48 -mt-48" />
-                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] -ml-48 -mb-48" />
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-[100px] -mr-48 -mt-48" />
+                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px] -ml-48 -mb-48" />
 
                         <div className="relative z-10 space-y-4">
-                            <div className="w-20 h-20 bg-linear-to-br from-indigo-500 to-violet-600 rounded-3xl flex items-center justify-center text-white mx-auto shadow-2xl ring-4 ring-white/5">
+                            <div className="w-20 h-20 bg-linear-to-br from-indigo-500 to-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-100">
                                 <Globe size={40} />
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
                                 {t.selectLanguageTitle}
                             </h1>
-                            <p className="text-indigo-200/70 font-bold max-w-xl mx-auto uppercase tracking-widest text-xs">
+                            <p className="text-indigo-400/80 font-black max-w-xl mx-auto uppercase tracking-[0.3em] text-[10px]">
                                 {t.selectLanguageSub}
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-8 relative z-10 max-w-4xl mx-auto">
+                        <div className="grid md:grid-cols-3 gap-8 relative z-10 max-w-5xl mx-auto">
                             {[
                                 {
                                     id: 'ar',
                                     label: t.arabic,
                                     icon: "🇸🇦",
-                                    sub: "التواصل باللغة العربية"
+                                    sub: "التواصل باللغة العربية",
+                                    desc: "Fusha Arabic Interaction"
                                 },
                                 {
                                     id: 'en',
                                     label: t.english,
                                     icon: "🇬🇧",
-                                    sub: "Interact in English"
+                                    sub: "Interact in English",
+                                    desc: "Global Business English"
                                 },
                                 {
                                     id: 'fr',
                                     label: t.french,
                                     icon: "🇫🇷",
-                                    sub: "Dialoguer en Français"
+                                    sub: "Dialoguer en Français",
+                                    desc: "Échange Professionnel"
                                 }
                             ].map((lang) => (
                                 <button
@@ -4071,17 +4255,20 @@ export default function ProfessionalDiagnosisPage() {
                                         setLanguage(lang.id as Language);
                                         setHasSelectedLanguage(true);
                                     }}
-                                    className="group relative"
+                                    className="group relative h-full"
                                 >
-                                    <div className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-4xl p-8 transition-all duration-500 hover:scale-[1.05] hover:shadow-3xl hover:shadow-indigo-500/10 flex flex-col items-center gap-6 text-center h-full">
-                                        <div className="text-5xl group-hover:scale-110 transition-transform duration-500">{lang.icon}</div>
-                                        <div className="space-y-2">
-                                            <h3 className="text-2xl font-black text-white">{lang.label}</h3>
-                                            <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest opacity-60">
+                                    <div className="bg-white hover:bg-indigo-50/50 border border-slate-100 rounded-[3rem] p-10 transition-all duration-700 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col items-center gap-6 text-center h-full">
+                                        <div className="text-6xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700">{lang.icon}</div>
+                                        <div className="space-y-3">
+                                            <h3 className="text-2xl font-black text-slate-900">{lang.label}</h3>
+                                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-full">
                                                 {lang.sub}
                                             </p>
                                         </div>
-                                        <div className="mt-auto w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                        <p className="text-[10px] font-bold text-slate-400 leading-relaxed max-w-[150px]">
+                                            {lang.desc}
+                                        </p>
+                                        <div className="mt-auto w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                                             <ArrowRight size={20} className={isRtl ? "rotate-180" : ""} />
                                         </div>
                                     </div>
@@ -4092,29 +4279,60 @@ export default function ProfessionalDiagnosisPage() {
                 ) : step === 0 ? (
                     <motion.div 
                         key="step0"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="bg-white rounded-6xl border border-slate-100 shadow-2xl p-12 text-center space-y-8"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="max-w-6xl mx-auto space-y-12"
                     >
-                        <div className="w-24 h-24 bg-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-200">
-                            <ShieldCheck size={48} />
+                        {/* Welcome Card */}
+                        <div className="bg-white rounded-6xl border border-slate-100 shadow-2xl p-12 text-center space-y-8">
+                            <div className="w-24 h-24 bg-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-200">
+                                <ShieldCheck size={48} />
+                            </div>
+                            <div className="space-y-4">
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                                    {t.welcomeTitle}
+                                </h1>
+                                <p className="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
+                                    {t.welcomeSub}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setStep(1)}
+                                className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center gap-4 mx-auto group shadow-xl"
+                            >
+                                {t.startBtn}
+                                <ArrowRight size={20} className={cn("group-hover:translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:-translate-x-1")} />
+                            </button>
                         </div>
-                        <div className="space-y-4">
-                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-                                {t.welcomeTitle}
-                            </h1>
-                            <p className="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
-                                {t.welcomeSub}
-                            </p>
+
+                        {/* Stages Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                            {(t.diagnosisStages as Array<{ title: string, desc: string, icon: string }>).map((stage, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 + i * 0.1 }}
+                                    className="bg-white/50 backdrop-blur-md border border-slate-100 p-8 rounded-[3rem] text-center space-y-4 hover:bg-white hover:shadow-xl transition-all group"
+                                >
+                                    <div className="w-14 h-14 bg-slate-950 text-white rounded-2xl mx-auto flex items-center justify-center group-hover:bg-indigo-600 transition-colors shadow-lg">
+                                        {stage.icon === "Edit3" && <Zap size={24} />}
+                                        {stage.icon === "Search" && <Search size={24} />}
+                                        {stage.icon === "Zap" && <Rocket size={24} />}
+                                        {stage.icon === "Brain" && <Brain size={24} />}
+                                        {stage.icon === "TrendingUp" && <TrendingUp size={24} />}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{stage.title}</h3>
+                                        <p className="text-[10px] text-slate-400 font-bold leading-relaxed">{stage.desc}</p>
+                                    </div>
+                                    <div className="text-[10px] font-black text-indigo-200 group-hover:text-indigo-600 transition-colors">
+                                        0{i + 1}
+                                    </div>
+                                </motion.div>
+                            ))}
                         </div>
-                        <button 
-                            onClick={() => setStep(1)}
-                            className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center gap-4 mx-auto group shadow-xl"
-                        >
-                            {t.startBtn}
-                            <ArrowRight size={20} className={cn("group-hover:translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:-translate-x-1")} />
-                        </button>
                     </motion.div>
                 ) : (
                     <motion.div 
@@ -4134,21 +4352,21 @@ export default function ProfessionalDiagnosisPage() {
                         </div>
                         {/* Info / Prompts Side */}
                         <div className="lg:col-span-4 space-y-6">
-                            <div className="bg-indigo-600 rounded-5xl p-8 text-white shadow-xl relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                                    <Brain size={120} />
+                            <div className="bg-white/40 backdrop-blur-xl rounded-5xl p-8 border border-white/60 shadow-xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                                    <Brain size={120} className="text-indigo-600" />
                                 </div>
-                                <h3 className="text-xl font-black mb-6 relative z-10">{t.narrativeTitle}</h3>
-                                <p className="text-sm font-medium text-indigo-100 mb-8 relative z-10 opacity-90">
+                                <h3 className="text-xl font-black mb-6 relative z-10 text-slate-900">{t.narrativeTitle}</h3>
+                                <p className="text-xs font-bold text-indigo-600 mb-8 relative z-10 uppercase tracking-[0.2em] opacity-80">
                                     {t.narrativeSub}
                                 </p>
                                 <ul className="space-y-4 relative z-10">
                                     {t.points.map((p: string, i: number) => (
-                                        <li key={i} className="flex gap-3 text-xs font-bold bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
-                                            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                        <li key={i} className="flex gap-4 text-xs font-bold bg-white/60 p-5 rounded-3xl border border-indigo-50 shadow-sm transition-all hover:border-indigo-200">
+                                            <div className="w-6 h-6 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-100 font-black text-[10px]">
                                                 {i + 1}
                                             </div>
-                                            <span className="leading-relaxed">{p}</span>
+                                            <span className="leading-relaxed text-slate-600">{p}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -4198,19 +4416,7 @@ export default function ProfessionalDiagnosisPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
-          {/* Floating Refresh/Sync Action */}
-        <div className="fixed bottom-8 left-8 z-50 flex flex-col gap-2">
-            <button 
-                onClick={() => window.location.reload()}
-                className="w-14 h-14 bg-white border border-slate-100 rounded-2xl shadow-2xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:scale-110 transition-all group"
-                title={language === 'ar' ? 'تحديث' : 'Refresh'}
-            >
-                <RefreshCw size={24} className="group-active:rotate-180 transition-transform duration-500" />
-            </button>
-            <div className="bg-slate-900 px-3 py-1.5 rounded-lg text-white text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                {language === 'ar' ? 'تحديث يدوي' : 'Manual Sync'}
             </div>
         </div>
-      </div>
     );
 }

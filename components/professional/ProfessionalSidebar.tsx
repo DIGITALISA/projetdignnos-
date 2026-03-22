@@ -234,7 +234,8 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
         sci: false
     });
 
-    const [userProfile, setUserProfile] = useState<{ fullName?: string; email?: string; [key: string]: unknown } | null>(null);
+    const [userProfile, setUserProfile] = useState<{ fullName?: string; email?: string; plan?: string; role?: string; [key: string]: unknown } | null>(null);
+    const isPaidPlan = userProfile?.plan && ['Pro Activation', 'Pro', 'Executive Coaching', 'Executive', 'Board Member Tier', 'Board Member'].includes(userProfile.plan as string);
 
     useEffect(() => {
         const loadAccess = async () => {
@@ -324,24 +325,24 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
             </AnimatePresence>
 
             <aside className={cn(
-                "fixed top-0 h-screen w-72 bg-slate-950 border-white/5 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-2xl shadow-indigo-500/10 md:shadow-none flex flex-col",
+                "fixed top-0 h-screen w-72 bg-white/40 backdrop-blur-3xl border-slate-100 z-50 transition-all duration-500 ease-in-out md:translate-x-0 shadow-[0_0_50px_rgba(0,0,0,0.03)] md:shadow-none flex flex-col",
                 isRtl ? "right-0 border-l" : "left-0 border-r",
                 isOpen ? "translate-x-0" : (isRtl ? "translate-x-full" : "-translate-x-full")
             )}>
                 {/* Brand Header */}
-                <div className="h-24 shrink-0 flex items-center justify-between px-8 border-b border-white/10 bg-slate-950">
+                <div className="h-24 shrink-0 flex items-center justify-between px-8 border-b border-slate-100 bg-white/20">
                     <Link href="/professional" className="flex flex-col group">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] group-hover:scale-105 transition-transform">
+                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-[0_10px_20px_rgba(79,70,229,0.2)] group-hover:scale-105 transition-transform">
                                 <Sparkles size={18} fill="currentColor" />
                             </div>
-                            <h1 className="font-black text-2xl tracking-tighter text-white leading-none">MATC</h1>
+                            <h1 className="font-black text-2xl tracking-tighter text-slate-900 leading-none">MATC</h1>
                         </div>
-                        <span className="text-[9px] font-black text-indigo-400 tracking-[0.2em] mt-1.5 uppercase opacity-80">
+                        <span className="text-[9px] font-black text-indigo-600 tracking-[0.2em] mt-1.5 uppercase opacity-80">
                             {t.subtitle}
                         </span>
                     </Link>
-                    <button onClick={onClose} className="md:hidden p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className="md:hidden p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-slate-900 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -352,77 +353,97 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
                         {/* Hub Groups */}
                         {menuGroups.map((group) => (
                             <div key={group.groupId} className="space-y-2 mb-6">
-                                <div className={cn("px-4 mb-3 flex items-center gap-2 opacity-40", isRtl && "flex-row-reverse")}>
-                                    <group.icon size={12} className="text-indigo-400" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{group.title}</span>
+                                <div className={cn("px-4 mb-3 flex items-center gap-2 opacity-60", isRtl && "flex-row-reverse")}>
+                                    <group.icon size={12} className="text-indigo-600" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{group.title}</span>
                                 </div>
-                                {group.items.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group relative",
-                                            item.active 
-                                                ? "bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.05)]" 
-                                                : "text-slate-400 hover:text-slate-200 hover:bg-white/5",
-                                            isRtl && "flex-row-reverse text-right"
-                                        )}
-                                    >
-                                        <item.icon className={cn("w-5 h-5", item.active ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300")} />
-                                        <span className="flex-1">{item.name}</span>
-                                        {item.active && <ChevronRight size={14} className={cn("opacity-50", isRtl && "rotate-180")} />}
-                                    </Link>
-                                ))}
+                                {group.items.map((item) => {
+                                    const isDiagnosis = item.href === "/professional";
+                                    const isLocked = !isPaidPlan && !isDiagnosis;
+
+                                    return isLocked ? (
+                                        <div
+                                            key={item.href}
+                                            className={cn(
+                                                "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all cursor-not-allowed opacity-30 grayscale text-slate-400",
+                                                isRtl && "flex-row-reverse text-right"
+                                            )}
+                                        >
+                                            <item.icon className="w-5 h-5 text-slate-400" />
+                                            <span className="flex-1">{item.name}</span>
+                                            <Lock size={14} className="text-slate-400" />
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group relative",
+                                                item.active 
+                                                    ? "bg-indigo-600 text-white shadow-[0_10px_20px_rgba(79,70,229,0.15)] scale-[1.02]" 
+                                                    : "text-slate-500 hover:text-slate-900 hover:bg-white/60 hover:shadow-sm",
+                                                isRtl && "flex-row-reverse text-right"
+                                            )}
+                                        >
+                                            <item.icon className={cn("w-5 h-5", item.active ? "text-white" : "text-slate-400 group-hover:text-indigo-500")} />
+                                            <span className="flex-1">{item.name}</span>
+                                            {item.active && <ChevronRight size={14} className={cn("opacity-50", isRtl && "rotate-180")} />}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         ))}
 
                         {/* CREDENTIALS Group */}
                         <div className="space-y-2">
-                            <div className={cn("px-4 mb-4 flex items-center gap-2 opacity-30", isRtl && "flex-row-reverse")}>
-                                <ShieldCheck size={10} />
+                            <div className={cn("px-4 mb-4 flex items-center gap-2 opacity-50", isRtl && "flex-row-reverse")}>
+                                <ShieldCheck size={10} className="text-indigo-600" />
                                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{t.credentialsGroup}</span>
                             </div>
-                            {credentialItems.map((item) => (
-                                <div key={item.href} className="relative">
-                                    {item.locked ? (
-                                        <div
-                                            className={cn(
-                                                "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all cursor-not-allowed opacity-40 grayscale text-slate-400",
-                                                isRtl && "flex-row-reverse text-right"
-                                            )}
-                                        >
-                                            <item.icon className="w-5 h-5 text-slate-500" />
-                                            <span className="flex-1">{item.name}</span>
-                                            <Lock size={14} className="text-slate-500" />
-                                        </div>
-                                    ) : (
-                                        <Link
-                                            href={item.href}
-                                            className={cn(
-                                                "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group relative",
-                                                item.active 
-                                                    ? "bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.05)]" 
-                                                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5",
-                                                isRtl && "flex-row-reverse text-right"
-                                            )}
-                                        >
-                                            <item.icon className={cn("w-5 h-5", item.active ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300")} />
-                                            <span className="flex-1">{item.name}</span>
-                                            {item.active && <ChevronRight size={14} className={cn("opacity-50", isRtl && "rotate-180")} />}
-                                        </Link>
-                                    )}
-                                </div>
-                            ))}
+                            {credentialItems.map((item) => {
+                                const isLocked = item.locked || !isPaidPlan;
+                                return (
+                                    <div key={item.href} className="relative">
+                                        {isLocked ? (
+                                            <div
+                                                className={cn(
+                                                    "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all cursor-not-allowed opacity-30 grayscale text-slate-400",
+                                                    isRtl && "flex-row-reverse text-right"
+                                                )}
+                                            >
+                                                <item.icon className="w-5 h-5 text-slate-400" />
+                                                <span className="flex-1">{item.name}</span>
+                                                <Lock size={14} className="text-slate-400" />
+                                            </div>
+                                        ) : (
+                                            <Link
+                                                href={item.href}
+                                                className={cn(
+                                                    "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group relative",
+                                                    item.active 
+                                                        ? "bg-indigo-600 text-white shadow-[0_10px_20px_rgba(79,70,229,0.15)] scale-[1.02]" 
+                                                        : "text-slate-500 hover:text-slate-900 hover:bg-white/60 hover:shadow-sm",
+                                                    isRtl && "flex-row-reverse text-right"
+                                                )}
+                                            >
+                                                <item.icon className={cn("w-5 h-5", item.active ? "text-white" : "text-slate-400 group-hover:text-indigo-500")} />
+                                                <span className="flex-1">{item.name}</span>
+                                                {item.active && <ChevronRight size={14} className={cn("opacity-50", isRtl && "rotate-180")} />}
+                                            </Link>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
 
                 {/* Bottom Section */}
-                <div className="p-4 border-t border-white/5 space-y-4">
+                <div className="p-6 border-t border-slate-100 bg-white/10 space-y-4">
                     <Link 
                         href="/settings"
                         className={cn(
-                            "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all",
+                            "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-white transition-all",
                             isRtl && "flex-row-reverse text-right"
                         )}
                     >
@@ -431,19 +452,19 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
                     </Link>
                     
                     <div className={cn(
-                        "p-4 bg-slate-900 rounded-2xl border border-white/5 flex items-center gap-3",
+                        "p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3",
                         isRtl && "flex-row-reverse text-right"
                     )}>
-                        <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-200 font-black text-sm shadow-inner">
+                        <div className="w-10 h-10 rounded-full bg-indigo-600 border border-indigo-200 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-indigo-100">
                             {userProfile?.fullName?.charAt(0) || 'P'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black text-white truncate uppercase">{userProfile?.fullName || 'Expert User'}</p>
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-tighter leading-none mt-0.5">{t.status}</p>
+                            <p className="text-xs font-black text-slate-900 truncate uppercase">{userProfile?.fullName || 'Expert User'}</p>
+                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tighter leading-none mt-0.5">{t.status}</p>
                         </div>
                         <button 
                             onClick={handleLogout}
-                            className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                         >
                             <LogOut size={18} />
                         </button>
