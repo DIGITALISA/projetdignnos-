@@ -147,6 +147,7 @@ export async function GET(req: Request) {
         hasScorecard: scorecardReady,
         activationType: user?.activationType,
         firstLoginAt: user?.firstLoginAt,
+        status: user?.status,
         visitedModules: user?.visitedModules || []
       },
     });

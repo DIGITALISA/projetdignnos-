@@ -30,20 +30,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        // Block login for Pending users (if not admin/moderator)
-        if (user.status === "Pending" && user.role !== "Admin" && user.role !== "Moderator") {
-            // Get contact config for the WhatsApp number
-            const Config = (await import("@/models/Config")).default;
-            const contactConfig = await Config.findOne({ key: 'contact_whatsapp' });
-            const whatsapp = contactConfig?.value || '+216 44 172 284';
-
-            return NextResponse.json({
-                error: `Désolé, votre compte est en cours de vérification. سيتم تفعيل الحساب بعد التثبت من المعطيات مابين 24 ساعة و 72 ساعة. إذا تأخرنا أو كنت ترغب في تفعيل الحساب فوراً، تواصل معنا عبر الواتساب: ${whatsapp}`,
-                status: "Pending"
-            }, { status: 403 });
-        }
-
-        // Block login for Suspended/Inactive users
+        // Allow login for Pending users - UI will handle the restricted view
+        // Logic for Suspended/Inactive users remains restricted
         if (user.status === "Suspended" || user.status === "Inactive") {
             return NextResponse.json({
                 error: "Your account has been suspended or deactivated. Please contact support.",

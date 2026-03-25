@@ -32,12 +32,35 @@ JSON STRUCTURE REQUIRED:
 {
   "executiveSummary": "A powerful 2-3 paragraph synthesis. Integrate the appreciation and explain how this foundation drives the upcoming PRO modules.",
   "holisticScore": 85,
+  "maturityLevel": "Executive Expert / Strategic Visionary / etc.",
+  "leadershipFingerprint": {
+    "archetype": "Brutal Truth-Seeker / High-Impact Operator / Strategic Architect / etc.",
+    "description": "Short elite description.",
+    "riskContext": "Specific HR/Leadership warning for their current path."
+  },
   "pillarAnalysis": {
     "technical": "Assessment of technical depth (referencing MCQ results)",
     "strategic": "Analysis of their chosen path and business logic",
     "psychological": "Analysis of mindset, adaptability, and leadership potential"
   },
+  "swot": {
+    "strengths": ["Elite point 1", "Elite point 2", "etc."],
+    "weaknesses": ["Honest gap 1", "Honest gap 2", "etc."],
+    "opportunities": ["Market opening 1", "Strategic path 2", "etc."],
+    "threats": ["Career risk 1", "Skill obsolescence risk", "etc."]
+  },
   "marketabilityVerdict": "Elite view on their current market value and positioning.",
+  "roadmap369": {
+    "year3": { "targetRole": "Role title", "action": "Strategic move" },
+    "year6": { "targetRole": "Role title", "action": "Strategic move" },
+    "year9": { "targetRole": "Role title", "action": "Strategic move" },
+    "feasibilityVerdict": "Honest assessment of this roadmap's viability"
+  },
+  "linkedInStrategy": {
+    "headline": "High-impact professional headline",
+    "summaryFocus": "2-3 sentences profile abstract for LinkedIn.",
+    "networkingAdvice": "Short tactical advice for executive networking."
+  },
   "premiumOpportunity": "Explicitly explain how the PRO simulations and dynamic roadmaps will turn these insights into competitive advantages.",
   "finalCallToAction": "A final high-end, inspirational closer."
 }

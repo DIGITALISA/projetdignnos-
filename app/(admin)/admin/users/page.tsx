@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Clock, CheckSquare, RotateCcw, LogIn } from "lucide-react";
+import { Search, UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Loader2, Zap, Phone, Clock, CheckSquare, RotateCcw, LogIn, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +35,8 @@ export default function ParticipantsManagement() {
         firstLoginAt?: Date;
         memberId?: string;
         referenceId?: string;
+        createdAt?: string;
+        professionalReportStatus?: string;
     }
 
     interface Workshop {
@@ -108,7 +110,7 @@ export default function ParticipantsManagement() {
     }, []);
 
     const handleDelete = async (userId: string) => {
-        if (!confirm("Are you sure you want to eliminate this asset?")) return;
+        if (!confirm("⚠️ DANGER: PERMANENT DELETE\n\nThis will ELIMINATE the user and ALL their data permanently from the database (MongoDB).\n\nهل أنت متأكد من حذف هذا الحساب نهائياً من المصدر؟ هذا الإجراء لا يمكن التراجع عنه.")) return;
 
         try {
             const res = await fetch(`/api/admin/users?id=${userId}`, {
@@ -286,13 +288,14 @@ export default function ParticipantsManagement() {
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Student Management</h1>
                     <p className="text-slate-500 mt-1">Manage student assets, verify credentials, and approve strategic access.</p>
                 </div>
-                <button
-                    onClick={openAddModal}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
-                >
-                    <UserPlus size={20} />
-                    Add Student
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={openAddModal}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
+                    >
+                        <UserPlus size={20} />
+                        Add Student
+                    </button>
                     <button
                         onClick={async () => {
                             if (window.confirm("DANGER: VOUS ÊTES SUR LE POINT DE SUPPRIMER TOUS LES PARTICIPANTS !\n\nCette action est irréversible et supprimera TOUS les comptes (sauf les admins) ainsi que toutes leurs données (tests, simulations, certificats...).\n\nVoulez-vous vraiment continuer ?")) {
@@ -313,11 +316,57 @@ export default function ParticipantsManagement() {
                             }
                         }}
                         disabled={isSubmitting}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-600/20 hover:bg-red-700 hover:-translate-y-0.5 transition-all ml-2"
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-600/20 hover:bg-red-700 hover:-translate-y-0.5 transition-all"
                     >
                         <Trash2 size={20} />
                         TOUT SUPPRIMER
                     </button>
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("⚠️ ACTION CRITIQUE: PURGE DES COMPTES EN ATTENTE\n\nCette action supprimera DÉFINITIVEMENT tous les comptes avec le statut 'Pending'.\n\nContinuer ?")) {
+                                try {
+                                    setIsSubmitting(true);
+                                    const res = await fetch("/api/admin/users?action=purgePending", { method: "DELETE" });
+                                    const data = await res.json();
+                                    alert(data.message || "Les comptes en attente ont été purgés.");
+                                    fetchParticipants();
+                                } catch (e) {
+                                    console.error(e);
+                                    alert("Erreur lors de la purge.");
+                                } finally {
+                                    setIsSubmitting(false);
+                                }
+                            }
+                        }}
+                        disabled={isSubmitting}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-2xl font-bold shadow-lg shadow-amber-600/20 hover:bg-amber-700 hover:-translate-y-0.5 transition-all"
+                    >
+                        <Trash2 size={20} />
+                        PURGER EN ATTENTE
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("🛡️ SYSTEM DEEP CLEAN\n\nThis will scan and DELETE all orphaned data (test results, certificates, etc.) that belong to users who were previously deleted but left data behind.\n\nProceed with deep cleanup?")) {
+                                try {
+                                    setIsSubmitting(true);
+                                    const res = await fetch("/api/admin/users?action=deepClean", { method: "DELETE" });
+                                    const data = await res.json();
+                                    alert(data.message || "Deep clean complete!");
+                                } catch (e) {
+                                    console.error(e);
+                                    alert("Clean error.");
+                                } finally {
+                                    setIsSubmitting(false);
+                                }
+                            }
+                        }}
+                        disabled={isSubmitting}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-900/20 hover:bg-black hover:-translate-y-0.5 transition-all"
+                    >
+                        <ShieldAlert size={20} />
+                        NETTOYAGE PROFOND
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
@@ -374,7 +423,7 @@ export default function ParticipantsManagement() {
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Access Code</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Mandate Plan</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">WhatsApp</th>
-
+                                <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Registration</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-8 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Mandates</th>
                             </tr>
@@ -454,6 +503,25 @@ export default function ParticipantsManagement() {
                                         </div>
                                     </td>
 
+                                    <td className="px-8 py-5 font-mono text-[10px] text-slate-600 font-bold whitespace-nowrap">
+                                        <div className="flex flex-col gap-1 tracking-tighter">
+                                            <span className="text-slate-900 border-b border-slate-100 pb-1 flex items-center gap-1.5 uppercase">
+                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: '2-digit'
+                                                }) : "N/A"}
+                                            </span>
+                                            <span className="text-blue-500 flex items-center gap-1">
+                                                <Clock size={10} />
+                                                {user.createdAt ? new Date(user.createdAt).toLocaleTimeString(undefined, {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }) : "---"}
+                                            </span>
+                                        </div>
+                                    </td>
+
                                     <td className="px-8 py-5">
                                         <div className="flex flex-col gap-2">
                                             <span className={cn(
@@ -470,7 +538,7 @@ export default function ParticipantsManagement() {
                                                 )} />
                                                 {user.status}
                                             </span>
-                                            {user.isDiagnosisComplete && (
+                                            {(user.isDiagnosisComplete || ['completed', 'pending_review', 'reviewed'].includes(user.professionalReportStatus || '')) && (
                                                 <span className="inline-flex items-center gap-1 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">
                                                     <Check size={10} />
                                                     Diagnosis Done

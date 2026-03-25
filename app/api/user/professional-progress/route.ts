@@ -47,11 +47,16 @@ export async function POST(req: NextRequest) {
       updateObj[`professionalProgress.${key}`] = progressData[key];
     });
 
+    // Check if progress is completed
+    if (progressData.step === 'completed') {
+      updateObj.isDiagnosisComplete = true;
+    }
+
     const user = await User.findOneAndUpdate(
       { email },
       { $set: updateObj },
       { new: true }
-    ).select("professionalProgress");
+    ).select("professionalProgress isDiagnosisComplete");
 
     if (!user) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
@@ -61,7 +66,10 @@ export async function POST(req: NextRequest) {
     // Map progressData keys to Diagnosis fields if they match
     const diagnosisUpdate: Record<string, unknown> = {};
     if (progressData.finalReport) diagnosisUpdate.professionalFinalReport = progressData.finalReport;
-    if (progressData.auditResult) diagnosisUpdate.professionalAuditResult = progressData.auditResult;
+    if (progressData.auditResult) {
+        diagnosisUpdate.professionalAuditResult = progressData.auditResult;
+        diagnosisUpdate.auditResult = progressData.auditResult; // Ensure it matches what Admin Review expects
+    }
     if (progressData.interviewTranscript) diagnosisUpdate.professionalInterviewTranscript = progressData.interviewTranscript;
     if (progressData.mcqResults) diagnosisUpdate.professionalMCQResults = progressData.mcqResults;
     if (progressData.simulationResult) diagnosisUpdate.professionalSimulationResult = progressData.simulationResult;
@@ -78,6 +86,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Progress saved successfully and synced with Diagnosis",
+      isDiagnosisComplete: user.isDiagnosisComplete
     });
   } catch (error) {
     console.error("Error saving professional progress:", error);

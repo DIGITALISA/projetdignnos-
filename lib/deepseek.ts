@@ -112,11 +112,14 @@ export interface GrandFinalReport {
         verdict: string;
         maturityScore: number;
         psychologicalFootprint: string;
+        careerArchetype?: string;
     };
     competencyMatrix: {
         skillRadar: { name: string; score: number }[];
         gapAnalysis: string;
         decisionQualityVerdict: string;
+        detectedStrengths?: string[];
+        criticalGaps?: string[];
     };
     marketPositioning: {
         jobAlignmentScore: number;
@@ -129,6 +132,11 @@ export interface GrandFinalReport {
         longTermVision: string;
     };
     expertSynthesis: string;
+    mindsetProfile?: {
+        dominantDriver: string;
+        riskProfile: string;
+        psychologicalConclusion: string;
+    };
 }
 
 export interface StrategicPath {
@@ -3770,7 +3778,7 @@ Language: ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'Engli
 }
 
 export async function generateGrandFinalReport(
-    auditResult: AuditResult,
+    auditResult: unknown,
     interviewTranscript: InterviewMessage[],
     assessmentAnalysis: AssessmentAnalysis,
     mindsetAnalysis: MindsetAnalysis,
@@ -3779,50 +3787,149 @@ export async function generateGrandFinalReport(
     try {
         const { client, model } = await getAI();
 
-        const dataBundle = {
-            initialAudit: auditResult,
-            interview: interviewTranscript,
-            skillsAssessment: assessmentAnalysis,
-            mindset: mindsetAnalysis
+        const lang = language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'English';
+
+        // Cast to access the rich professional page AuditResult fields
+        const audit = auditResult as {
+            professionalIdentity?: string;
+            executiveSummary?: string;
+            strategicCriticism?: string;
+            basicData?: { field?: string; specialization?: string; education?: string; trainingType?: string; yearsOfExperience?: string; sector?: string; };
+            dimensions?: { careerProgression?: string; responsibilityLevel?: string; marketPosition?: string; leadershipSignal?: string; };
+            skills?: { detected?: string[]; gaps?: string[] };
+            learningSignals?: string[];
+            actionPlan?: string[];
+            indicators?: { label: string; value: string; score: number }[];
         };
 
-        const systemPrompt = `You are a Master Strategic Talent Arbitrator. Your task is to generate the "Grand Final Career Diagnosis Report".
-This is the ultimate synthesis of all previous stages.
+        // Build a rich summary from each previous stage
+        const auditSummary = {
+            identity: audit?.professionalIdentity,
+            field: audit?.basicData?.field,
+            specialization: audit?.basicData?.specialization,
+            education: audit?.basicData?.education,
+            yearsExperience: audit?.basicData?.yearsOfExperience,
+            sector: audit?.basicData?.sector,
+            progression: audit?.dimensions?.careerProgression,
+            responsibility: audit?.dimensions?.responsibilityLevel,
+            marketPosition: audit?.dimensions?.marketPosition,
+            leadership: audit?.dimensions?.leadershipSignal,
+            detectedSkills: audit?.skills?.detected,
+            skillGaps: audit?.skills?.gaps,
+            executiveSummary: audit?.executiveSummary,
+            strategicCriticism: audit?.strategicCriticism,
+            learningSignals: audit?.learningSignals,
+            actionPlan: audit?.actionPlan,
+            indicators: audit?.indicators,
+        };
 
-OUTPUT JSON STRUCTURE:
+        const interviewSummary = interviewTranscript?.slice(-12).map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n') || 'Interview not conducted.';
+
+        const assessmentSummary = {
+            score: assessmentAnalysis?.score,
+            total: assessmentAnalysis?.total,
+            percentage: assessmentAnalysis?.total ? Math.round((assessmentAnalysis.score / assessmentAnalysis.total) * 100) : 0,
+            technicalProficiency: assessmentAnalysis?.technicalProficiency,
+            behavioralInsight: assessmentAnalysis?.behavioralInsight,
+            decisionMakingQuality: assessmentAnalysis?.decisionMakingQuality,
+            finalConclusion: assessmentAnalysis?.finalConclusion,
+        };
+
+        const mindsetSummary = {
+            mindsetType: mindsetAnalysis?.mindsetType,
+            satisfactionLevel: mindsetAnalysis?.satisfactionLevel,
+            futureDirection: mindsetAnalysis?.futureDirection,
+            ambitionScore: mindsetAnalysis?.psychologicalProfile?.ambitionScore,
+            loyaltyPattern: mindsetAnalysis?.psychologicalProfile?.loyaltyPattern,
+            motivation: mindsetAnalysis?.psychologicalProfile?.motivation,
+            stressHandling: mindsetAnalysis?.psychologicalProfile?.stressHandling,
+            recommendation: mindsetAnalysis?.recommendation,
+        };
+
+        const systemPrompt = `You are a Chief Strategic Talent Arbitrator and Senior HR Executive Consultant with 30+ years of experience in career diagnostics and executive assessment. Your mission is to synthesize FOUR complete diagnostic stages into one cohesive, deeply analytical, and actionable "Grand Final Career Maturity Report".
+
+You MUST integrate insights from ALL four data sources below. Do not ignore any of them.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 STAGE 1 — INITIAL CAREER AUDIT (DNA Analysis)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${JSON.stringify(auditSummary, null, 2)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💬 STAGE 2 — STRATEGIC INTERVIEW TRANSCRIPT (Last 12 exchanges)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${interviewSummary}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 STAGE 3 — COMPETENCY ASSESSMENT RESULTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${JSON.stringify(assessmentSummary, null, 2)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 STAGE 4 — MINDSET & PSYCHOLOGICAL PROFILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${JSON.stringify(mindsetSummary, null, 2)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 YOUR SYNTHESIS MANDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Cross-reference all stages to detect contradictions, hidden strengths, and blind spots.
+2. Calculate a holistic "Professional Maturity Score" (0-100) based on consistency across all 4 stages.
+3. Generate a skillRadar with 5 dimensions: Technical, Behavioral, Leadership, Strategy, Execution — each scored 0-100.
+4. Provide an honest market gap analysis: where does this person stand vs. what the market demands?
+5. Build a concrete 3-horizon roadmap: short-term actions (6-12 months), transition goal (1-2 years), and long-term vision (5 years).
+6. Craft a powerful, evidence-based expertSynthesis paragraph of 8-12 lines that integrates the narrative, behavior, psychology, and market reality.
+
+OUTPUT FORMAT — RESPOND IN VALID JSON ONLY:
 {
   "professionalIdentity": {
-    "verdict": "One powerful sentence summarizing their professional state",
+    "verdict": "One powerful, diagnostic sentence summarizing their current professional state (not generic)",
     "maturityScore": 0-100,
-    "psychologicalFootprint": "Short definition of their professional psyche"
+    "psychologicalFootprint": "A precise psychological archetype tied to their mindset type and behavior patterns",
+    "careerArchetype": "e.g., The Silent Expert / The Ambitious Generalist / The Loyal Specialist"
   },
   "competencyMatrix": {
-    "skillRadar": [{"name": "Technical", "score": 0-100}, {"name": "Behavioral", "score": 0-100}, {"name": "Leadership", "score": 0-100}],
-    "gapAnalysis": "Deep analysis of the difference between current state and market needs",
-    "decisionQualityVerdict": "Analysis of their decision-making speed and quality from assessment"
+    "skillRadar": [
+      {"name": "Technical", "score": 0-100},
+      {"name": "Behavioral", "score": 0-100},
+      {"name": "Leadership", "score": 0-100},
+      {"name": "Strategy", "score": 0-100},
+      {"name": "Execution", "score": 0-100}
+    ],
+    "detectedStrengths": ["strength 1", "strength 2", "strength 3"],
+    "criticalGaps": ["gap 1", "gap 2", "gap 3"],
+    "gapAnalysis": "Deep analysis of the delta between current state and what the market demands for their level",
+    "decisionQualityVerdict": "Honest verdict on their decision-making speed and quality from the assessment"
   },
   "marketPositioning": {
     "jobAlignmentScore": 0-100,
-    "stabilityProfile": "Analysis of their loyalty pattern vs ambition",
-    "marketValueVerdict": "Analysis of their value in the current market"
+    "stabilityProfile": "Analysis of their loyalty pattern (from mindset) vs. market fluidity",
+    "marketValueVerdict": "An frank analysis of their competitive positioning in the current labor market"
+  },
+  "mindsetProfile": {
+    "dominantDriver": "The single core motivation (Growth / Security / Financial / Status / Autonomy)",
+    "riskProfile": "Low / Medium / High — based on ambition score and loyalty pattern",
+    "psychologicalConclusion": "3-4 sentences connecting their mindset type to their career behavior patterns observed in the interview"
   },
   "actionableRoadmap": {
-    "shortTerm": ["Action 1", "Action 2", "Action 3"],
-    "mediumTerm": "The targeted promotion or transition in 12-24 months",
-    "longTermVision": "Where they should be in 5 years to achieve peak potential"
+    "shortTerm": ["Specific, actionable step 1 (0-6 months)", "Specific, actionable step 2", "Specific, actionable step 3"],
+    "mediumTerm": "The precise career transition or promotion goal to target in 12-24 months with the required prerequisites",
+    "longTermVision": "Where they should realistically be in 5 years if they execute this roadmap"
   },
-  "expertSynthesis": "A profound HR expert analysis (10 lines) connecting all dots."
+  "expertSynthesis": "A masterful, 8-12 line HR expert synthesis that weaves together: their professional DNA from the audit, what the interview revealed about their self-awareness, how their assessment score reflects their real deployment capability, and what their mindset tells us about their future trajectory. Be specific, reference actual data points, and close with a decisive strategic verdict."
 }
 
-Language: ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'English'}.`;
+Language for all text values: ${lang}.`;
 
         const response = await client.chat.completions.create({
             model: model,
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `Full Synthesis Data: ${JSON.stringify(dataBundle)}` }
+                { role: "user", content: "Generate the Grand Final Report based on all four diagnostic stages above. Be comprehensive. Reference specific data from each stage." }
             ],
-            response_format: { type: 'json_object' }
+            response_format: { type: 'json_object' },
+            temperature: 0.4,
+            max_tokens: 4000
         });
 
         return {
@@ -3834,6 +3941,7 @@ Language: ${language === 'ar' ? 'Arabic' : language === 'fr' ? 'French' : 'Engli
         return { success: false, error: "Failed to generate grand report" };
     }
 }
+
 
 export async function generateStrategicPaths(
     grandReport: GrandFinalReport,

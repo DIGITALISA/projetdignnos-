@@ -16,7 +16,11 @@ import {
     Zap,
     TrendingUp,
     MapPin,
-    LayoutDashboard
+    LayoutDashboard,
+    Briefcase,
+    Video,
+    BarChart3,
+    BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -24,6 +28,8 @@ import { useLanguage } from "@/components/providers/LanguageProvider";
 interface UserProfile {
     fullName?: string;
     email?: string;
+    role?: string;
+    plan?: string;
 }
 
 interface DiagnosisSummary {
@@ -91,255 +97,309 @@ export default function ExecutiveDashboard() {
     const trans = {
         ar: {
             welcome: "مرحباً بعودتك،",
-            subtitle: "مركز القيادة التنفيذية الخاص بك. بياناتك وتحليلاتك جاهزة للتنفيذ.",
-            score: "مؤشر الجاهزية",
-            path: "المسار الموصى به",
-            gaps: "فجوات استراتيجية حرجة",
-            actions: "خطوات عاجلة",
-            expertSynthesis: "ملخص الخلاصة التنفيذية",
-            noDiagnosis: "التشخيص غير مكتمل - ابدأ الآن للوصول للتحليلات",
-            startDiagnosis: "ابدأ التشخيص الآن",
-            quickAction: "التحرك السريع",
-            hub: {
-                ai: "مركز الذكاء الاصطناعي",
-                identity: "تطوير الهوية",
-                ops: "العمليات"
+            subtitle: "مركز القيادة التنفيذية الخاص بك. نظام متكامل يجمع تحليلاتك وأدواتك في منصة واحدة.",
+            score: "مؤشر الجاهزية التنفيذية",
+            path: "المسار الاستراتيجي המوصى به",
+            gaps: "فجوات استراتيجية (أولوية قصوى)",
+            actions: "خطوات التموضع السريع",
+            expertSynthesis: "ملخص التدقيق التنفيذي (Confidential)",
+            noDiagnosis: "التشخيص الاستراتيجي غير مكتمل - استكمل التقييم لفتح جميع الاستنتاجات",
+            startDiagnosis: "إطلاق التشخيص",
+            hubTitle: "مركز التحكم الشامل",
+            categories: {
+                strategy: "الاستراتيجية والهوية (Strategy & Identity)",
+                coaching: "التوجيه والذكاء (Intelligence & Coaching)",
+                execution: "التنفيذ والعمليات (Execution & Ops)"
             },
-            cards: {
-                coach: { title: "المرافق الذكي", desc: "استشارة مجانية وخريطة طريق" },
-                board: { title: "مجلس الخبراء", desc: "4 دكاترة وخبراء لحل أزماتك" },
-                academy: { title: "الأكاديمية الذكية", desc: "منهج مخصص لسد فجواتك" },
-                resume: { title: "استوديو الهوية", desc: "بناء سيرة وقيمة سوقية" }
+            modules: {
+                perfStudio: { title: "استوديو الأداء", desc: "التشخيص والقياس المستمر" },
+                resumeStudio: { title: "استوديو الهوية", desc: "بناء وثائق وقيمة سوقية" },
+                analytics: { title: "تحليلات المسار", desc: "رصد التطور بدقة" },
+                smartCoach: { title: "المرافق الذكي", desc: "استشارات ومحاكاة مستمرة" },
+                board: { title: "مجلس الخبراء", desc: "تقييم بشري وحل أزمات" },
+                workshops: { title: "ورش العمل", desc: "التدريب المتقدم" },
+                academy: { title: "الأكاديمية الذكية", desc: "منهج لسد الفجوات" },
+                briefings: { title: "الجلسات المباشرة", desc: "موائد مستديرة حية" },
+                missions: { title: "مهمات وتدقيق", desc: "تحديات تطبيقية" }
             }
         },
         en: {
             welcome: "Welcome back,",
-            subtitle: "Your Executive Command Center. Your data and analytics are ready for action.",
-            score: "Readiness Score",
-            path: "Recommended Path",
-            gaps: "Critical Strategic Gaps",
-            actions: "Immediate Actions",
-            expertSynthesis: "Executive Synthesis Summary",
-            noDiagnosis: "Diagnosis Incomplete - Start now to unlock insights",
-            startDiagnosis: "Start Diagnosis Now",
-            quickAction: "Quick Actions",
-            hub: {
-                ai: "AI Intelligence Hub",
-                identity: "Identity Development",
-                ops: "Operations"
+            subtitle: "Your Executive Command Center. An integrated hub combining your analytics and tools in one unified platform.",
+            score: "Executive Readiness Score",
+            path: "Recommended Strategic Path",
+            gaps: "High-Priority Strategic Gaps",
+            actions: "Rapid Positioning Steps",
+            expertSynthesis: "Confidential Executive Audit Summary",
+            noDiagnosis: "Strategic Diagnosis Incomplete - Complete assessment to unlock all insights",
+            startDiagnosis: "Launch Diagnosis",
+            hubTitle: "Unified Command Hub",
+            categories: {
+                strategy: "Strategy & Identity",
+                coaching: "Intelligence & Coaching",
+                execution: "Execution & Ops"
             },
-            cards: {
-                coach: { title: "Smart Coach", desc: "Free consultation & roadmap" },
-                board: { title: "Advisory Board", desc: "4 Experts to solve your crises" },
-                academy: { title: "Smart Academy", desc: "Custom curriculum for you" },
-                resume: { title: "Identity Studio", desc: "Build market value" }
+            modules: {
+                perfStudio: { title: "Performance Studio", desc: "Diagnostics & active measurement" },
+                resumeStudio: { title: "Identity Studio", desc: "Market value & documentation" },
+                analytics: { title: "Career Analytics", desc: "Precise progression tracking" },
+                smartCoach: { title: "Smart Coach", desc: "Continuous AI consultation" },
+                board: { title: "Advisory Board", desc: "Human expert evaluation" },
+                workshops: { title: "Workshops", desc: "Advanced executive training" },
+                academy: { title: "Smart Academy", desc: "Curriculum to bridge gaps" },
+                briefings: { title: "Live Briefings", desc: "Live expert roundtables" },
+                missions: { title: "Missions & Audits", desc: "Applied challenges" }
             }
         },
         fr: {
             welcome: "Bon retour,",
-            subtitle: "Votre Centre de Commandement Exécutif. Vos données sont prêtes.",
-            score: "Score de Préparation",
-            path: "Chemin Recommandé",
-            gaps: "Lacunes Stratégiques",
-            actions: "Actions Immédiates",
-            expertSynthesis: "Synthèse Exécutive",
-            noDiagnosis: "Diagnostic incomplet - Commencez pour débloquer les analyses",
-            startDiagnosis: "Démarrer le diagnostic",
-            quickAction: "Actions Rapides",
-            hub: {
-                ai: "Centre IA",
-                identity: "Développement d'Identité",
-                ops: "Opérations"
+            subtitle: "Votre Centre de Commandement Exécutif. Un hub intégré réunissant vos analyses et outils en une plateforme unifiée.",
+            score: "Score de Préparation Exécutive",
+            path: "Chemin Stratégique Recommandé",
+            gaps: "Lacunes Stratégiques (Priorité Absolue)",
+            actions: "Étapes de Positionnement Rapide",
+            expertSynthesis: "Synthèse d'Audit Exécutif (Confidentiel)",
+            noDiagnosis: "Diagnostic Stratégique incomplet - Terminez pour débloquer les analyses",
+            startDiagnosis: "Lancer le Diagnostic",
+            hubTitle: "Hub de Commandement Unifié",
+            categories: {
+                strategy: "Stratégie & Identité",
+                coaching: "Intelligence & Coaching",
+                execution: "Exécution & Opérations"
             },
-            cards: {
-                coach: { title: "Coach Intelligent", desc: "Consultation et parcours gratuits" },
-                board: { title: "Comité d'Experts", desc: "4 Experts IA pour vous" },
-                academy: { title: "Académie", desc: "Combler vos lacunes" },
-                resume: { title: "Studio d'Identité", desc: "Construire votre valeur" }
+            modules: {
+                perfStudio: { title: "Studio de Performance", desc: "Diagnostics et mesure active" },
+                resumeStudio: { title: "Studio d'Identité", desc: "Valeur et documentation" },
+                analytics: { title: "Analytiques Carrière", desc: "Suivi de progression précis" },
+                smartCoach: { title: "Coach Intelligent", desc: "Consultation et simulation IA" },
+                board: { title: "Comité d'Experts", desc: "Évaluation par experts humains" },
+                workshops: { title: "Ateliers", desc: "Formation exécutive avancée" },
+                academy: { title: "Académie Intelligente", desc: "Curriculum pour combler les lacunes" },
+                briefings: { title: "Briefings en Direct", desc: "Tables rondes interactives" },
+                missions: { title: "Missions & Audits", desc: "Défis pratiques appliqués" }
             }
         }
     }[lang];
 
     const firstName = profile?.fullName?.split(" ")[0] || "Executive";
 
-    const quickLinks = [
-        { href: "/professional/advisory-board", icon: Users, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", title: trans.cards.board.title, desc: trans.cards.board.desc },
-        { href: "/professional/smart-coach", icon: Compass, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", title: trans.cards.coach.title, desc: trans.cards.coach.desc },
-        { href: "/professional/resume-studio", icon: FileText, color: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/20", title: trans.cards.resume.title, desc: trans.cards.resume.desc },
-        { href: "/professional/smart-academy", icon: GraduationCap, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20", title: trans.cards.academy.title, desc: trans.cards.academy.desc }
+    const moduleGroups = [
+        {
+            title: trans.categories.strategy,
+            icon: Target,
+            color: "text-blue-400",
+            bg: "bg-blue-500/10",
+            border: "border-blue-500/20",
+            items: [
+                { href: "/professional/performance-studio", icon: Activity, title: trans.modules.perfStudio.title, desc: trans.modules.perfStudio.desc },
+                { href: "/professional/resume-studio", icon: FileText, title: trans.modules.resumeStudio.title, desc: trans.modules.resumeStudio.desc },
+                { href: "/professional/career-analytics", icon: BarChart3, title: trans.modules.analytics.title, desc: trans.modules.analytics.desc },
+            ]
+        },
+        {
+            title: trans.categories.coaching,
+            icon: Brain,
+            color: "text-emerald-400",
+            bg: "bg-emerald-500/10",
+            border: "border-emerald-500/20",
+            items: [
+                { href: "/professional/smart-coach", icon: Compass, title: trans.modules.smartCoach.title, desc: trans.modules.smartCoach.desc },
+                { href: "/professional/advisory-board", icon: Users, title: trans.modules.board.title, desc: trans.modules.board.desc },
+                { href: "/professional/workshops", icon: Briefcase, title: trans.modules.workshops.title, desc: trans.modules.workshops.desc },
+            ]
+        },
+        {
+            title: trans.categories.execution,
+            icon: Zap,
+            color: "text-rose-400",
+            bg: "bg-rose-500/10",
+            border: "border-rose-500/20",
+            items: [
+                { href: "/professional/smart-academy", icon: GraduationCap, title: trans.modules.academy.title, desc: trans.modules.academy.desc },
+                { href: "/professional/live-briefings", icon: Video, title: trans.modules.briefings.title, desc: trans.modules.briefings.desc },
+                { href: "/professional/missions", icon: Target, title: trans.modules.missions.title, desc: trans.modules.missions.desc },
+            ]
+        }
     ];
 
     if (loading) {
         return (
-            <div className="flex-1 min-h-[80vh] flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+            <div className="flex-1 min-h-[80vh] flex items-center justify-center bg-slate-950">
+                <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-10 space-y-12 pb-32">
-            {/* Massive Welcome Banner */}
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={cn(
-                    "relative overflow-hidden bg-slate-950 p-10 md:p-14 rounded-[3rem] shadow-2xl border border-white/5",
-                    isRtl ? "text-right" : "text-left"
-                )}
-            >
-                <div className="absolute -top-32 -right-32 w-96 h-96 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
-                <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-rose-500/10 blur-[100px] rounded-full pointer-events-none" />
-                
-                <div className="relative z-10">
-                    <div className={cn("inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl text-indigo-400 font-black text-[10px] uppercase tracking-widest shadow-sm mb-6", isRtl && "flex-row-reverse")}>
-                        <LayoutDashboard size={14} />
-                        {trans.quickAction}
-                    </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tight leading-none mb-6">
-                        {trans.welcome} <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-400 via-white to-indigo-100">{firstName}</span>.
-                    </h1>
-                    <p className="text-slate-400 font-medium text-lg max-w-2xl leading-relaxed">
-                        {trans.subtitle}
-                    </p>
-                </div>
-            </motion.div>
-
-            {/* Expert Synthesis / Summary Section */}
-            {summary?.expertSynthesis ? (
+        <div className="bg-slate-950 min-h-screen text-slate-200">
+            <div className="max-w-7xl mx-auto px-6 py-10 space-y-12 pb-32">
+                {/* ─── MASSIVE WELCOME HERO ─── */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
                     className={cn(
-                        "bg-linear-to-br from-slate-900 to-slate-950 border border-indigo-500/10 p-10 rounded-[3rem] shadow-2xl relative",
+                        "relative overflow-hidden bg-linear-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/20 p-10 md:p-14 rounded-[3.5rem] shadow-[0_0_50px_rgba(99,102,241,0.05)]",
                         isRtl ? "text-right" : "text-left"
                     )}
                 >
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/10">
-                            <Brain size={20} />
-                        </div>
-                        <h3 className="text-sm font-black text-indigo-100 uppercase tracking-widest leading-none">
-                            {trans.expertSynthesis}
-                        </h3>
-                    </div>
-                    {summary.maturityVerdict && (
-                        <h4 className="text-xl font-black text-white mb-4 leading-tight">
-                            {summary.maturityVerdict}
-                        </h4>
-                    )}
-                    <div className="text-slate-400 font-medium leading-relaxed text-sm lg:text-base border-l-2 border-indigo-500/30 pl-6 py-2 italic bg-indigo-500/5 rounded-r-3xl">
-                        &quot;{summary.expertSynthesis}&quot;
-                    </div>
-                </motion.div>
-            ) : summary?.readinessScore === 0 && (
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-slate-900/50 border-2 border-dashed border-white/5 p-12 rounded-[3rem] text-center"
-                >
-                    <div className="w-20 h-20 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-inner">
-                        <Target size={32} className="text-slate-700" />
-                    </div>
-                    <p className="text-slate-500 font-bold mb-8 uppercase tracking-widest text-xs">{trans.noDiagnosis}</p>
-                    <Link href="/professional">
-                        <button className="px-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-indigo-600/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-4 mx-auto">
-                            {trans.startDiagnosis}
-                            <ArrowRight size={18} className={cn(isRtl && "rotate-180")} />
-                        </button>
-                    </Link>
-                </motion.div>
-            )}
-
-            {/* Diagnosis Summary Widget */}
-            {summary && (summary.readinessScore ?? 0) > 0 && (
-                <div className="grid md:grid-cols-3 gap-8">
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className={cn("bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group", isRtl && "text-right")}>
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-                            <Activity size={80} />
-                        </div>
-                        <div className={cn("flex items-center gap-4 mb-8", isRtl && "flex-row-reverse")}>
-                            <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20"><Activity size={24} /></div>
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{trans.score}</p>
-                                <h3 className="text-4xl font-black text-white">{summary.readinessScore}%</h3>
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none -mr-[200px] -mt-[200px]" />
+                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none -ml-[150px] -mb-[150px]" />
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-end md:justify-between gap-10">
+                        <div className="space-y-6">
+                            <div className={cn("inline-flex items-center gap-3 px-5 py-2.5 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-300 font-black text-xs uppercase tracking-widest backdrop-blur-md shadow-sm", isRtl && "flex-row-reverse")}>
+                                <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                                {profile?.role || "Professional Member"} • {profile?.plan || "Premium"}
                             </div>
+                            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tight leading-[1.1]">
+                                {trans.welcome} <br className="hidden md:block" />
+                                <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-400 via-indigo-200 to-blue-400">{firstName}</span>.
+                            </h1>
+                            <p className="text-indigo-200/70 font-medium text-lg max-w-2xl leading-relaxed">
+                                {trans.subtitle}
+                            </p>
                         </div>
-                        <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${summary.readinessScore}%` }} className="h-full bg-linear-to-r from-indigo-600 to-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.5)]" transition={{ duration: 1.5, delay: 0.5 }} />
-                        </div>
-                    </motion.div>
-
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className={cn("bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl", isRtl && "text-right")}>
-                        <div className={cn("flex items-center gap-4 mb-6", isRtl && "flex-row-reverse text-right")}>
-                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20"><ShieldCheck size={24} /></div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{trans.gaps}</p>
-                        </div>
-                        <ul className="space-y-4">
-                            {summary.criticalGaps?.map((gap, i) => (
-                                <li key={i} className={cn("text-xs font-bold text-slate-300 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5", isRtl && "flex-row-reverse text-right")}>
-                                    <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] shrink-0" /> {gap}
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.div>
-
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} className={cn("bg-indigo-600 border border-indigo-400/20 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group", isRtl && "text-right")}>
-                        <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform">
-                            <MapPin size={80} className="text-white" />
-                        </div>
-                        <div className={cn("flex items-center gap-4 mb-6", isRtl && "flex-row-reverse")}>
-                            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md"><MapPin size={24} /></div>
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-100 mb-1">{trans.path}</p>
-                                <h4 className="text-lg font-black text-white leading-tight">{summary.primaryPath}</h4>
-                            </div>
-                        </div>
-                        <div className="mt-8 pt-6 border-t border-white/10">
-                             <p className="text-[10px] font-black uppercase tracking-widest text-indigo-100 mb-4">{trans.actions}</p>
-                             <ul className="space-y-3">
-                                {summary.immediateActions?.map((act, i) => (
-                                    <li key={i} className={cn("text-[11px] font-bold text-white flex items-start gap-3", isRtl && "flex-row-reverse text-right")}>
-                                        <TrendingUp size={14} className="text-indigo-200 shrink-0 mt-0.5" /> {act}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-
-            {/* Quick Actions Grid */}
-            <div className="space-y-10">
-                <div className={cn("flex items-center gap-6", isRtl && "flex-row-reverse")}>
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">{trans.quickAction}</h2>
-                    <div className="flex-1 h-px bg-white/5" />
-                    <Zap className="text-indigo-500 w-6 h-6 animate-pulse" />
-                </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {quickLinks.map((link, idx) => (
-                        <Link key={idx} href={link.href}>
-                            <motion.div
-                                whileHover={{ scale: 1.05, y: -10 }}
-                                className={cn(
-                                    "p-10 rounded-[3rem] border border-white/5 bg-slate-900/50 backdrop-blur-xl shadow-2xl hover:bg-slate-900 hover:border-indigo-500/30 transition-all flex flex-col h-full group",
-                                    isRtl ? "text-right" : "text-left"
-                                )}
-                            >
-                                <div className={cn(`w-16 h-16 rounded-3xl flex items-center justify-center mb-8 border transition-all ${link.bg} ${link.color} ${link.border} group-hover:scale-110 shadow-lg`, isRtl && "ml-auto")}>
-                                    <link.icon size={28} />
+                        {summary && (summary.readinessScore ?? 0) > 0 && (
+                            <div className="md:text-center p-8 bg-slate-950/60 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] min-w-[240px]">
+                                <p className="text-[10px] text-indigo-400 font-black uppercase tracking-[0.3em] mb-4">{trans.score}</p>
+                                <div className="text-7xl font-black text-white flex items-baseline justify-center gap-1 leading-none">
+                                    {summary.readinessScore} <span className="text-3xl text-slate-600">%</span>
                                 </div>
-                                <h3 className="text-xl font-black text-white mb-3 tracking-tight">{link.title}</h3>
-                                <p className="text-sm font-medium text-slate-500 leading-relaxed mb-10 flex-1">{link.desc}</p>
-                                <div className={cn("flex items-center gap-3 mt-auto text-[10px] font-black uppercase tracking-[0.2em]", link.color, isRtl && "flex-row-reverse")}>
-                                    {trans.hub.ai}
-                                    <ArrowRight size={16} className={cn("transition-transform group-hover:translate-x-2", isRtl && "rotate-180 group-hover:-translate-x-2")} />
+                                <div className="w-full h-1.5 bg-slate-800 rounded-full mt-6 overflow-hidden">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${summary.readinessScore}%` }} transition={{ duration: 1.5, delay: 0.5 }} className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* ─── EXECUTIVE SYNTHESIS ─── */}
+                {summary?.expertSynthesis ? (
+                    <div className="grid lg:grid-cols-12 gap-8">
+                        {/* Summary & Verdict */}
+                        <div className="lg:col-span-7 space-y-8">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                                className={cn("bg-slate-900 border border-slate-800 p-10 rounded-[3rem] shadow-xl relative overflow-hidden h-full", isRtl ? "text-right" : "text-left")}
+                            >
+                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                                    <Brain size={120} />
+                                </div>
+                                <div className={cn("flex items-center gap-4 mb-8", isRtl && "flex-row-reverse")}>
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                                        <ShieldCheck size={24} />
+                                    </div>
+                                    <h3 className="text-sm font-black text-indigo-300 uppercase tracking-[0.2em] leading-none">
+                                        {trans.expertSynthesis}
+                                    </h3>
+                                </div>
+                                {summary.maturityVerdict && (
+                                    <h4 className="text-3xl font-black text-white mb-6 leading-tight tracking-tight">
+                                        {summary.maturityVerdict}
+                                    </h4>
+                                )}
+                                <div className={cn("text-slate-300 font-medium leading-relaxed text-sm md:text-base border-indigo-500/30 py-3 italic bg-indigo-500/5 rounded-2xl px-6", isRtl ? "border-r-4" : "border-l-4")}>
+                                    &quot;{summary.expertSynthesis}&quot;
                                 </div>
                             </motion.div>
+                        </div>
+
+                        {/* Actionable Insights */}
+                        <div className="lg:col-span-5 grid grid-rows-2 gap-8">
+                            {/* Strategic Path */}
+                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+                                className={cn("bg-linear-to-br from-indigo-900 to-indigo-950 border border-indigo-500/20 p-8 rounded-[2.5rem] shadow-xl flex flex-col justify-center", isRtl && "text-right")}
+                            >
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-3">{trans.path}</p>
+                                <div className={cn("flex items-center gap-4", isRtl && "flex-row-reverse")}>
+                                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-md shrink-0"><MapPin size={24} /></div>
+                                    <h4 className="text-xl md:text-2xl font-black text-white leading-tight">{summary.primaryPath}</h4>
+                                </div>
+                            </motion.div>
+                            
+                            {/* Critical Gaps & Actions */}
+                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
+                                className={cn("bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] shadow-xl overflow-hidden", isRtl && "text-right")}
+                            >
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" /> {trans.gaps}</div>
+                                <ul className="space-y-3">
+                                    {summary.criticalGaps?.map((gap, i) => (
+                                        <li key={i} className={cn("text-sm font-bold text-slate-300 flex items-start gap-3", isRtl && "flex-row-reverse text-right")}>
+                                            <TrendingUp size={16} className="text-rose-500 shrink-0 mt-0.5" /> 
+                                            <span className="leading-snug">{gap}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </motion.div>
+                        </div>
+                    </div>
+                ) : summary?.readinessScore === 0 ? (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-slate-900 border-2 border-dashed border-slate-700/50 p-16 rounded-[3rem] text-center"
+                    >
+                        <div className="w-24 h-24 bg-slate-950/50 rounded-full flex items-center justify-center mx-auto mb-8 border border-white/5 shadow-inner">
+                            <Target size={40} className="text-slate-600" />
+                        </div>
+                        <p className="text-slate-400 font-bold mb-10 uppercase tracking-[0.2em] text-sm">{trans.noDiagnosis}</p>
+                        <Link href="/professional/performance-studio">
+                            <button className="px-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-indigo-600/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-4 mx-auto">
+                                <Zap size={18} />
+                                {trans.startDiagnosis}
+                            </button>
                         </Link>
-                    ))}
+                    </motion.div>
+                ) : null}
+
+                {/* ─── MODULE CATEGORIES HUB ─── */}
+                <div className="space-y-16">
+                    <div className="text-center">
+                        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">{trans.hubTitle}</h2>
+                        <div className="w-24 h-1.5 bg-indigo-500 rounded-full mx-auto mt-6 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+                    </div>
+
+                    <div className="space-y-16">
+                        {moduleGroups.map((group, idx) => (
+                            <div key={idx} className="space-y-8">
+                                <div className={cn("flex items-center gap-4", isRtl && "flex-row-reverse")}>
+                                    <div className={cn(`w-12 h-12 rounded-2xl flex items-center justify-center border text-white shadow-lg ${group.bg} ${group.border}`)}>
+                                        <group.icon className={group.color} size={24} />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-white tracking-tight">{group.title}</h3>
+                                </div>
+                                
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {group.items.map((link, linkIdx) => (
+                                        <Link key={linkIdx} href={link.href}>
+                                            <motion.div
+                                                whileHover={{ scale: 1.03, y: -5 }}
+                                                className={cn(
+                                                    "p-8 rounded-[2.5rem] border border-slate-800 bg-slate-900 hover:bg-slate-800 overflow-hidden relative group transition-all h-full flex flex-col shadow-xl",
+                                                    isRtl ? "text-right" : "text-left"
+                                                )}
+                                            >
+                                                {/* Hover effect background */}
+                                                <div className="absolute inset-0 bg-linear-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                
+                                                <div className={cn("flex items-start justify-between relative z-10 mb-8", isRtl && "flex-row-reverse")}>
+                                                    <div className={cn(`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-inner ${group.bg} ${group.border}`)}>
+                                                        <link.icon className={group.color} size={28} />
+                                                    </div>
+                                                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white text-slate-500 transition-colors">
+                                                        <ArrowRight size={16} className={cn(isRtl && "rotate-180")} />
+                                                    </div>
+                                                </div>
+                                                <h4 className="text-xl font-black text-slate-100 mb-3 relative z-10 tracking-tight">{link.title}</h4>
+                                                <p className="text-sm font-medium text-slate-500 leading-relaxed mb-4 flex-1 relative z-10">{link.desc}</p>
+                                                
+                                                <div className={cn("h-1 w-0 group-hover:w-full transition-all duration-500 bg-indigo-500 absolute bottom-0 left-0")} />
+                                            </motion.div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

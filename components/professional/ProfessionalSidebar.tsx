@@ -234,8 +234,8 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
         sci: false
     });
 
-    const [userProfile, setUserProfile] = useState<{ fullName?: string; email?: string; plan?: string; role?: string; [key: string]: unknown } | null>(null);
-    const isPaidPlan = userProfile?.plan && ['Pro Activation', 'Pro', 'Executive Coaching', 'Executive', 'Board Member Tier', 'Board Member'].includes(userProfile.plan as string);
+    const [userProfile, setUserProfile] = useState<{ fullName?: string; email?: string; plan?: string; role?: string; activationType?: string; [key: string]: unknown } | null>(null);
+    const isPaidPlan = userProfile?.activationType === 'Pro' || (userProfile?.plan && ['Professional', 'Pro Activation', 'Pro', 'Executive Coaching', 'Executive', 'Board Member Tier', 'Board Member', 'Expert'].includes(userProfile.plan as string));
 
     useEffect(() => {
         const loadAccess = async () => {
@@ -257,6 +257,23 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
                                 scorecard: !!data.scorecardReady,
                                 sci: !!data.sciReady
                             });
+
+                            // UPDATE LATEST PLAN AND ACTIVATION TYPE
+                            const latestActivation = data.details?.activationType || "Gratuit";
+                            const latestPlan = data.plan || profile.plan;
+                            
+                            if (latestActivation !== profile.activationType || latestPlan !== profile.plan) {
+                                const updatedProfile = { 
+                                    ...profile, 
+                                    activationType: latestActivation,
+                                    plan: latestPlan,
+                                    role: data.role || profile.role
+                                };
+                                localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+                                setUserProfile(updatedProfile);
+                                // Trigger event for other components (like the main page)
+                                window.dispatchEvent(new Event("profileUpdated"));
+                            }
                         }
                     } catch (err) {
                         console.error("Access check failed", err);
@@ -272,6 +289,9 @@ export function ProfessionalSidebar({ isOpen, onClose }: ProfessionalSidebarProp
             }
         };
         loadAccess();
+        
+        window.addEventListener("profileUpdated", loadAccess);
+        return () => window.removeEventListener("profileUpdated", loadAccess);
     }, [pathname]);
 
     const credentialItems = [

@@ -54,15 +54,28 @@ export async function POST(req: NextRequest) {
 
     // Create admin notification
     try {
-      await Notification.create({
+      // Check if there's already an unread notification for this user to avoid duplicates
+      const existingNotif = await Notification.findOne({
         type: 'professional_report_pending_review',
-        title: 'تقرير Professional جديد للمراجعة',
-        message: `${updatedUser.fullName || email} أتم تقريره الاستراتيجي وينتظر المراجعة.`,
-        recipientRole: 'Admin',
-        metadata: { userEmail: email, userName: updatedUser.fullName },
-        read: false,
-        createdAt: new Date(),
+        "metadata.userEmail": email,
+        read: false
       });
+
+      if (!existingNotif) {
+        await Notification.create({
+          type: 'professional_report_pending_review',
+          title: 'تقرير Professional جديد للمراجعة',
+          message: `${updatedUser.fullName || email} أتم تقريره الاستراتيجي وينتظر المراجعة.`,
+          recipientRole: 'Admin',
+          metadata: { userEmail: email, userName: updatedUser.fullName },
+          read: false,
+          createdAt: new Date(),
+        });
+      } else {
+        // Optionally update the timestamp of the existing one
+        existingNotif.createdAt = new Date();
+        await existingNotif.save();
+      }
     } catch (notifError) {
       // Non-blocking: notification failure doesn't block submission
       console.warn('Notification creation failed:', notifError);

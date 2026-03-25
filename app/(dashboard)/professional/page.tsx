@@ -31,7 +31,12 @@ import {
     ArrowLeft,
     Calendar,
     Download,
-    Globe
+    Globe,
+    Phone,
+    Award,
+    Quote,
+    Linkedin,
+    Copy
 } from "lucide-react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { Language } from "@/lib/i18n/translations";
@@ -146,11 +151,14 @@ interface GrandFinalReport {
         verdict: string;
         maturityScore: number;
         psychologicalFootprint: string;
+        careerArchetype?: string;
     };
     competencyMatrix: {
         skillRadar: { name: string; score: number }[];
         gapAnalysis: string;
         decisionQualityVerdict: string;
+        detectedStrengths?: string[];
+        criticalGaps?: string[];
     };
     marketPositioning: {
         jobAlignmentScore: number;
@@ -163,6 +171,11 @@ interface GrandFinalReport {
         longTermVision: string;
     };
     expertSynthesis: string;
+    mindsetProfile?: {
+        dominantDriver: string;
+        riskProfile: string;
+        psychologicalConclusion: string;
+    };
 }
 
 interface StrategicPath {
@@ -194,15 +207,52 @@ interface ImplementationBlueprint {
 interface FinalMasterReport {
     executiveSummary: string;
     holisticScore: number;
+    maturityLevel: string;
+    leadershipFingerprint: {
+        archetype: string;
+        description: string;
+        riskContext: string;
+    };
     pillarAnalysis: {
         technical: string;
         strategic: string;
         psychological: string;
     };
+    swot: {
+        strengths: string[];
+        weaknesses: string[];
+        opportunities: string[];
+        threats: string[];
+    };
     marketabilityVerdict: string;
     premiumOpportunity: string;
     finalCallToAction: string;
+    linkedInStrategy: {
+        headline: string;
+        summaryFocus: string;
+        networkingAdvice: string;
+    };
+    roadmap369: {
+        year3: { targetRole: string; action: string };
+        year6: { targetRole: string; action: string };
+        year9: { targetRole: string; action: string };
+        feasibilityVerdict: string;
+    };
 }
+
+
+const ReportFooter = ({ t }: { t: { aiAttribution: string } }) => (
+    <div className="mt-16 pt-10 border-t border-slate-100 text-center space-y-3 pb-8">
+        <div className="flex justify-center items-center gap-4 text-slate-400">
+            <div className="h-px w-12 bg-slate-100" />
+            <Sparkles size={14} className="text-indigo-400" />
+            <div className="h-px w-12 bg-slate-100" />
+        </div>
+        <p className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-slate-400 max-w-2xl mx-auto leading-relaxed px-6">
+            {t.aiAttribution}
+        </p>
+    </div>
+);
 
 
 export default function ProfessionalDiagnosisPage() {
@@ -299,12 +349,18 @@ export default function ProfessionalDiagnosisPage() {
     }[] > ([]);
     const [isSimulating, setIsSimulating] = useState(false);
     useEffect(() => {
-        const userProfileRaw = localStorage.getItem('userProfile');
-        if (userProfileRaw) {
-            const profile = JSON.parse(userProfileRaw);
-            if (profile.activationType) setActivationType(profile.activationType);
-            if (profile.role) setUserRole(profile.role);
-        }
+        const loadProfile = () => {
+            const userProfileRaw = localStorage.getItem('userProfile');
+            if (userProfileRaw) {
+                const profile = JSON.parse(userProfileRaw);
+                if (profile.activationType) setActivationType(profile.activationType);
+                if (profile.role) setUserRole(profile.role);
+            }
+        };
+
+        loadProfile();
+        window.addEventListener("profileUpdated", loadProfile);
+        return () => window.removeEventListener("profileUpdated", loadProfile);
     }, []);
 
     const handleDownloadWithGate = (ref: React.RefObject<HTMLDivElement | null>, name: string) => {
@@ -662,7 +718,7 @@ export default function ProfessionalDiagnosisPage() {
             simulationTitle: "المواجهة الاستراتيجية والحسم",
             simulationSub: "حوار توجيهي لتحديد مسارك القادم بناءً على طموحك ونتائج تشخيصك",
             simulationPlaceholder: "تحدث مع الخبير حول خطوتك القادمة (ترقية، تغيير، استقرار)...",
-            simulationNote: "ملاحظة: هذا التحليل يعكس جاهزيتك بناءً على بروفايلك الحالي فقط، ولا يشمل الظروف الخارجية لشركتك أو السوق.",
+            simulationNote: "ملاحظة: هذا التحليل يعكس جاهزيتك بناءً على بروفايلك الحالي فقط، ولا يشمل الظروف الخارجية كالقوانين الداخلية لاي شركة او سوق الشغل  لاي بلد",
             finalizePaths: "توليد الخيارات الاستراتيجية النهائية",
             selectLanguageTitle: "اختر لغة التعامل",
             selectLanguageSub: "حدد اللغة التي تفضل أن يتواصل بها الخبير الذكي معك طوال رحلة التشخيص.",
@@ -691,11 +747,10 @@ export default function ProfessionalDiagnosisPage() {
                     icon: "Brain"
                 },
                 {
-                    title: "خارطة الطريق التنفيذية",
-                    desc: "الحصول على التقرير الشامل ومسارات الانتقال للمحترفين.",
                     icon: "TrendingUp"
                 }
-            ]
+            ],
+            aiAttribution: "هذا التقرير تم إعداده عبر نظام الذكاء الاصطناعي من شركة MA-TRAINING-CONSULTING. رقم الهاتف: +216.44172284"
         },
         en: {
             welcomeTitle: "Advanced Strategic Diagnosis",
@@ -833,11 +888,10 @@ export default function ProfessionalDiagnosisPage() {
                     icon: "Brain"
                 },
                 {
-                    title: "Executive Roadmap",
-                    desc: "Comprehensive report and strategic transition paths.",
                     icon: "TrendingUp"
                 }
-            ]
+            ],
+            aiAttribution: "This report was generated via an AI system by MA-TRAINING-CONSULTING. Phone: +216.44172284"
         },
         fr: {
             welcomeTitle: "Diagnostic Stratégique Avancé",
@@ -979,7 +1033,8 @@ export default function ProfessionalDiagnosisPage() {
             selectLanguageSub: "Sélectionnez la langue avec laquelle vous souhaitez que l'expert IA échange avec vous.",
             arabic: "Arabe",
             english: "Anglais",
-            french: "Français"
+            french: "Français",
+            aiAttribution: "Ce rapport a été généré via un système d'IA par MA-TRAINING-CONSULTING. Téléphone : +216.44172284"
         }
     };
 
@@ -1790,6 +1845,7 @@ export default function ProfessionalDiagnosisPage() {
                         {t.restart}
                     </button>
                 </div>
+                <ReportFooter t={t} />
             </motion.div>
         );
     }
@@ -2451,6 +2507,7 @@ export default function ProfessionalDiagnosisPage() {
                         </div>
                     </div>
                 </motion.div>
+                <ReportFooter t={t} />
             </motion.div>
         );
     }
@@ -2483,10 +2540,6 @@ export default function ProfessionalDiagnosisPage() {
                         <div>
                             <h2 className="text-2xl font-black text-slate-900">{t.assessmentTitle}</h2>
                             <div className="flex items-center gap-3 mt-2">
-                                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-100">
-                                    30 {language === 'ar' ? 'سؤالاً' : 'Questions'}
-                                </span>
-                                <span className="text-slate-300">|</span>
                                 <span className="text-xs font-bold text-slate-400">
                                     {assessmentQuestions.length > 0 ? `${currentQuestionIndex + 1} / ${assessmentQuestions.length}` : 'Initializing...'}
                                 </span>
@@ -2524,7 +2577,7 @@ export default function ProfessionalDiagnosisPage() {
                         </div>
                         <div className="text-center space-y-3">
                             <h3 className="text-2xl font-black text-slate-900">{language === 'ar' ? 'جاري توليد الاختبار الاستراتيجي...' : 'Generating Strategic Assessment...'}</h3>
-                            <p className="text-slate-500 font-medium">{language === 'ar' ? 'نقوم بتحليل التقارير السابقة لبناء 30 سؤالاً محاكاةً لوضعيتك...' : 'Synthesizing previous reports to build 30 tailored simulation questions...'}</p>
+                            <p className="text-slate-500 font-medium">{language === 'ar' ? 'نقوم بتحليل التقارير السابقة لبناء أسئلة محاكاةً لوضعيتك...' : 'Synthesizing previous reports to build tailored simulation questions...'}</p>
                         </div>
                     </div>
                 ) : isAnalyzingAssessment ? (
@@ -2634,6 +2687,7 @@ export default function ProfessionalDiagnosisPage() {
                                 {t.restart}
                             </button>
                         </div>
+                        <ReportFooter t={t} />
                     </motion.div>
                 ) : assessmentQuestions.length > 0 && (
                     /* Active Testing UI */
@@ -3045,6 +3099,7 @@ export default function ProfessionalDiagnosisPage() {
                                 <p className="text-lg font-bold text-slate-700">{mindsetAnalysis.psychologicalProfile.stressHandling}</p>
                             </div>
                         </div>
+                        <ReportFooter t={t} />
                     </div>
                 )}
             </motion.div>
@@ -3106,14 +3161,14 @@ export default function ProfessionalDiagnosisPage() {
                             <p className="text-indigo-500 text-xs font-black tracking-[0.4em] uppercase">{t.grandReportSub}</p>
                         </div>
 
-                        <div className="flex flex-wrap justify-center gap-8 pt-8">
+                         <div className="flex flex-wrap justify-center gap-8 pt-8">
                             <div className="bg-white border border-slate-100 px-12 py-8 rounded-[3rem] shadow-xl">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2">{t.maturityScoreLabel}</p>
-                                <span className="text-6xl font-black text-slate-900">{grandFinalReport?.professionalIdentity.maturityScore || "0"}%</span>
+                                <span className="text-6xl font-black text-slate-900">{grandFinalReport?.professionalIdentity?.maturityScore ?? "0"}%</span>
                             </div>
                             <div className="bg-indigo-600 px-12 py-8 rounded-[3rem] shadow-2xl shadow-indigo-200 flex flex-col justify-center border border-indigo-500">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">{t.psychologyLabel}</p>
-                                <span className="text-2xl font-black text-white">{grandFinalReport?.professionalIdentity.psychologicalFootprint || "..."}</span>
+                                <span className="text-2xl font-black text-white text-center leading-tight">{grandFinalReport?.professionalIdentity?.psychologicalFootprint ?? "..."}</span>
                             </div>
                         </div>
                     </motion.div>
@@ -3134,21 +3189,70 @@ export default function ProfessionalDiagnosisPage() {
                     </div>
                 ) : grandFinalReport && (
                     <div className="grid grid-cols-1 gap-12">
-                        <motion.div
-                            initial={{
-                                opacity: 0,
-                                y: 30
-                            }}
-                            animate={{
-                                opacity: 1,
-                                y: 0
-                            }}
-                            className="bg-amber-50 border-2 border-amber-200 p-12 rounded-7xl text-center"
+                        {/* Premium MA-TRAINING-CONSULTING Attribution Header */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-slate-50 p-6 rounded-4xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm no-pdf"
                         >
-                            <h3 className="text-4xl font-black text-amber-900 mb-6 italic">&quot;{grandFinalReport.professionalIdentity.verdict}&quot;</h3>
-                            <div className="w-20 h-1 bg-amber-300 mx-auto rounded-full" />
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-100">
+                                    <Sparkles size={28} />
+                                </div>
+                                <div className="text-center md:text-left">
+                                    <p className="text-[10px] font-black uppercase tracking-[.3em] text-indigo-500 mb-1">{language === 'ar' ? 'تقرير ذكي مدعوم بـ' : 'AI Strategic Insight by'}</p>
+                                    <p className="text-lg font-black text-slate-900 tracking-tight">MA-TRAINING-CONSULTING</p>
+                                </div>
+                            </div>
+                            <div className="hidden md:block h-12 w-px bg-slate-200/60" />
+                            <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-100">
+                                <Phone size={18} className="text-emerald-500" />
+                                <span className="text-sm font-black text-slate-700 tracking-wider">+216.44172284</span>
+                            </div>
                         </motion.div>
 
+                        {/* Career Archetype Badge */}
+                        {grandFinalReport?.professionalIdentity?.careerArchetype && (
+                            <div className="flex justify-center">
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-indigo-600 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+                                    <span className="relative px-8 py-3 bg-linear-to-r from-indigo-600 to-indigo-700 text-white text-sm font-black uppercase tracking-[.2em] rounded-full shadow-2xl flex items-center gap-3">
+                                        <Award size={18} />
+                                        {grandFinalReport.professionalIdentity.careerArchetype}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Expert Strategic Synthesis - Executive Summary */}
+                        <div className="bg-white rounded-6xl p-12 border border-slate-100 shadow-2xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><Quote size={120} className="text-indigo-600" /></div>
+                            <div className="relative z-10 space-y-8">
+                                <div className="flex items-center gap-6 border-b border-slate-50 pb-8">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-900 shadow-sm border border-slate-100">
+                                        <ShieldCheck size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-black text-slate-900">{language === 'ar' ? 'خلاصة الخبير الاستراتيجي' : 'Expert Strategic Synthesis'}</h3>
+                                        <p className="text-indigo-500 text-[10px] font-black uppercase tracking-[.2em] mt-1">HR Executive Summary Layer</p>
+                                    </div>
+                                </div>
+                                <div className="bg-slate-50/50 p-10 rounded-4xl border border-slate-100/50 relative">
+                                    <p className="text-lg md:text-xl font-bold leading-extraloose text-slate-700 italic">
+                                        &quot;{grandFinalReport.expertSynthesis}&quot;
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Verdict Banner */}
+                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="bg-amber-50 border-2 border-amber-200 p-12 rounded-7xl text-center relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.1),transparent_70%)] opacity-50" />
+                            <h3 className="relative z-10 text-4xl font-black text-amber-900 mb-6 italic leading-relaxed">&quot;{grandFinalReport.professionalIdentity.verdict}&quot;</h3>
+                            <div className="relative z-10 w-24 h-1.5 bg-amber-400 mx-auto rounded-full shadow-sm" />
+                        </motion.div>
+
+                        {/* Competency Radar + Market Positioning */}
                         <div className="grid lg:grid-cols-2 gap-12">
                             <div className="bg-white rounded-6xl p-12 border border-slate-100 shadow-2xl space-y-10">
                                 <div className="flex items-center gap-6 border-b border-slate-50 pb-8">
@@ -3157,7 +3261,6 @@ export default function ProfessionalDiagnosisPage() {
                                     </div>
                                     <h3 className="text-2xl font-black text-slate-900">{t.skillRadarTitle}</h3>
                                 </div>
-
                                 <div className="space-y-8">
                                     {grandFinalReport.competencyMatrix.skillRadar.map((skill, idx) => (
                                         <div key={idx} className="space-y-3">
@@ -3166,63 +3269,121 @@ export default function ProfessionalDiagnosisPage() {
                                                 <span className="text-slate-900">{skill.score}%</span>
                                             </div>
                                             <div className="h-4 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-1">
-                                                <div
-                                                    style={{
-                                                        width: `${skill.score}%`
-                                                    }}
-                                                    className="h-full bg-linear-to-r from-blue-500 to-indigo-600 rounded-full"
-                                                />
+                                                <div style={{ width: `${skill.score}%` }} className="h-full bg-linear-to-r from-blue-500 to-indigo-600 rounded-full" />
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-
                                 <div className="p-8 bg-indigo-50/50 rounded-4xl border border-indigo-100 mt-10">
                                     <h4 className="text-sm font-black uppercase text-indigo-900 mb-3">{t.gapAnalysisTitle}</h4>
                                     <p className="text-indigo-800 font-bold leading-relaxed">{grandFinalReport.competencyMatrix.gapAnalysis}</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-12">
-                                <div className="bg-slate-900 rounded-6xl p-12 text-white shadow-2xl relative overflow-hidden h-full flex flex-col justify-center">
-                                    <div className="absolute bottom-0 right-0 p-10 opacity-10"><Target size={150} /></div>
-                                    <h3 className="text-2xl font-black text-indigo-300 mb-8 flex items-center gap-4">
-                                        <Target size={32} />
-                                        {t.marketValuesTitle}
-                                    </h3>
-                                    <div className="space-y-8 relative z-10">
-                                        <div className="space-y-2">
-                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Job Alignment</p>
-                                            <div className="flex items-baseline gap-4">
-                                                <span className="text-6xl font-black">{grandFinalReport.marketPositioning.jobAlignmentScore}%</span>
-                                                <span className="text-indigo-400 font-black">Match</span>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white/5 p-8 rounded-4xl border border-white/10">
-                                            <p className="font-bold opacity-90 leading-relaxed text-lg">{grandFinalReport.marketPositioning.marketValueVerdict}</p>
+                            <div className="bg-slate-900 rounded-6xl p-12 text-white shadow-2xl relative overflow-hidden flex flex-col justify-center">
+                                <div className="absolute bottom-0 right-0 p-10 opacity-10"><Target size={150} /></div>
+                                <h3 className="text-2xl font-black text-indigo-300 mb-8 flex items-center gap-4"><Target size={32} />{t.marketValuesTitle}</h3>
+                                <div className="space-y-8 relative z-10">
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Job Alignment</p>
+                                        <div className="flex items-baseline gap-4">
+                                            <span className="text-6xl font-black">{grandFinalReport.marketPositioning.jobAlignmentScore}%</span>
+                                            <span className="text-indigo-400 font-black">Match</span>
                                         </div>
                                     </div>
+                                    <div className="bg-white/5 p-8 rounded-4xl border border-white/10">
+                                        <p className="font-bold opacity-90 leading-relaxed text-lg">{grandFinalReport.marketPositioning.marketValueVerdict}</p>
+                                    </div>
+                                    {grandFinalReport.marketPositioning.stabilityProfile && (
+                                        <div className="bg-white/10 p-6 rounded-3xl border border-white/10">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">
+                                                {language === 'ar' ? 'ملف الاستقرار' : 'Stability Profile'}
+                                            </p>
+                                            <p className="font-bold opacity-80 leading-relaxed">{grandFinalReport.marketPositioning.stabilityProfile}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
+                        {/* Strengths & Critical Gaps */}
+                        {((grandFinalReport?.competencyMatrix?.detectedStrengths?.length ?? 0) > 0 || (grandFinalReport?.competencyMatrix?.criticalGaps?.length ?? 0) > 0) && (
+                            <div className="grid md:grid-cols-2 gap-8">
+                                {(grandFinalReport?.competencyMatrix?.detectedStrengths?.length ?? 0) > 0 && (
+                                    <div className="bg-emerald-50 border border-emerald-100 rounded-5xl p-10 space-y-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white"><CheckCircle2 size={24} /></div>
+                                            <h3 className="text-xl font-black text-emerald-900">{language === 'ar' ? 'نقاط القوة المرصودة' : language === 'fr' ? 'Forces Détectées' : 'Detected Strengths'}</h3>
+                                        </div>
+                                        <ul className="space-y-3">
+                                            {(grandFinalReport?.competencyMatrix.detectedStrengths ?? []).map((s: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-3 bg-white p-4 rounded-3xl border border-emerald-100">
+                                                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shrink-0 mt-0.5"><span className="text-white text-xs font-black">{i + 1}</span></div>
+                                                    <span className="font-bold text-emerald-800">{s}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {(grandFinalReport?.competencyMatrix?.criticalGaps?.length ?? 0) > 0 && (
+                                    <div className="bg-rose-50 border border-rose-100 rounded-5xl p-10 space-y-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-rose-600 rounded-2xl flex items-center justify-center text-white"><AlertCircle size={24} /></div>
+                                            <h3 className="text-xl font-black text-rose-900">{language === 'ar' ? 'الفجوات الحرجة' : language === 'fr' ? 'Lacunes Critiques' : 'Critical Gaps'}</h3>
+                                        </div>
+                                        <ul className="space-y-3">
+                                            {(grandFinalReport?.competencyMatrix.criticalGaps ?? []).map((g: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-3 bg-white p-4 rounded-3xl border border-rose-100">
+                                                    <div className="w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center shrink-0 mt-0.5"><span className="text-white text-xs font-black">{i + 1}</span></div>
+                                                    <span className="font-bold text-rose-800">{g}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Mindset Profile Section */}
+                        {grandFinalReport?.mindsetProfile && (
+                            <div className="bg-linear-to-br from-indigo-900 via-indigo-800 to-slate-900 rounded-6xl p-12 text-white shadow-2xl">
+                                <div className="flex items-center gap-5 mb-10 border-b border-white/10 pb-8">
+                                    <div className="w-14 h-14 bg-white/10 rounded-3xl flex items-center justify-center"><Brain size={28} /></div>
+                                    <div>
+                                        <h3 className="text-2xl font-black">{language === 'ar' ? 'البروفايل النفسي والتحفيزي' : language === 'fr' ? 'Profil Psychologique & Motivationnel' : 'Psychological & Motivational Profile'}</h3>
+                                        <p className="text-indigo-300 text-xs font-bold uppercase tracking-widest mt-1">Mindset Intelligence Layer</p>
+                                    </div>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                                    <div className="bg-white/10 rounded-4xl p-8 border border-white/10">
+                                        <p className="text-indigo-300 text-[10px] font-black uppercase tracking-widest mb-3">{language === 'ar' ? 'المحرك الأساسي' : 'Dominant Driver'}</p>
+                                        <p className="text-2xl font-black">{grandFinalReport.mindsetProfile.dominantDriver}</p>
+                                    </div>
+                                    <div className={`rounded-4xl p-8 border ${grandFinalReport.mindsetProfile.riskProfile?.includes('High') ? 'bg-rose-500/20 border-rose-400/30' : grandFinalReport.mindsetProfile.riskProfile?.includes('Medium') ? 'bg-amber-500/20 border-amber-400/30' : 'bg-emerald-500/20 border-emerald-400/30'}`}>
+                                        <p className="text-indigo-300 text-[10px] font-black uppercase tracking-widest mb-3">{language === 'ar' ? 'مستوى المخاطرة' : 'Risk Profile'}</p>
+                                        <p className="text-2xl font-black">{grandFinalReport.mindsetProfile.riskProfile}</p>
+                                    </div>
+                                </div>
+                                {grandFinalReport.mindsetProfile.psychologicalConclusion && (
+                                    <div className="bg-white/5 rounded-4xl p-8 border border-white/10">
+                                        <p className="text-lg font-bold leading-relaxed opacity-90">{grandFinalReport.mindsetProfile.psychologicalConclusion}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Roadmap */}
                         <div className="bg-white rounded-6xl p-12 border border-slate-100 shadow-2xl overflow-hidden relative">
                             <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-50 z-0 rounded-l-[100px]" />
                             <div className="relative z-10 grid lg:grid-cols-2 gap-16">
                                 <div className="space-y-10">
                                     <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 bg-emerald-50 rounded-3xl flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-50">
-                                            <TrendingUp size={32} />
-                                        </div>
+                                        <div className="w-16 h-16 bg-emerald-50 rounded-3xl flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-50"><TrendingUp size={32} /></div>
                                         <h3 className="text-3xl font-black text-slate-900">{t.roadmapTitle}</h3>
                                     </div>
-
                                     <div className="space-y-8">
                                         <div className="space-y-4">
-                                            <h4 className="flex items-center gap-3 text-emerald-700 font-black uppercase tracking-widest text-xs">
-                                                <Zap size={18} />
-                                                {t.shortTermLabel}
-                                            </h4>
+                                            <h4 className="flex items-center gap-3 text-emerald-700 font-black uppercase tracking-widest text-xs"><Zap size={18} />{t.shortTermLabel}</h4>
                                             <ul className="space-y-3">
                                                 {grandFinalReport.actionableRoadmap.shortTerm.map((item, i) => (
                                                     <li key={i} className="flex items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
@@ -3232,29 +3393,18 @@ export default function ProfessionalDiagnosisPage() {
                                                 ))}
                                             </ul>
                                         </div>
-
                                         <div className="space-y-4">
-                                            <h4 className="flex items-center gap-3 text-indigo-700 font-black uppercase tracking-widest text-xs">
-                                                <Target size={18} />
-                                                {t.mediumTermLabel}
-                                            </h4>
-                                            <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 font-black text-indigo-900 text-2xl">
-                                                {grandFinalReport.actionableRoadmap.mediumTerm}
-                                            </div>
+                                            <h4 className="flex items-center gap-3 text-indigo-700 font-black uppercase tracking-widest text-xs"><Target size={18} />{t.mediumTermLabel}</h4>
+                                            <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 font-black text-indigo-900 text-2xl">{grandFinalReport.actionableRoadmap.mediumTerm}</div>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="bg-white/40 backdrop-blur-xl rounded-5xl p-12 border border-white shadow-xl flex flex-col justify-center space-y-8 relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><Sparkles size={120} className="text-amber-500" /></div>
                                     <h4 className="text-amber-600 font-black uppercase tracking-[0.3em] text-[10px] relative z-10">{t.longTermLabel}</h4>
                                     <p className="text-3xl font-black italic leading-tight text-slate-900 relative z-10">&quot;{grandFinalReport.actionableRoadmap.longTermVision}&quot;</p>
                                     <div className="pt-8 border-t border-slate-100 no-pdf relative z-10">
-                                        <button
-                                            onClick={() => handleDownloadWithGate(grandReportRef, 'Strategic_Report')}
-                                            disabled={isDownloadingPDF}
-                                            className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl flex items-center justify-center gap-3"
-                                        >
+                                        <button onClick={() => handleDownloadWithGate(grandReportRef, 'Strategic_Report')} disabled={isDownloadingPDF} className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl flex items-center justify-center gap-3">
                                             {isDownloadingPDF ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
                                             {language === 'ar' ? 'تحميل التقرير الكامل PDF' : 'Download Strategic PDF'}
                                         </button>
@@ -3263,31 +3413,23 @@ export default function ProfessionalDiagnosisPage() {
                             </div>
                         </div>
 
+                        {/* Expert Synthesis */}
                         <div className="bg-white/40 backdrop-blur-3xl rounded-[4rem] p-16 border border-white shadow-3xl text-center space-y-12 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-20 opacity-5 rotate-12"><Zap size={400} className="text-indigo-600" /></div>
                             <div className="relative z-10 max-w-4xl mx-auto space-y-10">
-                                <div className="w-20 h-20 bg-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-100">
-                                    <Star size={40} className="fill-white" />
-                                </div>
+                                <div className="w-20 h-20 bg-indigo-600 rounded-4xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-indigo-100"><Star size={40} className="fill-white" /></div>
                                 <h3 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">{t.expertSynthesisTitle}</h3>
-                                <p className="text-2xl font-bold leading-relaxed text-slate-600 opacity-95 italic px-8">&quot;{grandFinalReport.expertSynthesis}&quot;</p>
+                                <p className="text-xl font-bold leading-relaxed text-slate-600 opacity-95 italic px-8">&quot;{grandFinalReport.expertSynthesis}&quot;</p>
                                 <div className="pt-10 flex flex-col md:flex-row justify-center gap-6">
-                                    <button
-                                        onClick={handleStartSimulation}
-                                        className="px-16 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl flex items-center justify-center gap-3 group"
-                                    >
+                                    <button onClick={handleStartSimulation} className="px-16 py-6 bg-emerald-500 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl flex items-center justify-center gap-3 group">
                                         <Rocket size={24} className="group-hover:animate-bounce" />
                                         {language === 'ar' ? 'استكشاف المسارات الاستراتيجية' : language === 'fr' ? 'Explorer les pistes stratégiques' : 'Explore Strategic Paths'}
                                     </button>
-                                    <button
-                                        onClick={() => setStep(0)}
-                                        className="px-16 py-6 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-white hover:text-indigo-600 transition-all shadow-2xl"
-                                    >
-                                        {t.restart}
-                                    </button>
+                                    <button onClick={() => setStep(0)} className="px-16 py-6 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-white hover:text-indigo-600 transition-all shadow-2xl">{t.restart}</button>
                                 </div>
                             </div>
                         </div>
+                        <ReportFooter t={t} />
                     </div>
                 )}
             </motion.div>
@@ -3733,12 +3875,18 @@ export default function ProfessionalDiagnosisPage() {
 
                     <button
                         onClick={handleGenerateMasterReport}
+                        disabled={isGeneratingMasterReport}
                         className="px-20 py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-[.2em] shadow-2xl shadow-emerald-500/30 hover:bg-slate-900 hover:scale-105 transition-all flex items-center gap-4 group"
                     >
-                        {language === 'ar' ? 'إنهاء التشخيص الشامل' : 'Finalize Global Diagnosis'}
-                        <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
+                        {isGeneratingMasterReport ? <Loader2 size={24} className="animate-spin" /> : (
+                            <>
+                                {language === 'ar' ? 'إنهاء التشخيص الشامل' : 'Finalize Global Diagnosis'}
+                                <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
+                            </>
+                        )}
                     </button>
                 </div>
+                <ReportFooter t={t} />
             </motion.div>
         );
     }
@@ -3776,20 +3924,26 @@ export default function ProfessionalDiagnosisPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-12 flex flex-col items-center">
+                        <div className="space-y-12 flex flex-col items-center text-center">
                             <div className="relative">
-                                <div className="w-40 h-40 border-8 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin" />
+                                <div className="w-44 h-44 border-8 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <Brain className="text-indigo-400 animate-pulse" size={48} />
+                                    <Brain className="text-indigo-400 animate-pulse" size={56} />
                                 </div>
                             </div>
-                            <div className="text-center space-y-6">
-                                <h2 className="text-4xl font-black text-white">
-                                    {language === 'ar' ? 'جاري إنشاء النسخة النهائية من التقرير الشامل...' : 'Generating Final Global Diagnostic Synthesis...'}
+                            <div className="space-y-6">
+                                <h2 className="text-4xl md:text-5xl font-black text-white max-w-4xl">
+                                    {language === 'ar' ? 'جاري إنشاء النسخة النهائية من التقرير الشامل...' : 'Synthesizing Your Global Professional DNA...'}
                                 </h2>
-                                <p className="text-indigo-400 font-bold uppercase tracking-[.4em] animate-pulse">
-                                    {language === 'ar' ? 'نظامنا الذكي يقوم بتجميع كافة بيانات التشخيص' : 'AI Strategic Core is synthesizing all diagnostic data'}
-                                </p>
+                                <div className="flex flex-col items-center gap-4">
+                                    <p className="text-indigo-400 font-bold uppercase tracking-[.4em] animate-pulse text-sm">
+                                        {language === 'ar' ? 'نظامنا الذكي يقوم بتجميع كافة بيانات التشخيص' : 'Aggregating Cross-Module Intelligence'}
+                                    </p>
+                                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-3">
+                                        <ShieldCheck size={14} className="text-emerald-500" />
+                                        MA-TRAINING-CONSULTING OFFICIAL PROTOCOL
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -3800,163 +3954,333 @@ export default function ProfessionalDiagnosisPage() {
         return (
             <motion.div
                 ref={masterReportRef}
-                initial={{
-                    opacity: 0
-                }}
-                animate={{
-                    opacity: 1
-                }}
-                className="max-w-6xl mx-auto p-6 md:p-12 space-y-12 pb-40"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="max-w-6xl mx-auto p-4 md:p-12 space-y-12 pb-40"
             >
-                <div className="flex justify-between items-center no-pdf">
+                {/* Formal Control Panel */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 no-pdf mb-10">
                     <button
                         onClick={() => setStep(12)}
-                        className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group mb-6"
+                        className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest transition-all group"
                     >
                         <ArrowLeft size={16} className={cn("group-hover:-translate-x-1 transition-transform", isRtl && "rotate-180 group-hover:translate-x-1")} />
                         {t.back}
                     </button>
-                    <button
-                        onClick={() => handleDownloadWithGate(masterReportRef, 'Master_Report')}
-                        disabled={isDownloadingPDF}
-                        className="flex items-center gap-2 px-8 py-4 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl disabled:opacity-50"
-                    >
-                        {isDownloadingPDF ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                        {language === 'ar' ? 'تحميل التقرير الرئيسي PDF' : 'Download Master Report PDF'}
-                    </button>
-                </div>
-                {/* Appreciation & Victory Header */}
-                <div className="bg-white/60 backdrop-blur-xl rounded-[4rem] p-20 border border-white shadow-3xl text-center space-y-8 relative overflow-hidden">
-                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" />
-
-                    <div className="relative z-10 space-y-8 flex flex-col items-center">
-                        <div className="w-24 h-24 bg-emerald-500 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl mb-8 shadow-emerald-200">
-                            <ShieldCheck size={48} />
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-tight">
-                            {language === 'ar' ? 'تم اكتمال التشخيص بنجاح' : 'Diagnostic Fully Complete'}
-                        </h1>
-                        <p className="text-slate-500 text-lg font-medium max-w-3xl mx-auto leading-relaxed">
-                            {language === 'ar' ?
-                                'لقد انتهيت من الرحلة الكاملة لتقييم قدراتك المهنية. إليك الآن التقرير الاستراتيجي الشامل الذي يجمع كل التحليلات في وثيقة واحدة.' :
-                                'You have successfully navigated the full professional evaluation journey. Here is your global strategic synthesis combining all insights.'}
-                        </p>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => {
+                                const text = `${finalMasterReport?.linkedInStrategy?.headline || ''}\n\n${finalMasterReport?.linkedInStrategy?.summaryFocus || ''}`;
+                                navigator.clipboard.writeText(text);
+                                alert(language === 'ar' ? 'تم نسخ بيانات لينكد إن!' : 'LinkedIn highlights copied!');
+                            }}
+                            className="flex items-center gap-3 px-6 py-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
+                        >
+                            <Linkedin size={16} />
+                            {language === 'ar' ? 'نسخ لـ لينكد إن' : 'Copy for LinkedIn'}
+                        </button>
+                        <button
+                            onClick={() => handleDownloadWithGate(masterReportRef, 'Master_Professional_Certificate')}
+                            disabled={isDownloadingPDF}
+                            className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl disabled:opacity-50"
+                        >
+                            {isDownloadingPDF ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                            {language === 'ar' ? 'تحميل الشهادة الاستراتيجية PDF' : 'Download Strategic Certificate PDF'}
+                        </button>
                     </div>
                 </div>
 
-                {/* Score & Verdict Card */}
-                <div className="grid md:grid-cols-3 gap-8">
-                    <div className="bg-white rounded-5xl p-10 border border-slate-100 shadow-xl flex flex-col items-center justify-center space-y-4 text-center">
-                        <div className="relative">
-                            <svg className="w-32 h-32 transform -rotate-90">
-                                <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
-                                <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={364} strokeDashoffset={364 - (364 * finalMasterReport.holisticScore) / 100} className="text-emerald-500 transition-all duration-1000" />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-3xl font-black text-slate-900">
-                                {finalMasterReport.holisticScore}%
+                {/* --- OFFICIAL CERTIFICATION HEADER --- */}
+                <div className="bg-white rounded-[4rem] p-10 md:p-20 border-2 border-slate-900 shadow-3xl text-center space-y-10 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-indigo-600 via-amber-400 to-emerald-500" />
+                    <div className="absolute top-10 right-10 opacity-5 select-none rotate-12 pointer-events-none">
+                        <ShieldCheck size={300} className="text-slate-900" />
+                    </div>
+
+                    <div className="relative z-10 flex flex-col items-center space-y-8">
+                        <div className="flex items-center gap-4 bg-slate-50 px-8 py-3 rounded-full border border-slate-100">
+                            <Sparkles size={20} className="text-indigo-600" />
+                            <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-900">MA-TRAINING-CONSULTING | Strategic Audit Unit</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h1 className="text-4xl md:text-7xl font-black text-slate-950 tracking-tighter leading-tight uppercase">
+                                {language === 'ar' ? 'تقرير الجدارة الاستراتيجية' : 'Strategic Merit Certification'}
+                            </h1>
+                            <div className="flex items-center justify-center gap-4 text-slate-400">
+                                <div className="h-px w-12 bg-slate-100" />
+                                <span className="text-[10px] font-bold tracking-[0.5em] uppercase">DocumentRef: MATC-{Date.now().toString(16).toUpperCase()}</span>
+                                <div className="h-px w-12 bg-slate-100" />
                             </div>
                         </div>
-                        <h3 className="font-black text-slate-500 uppercase tracking-widest text-[10px]">Strategic Readiness Index</h3>
-                    </div>
 
-                    <div className="md:col-span-2 bg-slate-900 text-white rounded-5xl p-12 shadow-2xl space-y-6 border-l-8 border-indigo-500">
-                        <h3 className="text-2xl font-black text-indigo-400">{language === 'ar' ? 'ملخص الإدارة التنفيذية' : 'Executive Master Summary'}</h3>
-                        <p className="text-xl font-bold leading-relaxed opacity-90 italic">
-                            &quot;{finalMasterReport.executiveSummary}&quot;
+                        <p className="text-slate-500 text-lg font-medium max-w-3xl mx-auto leading-relaxed italic">
+                            {language === 'ar' ?
+                                'بناءً على بروتوكولات تدقيق الموارد البشرية التنفيذية، نقدم لكم هنا الخلاصة الشاملة لكافة مراحل التشخيص المهني المتقدم.' :
+                                'Based on executive HR audit protocols, we hereby present the ultimate synthesis of all advanced professional diagnostic phases.'}
                         </p>
+                        <div className="flex items-center gap-3 text-slate-900 font-black text-sm">
+                            <Phone size={18} className="text-indigo-600" />
+                            +216.44172284
+                        </div>
                     </div>
                 </div>
 
-                {/* Pillar Analysis */}
-                <div className="grid md:grid-cols-3 gap-8">
+                {/* --- PERFORMANCE ARCHETYPE & CORE METRICS --- */}
+                <div className="grid md:grid-cols-12 gap-8 items-stretch">
+                    <div className="md:col-span-4 bg-slate-950 text-white rounded-[3.5rem] p-12 flex flex-col items-center justify-center space-y-8 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-10"><Target size={120} /></div>
+                        <div className="relative">
+                            <svg className="w-48 h-48 transform -rotate-90">
+                                <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/10" />
+                                <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={502} strokeDashoffset={502 - (502 * (finalMasterReport?.holisticScore || 0)) / 100} className="text-emerald-400 transition-all duration-2000 ease-out" />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                <span className="text-6xl font-black">{finalMasterReport?.holisticScore || 0}%</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">TALENT INDEX</span>
+                            </div>
+                        </div>
+                        <div className="text-center space-y-2">
+                            <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Diagnostic Maturity Level</span>
+                            <span className="text-2xl font-black text-indigo-400 uppercase italic tracking-tight">{finalMasterReport?.maturityLevel || 'SYNTHESIZING...'}</span>
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-8 bg-white border border-slate-100 rounded-[3.5rem] p-12 shadow-2xl flex flex-col justify-between">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl"><ShieldCheck size={24} /></div>
+                                <h3 className="text-3xl font-black text-slate-900">{language === 'ar' ? 'ملخص الإدارة التنفيذية' : 'Executive Governance Summary'}</h3>
+                            </div>
+                            <p className="text-xl md:text-2xl font-bold leading-relaxed text-slate-700 italic border-l-4 border-indigo-100 pl-8 py-2">
+                                &quot;{finalMasterReport?.executiveSummary || 'Strategically synthesizing your global diagnostic journey...'}&quot;
+                            </p>
+                        </div>
+                        <div className="mt-8 pt-6 border-t border-slate-50 flex flex-col sm:flex-row items-center gap-8">
+                             <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Leadership DNA Archetype</p>
+                                <p className="text-lg font-black text-indigo-600">{finalMasterReport?.leadershipFingerprint?.archetype || 'Analyzing...'}</p>
+                             </div>
+                             <div className="hidden sm:block h-10 w-px bg-slate-100" />
+                             <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase mb-1">HR Risk Warning</p>
+                                <p className="text-sm font-bold text-rose-600">{finalMasterReport?.leadershipFingerprint?.riskContext || 'None Detected'}</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- STRATEGIC SWOT MATRIX --- */}
+                <div className="bg-slate-50 rounded-[4rem] p-12 md:p-16 border border-slate-200">
+                    <div className="mb-12 flex justify-center">
+                         <div className="bg-white px-8 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                              <Target className="text-slate-900" size={20} />
+                              <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Professional Talent SWOT Analysis</h3>
+                         </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-emerald-600/5 p-8 rounded-5xl border border-emerald-600/10 space-y-6">
+                            <div className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-xs">
+                                <CheckCircle2 size={16} /> {language === 'ar' ? 'نقاط القوة' : 'Strengths'}
+                            </div>
+                            <ul className="space-y-3">
+                                {finalMasterReport?.swot?.strengths?.map((s, i) => <li key={i} className="text-xs font-bold text-emerald-900 flex gap-2"><span>•</span>{s}</li>) || <li className="text-xs font-bold text-slate-400">TBD</li>}
+                            </ul>
+                        </div>
+                        <div className="bg-rose-600/5 p-8 rounded-5xl border border-rose-600/10 space-y-6">
+                            <div className="flex items-center gap-3 text-rose-600 font-black uppercase tracking-widest text-xs">
+                                <AlertCircle size={16} /> {language === 'ar' ? 'نقاط الضعف' : 'Weaknesses'}
+                            </div>
+                            <ul className="space-y-3">
+                                {finalMasterReport?.swot?.weaknesses?.map((s, i) => <li key={i} className="text-xs font-bold text-rose-900 flex gap-2"><span>•</span>{s}</li>) || <li className="text-xs font-bold text-slate-400">TBD</li>}
+                            </ul>
+                        </div>
+                        <div className="bg-blue-600/5 p-8 rounded-5xl border border-blue-600/10 space-y-6">
+                            <div className="flex items-center gap-3 text-blue-600 font-black uppercase tracking-widest text-xs">
+                                <Rocket size={16} /> {language === 'ar' ? 'الفرص' : 'Opportunities'}
+                            </div>
+                            <ul className="space-y-3">
+                                {finalMasterReport?.swot?.opportunities?.map((s, i) => <li key={i} className="text-xs font-bold text-blue-900 flex gap-2"><span>•</span>{s}</li>) || <li className="text-xs font-bold text-slate-400">TBD</li>}
+                            </ul>
+                        </div>
+                        <div className="bg-amber-600/5 p-8 rounded-5xl border border-amber-600/10 space-y-6">
+                            <div className="flex items-center gap-3 text-amber-600 font-black uppercase tracking-widest text-xs">
+                                <Zap size={16} /> {language === 'ar' ? 'التهديدات' : 'Threats'}
+                            </div>
+                            <ul className="space-y-3">
+                                {finalMasterReport?.swot?.threats?.map((s, i) => <li key={i} className="text-xs font-bold text-amber-900 flex gap-2"><span>•</span>{s}</li>) || <li className="text-xs font-bold text-slate-400">TBD</li>}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- 3-PILLAR INTEGRATED ANALYSIS --- */}
+                <div className="grid lg:grid-cols-3 gap-8">
                     {[
                         {
-                            title: 'Technical Axis',
-                            content: finalMasterReport.pillarAnalysis.technical,
+                            title: language === 'ar' ? 'المحور التقني والتشغيلي' : 'Technical & Operational Axis',
+                            content: finalMasterReport?.pillarAnalysis?.technical || 'Aggregation in progress...',
                             icon: <Database />,
-                            color: 'emerald'
+                            color: 'emerald',
+                            label: 'Hard Skills Depth'
                         },
                         {
-                            title: 'Strategic Axis',
-                            content: finalMasterReport.pillarAnalysis.strategic,
+                            title: language === 'ar' ? 'المحور الاستراتيجي والقيادي' : 'Strategic & Leadership Axis',
+                            content: finalMasterReport?.pillarAnalysis?.strategic || 'Simulation extraction in progress...',
                             icon: <Target />,
-                            color: 'indigo'
+                            color: 'indigo',
+                            label: 'Organizational Impact'
                         },
                         {
-                            title: 'Mental Axis',
-                            content: finalMasterReport.pillarAnalysis.psychological,
+                            title: language === 'ar' ? 'المحور النفسي والعقلي' : 'Psychological & Mental Axis',
+                            content: finalMasterReport?.pillarAnalysis?.psychological || 'Mindset profiling in progress...',
                             icon: <Brain />,
-                            color: 'rose'
+                            color: 'rose',
+                            label: 'Emotional Intelligence'
                         }
                     ].map((pillar, i) => (
-                        <div key={i} className="bg-white rounded-4xl p-8 border border-slate-100 shadow-lg space-y-5 group hover:border-indigo-200 transition-all">
-                            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl",
+                        <div key={i} className="bg-white rounded-6xl p-10 border border-slate-100 shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-all">
+                            <div className={cn("w-14 h-14 rounded-4xl flex items-center justify-center text-white shadow-xl mb-8",
                                 pillar.color === 'emerald' ? "bg-emerald-500" : pillar.color === 'indigo' ? "bg-indigo-600" : "bg-rose-500"
                             )}>
                                 {pillar.icon}
                             </div>
-                            <h4 className="text-lg font-black text-slate-900">{pillar.title}</h4>
-                            <p className="text-sm font-medium text-slate-500 leading-relaxed">{pillar.content}</p>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">{pillar.label}</span>
+                            <h4 className="text-2xl font-black text-slate-900 mb-6 leading-tight">{pillar.title}</h4>
+                            <p className="text-sm font-bold text-slate-600 leading-relaxed">{pillar.content}</p>
                         </div>
                     ))}
                 </div>
 
-                {/* Market Verdict & Premium Teaser */}
-                <div className="bg-slate-50 rounded-6xl p-12 border border-slate-200 space-y-12">
-                    <div className="space-y-4">
-                        <h3 className="text-2xl font-black flex items-center gap-3">
-                            <Trophy className="text-amber-500" size={28} />
-                            {language === 'ar' ? 'حكم السوق وقيمتك التنافسية' : 'Market Verdict & Value'}
-                        </h3>
-                        <p className="text-lg font-bold text-slate-700 leading-relaxed">{finalMasterReport.marketabilityVerdict}</p>
-                    </div>
-
-                    <div className="bg-indigo-600 rounded-4xl p-10 text-white shadow-3xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform"><Rocket size={120} /></div>
-                        <div className="relative z-10 space-y-6">
-                            <div className="px-4 py-2 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest inline-block">PRO MODULE INTERFACE UNLOCKED</div>
-                            <h4 className="text-3xl font-black">{language === 'ar' ? 'ماذا بعد؟ التحول إلى الاحترافية القائمة على البيانات' : 'What\'s Next? Data-Driven Professional Growth'}</h4>
-                            <p className="text-indigo-100 font-bold text-lg max-w-2xl leading-relaxed">
-                                {finalMasterReport.premiumOpportunity}
-                            </p>
-                            <div className="pt-6 grid md:grid-cols-3 gap-4">
-                                <div className="p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md opacity-50 grayscale">
-                                    <h5 className="font-black text-xs mb-2">PRO Simulation Studio</h5>
-                                    <p className="text-[10px] uppercase font-bold opacity-60 italic">
-                                        {language === 'ar' ? 'محاكاة مقابلات عمل شخصية بناءً على ثغراتك المهنية' : 'Personalized Job interview simulations based on your gaps.'}
-                                    </p>
-                                </div>
-                                <div className="p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md opacity-50 grayscale">
-                                    <h5 className="font-black text-xs mb-2">Personalized Roadmap 2.0</h5>
-                                    <p className="text-[10px] uppercase font-bold opacity-60 italic">
-                                        {language === 'ar' ? 'خارطة طريق ديناميكية تتحدث آلياً مع تطور مهاراتك' : 'A dynamic AI roadmap that updates as you learn skills.'}
+                {/* --- MARKET VERDICT & 3-6-9 CAREER ROADMAP --- */}
+                <div className="bg-white rounded-[4rem] border-2 border-slate-950 overflow-hidden shadow-3xl">
+                    <div className="grid lg:grid-cols-2">
+                        <div className="p-12 md:p-16 border-b lg:border-b-0 lg:border-r border-slate-950 flex flex-col justify-center space-y-10">
+                            <div className="space-y-4">
+                                <h3 className="text-3xl font-black flex items-center gap-4">
+                                    <Trophy className="text-amber-500" size={32} />
+                                    {language === 'ar' ? 'حكم الجدارة في السوق المحلي والدولي' : 'Market Eligibility Verdict'}
+                                </h3>
+                                <div className="p-8 bg-amber-50 rounded-4xl border border-amber-200">
+                                    <p className="text-xl font-bold text-amber-950 leading-loose italic">
+                                        &quot;{finalMasterReport?.marketabilityVerdict || 'Elite valuation pending...'}&quot;
                                     </p>
                                 </div>
                             </div>
+                            <div className="flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <AlertCircle size={16} />
+                                {language === 'ar' ? 'ملاحظة: هذا التحليل يعكس جاهزيتك بناءً على بروفايلك الحالي فقط، ولا يشمل الظروف الخارجية كالقوانين الداخلية لاي شركة او سوق الشغل لاي بلد' : 'Note: This analysis reflects your readiness based on your current profile only, and does not include external circumstances such as the internal laws of any company or the labor market of any country.'}
+                            </div>
+                        </div>
+
+                        <div className="p-12 md:p-16 bg-slate-950 text-white flex flex-col space-y-12">
+                             <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+                                <TrendingUp className="text-indigo-400" size={32} />
+                                <h3 className="text-2xl font-black">{language === 'ar' ? 'مسار النمو الاستراتيجي (3-6-9 القادم)' : 'Strategic Growth Trajectory (3-6-9 Projection)'}</h3>
+                             </div>
+                             <div className="space-y-8">
+                                {[
+                                    { time: 'Year 3', data: finalMasterReport?.roadmap369?.year3 },
+                                    { time: 'Year 6', data: finalMasterReport?.roadmap369?.year6 },
+                                    { time: 'Year 9', data: finalMasterReport?.roadmap369?.year9 }
+                                ].map((roadmapStep, i) => (
+                                    <div key={i} className="flex gap-6 items-start group">
+                                        <div className="w-12 h-px bg-white/20 mt-4 group-hover:w-20 group-hover:bg-indigo-500 transition-all shrink-0" />
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">{roadmapStep.time} – Future Projection</span>
+                                            <h5 className="text-xl font-black text-white">{roadmapStep.data?.targetRole || 'Strategic Goal TBD'}</h5>
+                                            <p className="text-xs font-bold text-slate-400 leading-relaxed max-w-md">{roadmapStep.data?.action || 'Identifying next steps...'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="pt-6 border-t border-white/10">
+                                     <div className="p-5 bg-white/5 rounded-3xl border border-white/10">
+                                          <p className="text-xs font-bold leading-relaxed italic text-indigo-300">
+                                               Feasibility Verdict: {finalMasterReport?.roadmap369?.feasibilityVerdict || 'TBD'}
+                                          </p>
+                                     </div>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="text-center space-y-12">
-                    <p className="text-3xl font-black text-slate-400 opacity-30 italic max-w-3xl mx-auto">&quot;{finalMasterReport.finalCallToAction}&quot;</p>
+                {/* --- PROFESSIONAL BRANDING (LINKEDIN READY) --- */}
+                <div className="bg-linear-to-br from-blue-600 via-indigo-700 to-indigo-900 rounded-[4rem] p-12 md:p-20 text-white shadow-3xl relative overflow-hidden group">
+                    <div className="absolute bottom-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform pointer-events-none"><Linkedin size={200} /></div>
+                    <div className="relative z-10 grid md:grid-cols-2 gap-16 items-center">
+                         <div className="space-y-10">
+                            <div className="space-y-4">
+                                <div className="px-6 py-2 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest inline-block backdrop-blur-md">Professional Branding Assistant</div>
+                                <h3 className="text-4xl md:text-5xl font-black leading-tight">
+                                    {language === 'ar' ? 'بصمتك الرقمية جاهزة للنشر' : 'Your Digital Fingerprint is Ready'}
+                                </h3>
+                                <p className="text-indigo-100 font-bold text-lg leading-relaxed">
+                                    {language === 'ar' ? 'سواء كنت تبحث عن ترقية أو فرصة جديدة، استخدم هذه الصياغة المهنية لجذب الاهتمام الاستراتيجي.' : 'Whether you\'re seeking a promotion or a new opportunity, use this professional phrasing to trigger strategic interest.'}
+                                </p>
+                            </div>
+                            <div className="space-y-4">
+                                 <button
+                                    onClick={() => {
+                                        const text = `${finalMasterReport?.linkedInStrategy?.headline || ''}\n\n${finalMasterReport?.linkedInStrategy?.summaryFocus || ''}`;
+                                        navigator.clipboard.writeText(text);
+                                        const btn = document.getElementById('copy-btn-inner');
+                                        if (btn) btn.innerText = language === 'ar' ? 'تم النسخ!' : 'Copied!';
+                                        setTimeout(() => { if (btn) btn.innerText = language === 'ar' ? 'تجهيز المنشور الاستراتيجي' : 'Prepare Strategy Post'; }, 2000);
+                                    }}
+                                    className="px-10 py-5 bg-white text-indigo-900 rounded-3xl font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-900 hover:text-white transition-all flex items-center gap-4"
+                                 >
+                                    <span id="copy-btn-inner">{language === 'ar' ? 'تجهيز المنشور الاستراتيجي' : 'Prepare Strategy Post'}</span>
+                                    <Copy size={20} />
+                                 </button>
+                            </div>
+                         </div>
+                         <div className="space-y-6">
+                              <div className="p-8 bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/10 space-y-4">
+                                   <p className="text-[10px] font-black uppercase text-indigo-300 tracking-widest">LinkedIn Headline Suggestion</p>
+                                   <p className="text-xl font-black text-white italic">&quot;{finalMasterReport?.linkedInStrategy?.headline || 'Strategically Crafted Identity...'}&quot;</p>
+                              </div>
+                              <div className="p-8 bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/10 space-y-4">
+                                   <p className="text-[10px] font-black uppercase text-indigo-300 tracking-widest">Profile Abstract / About</p>
+                                   <p className="text-sm font-bold text-indigo-50 leading-loose line-clamp-6">
+                                        {finalMasterReport?.linkedInStrategy?.summaryFocus || "Synthesizing your global impact for executive audience..."}
+                                   </p>
+                              </div>
+                              <div className="p-8 bg-emerald-400/10 backdrop-blur-3xl rounded-[3rem] border border-emerald-400/20 space-y-4">
+                                   <div className="flex items-center gap-3">
+                                       <Zap size={16} className="text-emerald-400" />
+                                       <p className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Strategic Networking Hint</p>
+                                   </div>
+                                   <p className="text-xs font-bold text-emerald-50 italic tracking-wider leading-relaxed">
+                                        {finalMasterReport?.linkedInStrategy?.networkingAdvice || 'Tailor your outreach based on identified gaps.'}
+                                   </p>
+                              </div>
+                         </div>
+                    </div>
+                </div>
 
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+                <div className="text-center space-y-12">
+                    <p className="text-4xl md:text-5xl font-black text-slate-400 opacity-20 italic max-w-5xl mx-auto leading-tight uppercase">&quot;{finalMasterReport?.finalCallToAction || 'Evolution is Mandatory.'}&quot;</p>
+
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 no-pdf">
                         <button
                             onClick={() => window.location.href = '/dashboard'}
-                            className="px-20 py-6 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-3xl flex items-center gap-4"
+                            className="px-20 py-7 bg-slate-950 text-white rounded-[2.5rem] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all shadow-3xl flex items-center gap-4 border border-white/10"
                         >
-                            Return to Dashboard
+                            Return to Mission Hub
+                            <ArrowRight size={20} />
                         </button>
                         <button
-                            onClick={() => handleDownloadWithGate(masterReportRef, 'Master_Report')}
-                            className="px-16 py-5 bg-white text-slate-900 border-2 border-slate-900 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-4 shadow-xl"
+                            onClick={() => handleDownloadWithGate(masterReportRef, 'Executive_Diagnostic_Master')}
+                            className="px-16 py-7 bg-white text-slate-950 border-4 border-slate-950 rounded-[2.5rem] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all flex items-center gap-4 shadow-xl shadow-slate-200"
                         >
-                            <Download size={20} />
-                            Save Master Report
+                            <Download size={22} />
+                            Save Master File
                         </button>
                     </div>
                 </div>
+
+                <ReportFooter t={t} />
             </motion.div>
         );
     }
@@ -4107,6 +4431,7 @@ export default function ProfessionalDiagnosisPage() {
                                 </div>
                             </div>
                         </div>
+                        <ReportFooter t={t} />
                     </div>
                 )}
             </motion.div>

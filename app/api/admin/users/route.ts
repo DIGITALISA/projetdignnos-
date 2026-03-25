@@ -8,6 +8,7 @@ import PerformanceProfile from "@/models/PerformanceProfile";
 import Certificate from "@/models/Certificate";
 import Recommendation from "@/models/Recommendation";
 import JobAlignment from "@/models/JobAlignment";
+import Notification from "@/models/Notification";
 import bcrypt from "bcryptjs";
 
 export const dynamic = 'force-dynamic';
@@ -154,6 +155,14 @@ export async function DELETE(req: NextRequest) {
                 ]
             };
 
+            // Notification search filter
+            const notificationFilter = {
+                $or: [
+                    { recipientEmail: { $in: identifiers } },
+                    { "metadata.userEmail": { $in: identifiers } }
+                ]
+            };
+
             await Promise.all([
                 Diagnosis.deleteMany(bulkFilter),
                 Simulation.deleteMany(bulkFilter),
@@ -162,10 +171,92 @@ export async function DELETE(req: NextRequest) {
                 Certificate.deleteMany(bulkFilter),
                 Recommendation.deleteMany(bulkFilter),
                 JobAlignment.deleteMany(bulkFilter),
+                Notification.deleteMany(notificationFilter),
                 User.deleteMany({ _id: { $in: userIds } })
             ]);
 
             return NextResponse.json({ message: `Successfully deleted ${usersToDelete.length} users and all related data.` });
+        }
+
+        // --- NEW: PURGE PENDING LOGIC ---
+        if (action === 'purgePending') {
+            const usersToDelete = await User.find({ status: 'Pending', role: { $nin: ['Admin', 'Moderator'] } });
+            
+            if (usersToDelete.length === 0) {
+                return NextResponse.json({ message: "No pending users found to purge" });
+            }
+
+            const identifiers = usersToDelete.map(u => u.email || u.fullName);
+            const userIds = usersToDelete.map(u => u._id);
+
+            const bulkFilter = {
+                $or: [
+                    { userId: { $in: identifiers } },
+                    { userId: { $in: userIds.map(id => id.toString()) } }
+                ]
+            };
+
+            const notificationFilter = {
+                $or: [
+                    { recipientEmail: { $in: identifiers } },
+                    { "metadata.userEmail": { $in: identifiers } }
+                ]
+            };
+
+            await Promise.all([
+                Diagnosis.deleteMany(bulkFilter),
+                Simulation.deleteMany(bulkFilter),
+                InterviewResult.deleteMany(bulkFilter),
+                PerformanceProfile.deleteMany(bulkFilter),
+                Certificate.deleteMany(bulkFilter),
+                Recommendation.deleteMany(bulkFilter),
+                JobAlignment.deleteMany(bulkFilter),
+                Notification.deleteMany(notificationFilter),
+                User.deleteMany({ _id: { $in: userIds } })
+            ]);
+
+            return NextResponse.json({ message: `Successfully purged ${usersToDelete.length} pending accounts and all related data.` });
+        }
+
+        // --- NEW: SYSTEM DEEP CLEAN LOGIC ---
+        if (action === 'deepClean') {
+            const allUsers = await User.find({}, { _id: 1, email: 1, fullName: 1 });
+            const userIds = allUsers.map(u => u._id.toString());
+            const userEmails = allUsers.map(u => u.email).filter(Boolean);
+            const userNames = allUsers.map(u => u.fullName).filter(Boolean);
+
+            const allValidIdentifiers = [...userIds, ...userEmails, ...userNames];
+
+            // Filter for sub-collections where userId doesn't match any existing user
+            const cleanupFilter = { 
+                userId: { $nin: allValidIdentifiers } 
+            };
+            
+            // Notification filter is handled based on email
+            const notificationCleanupFilter = {
+                $and: [
+                    { recipientEmail: { $nin: userEmails } },
+                    { "metadata.userEmail": { $nin: userEmails } }
+                ]
+            };
+
+            const [diag, sim, int, perf, cert, rec, job, notify] = await Promise.all([
+                Diagnosis.deleteMany(cleanupFilter),
+                Simulation.deleteMany(cleanupFilter),
+                InterviewResult.deleteMany(cleanupFilter),
+                PerformanceProfile.deleteMany(cleanupFilter),
+                Certificate.deleteMany(cleanupFilter),
+                Recommendation.deleteMany(cleanupFilter),
+                JobAlignment.deleteMany(cleanupFilter),
+                Notification.deleteMany(notificationCleanupFilter)
+            ]);
+
+            const totalCleaned = (diag.deletedCount || 0) + (sim.deletedCount || 0) + (int.deletedCount || 0) + (perf.deletedCount || 0) + (cert.deletedCount || 0) + (rec.deletedCount || 0) + (job.deletedCount || 0) + (notify.deletedCount || 0);
+
+            return NextResponse.json({ 
+                message: `System deep clean complete. Purged ${totalCleaned} orphaned records.`,
+                details: { diag, sim, int, perf, cert, rec, job, notify }
+            });
         }
 
         // --- EXISTING: SINGLE DELETE LOGIC ---
@@ -191,6 +282,14 @@ export async function DELETE(req: NextRequest) {
             ]
         };
 
+        // Notification filter
+        const notificationFilter = {
+            $or: [
+                { recipientEmail: identifier },
+                { "metadata.userEmail": identifier }
+            ]
+        };
+
         await Promise.all([
             Diagnosis.deleteMany(filter),
             Simulation.deleteMany(filter),
@@ -199,6 +298,7 @@ export async function DELETE(req: NextRequest) {
             Certificate.deleteMany(filter),
             Recommendation.deleteMany(filter),
             JobAlignment.deleteMany(filter),
+            Notification.deleteMany(notificationFilter),
             User.findByIdAndDelete(id)
         ]);
 

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ArrowRight, User, Mail, Phone, Loader2, CheckCircle2, Lock, GraduationCap } from "lucide-react";
+import { ArrowRight, User, Mail, Phone, Loader2, CheckCircle2, Lock, GraduationCap, Shield, Eye, EyeOff, Copy } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -35,9 +35,10 @@ export default function RegisterPage() {
             submit: "Register Now",
             alreadyMember: "Already a member?",
             loginLink: "Login",
-            successTitle: "Request Sent",
-            successP1: "Your request has been successfully received. Please note that account activation will only be completed after contacting us via WhatsApp to verify your registration details.",
-            successP2: "Your free account will be activated after verification within 24 hours maximum. Contact us now:",
+            successTitle: "Congratulations! Your request is ready",
+            successP1: "You can now log in to your account. Click 'Back to login' and use the email and password you just chose.",
+            successP2: "Important: Final activation will only be completed after contacting us via WhatsApp to verify your account information.",
+            successP3: "Your account will be activated once verified within 24 hours maximum. Contact us now for instant activation:",
             backLogin: "Back to Login",
             errorGeneric: "An error occurred",
             errorSystem: "System error. Please try again.",
@@ -46,7 +47,10 @@ export default function RegisterPage() {
             studentCard: "Student / Academic",
             proCard: "Professional / Executive",
             expertCard: "Expert / Consultant",
-            select: "Select This Path"
+            select: "Select This Path",
+            activationNote: "Important Note: After registration, account activation is only completed after contacting us via WhatsApp to verify your information.",
+            passwordSafetyNote: "Please save your access code in a safe place, you will need it to login later.",
+            copyBtn: "Copy"
         },
         fr: {
             expertBadge: "Compte Expert",
@@ -70,9 +74,10 @@ export default function RegisterPage() {
             submit: "S'inscrire Maintenant",
             alreadyMember: "Déjà membre ?",
             loginLink: "Se connecter",
-            successTitle: "Demande Envoyée",
-            successP1: "Votre demande a été reçue avec succès. Veuillez noter que l'activation du compte ne sera effectuée qu'après nous avoir contactés via WhatsApp pour vérifier vos informations d'inscription.",
-            successP2: "Votre compte gratuit sera activé après vérification sous 24h maximum. Contactez-nous dès maintenant :",
+            successTitle: "Félicitations ! Votre demande est créée",
+            successP1: "Vous pouvez maintenant vous connecter à votre compte. Cliquez sur 'Retour à la connexion' puis utilisez l'email et le mot de passe que vous venez de choisir.",
+            successP2: "Important : L'activation finale ne sera effectuée qu'après nous avoir contactés via WhatsApp pour vérifier vos informations.",
+            successP3: "Votre compte sera activé dès vérification sous 24h maximum. Contactez-nous dès maintenant pour accélérer le processus :",
             backLogin: "Retour à la connexion",
             errorGeneric: "Une erreur est survenue",
             errorSystem: "Erreur système. Veuillez réessayer.",
@@ -81,7 +86,10 @@ export default function RegisterPage() {
             studentCard: "Étudiant / Académique",
             proCard: "Professionnel / Cadre",
             expertCard: "Expert / Consultant",
-            select: "Choisir ce parcours"
+            select: "Choisir ce parcours",
+            activationNote: "Note importante : Après l'inscription, l'activation du compte ne se fera qu'après nous avoir contactés via WhatsApp pour vérifier vos informations.",
+            passwordSafetyNote: "Veuillez conserver votre code d'accès en lieu sûr, vous en aurez besoin pour vous connecter.",
+            copyBtn: "Copier"
         },
         ar: {
             expertBadge: "حساب خبير",
@@ -105,9 +113,10 @@ export default function RegisterPage() {
             submit: "التسجيل الآن",
             alreadyMember: "عضو بالفعل؟",
             loginLink: "تسجيل الدخول",
-            successTitle: "تم إرسال الطلب",
-            successP1: "لقد تم استلام طلبك بنجاح. يرجى العلم أنه لن يتم تفعيل الحساب إلا بعد التواصل معنا عبر الواتساب للتأكد من المعطيات التي قمت بتسجيلها.",
-            successP2: "سيتم تفعيل حسابك المجاني فور التحقق من البيانات في غضون 24 ساعة كحد أقصى. تواصل معنا الآن:",
+            successTitle: "تهانينا! تم إنشاء طلبك بنجاح",
+            successP1: "بإمكانك الآن تسجيل الدخول إلى حسابك. انقر على 'العودة لتسجيل الدخول' ثم أدخل بريدك الإلكتروني وكلمة المرور التي اخترتها عند التسجيل.",
+            successP2: "ملاحظة هامة: لن يتم تفعيل الحساب إلا بعد التواصل معنا عبر الواتساب للتأكد من المعطيات المذكورة أعلاه.",
+            successP3: "سيتم تفعيل حسابك فور التحقق من البيانات في غضون 24 ساعة كحد أقصى. تواصل معنا الآن لتسريع التفعيل:",
             backLogin: "العودة لتسجيل الدخول",
             errorGeneric: "حدث خطأ ما",
             errorSystem: "خطأ في النظام. يرجى المحاولة مرة أخرى.",
@@ -116,7 +125,10 @@ export default function RegisterPage() {
             studentCard: "طالب / أكاديمي",
             proCard: "محترف / إطار مسير",
             expertCard: "خبير / مستشار",
-            select: "اختر هذا المسار"
+            select: "اختر هذا المسار",
+            activationNote: "ملاحظة هامة: بعد التسجيل، يتم تفعيل الحساب فقط عند التواصل معنا عبر الواتساب للتثبت من المعطيات.",
+            passwordSafetyNote: "يرجى حفظ كلمة المرور الخاصة بك في مكان آمن، ستحتاجها للدخول لاحقاً.",
+            copyBtn: "نسخ"
         }
     }[lang];
 
@@ -132,6 +144,8 @@ export default function RegisterPage() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -158,6 +172,13 @@ export default function RegisterPage() {
             })
             .catch(err => console.error("Error fetching contact config:", err));
     }, []);
+
+    const handleCopyPassword = () => {
+        if (!formData.password) return;
+        navigator.clipboard.writeText(formData.password);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -188,43 +209,65 @@ export default function RegisterPage() {
 
     if (isSuccess) {
         return (
-            <div dir={dir} className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+            <div dir={dir} className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                    <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-emerald-100/50 rounded-full blur-[100px]" />
+                    <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[100px]" />
+                </div>
+
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-2xl text-center border border-slate-100"
+                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="max-w-xl w-full bg-white/80 backdrop-blur-xl rounded-[3rem] p-12 shadow-2xl text-center border border-white relative z-10"
                 >
-                    <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto text-emerald-500 mb-8 shadow-inner">
-                        <CheckCircle2 size={40} />
+                    <div className="w-24 h-24 bg-emerald-500 rounded-4xl flex items-center justify-center mx-auto text-white mb-10 shadow-2xl shadow-emerald-500/30 rotate-3 transition-transform hover:rotate-0 duration-500">
+                        <CheckCircle2 size={48} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-4 opacity-90">
+
+                    <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 tracking-tight">
                         {T.successTitle}
                     </h2>
-                    <p className="text-slate-500 font-medium leading-relaxed mb-4">
-                        {T.successP1}
-                    </p>
-                    
-                    <div className="bg-blue-50/50 rounded-2xl p-6 mb-8 border border-blue-100/50">
-                        <p className="text-sm text-slate-600 font-bold mb-3 leading-relaxed">
-                            {T.successP2}
+
+                    <div className="space-y-8 mb-12">
+                        <p className="text-lg text-slate-600 font-medium leading-relaxed">
+                            {T.successP1}
                         </p>
-                        <a 
-                            href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-sm hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
-                            dir="ltr"
-                        >
-                            <Phone size={16} />
-                            {contactInfo.whatsapp}
-                        </a>
+
+                        <div className="bg-blue-600 rounded-3xl p-8 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                                <Shield size={120} />
+                            </div>
+                            
+                            <p className="relative z-10 text-[11px] font-black uppercase tracking-[0.2em] opacity-80 mb-4">
+                                {dir === 'rtl' ? 'الإجراء المطلوب' : 'Action Requise'}
+                            </p>
+                            
+                            <p className="relative z-10 text-sm md:text-base font-bold mb-6 leading-relaxed">
+                                {T.successP2}
+                                <span className="block mt-4 text-xs opacity-90 font-medium italic">
+                                    {T.successP3}
+                                </span>
+                            </p>
+                            
+                            <a 
+                                href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="relative z-10 inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-600 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all shadow-lg active:scale-95"
+                                dir="ltr"
+                            >
+                                <Phone size={18} className="animate-bounce" />
+                                {contactInfo.whatsapp}
+                            </a>
+                        </div>
                     </div>
 
                     <Link
                         href="/login"
-                        className="inline-flex items-center gap-2 text-slate-400 font-bold hover:text-blue-600 transition-colors"
+                        className="w-full bg-slate-900 hover:bg-blue-700 text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 uppercase tracking-[0.2em] text-xs"
                     >
-                        {T.backLogin} <ArrowRight size={16} className={dir === 'rtl' ? 'rotate-180' : ''} />
+                        <ArrowRight size={18} className={dir === 'rtl' ? 'rotate-180 order-2' : ''} />
+                        <span className={dir === 'rtl' ? 'order-1' : ''}>{T.backLogin}</span>
                     </Link>
                 </motion.div>
             </div>
@@ -251,6 +294,14 @@ export default function RegisterPage() {
                         <p className="text-slate-500 font-medium text-lg">
                             {T.chooseSub}
                         </p>
+                        
+                        {/* Summary Activation Note */}
+                        <div className="mt-8 max-w-2xl mx-auto bg-blue-50/50 border border-blue-100/50 rounded-2xl p-4 flex gap-3 items-center justify-center">
+                            <Shield className="w-5 h-5 text-blue-500 shrink-0" />
+                            <p className="text-xs text-blue-700 font-bold leading-relaxed">
+                                {T.activationNote}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
@@ -405,14 +456,37 @@ export default function RegisterPage() {
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
-                                    className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-blue-500/10 outline-none transition-all font-bold text-slate-900"
+                                    className="w-full pl-12 pr-16 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-blue-500/10 outline-none transition-all font-bold text-slate-900"
                                     required
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyPassword}
+                                        className={cn(
+                                            "p-2 rounded-lg transition-colors",
+                                            isCopied ? "text-emerald-500 bg-emerald-50" : "text-slate-400 hover:text-blue-500 hover:bg-slate-100"
+                                        )}
+                                        title={T.copyBtn}
+                                    >
+                                        <Copy size={16} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="p-2 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-100 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
+                            <p className="mt-2 ml-1 text-[9px] text-slate-400 font-medium italic">
+                                * {T.passwordSafetyNote}
+                            </p>
                         </div>
 
                         {error && (
@@ -420,6 +494,16 @@ export default function RegisterPage() {
                                 {error}
                             </div>
                         )}
+
+                        {/* Activation Note */}
+                        <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 flex gap-3 items-start animate-pulse">
+                            <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                                <span className="text-amber-600 font-black text-xs">!</span>
+                            </div>
+                            <p className="text-[10px] md:text-xs text-amber-700 font-bold leading-relaxed">
+                                {T.activationNote}
+                            </p>
+                        </div>
 
                         <button
                             type="submit"

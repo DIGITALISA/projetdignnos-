@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, PlayCircle, Zap, ArrowRight } from "lucide-react";
+import { Loader2, Sparkles, PlayCircle, Zap, ArrowRight, Clock } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -9,11 +10,86 @@ import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
+function PendingAccountOverlay({ dir }: { dir: 'ltr' | 'rtl' }) {
+    const isRtl = dir === 'rtl';
+    // Base message: "Désolé, votre compte est en cours de vérification. سيتم تفعيل الحساب بعد التثبت من المعطيات مابين 24 ساعة و 72 ساعة. إذا تأخرنا أو كنت ترغب في تفعيل الحساب فوراً، تواصل معنا عبر الواتساب: +216 44 172 284"
+    
+    return (
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-6 sm:p-12">
+            {/* Backdrop with extreme blur to hide sensitive dashboard data but keep the "vibe" */}
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xl" />
+            
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="relative w-full max-w-2xl bg-white/90 backdrop-blur-md border border-white/20 rounded-[40px] shadow-2xl overflow-hidden p-10 md:p-16 text-center"
+            >
+                {/* Decorative background element */}
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl" />
+
+                <div className="relative z-10 flex flex-col items-center gap-8">
+                    <div className="w-24 h-24 bg-linear-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/20 rotate-3 transition-transform hover:rotate-0 duration-500">
+                        <Clock className="w-12 h-12 text-white animate-pulse" />
+                    </div>
+
+                    <div className="space-y-4">
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                            {isRtl ? 'مرحباً بك! تفعيل الحساب مطلوب' : 'Bienvenue ! Activation requise'}
+                        </h2>
+                        
+                        <div className="space-y-6 text-slate-600 text-lg md:text-xl font-medium leading-relaxed">
+                            <p className="border-b border-slate-100 pb-6 italic">
+                                {isRtl 
+                                    ? 'يرجى التواصل معنا للتثبت من المعطيات وتفعيل الحساب.' 
+                                    : 'Veuillez nous contacter pour vérifier vos informations et activer votre compte.'}
+                            </p>
+                            
+                            <p className="text-base text-slate-900 font-extrabold uppercase tracking-widest">
+                                {isRtl 
+                                    ? 'تواصل معنا لتفعيل الحساب في غضون لحظات:' 
+                                    : 'Contactez-nous pour activer votre compte immédiatement :'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                        <a 
+                            href="https://wa.me/21644172284" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/25 hover:-translate-y-1 active:translate-y-0"
+                        >
+                            <Zap className="w-5 h-5 fill-current" />
+                            WhatsApp Support
+                        </a>
+                        
+                        <button 
+                            onClick={() => {
+                                localStorage.removeItem('userProfile');
+                                window.location.href = '/login';
+                            }}
+                            className="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-bold text-sm transition-all"
+                        >
+                            {isRtl ? 'تسجيل الخروج' : 'Se déconnecter'}
+                        </button>
+                    </div>
+                    
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Protocol: Verification Phase
+                    </p>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
 interface UserProfile {
     email?: string;
     fullName?: string;
     role?: string;
     plan?: string;
+    status?: string;
     canAccessCertificates?: boolean;
     canAccessRecommendations?: boolean;
     canAccessScorecard?: boolean;
@@ -149,6 +225,7 @@ export default function DashboardLayout({
                         profile.canAccessRecommendations !== readyData.recReady ||
                         profile.plan !== readyData.plan ||
                         profile.role !== readyData.role ||
+                        profile.status !== readyData.details?.status ||
                         profile.activationType !== readyData.details?.activationType
                     ) {
                         const updatedProfile = {
@@ -157,6 +234,7 @@ export default function DashboardLayout({
                             canAccessRecommendations: readyData.recReady,
                             plan: readyData.plan,
                             role: readyData.role,
+                            status: readyData.details?.status,
                             activationType: readyData.details?.activationType,
                             firstLoginAt: readyData.details?.firstLoginAt,
                             visitedModules: readyData.details?.visitedModules || []
@@ -269,6 +347,11 @@ export default function DashboardLayout({
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex" dir={dir}>
+
+            {/* Pending Account Restriction Overlay */}
+            {profile?.status === 'Pending' && profile.role !== 'Admin' && profile.role !== 'Moderator' && (
+                <PendingAccountOverlay dir={dir} />
+            )}
 
             {/* Sidebar */}
             {!hideSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}

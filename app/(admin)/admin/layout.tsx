@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface AdminNotification {
@@ -129,13 +129,16 @@ export default function AdminLayout({
     null,
   );
 
+  const lastDisplayedToastId = useRef<string | null>(null);
+
   useEffect(() => {
     if (notifications.length > 0) {
       const latest = notifications[0];
-      if (!latest.read && unreadCount > 0) {
+      if (!latest.read && unreadCount > 0 && latest._id !== lastDisplayedToastId.current) {
+        lastDisplayedToastId.current = latest._id;
         // Use a small delay to avoid cascading synchronous render warnings
-        const toastTimer = setTimeout(() => setActiveToast(latest), 10);
-        const hideTimer = setTimeout(() => setActiveToast(null), 6010);
+        const toastTimer = setTimeout(() => setActiveToast(latest), 50);
+        const hideTimer = setTimeout(() => setActiveToast(null), 8000);
         return () => {
           clearTimeout(toastTimer);
           clearTimeout(hideTimer);

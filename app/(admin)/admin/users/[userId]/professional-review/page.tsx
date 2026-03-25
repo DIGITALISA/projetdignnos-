@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface AuditResult { careerLevel?: string; currentRole?: string; sector?: string; yearsOfExperience?: number; marketPosition?: string; keyStrengths?: string[]; skillGaps?: string[]; actionPlan?: string[]; strategicAudit?: string; identity?: { field?: string; specialization?: string }; }
 interface ExpertReport { executiveBrief?: string; executiveAuthorityProfile?: { authorityScore?: number; authorityLevel?: string; professionalDNA?: string; marketPerceptionGap?: string; executivePresenceRating?: string; leadershipStyleSignature?: string; }; marketAndCareerIntelligence?: { currentMarketValue?: string; potentialMarketValue?: string; topTargetRoles?: string[]; timeToNextLevel?: string; }; strategicInterventionPlan?: { phase1_Immediate?: { timeframe?: string; focus?: string; specificActions?: string[] }; phase2_ShortTerm?: { timeframe?: string; focus?: string; specificActions?: string[] }; phase3_MediumTerm?: { timeframe?: string; focus?: string; specificActions?: string[] }; }; advisorIntelligenceNotes?: { keyUnlockQuestion?: string; negotiationLeverage?: string; redFlagWarnings?: string[]; }; confidentialVerdict?: string; }
 interface FinalReport { maturityLevel?: string; profileSummary?: string; finalVerdict?: string; swot?: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[] }; strategicRadar?: Record<string, number>; careerAdvancement?: { role: string; shortTermProbability: number; longTermProbability: number }[]; authorityVsPotential?: { currentAuthority: number; futurePotential: number; quadrant: string }; gapAnalysis?: { hardSkillsMatch: number; softSkillsMatch: number; criticalCompetencyGaps: string[]; currentJobVsReality: string }; }
-interface DiagnosisData { auditResult?: AuditResult; professionalFinalReport?: FinalReport; professionalExpertReport?: ExpertReport; professionalExpertReportGeneratedAt?: string; marketingAssets?: { cv?: string; report?: string }; negotiationHistory?: { role: string; content: string }[]; comprehensiveReport?: string; analysis?: { sciReport?: Record<string, unknown>; immediateActions?: string[]; expertAdvice?: { suggestedWorkshops: string[] } }; }
+interface DiagnosisData { auditResult?: AuditResult; professionalAuditResult?: AuditResult; professionalFinalReport?: FinalReport; professionalExpertReport?: ExpertReport; professionalExpertReportGeneratedAt?: string; marketingAssets?: { cv?: string; report?: string }; negotiationHistory?: { role: string; content: string }[]; comprehensiveReport?: string; analysis?: { sciReport?: Record<string, unknown>; immediateActions?: string[]; expertAdvice?: { suggestedWorkshops: string[] } }; }
 interface UserData { fullName: string; email: string; role: string; status: string; plan: string; createdAt: string; selectedRole?: string; isDiagnosisComplete?: boolean; canAccessCertificates?: boolean; canAccessRecommendations?: boolean; canAccessScorecard?: boolean; canAccessSCI?: boolean; resetRequested?: boolean; whatsapp?: string; memberId?: string; }
 interface Simulation { title: string; status: string; currentDraft?: string; }
 interface AggregatedData { success: boolean; user: UserData; diagnosis: DiagnosisData | null; interviewResult: { evaluation?: { seniorityLevel?: string; expertCaseSummary?: string } } | null; simulations: Simulation[]; profile: { referenceId?: string } | null; }
@@ -71,11 +71,14 @@ export default function ProfessionalReviewPage() {
   if (!userData) return null;
 
   const diagnosis = userData.diagnosis;
-  const auditResult = diagnosis?.auditResult as AuditResult | undefined;
-  const grandReport = diagnosis?.professionalFinalReport;
-  const expertReport = diagnosis?.professionalExpertReport;
+  const auditResult = (diagnosis?.auditResult || diagnosis?.professionalAuditResult) as AuditResult | undefined;
+  const grandReport = (diagnosis?.professionalFinalReport);
+  const expertReport = (diagnosis?.professionalExpertReport);
   const sciReport = diagnosis?.analysis?.sciReport;
-  const canGenerate = !!diagnosis && !!userData.user?.isDiagnosisComplete && !!expertNotes.trim();
+
+  // For professionals, the diagnosis is considered complete if the user's isDiagnosisComplete flag is true OR if the grandReport exists
+  const isActuallyComplete = !!userData.user?.isDiagnosisComplete || !!grandReport;
+  const canGenerate = !!diagnosis && isActuallyComplete && !!expertNotes.trim();
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 p-6 md:p-8">
@@ -403,10 +406,10 @@ export default function ProfessionalReviewPage() {
                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                   <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Candidate Benchmark</p>
                   <h4 className="text-xl font-bold flex items-center gap-2">
-                    {userData.interviewResult?.evaluation?.seniorityLevel || "Pending Analysis"}
-                    <div className={cn("w-2 h-2 rounded-full animate-pulse", userData.interviewResult ? "bg-emerald-500" : "bg-blue-500")} />
+                    {userData.interviewResult?.evaluation?.seniorityLevel || auditResult?.careerLevel || "Pending Analysis"}
+                    <div className={cn("w-2 h-2 rounded-full animate-pulse", (userData.interviewResult || auditResult) ? "bg-emerald-500" : "bg-blue-500")} />
                   </h4>
-                  <p className="text-xs text-slate-400 mt-2 font-medium">{userData.interviewResult ? "Verified seniority level." : "Awaiting diagnostic completion."}</p>
+                  <p className="text-xs text-slate-400 mt-2 font-medium">{(userData.interviewResult || auditResult) ? "Verified professional level." : "Awaiting diagnostic completion."}</p>
                 </div>
                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                   <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Strategic Fit</p>
@@ -417,7 +420,7 @@ export default function ProfessionalReviewPage() {
 
               {/* Executive Summary */}
               <div className="p-8 border rounded-4xl text-sm leading-relaxed font-medium italic bg-indigo-500/10 border-indigo-500/10 text-indigo-200">
-                {userData.interviewResult?.evaluation?.expertCaseSummary || "Executive synthesis unavailable. Awaiting diagnostic completion."}
+                {userData.interviewResult?.evaluation?.expertCaseSummary || auditResult?.strategicAudit || "Executive synthesis unavailable. Awaiting diagnostic completion."}
               </div>
 
               {/* Expert Notes */}

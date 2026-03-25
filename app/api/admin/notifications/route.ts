@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Notification from "@/models/Notification";
+import User from "@/models/User";
 
 // Simple in-memory cache
 interface NotificationDocument {
@@ -9,6 +10,8 @@ interface NotificationDocument {
     message: string;
     type?: string;
     read: boolean;
+    recipientEmail?: string;
+    metadata?: Record<string, any>;
     createdAt: string;
     updatedAt: string;
 }
@@ -34,10 +37,49 @@ export async function GET() {
         }
 
         await connectDB();
-        const notifications = await Notification.find({}).sort({ createdAt: -1 }).limit(20);
-        const unreadCount = await Notification.countDocuments({ read: false });
         
-        const result = { notifications, unreadCount };
+        // Fetch more than limit to account for possible deletions
+        const allNotifications = await Notification.find({}).sort({ createdAt: -1 }).limit(50);
+        
+        // Collect all potential user emails from notifications
+        const emailsToCheck = new Set<string>();
+        allNotifications.forEach((n) => {
+            const notif = n as unknown as NotificationDocument;
+            const email = notif.recipientEmail || notif.metadata?.userEmail || notif.metadata?.email;
+            if (email) emailsToCheck.add(email);
+        });
+
+        // Find existing users
+        const existingUsers = await User.find({ email: { $in: Array.from(emailsToCheck) } }).select('email');
+        const existingEmails = new Set(existingUsers.map(u => u.email));
+
+        // Filter and identify orphans for deletion
+        const validNotifications: NotificationDocument[] = [];
+        const orphanIds: string[] = [];
+
+        allNotifications.forEach((n) => {
+            const notif = n as unknown as NotificationDocument;
+            const email = notif.recipientEmail || notif.metadata?.userEmail || notif.metadata?.email;
+            if (email && !existingEmails.has(email)) {
+                // This notification belongs to a deleted user
+                orphanIds.push(notif._id.toString());
+            } else {
+                validNotifications.push(notif);
+            }
+        });
+
+        // Async cleanup of orphans (don't wait for it to return response faster)
+        if (orphanIds.length > 0) {
+            Notification.deleteMany({ _id: { $in: orphanIds } }).exec().catch(err => console.error("Orphan cleanup failed:", err));
+        }
+
+        const notifications = validNotifications.slice(0, 20);
+        const unreadCount = validNotifications.filter(n => !n.read).length;
+        
+        const result = { 
+            notifications, 
+            unreadCount
+        };
         
         // Update cache
         cachedNotifications = result;
