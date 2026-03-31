@@ -12,11 +12,9 @@ import { Header } from "@/components/layout/header";
 
 function PendingAccountOverlay({ dir }: { dir: 'ltr' | 'rtl' }) {
     const isRtl = dir === 'rtl';
-    // Base message: "Désolé, votre compte est en cours de vérification. سيتم تفعيل الحساب بعد التثبت من المعطيات مابين 24 ساعة و 72 ساعة. إذا تأخرنا أو كنت ترغب في تفعيل الحساب فوراً، تواصل معنا عبر الواتساب: +216 44 172 284"
     
     return (
         <div className="fixed inset-0 z-9999 flex items-center justify-center p-6 sm:p-12">
-            {/* Backdrop with extreme blur to hide sensitive dashboard data but keep the "vibe" */}
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xl" />
             
             <motion.div 
@@ -24,31 +22,30 @@ function PendingAccountOverlay({ dir }: { dir: 'ltr' | 'rtl' }) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 className="relative w-full max-w-2xl bg-white/90 backdrop-blur-md border border-white/20 rounded-[40px] shadow-2xl overflow-hidden p-10 md:p-16 text-center"
             >
-                {/* Decorative background element */}
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl" />
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl" />
 
                 <div className="relative z-10 flex flex-col items-center gap-8">
                     <div className="w-24 h-24 bg-linear-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/20 rotate-3 transition-transform hover:rotate-0 duration-500">
-                        <Clock className="w-12 h-12 text-white animate-pulse" />
+                        <Clock className="w-12 h-12 text-white" />
                     </div>
 
                     <div className="space-y-4">
                         <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                            {isRtl ? 'مرحباً بك! تفعيل الحساب مطلوب' : 'Bienvenue ! Activation requise'}
+                            {isRtl ? 'انتهت فترة التجربة! تفعيل الحساب مطلوب' : 'Période d\'essai terminée ! Activation requise'}
                         </h2>
                         
                         <div className="space-y-6 text-slate-600 text-lg md:text-xl font-medium leading-relaxed">
                             <p className="border-b border-slate-100 pb-6 italic">
                                 {isRtl 
-                                    ? 'يرجى التواصل معنا للتثبت من المعطيات وتفعيل الحساب.' 
-                                    : 'Veuillez nous contacter pour vérifier vos informations et activer votre compte.'}
+                                    ? 'لقد استكشفت الحساب لمدة 10 دقائق. لمواصلة استخدام كافة المميزات، يرجى التواصل معنا للتفعيل النهائي.' 
+                                    : 'Vous avez exploré le compte pendant 10 minutes. Pour continuer à utiliser toutes les fonctionnalités, veuillez nous contacter pour l\'activation finale.'}
                             </p>
                             
                             <p className="text-base text-slate-900 font-extrabold uppercase tracking-widest">
                                 {isRtl 
-                                    ? 'تواصل معنا لتفعيل الحساب في غضون لحظات:' 
-                                    : 'Contactez-nous pour activer votre compte immédiatement :'}
+                                    ? 'تواصل معنا الآن عبر الواتساب لتفعيل حسابك:' 
+                                    : 'Contactez-nous maintenant sur WhatsApp pour activer votre compte :'}
                             </p>
                         </div>
                     </div>
@@ -61,7 +58,7 @@ function PendingAccountOverlay({ dir }: { dir: 'ltr' | 'rtl' }) {
                             className="flex items-center gap-3 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/25 hover:-translate-y-1 active:translate-y-0"
                         >
                             <Zap className="w-5 h-5 fill-current" />
-                            WhatsApp Support
+                            WhatsApp Activation
                         </a>
                         
                         <button 
@@ -74,10 +71,6 @@ function PendingAccountOverlay({ dir }: { dir: 'ltr' | 'rtl' }) {
                             {isRtl ? 'تسجيل الخروج' : 'Se déconnecter'}
                         </button>
                     </div>
-                    
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        Protocol: Verification Phase
-                    </p>
                 </div>
             </motion.div>
         </div>
@@ -324,6 +317,25 @@ export default function DashboardLayout({
         };
 
         checkAuth();
+
+        // ADDED: Timer to check for trial expiry every minute for Pending users
+        const timer = setInterval(() => {
+            const savedProfile = localStorage.getItem("userProfile");
+            if (savedProfile) {
+                const profile: UserProfile = JSON.parse(savedProfile);
+                if (profile.status === 'Pending' && profile.trialExpiry) {
+                    const expiry = new Date(profile.trialExpiry).getTime();
+                    if (Date.now() > expiry) {
+                        // Trial expired! Show overlay or redirect
+                        setProfile({ ...profile }); // Trigger re-render to show overlay
+                        // Optional: Clear cookies too if middleware isn't enough
+                        document.cookie = "trial_expired=true; path=/";
+                    }
+                }
+            }
+        }, 30000); // Check every 30 seconds
+
+        return () => clearInterval(timer);
     }, [pathname, router]);
 
     if (isLoading) {
@@ -348,8 +360,12 @@ export default function DashboardLayout({
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex" dir={dir}>
 
-            {/* Pending Account Restriction Overlay */}
-            {profile?.status === 'Pending' && profile.role !== 'Admin' && profile.role !== 'Moderator' && (
+            {/* Pending Account Restriction Overlay - Only show if Pending AND trial expired */}
+            {profile?.status === 'Pending' && 
+             profile.role !== 'Admin' && 
+             profile.role !== 'Moderator' && 
+             profile.trialExpiry && 
+             new Date(profile.trialExpiry).getTime() < new Date().getTime() && (
                 <PendingAccountOverlay dir={dir} />
             )}
 

@@ -85,6 +85,10 @@ export async function POST(req: NextRequest) {
         response.cookies.set('user_role', user.role, { ...cookieOptions, httpOnly: false });
         response.cookies.set('user_status', user.status, { ...cookieOptions, httpOnly: false });
 
+        if (user.trialExpiry) {
+            response.cookies.set('trial_expiry', user.trialExpiry.toISOString(), { ...cookieOptions, httpOnly: false });
+        }
+
         return response;
     } catch (error: unknown) {
         console.error("Login Error:", error);

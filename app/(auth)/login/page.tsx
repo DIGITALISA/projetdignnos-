@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -13,6 +13,7 @@ function LoginContent() {
     const [isLoading, setIsLoading] = useState(false);
     const searchParams = useSearchParams();
     const callback = searchParams.get("callback");
+    const isTrialExpired = searchParams.get("trial_expired") === "true";
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -110,6 +111,13 @@ function LoginContent() {
                             />
                         </div>
 
+                        {isTrialExpired && (
+                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl mb-4 text-amber-800 text-xs font-bold text-center flex flex-col gap-1">
+                                <p>{dir === 'rtl' ? 'انتهت فترة التجربة المجانية (10 دقائق).' : 'Période d\'essai gratuite terminée (10 mins).'}</p>
+                                <p className="text-[10px] font-medium opacity-80">{dir === 'rtl' ? 'يرجى التواصل معنا عبر الواتساب لتفعيل حسابك بشكل دائم.' : 'Veuillez nous contacter via WhatsApp pour activer votre compte.'}</p>
+                            </div>
+                        )}
+
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold text-center">
                                 {error}
@@ -131,6 +139,13 @@ function LoginContent() {
                             )}
                         </button>
                     </form>
+
+                    <div className="p-4 bg-blue-50/50 border border-blue-100/50 rounded-2xl flex gap-3 items-center">
+                        <Shield className="w-5 h-5 text-blue-500 shrink-0" />
+                        <p className="text-[10px] text-blue-700 font-bold leading-relaxed">
+                            {dir === 'rtl' ? 'تذكير: يمكنك تجربة الحساب لمدة 10 دقائق مجاناً فور التسجيل. للتفعيل الكامل، يرجى التواصل معنا.' : 'Rappel : vous pouvez essayer le compte pendant 10 min gratuitement dès l\'inscription. Contactez-nous pour l\'activation.'}
+                        </p>
+                    </div>
 
 
                 </div>

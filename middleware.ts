@@ -41,6 +41,17 @@ export function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Account suspended" }, { status: 403 });
     }
 
+    // TRIAL EXPIRY CHECK (for Pending users only)
+    if (userStatus === "Pending") {
+      const trialExpiry = request.cookies.get("trial_expiry")?.value;
+      if (trialExpiry) {
+        const expiryDate = new Date(trialExpiry);
+        if (Date.now() > expiryDate.getTime()) {
+          return NextResponse.json({ error: "Trial expired. Please contact support via WhatsApp for activation." }, { status: 403 });
+        }
+      }
+    }
+
     // Start checking specific API permissions
     // Admin API routes
     if (pathname.startsWith("/api/admin")) {
@@ -107,6 +118,25 @@ export function middleware(request: NextRequest) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("callback", pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    // TRIAL EXPIRY CHECK (Frontend Pages)
+    if (userStatus === "Pending") {
+      const trialExpiry = request.cookies.get("trial_expiry")?.value;
+      if (trialExpiry) {
+        const expiryDate = new Date(trialExpiry);
+        if (Date.now() > expiryDate.getTime()) {
+          const loginUrl = new URL("/login", request.url);
+          loginUrl.searchParams.set("trial_expired", "true");
+          const response = NextResponse.redirect(loginUrl);
+          // Optional: Clear session cookies to logout
+          response.cookies.delete("session_token");
+          response.cookies.delete("user_role");
+          response.cookies.delete("user_status");
+          response.cookies.delete("trial_expiry");
+          return response;
+        }
+      }
     }
   }
 

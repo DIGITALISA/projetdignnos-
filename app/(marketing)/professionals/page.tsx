@@ -227,16 +227,19 @@ export default function ProfessionalsPage() {
                   </div>
 
                   <Link
-                    href={card.href}
+                    href={card.isExpert ? "#" : card.href}
                     className={cn(
                       "mt-auto w-full flex items-center justify-center gap-3 py-4 rounded-2xl",
                       "bg-linear-to-r text-white font-black text-xs uppercase tracking-widest",
-                      "transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg",
+                      "transition-all duration-300 shadow-lg",
+                      !card.isExpert ? "hover:scale-[1.02] active:scale-[0.98]" : "opacity-40 grayscale cursor-not-allowed",
                       c.btn
                     )}
                   >
-                    {card.cta}
-                    <ArrowRight className="w-4 h-4" />
+                    {card.isExpert 
+                      ? (lang === 'ar' ? 'غير جاهز حالياً' : lang === 'fr' ? 'Prochainement' : 'Coming Soon') 
+                      : card.cta}
+                    {!card.isExpert && <ArrowRight className="w-4 h-4" />}
                   </Link>
                 </motion.div>
               );

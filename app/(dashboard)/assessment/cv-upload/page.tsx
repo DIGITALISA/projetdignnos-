@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Linkedin } from "lucide-react";
 import {
   UploadCloud,
   CheckCircle,
@@ -72,6 +73,7 @@ export default function CVUploadPage() {
   );
   const [showResults, setShowResults] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [linkedinUrl, setLinkedinUrl] = useState("");
 
   useEffect(() => {
     const checkProgress = async () => {
@@ -233,6 +235,9 @@ export default function CVUploadPage() {
   const handleDownloadReport = async () => {
     if (!analysisResult) return;
     setIsDownloading(true);
+    const savedLinkedin = linkedinUrl || localStorage.getItem("linkedinUrl") || "";
+    const userProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+    const participantName = userProfile.fullName || "";
 
     try {
       // 1. Create a dedicated container
@@ -264,10 +269,24 @@ export default function CVUploadPage() {
                             <div style="color: #64748b; font-size: 14px;">Professional CV Audit</div>
                         </div>
                         <div style="text-align: right;">
-                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">Analysis Report</h1>
+                            <h1 style="margin: 0; font-size: 20px; color: #1e293b;">CV Analysis Report</h1>
                             <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">${new Date().toLocaleDateString()}</p>
                         </div>
                     </div>
+
+                    <!-- Participant Info -->
+                    ${participantName || savedLinkedin ? `
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 11px; color: #0369a1; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Participant</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #0f172a;">${participantName || 'Participant'}</div>
+                        </div>
+                        ${savedLinkedin ? `
+                        <div style="display: flex; align-items: center; gap: 8px; background: #0077b5; color: white; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: bold;">
+                            <span>in</span>
+                            <a href="${savedLinkedin}" style="color: white; text-decoration: none;">${savedLinkedin.replace('https://www.linkedin.com/in/', '').replace(/\/$/, '') || 'LinkedIn Profile'}</a>
+                        </div>` : ''}
+                    </div>` : ''}
 
                     <!-- Score & Verdict -->
                     <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0;">
@@ -479,6 +498,11 @@ export default function CVUploadPage() {
       formData.append("language", selectedLanguage || "en");
       formData.append("userId", userId);
       formData.append("userName", userName);
+      if (linkedinUrl.trim()) {
+        formData.append("linkedinUrl", linkedinUrl.trim());
+        // Save in localStorage for use in reports
+        localStorage.setItem("linkedinUrl", linkedinUrl.trim());
+      }
 
       // Call AI Analysis API
       const response = await fetch("/api/analyze-cv", {
@@ -1069,6 +1093,30 @@ export default function CVUploadPage() {
                   {LANGUAGES.find((l) => l.code === selectedLanguage)?.name}
                 </span>
               </button>
+            </div>
+
+            {/* LinkedIn URL Input */}
+            <div className="mb-6">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                <Linkedin className="w-4 h-4 text-blue-600" />
+                {selectedLanguage === 'ar' ? 'رابط ملف LinkedIn (اختياري)' : selectedLanguage === 'fr' ? 'Profil LinkedIn (optionnel)' : 'LinkedIn Profile URL (optional)'}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <Linkedin className="w-4 h-4 text-slate-400" />
+                </div>
+                <input
+                  type="url"
+                  id="linkedin-url-input"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder={selectedLanguage === 'ar' ? 'https://www.linkedin.com/in/اسمك' : selectedLanguage === 'fr' ? 'https://www.linkedin.com/in/votre-nom' : 'https://www.linkedin.com/in/your-name'}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-slate-400">
+                {selectedLanguage === 'ar' ? '✦ يُضاف تلقائياً في التقرير لإضفاء الطابع الرسمي' : selectedLanguage === 'fr' ? '✦ Ajouté automatiquement au rapport pour plus de professionnalisme' : '✦ Automatically included in your report for a professional touch'}
+              </p>
             </div>
 
             <div

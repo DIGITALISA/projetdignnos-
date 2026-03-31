@@ -40,19 +40,19 @@ export async function POST(req: NextRequest) {
         let accountType = "Free";
         let plan = "Student";
         let activationType = "Gratuit";
-        let trialDurationHours = 3;
+
+        const now = new Date();
+        const trialExpiry = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes trial
 
         if (planId?.startsWith("p-")) {
             role = "Premium Member";
             accountType = "Premium";
             plan = "Professional";
             activationType = "Gratuit";
-            trialDurationHours = 1;
         } else if (planId?.startsWith("e-") || planId?.startsWith("x-")) {
             role = "Free Tier";
             accountType = "Free";
             plan = "Expert";
-            trialDurationHours = 0;
             const expertInterviewStatus = "Pending";
             
             // Create user for expert/trainer
@@ -66,7 +66,10 @@ export async function POST(req: NextRequest) {
                 accountType,
                 plan,
                 memberId,
-                expertInterviewStatus
+                expertInterviewStatus,
+                isTrial: true,
+                trialExpiry,
+                trialDurationHours: 1/6
             });
             return NextResponse.json({ success: true, message: "Registration request submitted" });
         }
@@ -81,7 +84,8 @@ export async function POST(req: NextRequest) {
             status: "Pending",
             accountType,
             isTrial: true,
-            trialDurationHours,
+            trialDurationHours: 1/6,
+            trialExpiry,
             activationType,
             plan,
             mandateDuration,

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { ArrowRight, User, Mail, Phone, Loader2, CheckCircle2, Lock, GraduationCap, Shield, Eye, EyeOff, Copy } from "lucide-react";
+import { ArrowRight, User, Mail, Phone, Loader2, CheckCircle2, Lock, GraduationCap, Shield, Eye, EyeOff, Copy, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -48,7 +48,8 @@ export default function RegisterPage() {
             proCard: "Professional / Executive",
             expertCard: "Expert / Consultant",
             select: "Select This Path",
-            activationNote: "Important Note: After registration, account activation is only completed after contacting us via WhatsApp to verify your information.",
+            activationNote: "Important Note: After registration, you can explore the account for 10 minutes for free! Full activation is completed after contacting us via WhatsApp.",
+            trialNote: "Try for 10 minutes free before activation!",
             passwordSafetyNote: "Please save your access code in a safe place, you will need it to login later.",
             copyBtn: "Copy"
         },
@@ -76,7 +77,7 @@ export default function RegisterPage() {
             loginLink: "Se connecter",
             successTitle: "Félicitations ! Votre demande est créée",
             successP1: "Vous pouvez maintenant vous connecter à votre compte. Cliquez sur 'Retour à la connexion' puis utilisez l'email et le mot de passe que vous venez de choisir.",
-            successP2: "Important : L'activation finale ne sera effectuée qu'après nous avoir contactés via WhatsApp pour vérifier vos informations.",
+            successP2: "Important : Vous pouvez explorer votre compte pendant 10 minutes gratuitement ! Pour continuer à l'utiliser et débloquer toutes les fonctionnalités, vous devez nous contacter via WhatsApp pour l'activation finale.",
             successP3: "Votre compte sera activé dès vérification sous 24h maximum. Contactez-nous dès maintenant pour accélérer le processus :",
             backLogin: "Retour à la connexion",
             errorGeneric: "Une erreur est survenue",
@@ -87,7 +88,8 @@ export default function RegisterPage() {
             proCard: "Professionnel / Cadre",
             expertCard: "Expert / Consultant",
             select: "Choisir ce parcours",
-            activationNote: "Note importante : Après l'inscription, l'activation du compte ne se fera qu'après nous avoir contactés via WhatsApp pour vérifier vos informations.",
+            activationNote: "Note importante : Après l'inscription, vous pouvez explorer le compte gratuitement pendant 10 minutes ! L'activation finale se fait après nous avoir contactés via WhatsApp.",
+            trialNote: "Essayez pendant 10 minutes gratuitement avant l'activation !",
             passwordSafetyNote: "Veuillez conserver votre code d'accès en lieu sûr, vous en aurez besoin pour vous connecter.",
             copyBtn: "Copier"
         },
@@ -115,7 +117,7 @@ export default function RegisterPage() {
             loginLink: "تسجيل الدخول",
             successTitle: "تهانينا! تم إنشاء طلبك بنجاح",
             successP1: "بإمكانك الآن تسجيل الدخول إلى حسابك. انقر على 'العودة لتسجيل الدخول' ثم أدخل بريدك الإلكتروني وكلمة المرور التي اخترتها عند التسجيل.",
-            successP2: "ملاحظة هامة: لن يتم تفعيل الحساب إلا بعد التواصل معنا عبر الواتساب للتأكد من المعطيات المذكورة أعلاه.",
+            successP2: "ملاحظة هامة: يمكنك الآن استكشاف حسابك لمدة 10 دقائق مجاناً! لمواصلة الاستخدام وفتح جميع المميزات، يجب التواصل معنا عبر الواتساب للتفعيل النهائي.",
             successP3: "سيتم تفعيل حسابك فور التحقق من البيانات في غضون 24 ساعة كحد أقصى. تواصل معنا الآن لتسريع التفعيل:",
             backLogin: "العودة لتسجيل الدخول",
             errorGeneric: "حدث خطأ ما",
@@ -126,7 +128,8 @@ export default function RegisterPage() {
             proCard: "محترف / إطار مسير",
             expertCard: "خبير / مستشار",
             select: "اختر هذا المسار",
-            activationNote: "ملاحظة هامة: بعد التسجيل، يتم تفعيل الحساب فقط عند التواصل معنا عبر الواتساب للتثبت من المعطيات.",
+            activationNote: "ملاحظة هامة: بعد التسجيل، يمكنك تجربة الحساب مجاناً لمدة 10 دقائق! يتم التفعيل النهائي بعد التواصل معنا عبر الواتساب للتثبت من المعطيات.",
+            trialNote: "جرب الحساب لمدة 10 دقائق مجاناً قبل التفعيل!",
             passwordSafetyNote: "يرجى حفظ كلمة المرور الخاصة بك في مكان آمن، ستحتاجها للدخول لاحقاً.",
             copyBtn: "نسخ"
         }
@@ -296,11 +299,19 @@ export default function RegisterPage() {
                         </p>
                         
                         {/* Summary Activation Note */}
-                        <div className="mt-8 max-w-2xl mx-auto bg-blue-50/50 border border-blue-100/50 rounded-2xl p-4 flex gap-3 items-center justify-center">
-                            <Shield className="w-5 h-5 text-blue-500 shrink-0" />
-                            <p className="text-xs text-blue-700 font-bold leading-relaxed">
-                                {T.activationNote}
-                            </p>
+                        <div className="mt-8 max-w-2xl mx-auto flex flex-col gap-3">
+                            <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-2xl p-4 flex gap-3 items-center justify-center">
+                                <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
+                                <p className="text-xs text-emerald-700 font-bold leading-relaxed">
+                                    {T.trialNote}
+                                </p>
+                            </div>
+                            <div className="bg-blue-50/50 border border-blue-100/50 rounded-2xl p-4 flex gap-3 items-center justify-center">
+                                <Shield className="w-5 h-5 text-blue-500 shrink-0" />
+                                <p className="text-xs text-blue-700 font-bold leading-relaxed">
+                                    {T.activationNote}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -311,15 +322,21 @@ export default function RegisterPage() {
                             { id: 'e-expert', title: T.expertCard, sub: T.expertSub, color: 'emerald', icon: Lock }
                         ].map((item) => {
                             const Icon = item.icon;
+                            const isNotReady = item.id === 'e-expert';
                             return (
                                 <motion.button
                                     key={item.id}
-                                    whileHover={{ y: -10 }}
-                                    onClick={() => setSelectedPlan(item.id)}
-                                    className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl hover:shadow-2xl hover:border-blue-500/20 transition-all text-center group flex flex-col items-center"
+                                    whileHover={!isNotReady ? { y: -10 } : {}}
+                                    onClick={() => !isNotReady && setSelectedPlan(item.id)}
+                                    disabled={isNotReady}
+                                    className={cn(
+                                        "bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl transition-all text-center group flex flex-col items-center",
+                                        !isNotReady ? "hover:shadow-2xl hover:border-blue-500/20" : "opacity-60 grayscale cursor-not-allowed"
+                                    )}
                                 >
                                     <div className={cn(
-                                        "w-20 h-20 rounded-3xl flex items-center justify-center mb-6 transition-all group-hover:scale-110 shadow-inner",
+                                        "w-20 h-20 rounded-3xl flex items-center justify-center mb-6 transition-all shadow-inner",
+                                        !isNotReady && "group-hover:scale-110",
                                         item.color === 'blue' ? 'bg-blue-50 text-blue-500' : 
                                         item.color === 'indigo' ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'
                                     )}>
@@ -331,8 +348,15 @@ export default function RegisterPage() {
                                     <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8 flex-1">
                                         {item.sub}
                                     </p>
-                                    <div className="w-full py-4 rounded-2xl bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all font-black text-[10px] uppercase tracking-widest">
-                                        {T.select}
+                                    <div className={cn(
+                                        "w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all",
+                                        isNotReady 
+                                            ? "bg-slate-200 text-slate-500" 
+                                            : "bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white"
+                                    )}>
+                                        {isNotReady 
+                                            ? (dir === 'rtl' ? 'غير جاهز حالياً' : lang === 'fr' ? 'Prochainement' : 'Coming Soon')
+                                            : T.select}
                                     </div>
                                 </motion.button>
                             );
@@ -495,14 +519,22 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        {/* Activation Note */}
-                        <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 flex gap-3 items-start animate-pulse">
-                            <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                                <span className="text-amber-600 font-black text-xs">!</span>
+                        {/* Trial & Activation Note */}
+                        <div className="space-y-3">
+                            <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-2xl p-4 flex gap-3 items-center animate-pulse">
+                                <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
+                                <p className="text-[10px] md:text-xs text-emerald-700 font-bold leading-relaxed">
+                                    {T.trialNote}
+                                </p>
                             </div>
-                            <p className="text-[10px] md:text-xs text-amber-700 font-bold leading-relaxed">
-                                {T.activationNote}
-                            </p>
+                            <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 flex gap-3 items-start">
+                                <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                                    <span className="text-amber-600 font-black text-xs">!</span>
+                                </div>
+                                <p className="text-[10px] md:text-xs text-amber-700 font-bold leading-relaxed">
+                                    {T.activationNote}
+                                </p>
+                            </div>
                         </div>
 
                         <button
